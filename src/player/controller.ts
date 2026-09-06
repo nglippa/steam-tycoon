@@ -1,7 +1,7 @@
 import * as T from 'three';
 import type { City, Target } from '../world/city';
 export class Player {
-  keys = new Set<string>(); yaw = 0; pitch = -.025; velocity = new T.Vector3(); position = new T.Vector3(0, 1.93, 73); grounded = true; locked = false; paused = true; fallback = false; dragging = false; target: Target | null = null; moved = 0;
+  keys = new Set<string>(); yaw = 0; pitch = -.025; velocity = new T.Vector3(); position = new T.Vector3(0, 1.93, 77); grounded = true; locked = false; paused = true; fallback = false; dragging = false; target: Target | null = null; moved = 0;
   onInteract: (t: Target) => void = () => {}; onLock: (locked: boolean) => void = () => {}; onStep: () => void = () => {};
   ray = new T.Raycaster(); forward = new T.Vector3(); desired = new T.Vector3(); private step = 0;
   constructor(public camera: T.PerspectiveCamera, public canvas: HTMLCanvasElement, public city: City) {

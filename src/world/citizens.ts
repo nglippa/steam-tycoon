@@ -104,5 +104,16 @@ export function citizen(coat: Material = mats.rust, seed = 0) {
     box(shoulder, 0, -.4, .015, .17, .1, .19, brass);
     sphere(shoulder, 0, -.49, .025, .085, skin[seed % 3]); bakeCharacter(shoulder);
   }
-  return { group, legs, knees, arms, head, phase: seed * 1.7 };
+  const worn = new T.Group();group.add(worn);
+  box(worn,-.15,1.13,.272,.16,.18,.012,boot);box(worn,.17,.82,.22,.14,.1,.02,ivory);
+  if(seed%3===0)box(worn,0,1.05,.28,.38,.46,.025,toon('#77604c'));
+  bakeCharacter(worn);
+  const finery = new T.Group();group.add(finery);
+  if(seed%2===0){box(finery,0,1.18,.27,.34,.28,.025,scarves[(seed+1)%3]);for(const x of [-.2,.2])box(finery,x,1.28,.27,.08,.25,.04,ivory).rotation.z=x*2;}
+  else {torus(finery,.17,1.09,.28,.06,.015,brass);box(finery,.17,1.19,.275,.012,.16,.02,brass);}
+  if(seed%4===1){box(finery,.31,1,0,.12,.38,.28,cloth);box(finery,.38,1.1,.04,.035,.05,.12,brass);}
+  bakeCharacter(finery);finery.visible=false;
+  group.scale.set(1+(seed%4-1.5)*.045, .91+(seed%5)*.035,1);
+  group.traverse(o=>{if(o instanceof T.Mesh)o.castShadow=false;});
+  return { group, legs, knees, arms, head, worn, finery, phase: seed * 1.7 };
 }
