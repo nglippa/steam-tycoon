@@ -1,18 +1,20 @@
 import * as T from 'three';
+import { palette as P } from './palette';
 import { box,cyl,sphere,beam,torus,windowUnit,sign,bake,mats,seeded } from './assets';
-import { V,pipe,cable,railing,crest,roof,artMats } from './art-kit';
+import { V,pipe,railing,crest,roof,artMats } from './art-kit';
 
 /** Authored structural rhythm; additions stay above the walkable frontage. */
 export function facadeDetail(g:T.Group,w:number,h:number,d:number,type:number) {
   const front=d/2;
   // Projecting iron balcony, supported by diagonal corbels.
   const bx=type%2?-w*.24:w*.22;
-  box(g,bx,4.25,front+.65,4,.16,1.5,mats.iron);
+  if(type<6||type%3===2){box(g,bx,4.25,front+.65,4,.16,1.5,mats.iron);
   railing(g,bx,4.3,front+1.4,4);
   for(const x of [bx-1.7,bx+1.7])beam(g,V(x,3.3,front+.1),V(x,4.2,front+1.25),.075,mats.iron);
+  }
   for(const x of [-w/2+.75,w/2-.75]) {
     box(g,x,h*.5,front+.26,.14,h-.5,.18,mats.iron);
-    for(let y=1;y<h;y+=1.2)sphere(g,x,y,front+.38,.055,mats.brass);
+
   }
   // Side elevations face arrival and the cross streets: timber infill, shutters,
   // drain pipes and upper oriels break the formerly blank masonry rectangles.
@@ -28,9 +30,8 @@ export function facadeDetail(g:T.Group,w:number,h:number,d:number,type:number) {
     beam(wall,V(-d*.34,h*.35,.22),V(0,h*.59,.22),.06,mats.wood);
     beam(wall,V(0,h*.59,.22),V(d*.34,h*.82,.22),.06,mats.wood);
     pipe(wall,[[-d*.39,h+.3,.3],[-d*.39,2,.3],[-d*.28,1.3,.3],[-d*.28,.3,.3]],.075,mats.rust);
-    for(let i=0;i<6;i++)box(wall,-d*.22+i*.35,2.7,.1,.3,.7,.08,i%2?mats.wood:mats.rust).rotation.z=.08*(i%3-1);
-    const vent=new T.Group();vent.position.set(d*.29,2,.18);wall.add(vent);box(vent,0,0,0,1.3,.85,.2,mats.iron);
-    for(let i=0;i<5;i++)box(vent,0,-.3+i*.15,.15,1.12,.04,.09,mats.copper);
+
+    if(side<0){const vent=new T.Group();vent.position.set(d*.29,2,.18);wall.add(vent);box(vent,0,0,0,1.3,.6,.12,mats.iron);for(let i=0;i<3;i++)box(vent,0,-.2+i*.2,.1,1.12,.045,.04,mats.copper);}
   }
   const rear=new T.Group();rear.position.z=-d/2-.04;rear.rotation.y=Math.PI;g.add(rear);
   box(rear,0,h*.63,.08,w*.67,h*.35,.12,artMats.fadedPaint);
@@ -38,14 +39,10 @@ export function facadeDetail(g:T.Group,w:number,h:number,d:number,type:number) {
   for(const x of [-w*.28,0,w*.28]){box(rear,x,h*.62,.2,.13,h*.38,.16,mats.wood);windowUnit(rear,x,h*.48,.3,type%3!==0,1.15,1.9);}
   pipe(rear,[[-w*.39,h,.24],[-w*.39,3,.24],[-w*.18,3,.24],[-w*.18,.2,.24]],.12,mats.copper);
   box(rear,w*.23,2.3,.4,2,1.2,.7,mats.iron);for(let i=0;i<6;i++)box(rear,w*.23,1.88+i*.16,.8,1.8,.055,.12,mats.rust);
-  sign(rear,'SERVICE '+String(type+1).padStart(2,'0'),'LOWWORKS • KEEP ACCESS CLEAR',-w*.2,1.7,.15,2.8,.75);
-  // Offset dormer and a rooftop utility silhouette, rather than a single roof slab.
-  const dx=type%2?-w*.22:w*.22;
-  box(g,dx,h+1.4,front*.25,3.2,2.4,3.1,artMats.plaster);
-  roof(g,dx,h+2.6,front*.25,3.9,2.4,3.6);
-  windowUnit(g,dx,h+.9,front*.25+1.57,true,1.1,1.6);
-  for(const x of [-w*.3,-w*.22]) {cyl(g,x,h+3,-d*.26,.25,5.6,mats.rust);cyl(g,x,h+5.8,-d*.26,.38,.16,mats.iron);}
-  cable(g,V(-w/2,h-.6,front+.3),V(w/2,h-1.4,front+.3),.6);
+
+  // Only residential blocks use this small roof accent; businesses own their crowns.
+  if(type>=6){const dx=type%2?-w*.22:w*.22;box(g,dx,h+1,0,3.2,2,3.1,artMats.plaster);roof(g,dx,h+2,0,3.7,1.8,3.6);windowUnit(g,dx,h+.4,1.57,true,1.1,1.3);}
+
 }
 
 export function businessCrown(g:T.Group,index:number,h:number) {
@@ -53,8 +50,8 @@ export function businessCrown(g:T.Group,index:number,h:number) {
     // Boiler No. 07 is visible from the gate, not hidden behind the shop.
     for(const x of [-3.4,2.7]) {
       const top=x<0?20:16;
-      cyl(g,x,(h+top)/2,0,1.9,top-h,mats.copper);
-      sphere(g,x,top,0,1.9,mats.copper).scale.y=.6;
+      cyl(g,x,(h+top)/2,0,1.9,top-h,mats.teal);
+      sphere(g,x,top,0,1.9,mats.teal).scale.y*=.38;
       for(let y=h+1;y<top;y+=2)cyl(g,x,y,0,1.97,.13,mats.iron);
       for(const dx of [-1.5,1.5])box(g,x+dx,h+1,0,.18,4,.18,mats.iron);
       pipe(g,[[x,top,0],[x,top+2,0],[x,top+2,3],[x,6,3],[x,6,5.8]],.26);
@@ -64,7 +61,7 @@ export function businessCrown(g:T.Group,index:number,h:number) {
     crest(g,2.7,13,2,1.2);
   } else if(index===3) {
     for(const x of [-5,0,5])roof(g,x,h+.3,0,4.7,3.7,10,mats.rust);
-    for(const x of [-5,4]){cyl(g,x,h+5,-2,.8,10,mats.darkBrick);cyl(g,x,h+10,-2,1,.4,mats.iron);}
+    for(const x of [-5,4]){const tall=x>0?13:8;const radius=x>0?1.25:.65;cyl(g,x,h+tall/2,-2,radius,tall,mats.iron);cyl(g,x,h+tall,-2,radius+.18,.35,mats.rust);}
     box(g,0,h+1,5.8,13,.26,.3,artMats.furnace);
     sign(g,'CINDER','IRON • FOUNDRY No. 3',0,h+3.5,5.2,9,2);
   } else if(index===0) {
@@ -89,32 +86,23 @@ export function businessCrown(g:T.Group,index:number,h:number) {
 }
 
 export function buildSkyline(root:T.Group) {
-  const rand=seeded(1967);const near=new T.Group();const far=new T.Group();root.add(near,far);
-  // Roof clusters form a lower city layer around asymmetric civic/industrial peaks.
-  for(let i=0;i<40;i++) {
-    const a=i/40*Math.PI*2;const r=108+rand()*23;const x=Math.sin(a)*r,z=Math.cos(a)*r;
-    const w=5+rand()*7,h=12+rand()*19,d=7+rand()*6;
-    box(near,x,h/2,z,w,h,d,i%3?mats.darkBrick:artMats.plaster);
-    roof(near,x,h,z,w+1,3+rand()*5,d+1);
-    for(let y=5;y<h-1;y+=4)for(let dx=-w/2+1;dx<w/2;dx+=2.4)if(rand()>.4)box(near,x+dx,y,z+d/2+.04,.7,1.4,.05,mats.glow);
-    if(i%4===0){cyl(near,x,h+4,z,1.8,5,mats.copper);cyl(near,x,h+6.7,z,2,.25,mats.iron);}
+  const rand=seeded(1967),near=new T.Group(),far=new T.Group();root.add(near,far);
+  const distant=new T.MeshStandardMaterial({color:P.cool.dustyBlue,roughness:1});
+  const distantRoof=new T.MeshStandardMaterial({color:P.cool.cyan,roughness:1});
+  for(let i=0;i<24;i++){
+    const a=i/24*Math.PI*2,r=116+rand()*15,x=Math.sin(a)*r,z=Math.cos(a)*r;
+    const w=8+rand()*8,h=9+rand()*12,d=9+rand()*5;
+    box(near,x,h/2,z,w,h,d,distant);roof(near,x,h,z,w+.5,2+rand()*3,d+.5,distantRoof);
+    if(i%5===0)cyl(near,x+w*.2,h+2,z,1.35,4,distantRoof);
   }
-  // Far silhouette: stepped engine cathedrals, airship moorings and clustered flues.
-  for(let i=0;i<19;i++) {
-    const x=(i-9)*21,z=-145-(i%3)*19,h=30+rand()*32;
-    box(far,x,h/2,z,10,h,12,mats.darkBrick);
-    box(far,x,h*.72,z,14,.5,15,mats.iron);
-    if(i%3===0){const dome=sphere(far,x,h,z,7,mats.roof);dome.scale.y*=1.4;cyl(far,x,h+11,z,.3,10,mats.brass);}
-    else {roof(far,x,h,z,13,10,14);for(const dx of [-5,5])cyl(far,x+dx,h+7,z,.45,18,mats.rust);}
-    for(let y=10;y<h-2;y+=5)for(const dx of [-3,0,3])box(far,x+dx,y,z+6.1,.5,2,.05,mats.glow);
+  for(let i=0;i<11;i++){
+    const x=(i-5)*34,z=-162-(i%3)*16,h=Math.abs(x)<40?14:20+rand()*15;
+    box(far,x,h/2,z,19,h,16,distant);
+    if(i%3===0){const dome=sphere(far,x,h,z,7,distantRoof);dome.scale.y*=.65;}
+    else roof(far,x,h,z,20,5,17,distantRoof);
   }
-  for(const x of [-95,94]) {
-    for(const dx of [-5,5])box(near,x+dx,23,-87,.45,46,.45,mats.iron);
-    for(let y=6;y<42;y+=9)beam(near,V(x-5,y,-87),V(x+5,y+8,-87),.1,mats.iron);
-    box(near,x,42,-87,28,.45,.8,mats.rust);cable(near,V(x-5,48,-87),V(x+15,42,-87),.3);
-  }
-  // Horizontal aqueduct between vertical peaks establishes another horizon.
-  for(let x=-100;x<=100;x+=17) {box(far,x,9,-116,1.5,18,2.5,mats.darkBrick);beam(far,V(x,11,-116),V(x+8,17,-116),.22,mats.stone);}
-  box(far,0,18,-116,225,1.5,4,mats.darkBrick);
-  bake(near);bake(far);far.traverse(o=>{if(o instanceof T.Mesh)o.castShadow=false;});
+  for(let x=-102;x<=102;x+=34)box(far,x,6,-124,2,12,3,distant);
+  box(far,0,12,-124,218,1.3,4,distant);
+  bake(near);bake(far);near.traverse(o=>{if(o instanceof T.Mesh)o.castShadow=false;});far.traverse(o=>{if(o instanceof T.Mesh)o.castShadow=false;});
+
 }

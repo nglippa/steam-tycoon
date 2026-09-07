@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { reducedMotion } from '../motion';
 import type { City, Target } from '../world/city';
 export class Player {
   keys = new Set<string>(); yaw = 0; pitch = -.025; velocity = new T.Vector3(); position = new T.Vector3(0, 1.93, 77); grounded = true; locked = false; paused = true; fallback = false; dragging = false; target: Target | null = null; moved = 0;
@@ -21,7 +22,7 @@ export class Player {
       for (let i = 0; i < substeps; i++) { const feet = this.position.y - 1.75; const x = this.position.x + this.velocity.x * step; const z = this.position.z + this.velocity.z * step; if (this.city.groundHeight(x, this.position.z) <= feet + .38 && !this.city.blocked(x, this.position.z, feet)) this.position.x = x; if (this.city.groundHeight(this.position.x, z) <= feet + .38 && !this.city.blocked(this.position.x, z, feet)) this.position.z = z; this.position.y += this.velocity.y * step; const ground = this.city.groundHeight(this.position.x, this.position.z) + 1.75; if (this.position.y <= ground) { this.position.y = ground; this.velocity.y = 0; this.grounded = true; } else { this.grounded = false; } }
       const moving = Math.hypot(this.velocity.x, this.velocity.z); this.moved += moving * dt; if (this.grounded && moving > .3) { this.step += moving * dt; if (this.step > 2.1) { this.step = 0; this.onStep(); } }
     }
-    this.camera.position.copy(this.position); if (this.locked && !this.city.economy.state.settings.reducedMotion && this.grounded) this.camera.position.y += Math.sin(time * 9) * Math.min(.025, this.desired.length() * .006); this.camera.rotation.set(this.pitch, this.yaw, 0, 'YXZ'); this.camera.updateMatrixWorld();
+    this.camera.position.copy(this.position); if (this.locked && !reducedMotion(this.city.economy.state.settings.reducedMotion) && this.grounded) this.camera.position.y += Math.sin(time * 9) * Math.min(.025, this.desired.length() * .006); this.camera.rotation.set(this.pitch, this.yaw, 0, 'YXZ'); this.camera.updateMatrixWorld();
     this.ray.setFromCamera(new T.Vector2(0, 0), this.camera); const hits = this.ray.intersectObjects(this.city.targets.map(t => t.object), false); this.target = hits[0] && hits[0].distance < 4.6 ? this.city.targets.find(t => t.object === hits[0].object)! : null;
   }
 }

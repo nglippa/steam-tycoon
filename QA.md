@@ -60,3 +60,99 @@ The expensive initial art iteration measured 32–37 FPS. Citizen batching, a re
 ### Checks
 
 Final commands: `npm run typecheck`, `npm test` (all 11 existing tests), and `npm run build`. The Three.js vendor chunk retains Vite's size advisory. The server remains at http://127.0.0.1:5174/.
+
+
+## Messenger-inspired finishing pass — 2026-09-07
+
+Continued the interrupted pass in `/Users/nicholaslippa/Projects/steam-tycoon`. The local preview remains at http://127.0.0.1:5174/. Existing uncommitted art work was preserved.
+
+- Inspected Messenger's graphic character and environment treatment, Terra's city overview, and the street-level citizen view. Increased face-detail size, adjusted boot contact, and added shared flat contact shadows.
+- Added opaque paper behind introductory copy so rooftops do not compromise readability.
+- Verified title and entry-button bounds at 1280×720, 390×844, 320×568 and 844×390 in the embedded browser. The Chrome viewport override did not change the measured viewport, so it was not used as responsive evidence.
+- At 390×844, opened the ledger with its visible button, verified panel bounds and scrolling, navigated from Close ledger to Properties with Tab, opened Settings, toggled reduced motion, and switched both quality modes. The reduced-motion body class was active and the panel's computed animation was `none`.
+- At 844×390, verified entry, pause bounds, Settings access and Escape back to pause. The title uses a two-column arrangement in short landscape view.
+- A shared preference helper now checks both device and game settings for opening motion, entry transition, walking head bob, crowd cadence and lamp flicker. Device preference integration was checked in code; the OS setting was not changed during browser verification.
+- Full and performance rendering produced no reported warning/error logs in the inspected embedded browser; the Chrome citizen inspection also reported none.
+- `npm test`: all 11 economy tests pass. `npm run build`: TypeScript and Vite pass. The existing Three.js vendor-chunk size advisory remains. `git diff --check` passes.
+
+This pass verifies responsive presentation, not touch locomotion: exploration still uses the existing keyboard/mouse controls. No economy or save-schema changes, remote assets, publishing or deployment were introduced.
+
+## Messenger-level refinement — 2026-09-07
+
+Implemented in `/Users/nicholaslippa/Projects/steam-tycoon`; the requested `~/city-tycoon` path is absent. Existing work was preserved. No new gameplay systems or save-schema changes were introduced.
+
+### Rendered review and corrections
+
+Inspected actual frames of the starting gate/street, close citizen, market, clock, boiler yard, foundry, walkable overlook, rainy night, and maximum city. Revisited Messenger's rendered character scene for the final comparison. Comparison concerned restraint, silhouette, contrast and spatial layering; no source assets were copied.
+
+Final iterations corrected high eye placement, block-shaped market counters, duplicated tavern awnings, and solid Exchange arcade panels obscuring its sign. The Exchange now has an open gallery. The city uses a narrower apparent road, quieter curbs/rails, fewer cross-street structures, lower distant masses, and specific business upgrades. NPC figures use tapered continuous surfaces and small staged groups. Boiler steam fades in periodic releases through a single shared particle pass.
+
+### Gameplay and checks
+
+The explicit `?dev=1&review=1` mode uses memory-only storage so review purchases and staged progression do not modify either the normal or QA save. Its DOM diagnostics are emitted after actual frames render, and optional traversal checks exercise `Player.update` and the actual target raycast.
+
+- At levels 0 and 5, all six property ledgers were raycast successfully from unblocked standing positions.
+- Real-controller checks passed along the main street, both pedestrian lanes, the foundry lane, the housing lane, the ramp ascent and a building-wall collision.
+- In the embedded browser, opened the physical salvage ledger with E, commissioned the 25-Crown repair, observed the disabled construction button, verified the next commission became enabled after completion, and collected local earnings.
+- TypeScript check passes. All 11 economy tests pass. Production build passes, with the existing Three.js chunk-size advisory (543.19 kB minified, 137.65 kB gzip).
+- No warning/error browser logs in the inspected final scenes. Responsive UI and reduced-motion checks from the preceding finishing pass remain applicable; this pass changes world presentation rather than controls or layout.
+
+### Performance
+
+Codex embedded browser, 1280×720, full quality, 1.5× render density, 1.2-second warmup and approximately five seconds / 360–361 measured frames per scene. These samples sit at the browser's observed ~72 FPS ceiling, so they establish that these views meet the requested 50–57 FPS target on this machine, not a hardware-independent improvement ratio.
+
+| Scene | FPS | p95 frame ms | Draw calls | Triangles |
+| --- | ---: | ---: | ---: | ---: |
+| Starting street, level 0 | 71.9 | 14.8 | 495 | 305,980 |
+| Market, level 0 | 71.9 | 14.7 | 209 | 186,014 |
+| Crowded clock vista, level 5 | 71.9 | 14.8 | 321 | 321,499 |
+| Foundry, level 0 | 71.9 | 14.8 | 349 | 269,118 |
+| Rainy-night clock vista, level 5 | 71.9 | 14.8 | 324 | 321,501 |
+| Upgraded overview, level 5 | 71.9 | 14.8 | 548 | 447,419 |
+| Market, level 5 | 71.9 | 14.9 | 222 | 246,486 |
+| Close citizen, level 0 | 71.9 | 14.7 | 195 | 205,202 |
+| Boiler yard, final steam fade | 71.9 | 14.8 | 449 | 297,706 |
+
+The final steam fade changes particle opacity, retaining particle count and draw count; boiler rendering and browser diagnostics were rechecked afterward.
+
+### Remaining limits
+
+Faces have four painted expressions and six hair silhouettes rather than bespoke animated facial rigs. Residential window rhythms remain repeated, and background pedestrians retain lightweight route choreography. Touch locomotion is not implemented. The retained Three.js size advisory concerns download size rather than an observed frame-rate failure.
+
+## Anime-steampunk life and palette — 2026-09-07
+
+Continued in `/Users/nicholaslippa/Projects/steam-tycoon` without rebuilding the game or changing the economy, population ceiling, ledger positions or collision layout.
+
+### Rendered audit and final review
+
+Inspected spawn, close citizens, market, housing, boiler, foundry, clock, rainy night and the upgraded overview before implementation. Final rendered checks covered the close guard/courier, conversation pair, clear-day market, rainy-night market, housing at levels 0 and 5, boiler, foundry, clock, and maximum overview. The green wash was replaced by slate streets, parchment/plaster, distinct iron/copper/brass, curated clothing and weather-specific skies. The Exchange's wall color and small trim shadows received a second refinement after screenshot review. The final merchant review removed a matching-outfit procession by alternating curated wardrobe variants and assigning more citizens to browsing stalls.
+
+### Behavior and interaction checks
+
+- The live DOM review diagnostics observed neutral, happy, tired, focused, annoyed and blink states in the actual running scene. Rendered faces use a shared atlas with per-instance expression selection.
+- Diagnostics and rendered views confirmed partner glances, look-away periods and short player glances in the close view. Conversation partners showed alternating happy/neutral states and gestures.
+- Existing citizens now populate distinct market, residential and industrial activities. Haulers carry a small crate; workers inspect the gauge, turn a valve, hammer, sweep, read and warm their hands. Walkers pause and ease their turns at route endpoints.
+- No visible route actor was recorded inside a static collision footprint during the sampled maximum-prosperity scene. This is sampled clearance evidence, not exhaustive path coverage over unlimited playtime.
+- All six physical ledgers raycast successfully from unblocked standing positions at levels 0 and 5. Main street, east/west pedestrian lanes, foundry/housing lanes, ramp ascent and wall-collision checks pass through the real controller.
+- Opened the city ledger and Settings through actual UI controls; inspected the shared paper-and-ink colors. Earlier repair/collection coverage remains applicable; the economy and purchase handlers are unchanged.
+
+### Performance
+
+Embedded browser, 1280×720, 1.5× pixel density, full atmosphere, 1.2-second warmup followed by about five seconds (360–361 frames) per view. All samples remain at the observed ~72 FPS browser ceiling, meeting the requested 60+ FPS target on this machine. These measurements do not imply the same result on every device.
+
+| Scene | FPS | p95 frame ms | Draw calls | Triangles |
+| --- | ---: | ---: | ---: | ---: |
+| Starting street, level 0 | 71.9 | 14.8 | 501 | 301,645 |
+| Market clear day, level 0 | 71.9 | 14.9 | 224 | 180,590 |
+| NPC-heavy clock vista, level 5 | 71.9 | 14.9 | 319 | 313,560 |
+| Foundry, level 0 | 71.9 | 15.1 | 355 | 252,705 |
+| Rainy-night market, final staging | 71.9 | 15.5 | 231 | 261,967 |
+| Upgraded overview, level 5 | 71.9 | 14.5 | 545 | 454,827 |
+
+The final small staging changes retain the same population ceiling and shared batching. The rainy-night market was rechecked after the last changes.
+
+### Final checks and remaining limits
+
+`npm run typecheck` passes; all 11 economy tests pass; `npm run build` passes. Final production output: application 127.85 kB / 47.19 kB gzip; Three.js 543.22 kB / 137.66 kB gzip. Vite retains the existing vendor chunk-size advisory. Browser inspection reports no rendering warnings or errors.
+
+Facial changes are discrete atlas states, and conversations/work remain short authored loops. Residential families still share simple structural geometry. The work improves visual life without introducing dialogue, a social simulation or expensive facial animation.

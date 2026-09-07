@@ -14,7 +14,7 @@ Open **http://127.0.0.1:5174/** in Chrome, Edge, Safari or a modern WebGL2 brows
 
 - **WASD** walk; **mouse** look; **Shift** sprint; **Space** jump.
 - **E** interact while aiming at a brass ledger or discovery plaque within reach.
-- **Tab** opens/closes the city ledger; **Esc** releases the mouse and pauses movement.
+- **Tab** opens the city ledger while exploring; inside menus, Tab moves between controls. **Esc** closes the ledger or releases the mouse and pauses movement. The on-screen City ledger button also opens it.
 - **F3** shows frame rate and position. It starts disabled.
 
 Begin at Rook & Son, on the left past the arrival arch. Inspect its ledger, collect the first reserve, mend the sorting rig, restore the municipal boiler and fund street lighting. The treasury earns passive dividends even before a foreman is hired.
