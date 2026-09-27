@@ -5,6 +5,7 @@ import { InkRenderer } from './world/ink-renderer';
 import { City } from './world/city';
 import { Atmosphere } from './world/atmosphere';
 import { Player } from './player/controller';
+import { TouchControls, isTouch } from './player/touch';
 import { Soundscape } from './audio/sound';
 import { Interface } from './ui/interface';
 import './ui/style.css';
@@ -25,7 +26,11 @@ let arrival = 1; const titlePosition = new T.Vector3(); const titleRotation = ne
 const reducedMotion = () => prefersReducedMotion(economy.state.settings.reducedMotion);
 let time = economy.state.playtime; let last = performance.now(); let autosave = 0; let hud = 0; let hammer = 0; let fps = 60; let debug = false; let previousConstructionCount = 0; let shadowElapsed = 0;
 const query = new URLSearchParams(location.search); const dev = query.has('dev');
-function quality() { const high = economy.state.settings.quality === 'high'; inkRenderer.setQuality(high); renderer.setPixelRatio(Math.min(devicePixelRatio, high ? 1.5 : 1)); renderer.shadowMap.enabled = high; renderer.shadowMap.needsUpdate = true; atmosphere.rain.geometry.setDrawRange(0, high ? 3000 : 1100); }
+function quality() { const high = economy.state.settings.quality === 'high'; inkRenderer.setQuality(high); renderer.setPixelRatio(Math.min(devicePixelRatio, touch ? (high ? 1.25 : 1) : high ? 1.5 : 1)); renderer.shadowMap.enabled = high; renderer.shadowMap.needsUpdate = true; atmosphere.rain.geometry.setDrawRange(0, high ? 3000 : 1100); }
+// Phones and tablets: touch controls, no pointer lock, the lighter renderer on a fresh game.
+const touch = isTouch(); let touchControls: TouchControls | undefined;
+if (touch) { document.body.classList.add('touch'); player.touch = true; if (economy.state.playtime < 1) economy.state.settings.quality = 'low';
+  touchControls = new TouchControls(player, canvas, { ledger: () => ui.openLedger(), pause: () => player.release() }); }
 ui.onQuality = quality; quality();
 economy.onChange = (kind, id) => { if (kind === 'save-error') { ui.toast('City records could not be saved. Check this browser’s storage permissions.'); return; } const oldStage = city.stage; city.construct(kind, id); if (economy.stage > oldStage) ui.toast(`Terra enters ${['The Lowworks', 'Recovery', 'Industry', 'Commerce', 'Innovation', 'Grand Terra'][economy.stage]}. Look what your city is becoming.`, 7000); else if (['property', 'infrastructure', 'research'].includes(kind)) ui.toast('Commission approved. The civic engineers are on their way.'); };
 player.onStep = () => sound.step(); ui.onStart = () => { arrival = reducedMotion() ? 1 : 0; titlePosition.copy(camera.position); titleRotation.copy(camera.quaternion); if (economy.state.playtime < 1) time = 0; }; ui.onReset = () => { for (const c of city.constructions) city.root.remove(c.group); city.constructions = []; city.sync(true); player.teleport(0, 77); player.pitch = -.025; ui.tracked = 'scrap'; time = 0; sound.apply(); quality(); };
@@ -35,7 +40,7 @@ document.addEventListener('keydown', e => { if (e.code === 'F3') { e.preventDefa
 function frame(now: number) { requestAnimationFrame(frame); if ((document.hidden || !ui.started) && now-last < (document.hidden ? 250 : 1000/24)) return; const raw = (now - last) / 1000; const dt = Math.min(.05, raw); last = now; fps = T.MathUtils.lerp(fps, 1 / Math.max(.001, raw), .035); time += dt;
   if (ui.started) { economy.tick(raw); autosave += dt; if (autosave >= 10) { autosave = 0; economy.save(); } }
   player.update(dt, time); city.update(dt, time, player.position); atmosphere.update(dt, time, camera, !ui.started); sound.update(player.position.x, player.position.z, player.yaw, atmosphere.weather === 'rain', time); if (city.constructions.length) { hammer += dt; if (hammer > .35) { hammer = 0; sound.hammer(); } }
-  hud += dt; if (hud > .1) { hud = 0; ui.update(atmosphere.weather, fps, debug); } if (previousConstructionCount > city.constructions.length && ui.panel) ui.render();
+  hud += dt; if (hud > .1) { hud = 0; ui.update(atmosphere.weather, fps, debug); touchControls?.update(); } if (previousConstructionCount > city.constructions.length && ui.panel) ui.render();
   shadowElapsed += dt; if(shadowElapsed > .75 || city.constructions.length !== previousConstructionCount) { renderer.shadowMap.needsUpdate = true; shadowElapsed = 0; }
   previousConstructionCount = city.constructions.length;
   if (!ui.started) {
@@ -50,7 +55,7 @@ function frame(now: number) { requestAnimationFrame(frame); if ((document.hidden
     camera.quaternion.slerpQuaternions(titleRotation, new T.Quaternion().setFromEuler(new T.Euler(player.pitch, player.yaw, 0, 'YXZ')), ease);
     camera.updateMatrixWorld();
   }
-  inkRenderer.render(scene, camera);
+  inkRenderer.setRecovery(economy.stage); inkRenderer.render(scene, camera);
   review?.frame(now, raw);
 }
 requestAnimationFrame(frame);

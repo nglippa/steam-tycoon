@@ -2,7 +2,7 @@
 
 /* Terra's illustrated edition: printed paper, ink edges and painted enamel. */
 :root{--gold:#896238;--muted:#536762;--line:#344b4840;--panel:var(--terra-paper);color:var(--terra-ink);background:#71bdb4}
-.vignette{background:none;box-shadow:inset 0 0 0 12px #e8ecd844,inset 0 0 0 14px #31494855}
+.vignette{background:none}
 header{top:32px;left:34px;right:34px;text-shadow:none;align-items:flex-start}
 .identity{background:var(--terra-paper);border:2px solid var(--terra-ink);padding:12px 16px;box-shadow:3px 4px 0 var(--terra-ink);border-radius:2px 5px 3px 2px;transform:rotate(-1deg)}
 .identity b{font-weight:800;font-size:13px;letter-spacing:2px}.identity span{color:#5c7470;letter-spacing:2px;margin-top:5px}.identity svg{stroke:var(--terra-ink)}
@@ -71,3 +71,25 @@ button:focus-visible,input:focus-visible{outline:3px solid #226f6c;outline-offse
 }
 
 body:not(.started) #hud-bottom{visibility:hidden}
+/* Touch play: floating joystick, thumb buttons, no keyboard hints. */
+#touch{position:fixed;inset:0;pointer-events:none;z-index:5;display:none}
+body.touch.started #touch.live{display:block}
+.stick-base{position:absolute;left:0;top:0;width:120px;height:120px;border-radius:50%;border:2px solid #e8dcc0aa;background:#10181a44;opacity:0;transition:opacity .15s}
+.stick-base.active{opacity:1}
+.stick-knob{position:absolute;left:36px;top:36px;width:48px;height:48px;border-radius:50%;background:#e8dcc0cc;box-shadow:0 2px 8px #0008}
+.touch-btn{position:absolute;pointer-events:auto;border:2px solid #d2b27a;background:#10181acc;color:#efe2c2;font:700 11px/1 "Avenir Next",sans-serif;letter-spacing:1.5px;border-radius:50%;width:64px;height:64px;touch-action:none;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+.touch-btn:active{background:#d2b27a;color:#10181a}
+.touch-jump{right:max(24px,env(safe-area-inset-right));bottom:max(28px,env(safe-area-inset-bottom))}
+.touch-use{right:calc(max(24px,env(safe-area-inset-right)) + 82px);bottom:max(56px,env(safe-area-inset-bottom));width:74px;height:74px;opacity:.35}
+.touch-use.ready{opacity:1;border-color:#f3cf87;box-shadow:0 0 0 4px #f3cf8744}
+.touch-ledger{right:max(24px,env(safe-area-inset-right));bottom:calc(max(28px,env(safe-area-inset-bottom)) + 82px);width:56px;height:56px;font-size:9px;letter-spacing:1px}
+.touch-pause{left:max(16px,env(safe-area-inset-left));top:max(16px,env(safe-area-inset-top));width:44px;height:44px;border-radius:8px;font-size:13px}
+body.touch .controls,body.touch #crosshair{display:none}
+body.touch #hud-bottom{bottom:auto;top:84px;left:max(16px,env(safe-area-inset-left));right:auto;max-width:60vw;pointer-events:none}
+body.touch .objective p{font-size:12px;margin:4px 0 6px}
+body.touch header#hud{top:max(12px,env(safe-area-inset-top));left:74px;right:max(16px,env(safe-area-inset-right))}
+body.touch #interaction{top:auto;bottom:150px}
+body.touch #interaction kbd{display:none}
+html,body{overscroll-behavior:none;-webkit-user-select:none;user-select:none}
+#panel,#panel *{-webkit-user-select:text;user-select:text}
+@media (max-height:520px){body.touch .identity{transform:scale(.7);transform-origin:top left}body.touch .treasury{transform:scale(.7);transform-origin:top right}body.touch #hud-bottom{transform:scale(.7);transform-origin:top left;top:62px}body.touch .touch-btn{transform:scale(.88)}}

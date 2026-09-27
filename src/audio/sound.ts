@@ -1,6 +1,6 @@
 import type { Settings } from '../simulation/economy';
 export class Soundscape {
-  context?: AudioContext; master?: GainNode; ambient?: GainNode; sfx?: GainNode; music?: GainNode; rainGain?: GainNode; machine?: PannerNode; nextBell = 0; zones: {gain:GainNode;kind:string}[]=[];
+  context?: AudioContext; master?: GainNode; ambient?: GainNode; sfx?: GainNode; music?: GainNode; rainGain?: GainNode; machine?: PannerNode; nextBell = 0; nextClang = 0; nextVoice = 0; zones: {gain:GainNode;kind:string}[]=[];
   constructor(public settings: () => Settings) {}
   start() { if (this.context) { void this.context.resume(); return; } const c = this.context = new AudioContext(); this.master = c.createGain(); this.master.connect(c.destination); this.ambient = c.createGain(); this.ambient.connect(this.master); this.sfx = c.createGain(); this.sfx.connect(this.master); this.music = c.createGain(); this.music.connect(this.master);
     const buffer = c.createBuffer(1, c.sampleRate * 4, c.sampleRate); const samples = buffer.getChannelData(0); let last = 0; for (let i = 0; i < samples.length; i++) { last = (last + (Math.random() * 2 - 1) * .03) / 1.02; samples[i] = last * 3; }
@@ -21,5 +21,8 @@ export class Soundscape {
   step() { this.tone(65 + Math.random() * 35, .07, .05, 'triangle'); }
   hammer() { this.tone(180 + Math.random() * 70, .06, .045, 'square'); }
   update(x: number, z: number, yaw: number, raining: boolean, time: number) { if (!this.context) return; const l = this.context.listener; if (l.positionX) { l.positionX.value = x; l.positionY.value = 1.75; l.positionZ.value = z; l.forwardX.value = -Math.sin(yaw); l.forwardY.value = 0; l.forwardZ.value = -Math.cos(yaw); l.upX.value = 0; l.upY.value = 1; l.upZ.value = 0; } for(const zone of this.zones){const base=zone.kind==='foundry'?.02:zone.kind==='market'?.012:.007;zone.gain.gain.setTargetAtTime(base*(.7+.3*Math.sin(time*(zone.kind==='foundry'?4:1.3))),this.context.currentTime,.1);}
-    this.rainGain!.gain.setTargetAtTime(raining ? .2 : .055, this.context.currentTime, 1); if (time > this.nextBell) { this.nextBell = time + 90; this.tone(196, 3, .035); this.tone(392, 2.2, .012, 'sine', .1); } }
+    this.rainGain!.gain.setTargetAtTime(raining ? .2 : .055, this.context.currentTime, 1); const foundry = Math.hypot(x - 32, z - 15), market = Math.hypot(x - 6, z + 26);
+    if (foundry < 30 && time > this.nextClang) { this.nextClang = time + .9 + Math.random() * .8; const v = .05 * (1 - foundry / 30); this.tone(820 + Math.random() * 180, .12, v, 'square'); this.tone(1650, .3, v * .3, 'sine', .01); }
+    if (market < 26 && time > this.nextVoice) { this.nextVoice = time + .18 + Math.random() * .5; const v = .014 * (1 - market / 26); this.tone(170 + Math.random() * 160, .12 + Math.random() * .1, v, 'triangle'); }
+    if (time > this.nextBell) { this.nextBell = time + 90; this.tone(196, 3, .035); this.tone(392, 2.2, .012, 'sine', .1); } }
 }

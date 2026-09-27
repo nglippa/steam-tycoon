@@ -2,18 +2,24 @@ import * as T from 'three';
 import { reducedMotion } from '../motion';
 import { CrowdBatch } from './crowd-batch';
 import { Presentation } from './presentation';
-import { facadeDetail, businessCrown, buildSkyline } from './architecture';
-import { box, cyl, sphere, torus, beam, gear, barrel, crate, tree, sign, windowUnit, arch, bake, mats, random, applyWorldPalette } from './assets';
-import { roof, pipe, crest, railing, canopy, refreshCanopyColors, artMats } from './art-kit';
+import { facadeDetail, businessCrown, businessBody, businessHeights, businessLift, buildSkyline, buildOuterCity, shopfront, shopWindows, setDisplayGlass } from './architecture';
+import { box, cyl, sphere, torus, beam, gear, barrel, crate, tree, sign, windowUnit, windowGlass, displayGlass, arch, bake, mats, random, applyWorldPalette, illustrated, asProp } from './assets';
+setDisplayGlass(displayGlass);
+import { roof, pipe, crest, railing, canopy, bunting, fabricOf, shopDisplay, grimeSkirt, sootStreak, paintedWear, rustStreak, pressureRing, bench, pressureStation, mailPost, wingedValve, aetherDiamond, gauge, refreshCanopyColors, refreshFacades, facadePaints, artMats } from './art-kit';
 import { citizen, setCitizenProsperity } from './citizens';
 import { palette as P } from './palette';
 import { housingPaint, setHousingCondition, residentialWindows, type Home } from './housing';
-import { animateLife, sceneFor, stageCitizen } from './citizen-life';
+import { animateLife, sceneFor, stageCitizen, setLifeConditions, turnTaking } from './citizen-life';
 import { Economy, PROPERTIES, type PropertyId } from '../simulation/economy';
 export interface Collider { minX: number; maxX: number; minZ: number; maxZ: number; height: number; gate?: string }
 export interface Target { object: T.Object3D; id: string; kind: 'property' | 'ledger' | 'discovery' | 'district'; label: string; position: T.Vector3 }
 interface PropertyVisual { root: T.Group; additions: T.Group; machine: T.Group; gear: T.Group; piston: T.Mesh; level: number; building: T.Group; sign: T.Mesh }
+/** Clock terrace: concentric 0.2 m steps rising 1.2 m toward the tower. */
+export const TERRACE = { x: 0, z: -49.5, outer: 13.5, inner: 9, rise: 1.2, steps: 6 };
+export function terraceRise(x: number, z: number) { const r = Math.hypot(x - TERRACE.x, z - TERRACE.z); if (r >= TERRACE.outer) return 0; const t = Math.min(1, (TERRACE.outer - r) / (TERRACE.outer - TERRACE.inner)); return Math.ceil(t * TERRACE.steps - 1e-6) / TERRACE.steps * TERRACE.rise; }
+const pitchOf = (width: number, type: number) => width * (.36 + (type % 3) * .06);
 export class City {
+  houseVariant = 0;
   housingFrontages:Home[]=[]; viewer=new T.Vector3(); lifeTarget=new T.Vector3();
   crowd!: CrowdBatch;
   presentation!: Presentation;
@@ -21,8 +27,10 @@ export class City {
   infrastructure = new T.Group(); prosperity = new T.Group(); gears: T.Group[] = []; smokeOrigins: T.Vector3[] = []; lamps: T.PointLight[] = [];
   npcs: ReturnType<typeof citizen>[] = []; constructions: { group: T.Group; time: number; duration: number; finish: () => void; workers: ReturnType<typeof citizen>[] }[] = [];
   gateMeshes = new Map<string, T.Group>(); flags: T.Mesh[] = []; carts: T.Group[] = []; cartWheels: T.Group[][] = []; airship = new T.Group(); tram = new T.Group();
-  clockMechanism?: T.Group; fountain!: T.Mesh; water!: T.Mesh; clockHands: T.Mesh[] = []; stage = -1;
+  clockMechanism?: T.Group; lantern = new T.MeshStandardMaterial({ color: P.warm.lamp, emissive: P.warm.lamp, emissiveIntensity: .9 }); fountain!: T.Mesh; water!: T.Mesh; clockHands: T.Mesh[] = []; stage = -1; raining = false; finchLift?: T.Group;
   constructor(public scene: T.Scene, public economy: Economy) { scene.add(this.root); this.root.add(this.infrastructure, this.prosperity); this.buildGround(); this.buildBlocks(); this.buildLandmarks(); this.buildSignatureMachinery(); this.buildDetails(); this.buildBackground(); this.createPopulation(); this.presentation = new Presentation(this); for(const x of [-7.9,7.9]) for(const z of (x>0?[-22,-28,-34]:[-26,-32,-38])) this.collider(x,z,2.3,3.6,3.5); this.sync(true); this.crowd = new CrowdBatch([...this.npcs.map(n=>n.group),...this.presentation.workers.map(w=>w.person.group)],this.root); }
+  /** Collider from a footprint in a (possibly rotated) building group's local frame. */
+  localCollider(g: T.Object3D, x: number, z: number, w: number, d: number, height = 30) { g.updateWorldMatrix(true, false); const p = g.localToWorld(new T.Vector3(x, 0, z)); const turned = Math.abs(Math.sin(g.getWorldQuaternion(new T.Quaternion()).angleTo(new T.Quaternion()))) > .5; this.collider(p.x, p.z, turned ? d : w, turned ? w : d, height); }
   collider(x: number, z: number, w: number, d: number, height = 30, gate?: string) { this.colliders.push({ minX: x - w / 2, maxX: x + w / 2, minZ: z - d / 2, maxZ: z + d / 2, height, gate }); }
   target(g: T.Group, id: string, kind: Target['kind'], label: string, x: number, y: number, z: number) { const board = box(g, x, y, z, 1.05, .8, .18, mats.brass); const panel = sign(g, kind === 'property' ? 'LEDGER' : label, kind === 'property' ? 'Accounts & improvements' : 'Terra • Locke', x, y, z + .101, .96, .62); box(g, x, y - .85, z, .12, 1.1, .12, mats.iron); board.updateWorldMatrix(true, false); const pos = board.getWorldPosition(new T.Vector3()); this.targets.push({ object: board, id, kind, label, position: pos }); panel.userData.interaction = id; }
   buildGround() { const g = new T.Group(); this.root.add(g); box(g, 0, -.5, 0, 158, 1, 190, mats.dirt); box(g, 0, .018, 9, 12.6, .06, 139, mats.road);
@@ -41,60 +49,162 @@ export class City {
     for(const x of [-2.15,2.15]){box(g,x,.075,9,.24,.035,139,mats.dark);box(g,x,.099,9,.07,.014,139,mats.rust);}
     bake(g);
   }
-  facade(g: T.Group, width: number, height: number, depth: number, type: number, clean = false, business = false) { box(g, 0, height / 2, 0, width, height, depth, clean ? mats.warmStone : type===5 ? mats.cream : type>=6 ? housingPaint[type%3] : type % 2 ? mats.darkBrick : mats.brick); box(g, 0, .4, 0, width + .4, .8, depth + .4, mats.stone);
-    for (let y = 3.8; y < height; y += 3.5) box(g, 0, y, depth / 2 + .1, width + .25, .18, .3, mats.stone);
-    for (const x of [-width / 2 + .25, width / 2 - .25]) { box(g, x, height / 2, depth / 2 + .15, .45, height, .4, mats.stone);  }
-    if(type<6||clean) for (let x = -width / 2 + 2; x < width / 2 - 1; x += 3) for (let y = 4.5; y < height - 1.7; y += 3.5) windowUnit(g, x, y, depth / 2 + .03, random() > .45);
+  facade(g: T.Group, width: number, height: number, depth: number, type: number, clean = false, business = false) { const composed = business && type !== 4;
+    if (composed) businessBody(g, type); else box(g, 0, height / 2, 0, width, height, depth, clean ? mats.warmStone : type>=6 ? housingPaint[type%3] : business ? facadePaints[type] : type % 2 ? mats.darkBrick : mats.brick); box(g, 0, .4, 0, width + .4, .8, depth + .4, mats.stone);
+    if (!composed) { for (let y = 3.8; y < height; y += 3.5) box(g, 0, y, depth / 2 + .1, width + .25, .18, .3, mats.stone);
+    for (const x of [-width / 2 + .25, width / 2 - .25]) { box(g, x, height / 2, depth / 2 + .15, .45, height, .4, mats.stone);  } }
+    // Facade-level window rhythm: one family per building, lit rooms follow a pattern.
+    const family = clean ? 'arch' : (['grid', 'civic', 'grid', 'grid', 'rect', 'civic'] as const)[type] ?? 'arch';
+    if((type<6||clean)&&!composed) { let col = 0; for (let x = -width / 2 + 2; x < width / 2 - 1; x += 3, col++) { let row = 0; for (let y = 4.5; y < height - 1.7; y += 3.5, row++) windowUnit(g, x, y, depth / 2 + .03, (col * 2 + row + type) % 5 !== 0, family === 'grid' ? 1.5 : 1.35, family === 'grid' ? 2.4 : 2.3, family); } }
+    // Doorway: stepped threshold, projecting jambs and a capped frame.
     arch(g, 0, .5, depth / 2 + .06, 2.5, 3.2, mats.stone); arch(g, 0, .5, depth / 2 + .08, 2.15, 3, mats.dark); box(g, 0, 1.7, depth / 2 + .1, 1.65, 2.3, .08, mats.wood); sphere(g, .55, 1.7, depth / 2 + .22, .07);
-    if(type<6||clean) for (const x of [-width / 2 + 2.7, width / 2 - 2.7]) { windowUnit(g, x, .9, depth / 2 + .05, type % 3 !== 0, 2.1, 2.6); if (!clean && type % 3 === 0) { for (const a of [-.2, .3]) { const plank = box(g, x, 2 + a, depth / 2 + .17, 2.5, .23, .1, mats.wood); plank.rotation.z = a; } } }
-    box(g,0,height,0,width+.5,.25,depth+.5,mats.stone);
-    if(!business){roof(g,-width*.1,height,0,width+.7,3.4,depth+.5,type%3===0?mats.rust:mats.roof);cyl(g,width*.3,height+2,-depth*.23,.36,4,mats.rust);}
+    for (const dx of [-1.45, 1.45]) { box(g, dx, 1.55, depth / 2 + .2, .34, 2.9, .42, mats.stone); box(g, dx, 3.05, depth / 2 + .24, .46, .16, .5, mats.stone); }
+    box(g, 0, .08, depth / 2 + .38, 2.9, .16, .66, mats.stone);
+    if (business && !clean) shopfront(g, type);
+    else if(type<6||clean) for (const x of [-width / 2 + 2.7, width / 2 - 2.7]) windowUnit(g, x, .9, depth / 2 + .05, true, 2.1, 2.6);
+    // Cornice brackets: the roofline catches a row of small shadows.
+    if (!composed) { for (let x = -width / 2 + .9; x < width / 2 - .5; x += 1.55) box(g, x, height - .32, depth / 2 + .22, .2, .42, .44, mats.stone);
+    box(g,0,height,0,width+.5,.25,depth+.5,mats.stone); }
+    // Steep gables, tall chimneys and a corner turret give the old town its skyline.
+    if(!business){const pitch=pitchOf(width,type),mat=[mats.roof,mats.rust,mats.teal][type%3];roof(g,0,height+.1,0,width+.9,pitch,depth+.6,mat);
+      box(g,width*.3,height+pitch*.7,-depth*.2,1.1,pitch*1.1,1.1,mats.brick);box(g,width*.3,height+pitch*1.28,-depth*.2,1.35,.3,1.35,mats.stone);
+      if(type%2===0){const tx=-width/2+.9,tz=depth/2-.9;cyl(g,tx,height+.4,tz,1.5,3,mats.warmStone);const cone=new T.Mesh(new T.ConeGeometry(1.9,4.2,8),mat);cone.position.set(tx,height+4,tz);g.add(cone);sphere(g,tx,height+6.2,tz,.22,mats.brass);}}
+    if (type >= 6 && !clean) this.house(g, width, height, depth, type, pitchOf(width, type));
+    // Soot gathers at the foot of every front and runs from the cornice; prosperity washes some of it away.
+    grimeSkirt(g, 0, depth / 2 + .03, width, 1.9, type * 7.3 + width); paintedWear(g, 0, depth / 2 + .02, width, composed ? 8 : height, type * 3.1 + width * 1.7); if (!composed) rustStreak(g, width / 2 - .65, height * .62, depth / 2 + .5, 2.2); if (!business) { sootStreak(g, -width * .28, height - .3, depth / 2 + .04, 1.2, 3.4); sootStreak(g, width * .36, height - .3, depth / 2 + .04, .8, 2.2); }
+    if (composed) return;
     facadeDetail(g, width, height, depth, type);
     const pipe = cyl(g, width / 2 - .65, height / 2, depth / 2 + .4, .1, height, mats.copper); for (let y = 1; y < height; y += 2) { const ring = torus(g, pipe.position.x, y, pipe.position.z, .14, .035, mats.iron); ring.rotation.x = Math.PI / 2; }
   }
+  /** One authored idea per house: an oriel, a jettied timber top, an iron stair or a
+   * rooftop cistern. Every door gets a stoop people can sit on. */
+  /** Residential families change the primary mass, not just the trim:
+   * 0 tenement (taller narrow unit with an overhanging attic and a rear shop),
+   * 1 rowhouse (jetty, side dormers, chimney stack), 2 merchant house (corbelled
+   * corner turret, outside stair), 3 workshop house (sawtooth rear shed, cistern).
+   * All share an older stone ground storey: Terra was built in layers. */
+  house(g: T.Group, w: number, h: number, d: number, type: number, pitch: number) {
+    const v = this.houseVariant++ % 4, f = d / 2, paint = housingPaint[type % 3], alt = housingPaint[(type + 1) % 3], roofMat = [mats.roof, mats.rust, mats.teal][(type + 1) % 3];
+    this.localCollider(g, 0, f + .65, 2.8, 1.3, .45);
+    if (v === 2) this.localCollider(g, w * .25, f + .6, w * .4, 1.2, 5);
+    box(g, 0, 1.85, 0, w + .08, 3.7, d + .08, mats.stone); box(g, 0, 3.76, 0, w + .3, .16, d + .3, mats.warmStone);
+    box(g, 0, .225, f + .45, 2.8, .45, .9, mats.stone); box(g, 0, .11, f + 1.05, 2.8, .22, .5, mats.stone);
+    if (v === 0) {
+      // Oriel on the left, a taller narrow unit on the right whose attic overhangs the street.
+      const x = -w * .3, top = h - 1.2; box(g, x, (4 + top) / 2, f + .45, 2.5, top - 4, .9, paint); box(g, x, top + .12, f + .5, 2.8, .24, 1.1, mats.stone);
+      const corbel = new T.Mesh(new T.ConeGeometry(1.3, 1.1, 4), mats.stone); corbel.rotation.set(Math.PI, Math.PI / 4, 0); corbel.scale.set(1, 1, .45); corbel.position.set(x, 3.45, f + .45); g.add(corbel);
+      for (let y = 4.6; y < top - 2; y += 3.5) windowUnit(g, x, y, f + .9, true, 1.5, 2.1, 'rect');
+      const ux = w / 2 - 2.4, uw = 4.8; box(g, ux, h + 2.1, 0, uw, 4.2, d, alt); windowUnit(g, ux, h + .7, f + .02, true, 1.2, 1.9, 'rect');
+      box(g, ux, h + 5.5, 0, uw + .8, 2.7, d + 1.2, mats.wood); for (const dx of [-1.2, 1.2]) windowUnit(g, ux + dx, h + 4.6, f + .62, true, .9, 1.5, 'rect');
+      for (const dx of [-2.4, 0, 2.4]) { const k = box(g, ux + dx, h + 3.9, f + .35, .2, .6, .6, mats.wood); k.rotation.x = .5; }
+      roof(g, ux, h + 6.85, 0, uw + 1.4, 3.6, d + 1.6, roofMat);
+      this.localCollider(g, -w * .12, -f - 2.2, w * .5, 4.4, 4);
+      box(g, -w * .12, 2, -f - 2.2, w * .5, 4, 4.4, mats.darkBrick); const lean = box(g, -w * .12, 4.3, -f - 2.2, w * .5 + .4, .2, 4.9, mats.rust); lean.rotation.x = -.35; box(g, -w * .32, 5.5, -f - 3.6, .8, 3.5, .8, mats.brick);
+    }
+    if (v === 1) {
+      const y0 = h - 3.4; box(g, 0, y0 + 1.7, f + .38, w + .3, 3.4, .76, mats.wood); box(g, 0, y0 + .05, f + .4, w + .5, .14, .9, mats.stone);
+      for (let x = -w / 2 + .6; x < w / 2; x += 1.8) box(g, x, y0 - .3, f + .25, .18, .55, .5, mats.wood);
+      for (const x of [-w * .29, 0, w * .29]) windowUnit(g, x, y0 + .6, f + .77, true, 1.3, 1.9, 'rect');
+      // Side dormers ride the slopes; a stack of three flues crowns the ridge.
+      for (const side of [-1, 1]) for (const z of [-2.2, 1.6]) { const x = side * w * .24, y = h + pitch * .5; box(g, x, y, z, 1.9, 1.8, 1.6, paint); const cap = new T.Mesh(new T.ConeGeometry(1.45, 1.1, 4), roofMat); cap.position.set(x, y + 1.45, z); cap.rotation.y = Math.PI / 4; g.add(cap);
+        const pane = new T.Mesh(new T.PlaneGeometry(.8, 1), windowGlass[(z > 0 ? 0 : 1)]); pane.position.set(x + side * .96, y, z); pane.rotation.y = side * Math.PI / 2; g.add(pane); }
+      for (const dz of [-.7, 0, .7]) box(g, 0, h + pitch + .6, -f + 1.5 + dz, .6, 2.2 + Math.abs(dz), .6, mats.brick);
+    }
+    if (v === 2) {
+      const x1 = w * .42; for (let i = 0; i < 12; i++) box(g, 1.7 + i * (x1 - 2.5) / 12, .17 + i * .32, f + .6, .42, .08, 1, mats.iron);
+      box(g, x1 - .2, 3.95, f + .6, 1.5, .12, 1.2, mats.iron); railing(g, x1 - .2, 3.95, f + 1.18, 1.4);
+      beam(g, new T.Vector3(1.5, 0, f + 1.1), new T.Vector3(x1 - .9, 3.95, f + 1.1), .05, mats.iron); beam(g, new T.Vector3(1.5, 1, f + 1.1), new T.Vector3(x1 - .9, 4.95, f + 1.1), .03, mats.brass);
+      box(g, x1 - .2, 5.05, f + .06, 1.05, 2.1, .1, mats.wood); box(g, x1 - .2, 6.2, f + .1, 1.3, .16, .2, mats.stone);
+      // A corbelled corner turret, cantilevered from the second storey.
+      const tx = -w / 2 + 1, tz = f - .7, top = h + 2.4; cyl(g, tx, (4.4 + top) / 2, tz, 1.55, top - 4.4, alt); const c = new T.Mesh(new T.ConeGeometry(1.55, 1.6, 12), mats.stone); c.rotation.x = Math.PI; c.position.set(tx, 3.6, tz); g.add(c);
+      for (const y of [4.5, top]) cyl(g, tx, y, tz, 1.62, .2, mats.stone); for (let y = 5.2; y < top - 1.6; y += 3.2) windowUnit(g, tx, y, tz + 1.5, true, .8, 1.6, 'rect');
+      const cone = new T.Mesh(new T.ConeGeometry(1.95, 4.4, 12), roofMat); cone.position.set(tx, top + 2.2, tz); g.add(cone); sphere(g, tx, top + 4.6, tz, .18, mats.brass);
+    }
+    if (v === 3) {
+      const x = -w * .22, y = h + pitch * .5; for (const dx of [-.9, .9]) for (const dz of [-.9, .9]) box(g, x + dx, y - 1, -1.5 + dz, .14, 2.2, .14, mats.iron);
+      cyl(g, x, y + 1.3, -1.5, 1.35, 2.4, mats.copper); for (const yy of [.4, 2.2]) cyl(g, x, y + yy, -1.5, 1.4, .12, mats.iron); const lid = new T.Mesh(new T.ConeGeometry(1.45, .7, 10), mats.teal); lid.position.set(x, y + 2.85, -1.5); g.add(lid);
+      beam(g, new T.Vector3(x + 1.35, y + .5, -1.5), new T.Vector3(w / 2 + .15, y - 1, -1.5), .07, mats.copper); beam(g, new T.Vector3(w / 2 + .15, y - 1, -1.5), new T.Vector3(w / 2 + .15, 1, -1.5), .07, mats.copper);
+      // Sawtooth workshop behind the house; its glazed north faces light the benches.
+      const sw = w * .8, z0 = -f - 3.2; box(g, 0, 2.2, z0, sw, 4.4, 6.4, mats.darkBrick); this.localCollider(g, 0, z0, sw, 6.4, 5);
+      const tooth = new T.Shape(); tooth.moveTo(0, 0); tooth.lineTo(2.1, 0); tooth.lineTo(0, 1.8); tooth.closePath(); const tg = new T.ExtrudeGeometry(tooth, { depth: sw, bevelEnabled: false });
+      for (let i = 0; i < 3; i++) { const t = new T.Mesh(tg, mats.rust); t.rotation.y = -Math.PI / 2; t.position.set(sw / 2, 4.4, z0 - 3.2 + i * 2.13); g.add(t); const glass = new T.Mesh(new T.PlaneGeometry(sw - .2, 1.6), windowGlass[2]); glass.position.set(0, 5.2, z0 - 3.19 + i * 2.13); glass.rotation.y = Math.PI; g.add(glass); }
+      box(g, sw / 2 - .6, (h + pitch) / 2 + 2, z0 - 2.5, 1, h + pitch + 4, 1, mats.brick); box(g, sw / 2 - .6, h + pitch + 4.1, z0 - 2.5, 1.3, .3, 1.3, mats.stone);
+    }
+  }
   buildBlocks() {
-    for (const [index, p] of PROPERTIES.entries()) { const root = new T.Group(); root.position.set(p.x, .18, p.z); root.rotation.y = p.rotation; this.root.add(root); const building = new T.Group(); root.add(building); const height = index === 1 ? 9 : index === 4 ? 12 : 10.5; this.facade(building, 17, height, 11, index, false, true); businessCrown(building,index,height);if(index===3)building.traverse(o=>{if(o instanceof T.Mesh){if(o.material===mats.brick||o.material===mats.darkBrick)o.material=artMats.coal;else if(o.material===mats.stone||o.material===mats.warmStone)o.material=artMats.fadedPaint;}}); const board = sign(building, p.name, p.kind + ' • EST. 1841', 0, 4.1, 5.9, 13, 1.45);
-      if(index>=4) canopy(building,0,3.05,6.6,13,2.2,index===4?artMats.wine:mats.teal);
-      else {
-        const awning=box(building,0,3.2,6.6,13,.10,2.2,index%2?mats.red:mats.teal);awning.rotation.x=.18;
-        box(building,0,2.96,7.6,13,.22,.06,index%2?mats.red:mats.teal);
-        for(const x of [-6.4,6.4])cyl(building,x,1.6,7.4,.045,3.2);
-      }
+    for (const [index, p] of PROPERTIES.entries()) { const root = new T.Group(); root.position.set(p.x, .18, p.z); root.rotation.y = p.rotation; this.root.add(root); const building = new T.Group(); root.add(building); const height = businessHeights[index]; this.facade(building, 17, height, 11, index, false, true); if (index === 4) businessCrown(building,index,height);if(index===3)building.traverse(o=>{if(o instanceof T.Mesh){if(o.material===mats.stone||o.material===mats.warmStone)o.material=artMats.fadedPaint;}}); const [bx, by, bw, bh] = ([[-2, 4.1, 9.5, 1.3], [0, 4.05, 7.5, 1.1], [0, 4.5, 11, 1.1], [0, 4.1, 11, 1.3], [0, 4.1, 13, 1.45], [0, 3.6, 10, 1]] as const)[index]; const board = sign(building, p.name, p.kind + ' • EST. 1841', bx, by, 5.9, bw, bh);
+      // Awnings differ by trade: patched salvage tin, none on the civic works, a slim Finch glass canopy, the tavern's wine canopy.
+      if(index===4||index===5) canopy(building,0,3.05,6.6,13,2.2,index===4?artMats.wine:mats.teal);
+      else if(index===0){const awning=box(building,-2.2,3.2,6.6,8.6,.10,2.2,mats.rust);awning.rotation.x=.18;box(building,-2.2,2.96,7.6,8.6,.22,.06,mats.rust);for(const x of [-6.4,1.9])cyl(building,x,1.6,7.4,.045,3.2);}
+      else if(index===2){box(building,0,3.95,6.4,14.4,.06,1.8,mats.teal);for(const x of [-7,-3.5,0,3.5,7])beam(building,new T.Vector3(x,3.95,7.25),new T.Vector3(x,4.9,5.6),.035,mats.brass);}
       if(index===0)crate(building,-6.2,0,6.5);if(index===4)barrel(building,5.7,0,6.5);
-      if (index === 0 || index === 3) { cyl(building, -6, height + 3.5, -3, .75, 8, mats.rust); cyl(building, -6, height + 7.4, -3, .96, .3, mats.iron); root.updateWorldMatrix(true, true); this.smokeOrigins.push(root.localToWorld(new T.Vector3(-6, height + 7.6, -3))); }
+      const flue = [[7, 14.6, -3.2], [5.5, 21.4, -3.4], null, [5, 26.6, -3], null, null][index]; if (flue) { root.updateWorldMatrix(true, true); this.smokeOrigins.push(root.localToWorld(new T.Vector3(flue[0], flue[1], flue[2]))); }
       bake(building); this.collider(p.x, p.z, 11.3, 17.3);
+      if (index === 2) { const lift = new T.Group(); lift.position.set(0, 14.4, -.62); root.add(lift); box(lift, 0, .7, 0, 1.2, .08, .8, mats.iron); box(lift, 0, 1.55, 0, 1.25, .12, .85, mats.brass); for (const x of [-.58, .58]) box(lift, x, 1.1, 0, .06, 1.4, .8, mats.iron); box(lift, 0, 1.1, -.38, 1.1, 1.3, .04, mats.teal); sphere(lift, 0, 1.4, 0, .1, mats.glow); bake(lift); this.finchLift = lift; }
       const machine = new T.Group(); machine.position.set(-4.5, 0, 7); root.add(machine); box(machine, 0, .22, 0, 2.5, .4, 1.4, mats.stone); cyl(machine, -.5, 1, 0, .53, 1.45, mats.copper); sphere(machine, -.5, 1.73, 0, .53, mats.copper).scale.y = .4; const gearObj = gear(machine, .5, 1.2, .58, .62); this.gears.push(gearObj); const piston = box(machine, .7, 1, -.3, .25, .8, .25, mats.brass); cyl(machine, .7, .65, -.3, .27, .7, mats.iron); torus(machine, -.5, 1.4, .51, .19, .04); sign(machine, 'PSI', '12', -.5, 1.4, .56, .3, .27);
       const additions = new T.Group(); root.add(additions); this.target(root, p.id, 'property', p.name, 3, 1.65, 7.5); if(index>=3) machine.visible=false; this.properties.set(p.id, { root, building, additions, machine, gear: gearObj, piston, level: -1, sign: board });
     }
     const g = new T.Group(); this.root.add(g);
-    for (const side of [-1, 1]) for (let i = 0; i < 6; i++) { const b = new T.Group(); b.position.set(side * 48, 0, 50 - i * 23); b.rotation.y = side < 0 ? Math.PI / 2 : -Math.PI / 2; if (side > 0) b.position.x = 68; const width=14+random()*3,height=12+random()*7;this.facade(b,width,height,10,i+6);this.housingFrontages.push({x:side<0?-42.95:62.95,z:b.position.z,width,height,family:(i+6)%3,yaw:b.rotation.y}); g.add(b); this.collider(b.position.x, b.position.z, 10, 17); }
+    for (const side of [-1, 1]) for (let i = 0; i < 6; i++) { const b = new T.Group(); b.position.set(side * 48, 0, 50 - i * 23); b.rotation.y = side < 0 ? Math.PI / 2 : -Math.PI / 2; if (side > 0) b.position.x = 68; const width=14+random()*3,height=16+random()*8;this.facade(b,width,height,10,i+6);this.housingFrontages.push({x:side<0?-42.95:62.95,z:b.position.z,width,height,family:(i+6)%3,yaw:b.rotation.y}); g.add(b); this.collider(b.position.x, b.position.z, 10, 17); }
+    // Infill: narrow set-back houses close every gap, each with a vaulted passage into
+    // a shallow service court. The lanes become continuous urban fabric.
+    for (const side of [-1, 1]) { const row = this.housingFrontages.filter(h => (side < 0 ? h.x < -40 : h.x > 60)).sort((a, b) => b.z - a.z);
+      for (let i = 0; i < row.length - 1; i++) { const a = row[i], b = row[i + 1], z1 = a.z - a.width / 2, z2 = b.z + b.width / 2, gap = z1 - z2; if (gap < 3) continue;
+        const fill = new T.Group(); fill.position.set(side < 0 ? -47.5 : 67.5, 0, (z1 + z2) / 2); fill.rotation.y = side < 0 ? Math.PI / 2 : -Math.PI / 2; g.add(fill);
+        const w = gap + .1, h = 9 + (i % 3) * 2.2, d = 9, f = d / 2, paint = housingPaint[(i + 2) % 3];
+        box(fill, 0, (4.2 + h) / 2, 0, w, h - 4.2, d, paint); for (const x of [-w / 2 + .5, w / 2 - .5]) box(fill, x, 2.1, 0, 1, 4.2, d, mats.stone);
+        box(fill, 0, 4.1, 0, w + .1, .3, d + .1, mats.warmStone);
+        const face = new T.Shape(); face.moveTo(-w / 2 + 1, 0); face.lineTo(w / 2 - 1, 0); face.lineTo(w / 2 - 1, 4.2); face.lineTo(-w / 2 + 1, 4.2); face.closePath();
+        const open = new T.Path(); open.moveTo(-w / 2 + 1.05, 0); open.lineTo(-w / 2 + 1.05, 2.7); open.quadraticCurveTo(0, 4.5, w / 2 - 1.05, 2.7); open.lineTo(w / 2 - 1.05, 0); open.closePath(); face.holes.push(open);
+        const spandrel = new T.Mesh(new T.ExtrudeGeometry(face, { depth: 2.6, bevelEnabled: false, curveSegments: 8 }), mats.stone); spandrel.position.z = f - 2.6; fill.add(spandrel);
+        box(fill, 0, 2.1, -1.6, w - 2, 4.2, .2, mats.warmStone); box(fill, 0, 1.1, -1.45, 1.1, 2.2, .1, mats.wood); sphere(fill, 0, 2.7, -1.3, .12, mats.glow);
+        box(fill, 0, h + .5, 0, w + .2, 1, d + .2, mats.stone); for (let y = 5; y < h - 1.5; y += 3.2) for (const x of w > 6 ? [-w * .22, w * .22] : [0]) windowUnit(fill, x, y, f + .02, (i + y) % 3 !== 0, 1.1, 2, 'rect');
+        if (i % 2 === 0) { box(fill, -w * .15, h + 2, -1, w * .5, 2.4, 3.5, mats.wood); roof(fill, -w * .15, h + 3.2, -1, w * .5 + .4, 1.6, 3.9, mats.rust); }
+        barrel(fill, w * .2, 0, -.8); this.localCollider(fill, 0, -1.3, w, d - 2.4); this.localCollider(fill, -w / 2 + .5, f - 1.2, 1, 2.4); this.localCollider(fill, w / 2 - .5, f - 1.2, 1, 2.4); } }
+    // Gate rows: two short terraces on skewed plots. The west row recedes and the east
+    // row steps forward, so the street jogs ~3 m between the gate and the first works.
+    for (const [ax, az, bx, bz, types] of [[-12, 50.8, -9, 63.4, [7, 8]], [9.6, 51, 12.6, 63.4, [6, 7]]] as const) {
+      const dx = bx - ax, dz = bz - az, len = Math.hypot(dx, dz), ux = dx / len, uz = dz / len; let nx = -uz, nz = ux; if (nx * -ax < 0) { nx = -nx; nz = -nz; }
+      const yaw = Math.atan2(nx, nz), widths = [len * .53, len * .47], heights = [17, 21]; let t = 0;
+      widths.forEach((w, k) => { const mid = t + w / 2; t += w; const fx = ax + ux * mid, fz = az + uz * mid, depth = 9;
+        const b = new T.Group(); b.position.set(fx - nx * depth / 2, 0, fz - nz * depth / 2); b.rotation.y = yaw; g.add(b); this.facade(b, w + .05, heights[k], depth, types[k]);
+        this.housingFrontages.push({ x: fx, z: fz, width: w, height: heights[k], family: types[k] % 3, yaw });
+        // Axis-aligned collision: slices following the skewed footprint.
+        for (let q = 0; q < 4; q++) { const sx = fx + ux * (-w / 2 + (q + .5) * w / 4) - nx * depth / 2, sz = fz + uz * (-w / 2 + (q + .5) * w / 4) - nz * depth / 2; this.collider(sx, sz, Math.abs(ux) * w / 4 + Math.abs(nx) * depth, Math.abs(uz) * w / 4 + Math.abs(nz) * depth); } }); }
     for (const x of [-22, 22]) { const b = new T.Group(); b.position.set(x, 0, -56); this.facade(b, 15, 12, 9, 8);this.housingFrontages.push({x,z:-51.45,width:15,height:12,family:2,yaw:0}); g.add(b); this.collider(x, -56, 15, 9); }
     bake(g);
   }
   buildLandmarks() { const g = new T.Group(); this.root.add(g);
     // The arrival arch, with lamps and weathered brass city lettering.
-    for (const x of [-8.8, 8.8]) { box(g, x, 4, 66, 2.3, 8, 2.8, mats.darkBrick); box(g, x, .7, 66, 3, 1.4, 3.4, mats.stone); box(g, x, 7.8, 66, 3, .6, 3.5, mats.stone); cyl(g, x, 9, 66, .4, 2, mats.copper); sphere(g, x, 10.1, 66, .48, mats.brass); this.collider(x, 66, 2.3, 2.8); }
+    for (const x of [-8.8, 8.8]) { box(g, x, 4, 66, 2.3, 8, 2.8, mats.darkBrick); box(g, x, .7, 66, 3, 1.4, 3.4, mats.stone); box(g, x, 7.8, 66, 3, .6, 3.5, mats.stone); box(g, x, 9.4, 66, 2.1, 2.6, 2.6, mats.darkBrick); box(g, x, 10.8, 66, 2.7, .3, 3.1, mats.brass); const spire = new T.Mesh(new T.ConeGeometry(1.7, 5.5, 8), mats.teal); spire.position.set(x, 13.7, 66); spire.rotation.y = Math.PI / 8; g.add(spire); sphere(g, x, 16.6, 66, .3, mats.brass); this.collider(x, 66, 2.3, 2.8); }
     box(g, 0, 8.3, 66, 18, 1.2, 1.6, mats.iron); const back = sign(g, 'T E R R A', 'May the engines never sleep', 0, 8.35, 65, 13, 1.8); back.rotation.y = Math.PI;
+    // Clock of Terra: ivory shaft, navy clock stage, an open pressure lantern and a
+    // verdigris bell roof. It is the one silhouette visible from every street.
     const tower=new T.Group();tower.position.set(0,0,-46);g.add(tower);
-    box(tower,0,.3,0,7,.6,7,mats.stone);box(tower,0,7,0,4.6,14,4.6,mats.teal);
-    for(const x of [-2.4,2.4])for(const z of [-2.4,2.4])box(tower,x,7.1,z,.32,14.2,.32,mats.warmStone);
-    arch(tower,0,1.5,2.32,1.6,10.2,mats.iron);crest(tower,0,5,2.4,.8);
-    for(const y of [.8,13.8,17.7,23.1])box(tower,0,y,0,6.4,.3,6.4,mats.brass);
-    for(const x of [-2.5,2.5])for(const z of [-2.5,2.5])box(tower,x,15.8,z,.24,4,.24,mats.iron);
-    const mechanism=gear(this.root,0,15.8,-43.55,1.45);this.clockMechanism=mechanism;
-    box(tower,0,20.4,0,5.8,5.3,5.8,mats.iron);
+    box(tower,0,.6,0,8.4,1.2,8.4,mats.stone);box(tower,0,10.5,0,5.4,19,5.4,mats.warmStone);
+    for(const x of [-2.75,2.75])for(const z of [-2.75,2.75])box(tower,x,10,z,.9,20,.9,mats.stone);
+    for(let side=0;side<4;side++){const face=new T.Group();face.rotation.y=side*Math.PI/2;tower.add(face);
+      box(face,0,10.5,2.62,2.6,15,.3,mats.teal);arch(face,0,13.2,2.8,1.4,4.2,mats.iron);for(const y of [4.5,8])box(face,0,y,2.8,1.1,1.5,.05,mats.dark);}
+    arch(tower,0,1.2,2.8,2.2,5.2,mats.iron);crest(tower,0,6.8,2.95,1.1);
+    for(const y of [1.3,19.6])box(tower,0,y,0,6.6,.45,6.6,mats.brass);
+    box(tower,0,23.4,0,7.2,7.2,7.2,mats.iron);box(tower,0,27.1,0,7.8,.5,7.8,mats.brass);
+    for(const x of [-3.7,3.7])for(const z of [-3.7,3.7])cyl(tower,x,23.4,z,.42,7.6,mats.copper);
     const clockGlow=new T.MeshStandardMaterial({color:P.neutral.paper,emissive:P.warm.lamp,emissiveIntensity:.6,roughness:1});
     for(let side=0;side<4;side++){
       const dial=new T.Group();dial.rotation.y=side*Math.PI/2;tower.add(dial);
-      const face=cyl(dial,0,20.4,2.94,2.25,.12,clockGlow);face.rotation.x=Math.PI/2;torus(dial,0,20.4,3.02,2.28,.10,mats.brass);
-      for(let i=0;i<12;i++){const a=i*Math.PI/6;const tick=box(dial,Math.sin(a)*1.94,20.4+Math.cos(a)*1.94,3.10,i%3===0?.12:.07,i%3===0?.36:.22,.025,mats.iron);tick.rotation.z=-a;}
-      const handRoot=new T.Group();handRoot.position.set(Math.sin(side*Math.PI/2)*3.13,20.4,-46+Math.cos(side*Math.PI/2)*3.13);handRoot.rotation.y=side*Math.PI/2;this.root.add(handRoot);
-      const hand=box(handRoot,0,.65,0,.10,1.6,.04,mats.iron);this.clockHands.push(hand);box(dial,-.45,20.55,3.13,1.08,.13,.03,mats.iron).rotation.z=-.4;
-      sphere(dial,0,20.4,3.17,.13,mats.brass);
+      const face=cyl(dial,0,23.4,3.62,2.75,.12,clockGlow);face.rotation.x=Math.PI/2;torus(dial,0,23.4,3.7,2.8,.16,mats.brass);
+      for(let i=0;i<12;i++){const a=i*Math.PI/6;const tick=box(dial,Math.sin(a)*2.35,23.4+Math.cos(a)*2.35,3.78,i%3===0?.16:.09,i%3===0?.5:.28,.03,mats.iron);tick.rotation.z=-a;}
+      const handRoot=new T.Group();handRoot.position.set(Math.sin(side*Math.PI/2)*3.83,23.4,-46+Math.cos(side*Math.PI/2)*3.83);handRoot.rotation.y=side*Math.PI/2;this.root.add(handRoot);
+      const hand=box(handRoot,0,.85,0,.14,2.1,.05,mats.iron);this.clockHands.push(hand);box(dial,-.55,23.6,3.82,1.35,.17,.04,mats.iron).rotation.z=-.4;
+      sphere(dial,0,23.4,3.86,.18,mats.brass);
     }
-    const cap=new T.Mesh(new T.LatheGeometry([new T.Vector2(4.4,23.4),new T.Vector2(3.4,24.3),new T.Vector2(2.7,26),new T.Vector2(1.4,29.2),new T.Vector2(.45,30.4)],4),mats.roof);cap.rotation.y=Math.PI/4;tower.add(cap);
-    cyl(tower,0,30.8,0,.16,2.5,mats.brass);sphere(tower,0,32,0,.28,mats.brass);
-    sign(tower,'TERRA','EVERY HOUR • EVERY HAND',0,11.5,2.36,3.5,.8);this.collider(0,-46,5.5,5.5);
+    // Open lantern stage: the pressure core glows through four arches.
+    for(const x of [-2.9,2.9])for(const z of [-2.9,2.9])box(tower,x,30.2,z,.7,6,.7,mats.warmStone);
+    cyl(tower,0,30,0,1.5,4.8,this.lantern);cyl(tower,0,32.9,0,2.2,.3,mats.brass);cyl(tower,0,27.7,0,2.2,.3,mats.brass);
+    box(tower,0,33.5,0,7,.7,7,mats.stone);
+    const cap=new T.Mesh(new T.LatheGeometry([new T.Vector2(4.2,33.8),new T.Vector2(4.4,34.6),new T.Vector2(3.6,36.6),new T.Vector2(2.2,38.8),new T.Vector2(1.5,40.4),new T.Vector2(1.1,41.4),new T.Vector2(.25,43.6)],8),mats.teal);cap.rotation.y=Math.PI/8;tower.add(cap);
+    cyl(tower,0,45.6,0,.14,4.4,mats.brass);const ring=torus(tower,0,44.4,0,1.05,.07,mats.brass);ring.rotation.x=Math.PI/2;torus(tower,0,44.4,0,1.05,.06,mats.brass).rotation.y=.9;sphere(tower,0,47.9,0,.34,mats.brass);
+    sign(tower,'TERRA','EVERY HOUR • EVERY HAND',0,16.8,2.9,2.4,.6);this.collider(0,-46,8.4,8.4);
     // Elevated rail line forms a second visual horizon.
     for (let x = -64; x <= 64; x += 16) { box(g, x, 7, -63, .65, 14, .65, mats.iron); beam(g, new T.Vector3(x, 8, -63), new T.Vector3(x + 7, 13, -63), .14); }
     for (const z of [-61.8, -64.2]) box(g, 0, 13.4, z, 145, .25, .16, mats.iron); box(g, 0, 13, -63, 145, .5, 3, mats.darkBrick);
@@ -122,11 +232,30 @@ export class City {
     for (const z of [-11,-20]) { const table = new T.Group(); table.position.set(-29,0,z); cyl(table,0,.6,0,.08,1.2,mats.iron); cyl(table,0,1.2,0,.9,.13,mats.wood); for (const x of [-1.3,1.3]) { box(table,x,.55,0,.7,.12,.7,mats.wood); for(const dz of [-.25,.25]) box(table,x,.28,dz,.07,.55,.07,mats.iron); box(table,x + (x<0?-.3:.3),.95,0,.08,.9,.7,mats.wood); } g.add(table); }
     bake(g);
   }
-  lamp(g: T.Group, x: number, z: number, enhanced = false) { const m = enhanced ? mats.brass : mats.iron; cyl(g, x, .15, z, .38, .3, mats.stone); cyl(g, x, 2.4, z, .095, 4.8, m); cyl(g, x, 1.1, z, .17, 1.8, m); box(g, x, 4.5, z, 1.1, .1, .13, m); for (const dx of enhanced ? [-.48, .48] : [.48]) { box(g, x + dx, 4.05, z, .48, .12, .48, m); box(g, x + dx, 4.36, z, .32, .5, .32, enhanced && this.economy.state.infrastructure.lamps === 3 ? mats.aether : mats.glow);  const cap = new T.Mesh(new T.ConeGeometry(.4, .28, 4), m); cap.position.set(x + dx, 4.72, z); cap.rotation.y = Math.PI / 4; g.add(cap); } }
+  lamp(g: T.Group, x: number, z: number, enhanced = false) { const m = enhanced ? mats.brass : mats.iron; const face = x < 0 ? Math.PI / 2 : -Math.PI / 2;
+    // Terra lamp: fluted post, a brass pressure housing, the split ring and a verdigris cap.
+    cyl(g, x, .2, z, .34, .4, mats.stone); cyl(g, x, 2.4, z, .085, 4.4, m); cyl(g, x, .9, z, .16, .9, m); cyl(g, x, 1.6, z, .2, .5, mats.brass); cyl(g, x, 1.9, z, .23, .08, m);
+    pressureRing(g, x, 3.4, z, .34, m, face);
+    const lit = enhanced && this.economy.state.infrastructure.lamps === 3 ? mats.aether : mats.glow;
+    cyl(g, x, 4.55, z, .07, .2, m); box(g, x, 4.95, z, .42, .62, .42, lit); for (const dx of [-.21, .21]) for (const dz of [-.21, .21]) box(g, x + dx, 4.95, z + dz, .05, .68, .05, m);
+    const cap = new T.Mesh(new T.ConeGeometry(.38, .6, 6), mats.teal); cap.position.set(x, 5.55, z); g.add(cap); sphere(g, x, 5.9, z, .07, mats.brass); }
   buildDetails() { const g = new T.Group(); this.root.add(g);
     for (const x of [-9.8, 9.8]) for (let z = 57; z >= -56; z -= 19) this.lamp(g, x, z);
     for (const [x,z] of [[-9.3,48],[9.3,21],[-9.3,-6],[9.3,-33]]) { const light = new T.PointLight('#ffc273', 7, 24, 2); light.position.set(x, 4, z); this.lamps.push(light); this.root.add(light); }
-    for (const z of [29]) { for (const x of [-11.5, 11.5]) cyl(g, x, 3.6, z, .17, 7.2, mats.rust); const pipe = cyl(g, 0, 7.2, z, .23, 23, mats.copper); pipe.rotation.z = Math.PI / 2; for (let x = -10; x <= 10; x += 3) { const joint = cyl(g, x, 7.2, z, .33, .18, mats.iron); joint.rotation.z = Math.PI / 2; } const valve = gear(g, 8, 7.1, z + .5, .55); this.gears.push(valve); this.smokeOrigins.push(new T.Vector3(-8, 7.3, z)); }
+    // The Great Main: Terra's pressure artery leaves the municipal boiler and crosses
+    // the whole ward overhead. Its regulator dome hangs above the street like a moon.
+    { const z = 29, y = 14;
+      // Regulator towers: masonry shafts whose top rooms wrap the Main itself.
+      for (const x of [-11.9, 11.9]) { box(g, x, 6.2, z, 2.4, 12.4, 2.4, mats.darkBrick); box(g, x, .5, z, 3, 1, 3, mats.stone); for (const yy of [4, 8]) box(g, x, yy, z, 2.6, .22, 2.6, mats.stone);
+        box(g, x, 14, z, 3.6, 3.4, 3.6, mats.teal); box(g, x, 12.2, z, 4, .3, 4, mats.stone); box(g, x, 15.8, z, 4, .3, 4, mats.brass);
+        for (const dz of [-1.81, 1.81]) { const w = new T.Mesh(new T.PlaneGeometry(1.6, 1.3), windowGlass[0]); w.position.set(x, 14.3, z + dz); w.rotation.y = dz > 0 ? 0 : Math.PI; g.add(w); }
+        const cap = new T.Mesh(new T.ConeGeometry(3, 2.8, 4), mats.roof); cap.rotation.y = Math.PI / 4; cap.position.set(x, 17.4, z); g.add(cap); cyl(g, x, 19.3, z, .12, 1.2, mats.brass); sphere(g, x, 20, z, .2, mats.brass);
+        this.collider(x, z, 3, 3); }
+      pipe(g, [[-30, 0, z], [-30, y, z], [30, y, z], [30, y, 36], [30, 11.4, 38.5]], .85, mats.copper);
+      for (let x = -26; x <= 26; x += 4) { const flange = torus(g, x, y, z, .92, .13, mats.iron); flange.rotation.y = Math.PI / 2; }
+      const dome = sphere(g, 0, y + .6, z, 2.3, mats.brass); dome.scale.y *= .82; cyl(g, 0, y - .9, z, 1.5, 1, mats.iron); cyl(g, 0, y + 2.6, z, .32, 1.4, mats.iron); sphere(g, 0, y + 3.3, z, .45, mats.copper);
+      const wheel = gear(g, 11.9, 5.5, z + 1.1, .85); this.gears.push(wheel);
+      this.collider(-30, z, 2, 2); sign(g, 'THE GREAT MAIN', 'MUNICIPAL PRESSURE • WARD 07', 0, y - 2.1, z + .9, 5.2, .75); }
     for (let i = 0; i < 10; i++) { const side = i % 2 ? -1 : 1; const x = side * (28 + random() * 2); const z = 55 - random() * 106; if (i % 2) barrel(g, x, 0, z); else crate(g, x, 0, z, .8 + random() * .5); }
     // Merchant stalls, hanging laundry, crates, roof ducts and cobbled stoops.
     for (const z of [25, -1]) { beam(g, new T.Vector3(-29, 8, z), new T.Vector3(-43, 7.3, z), .025); for (let n = 0; n < 5; n++) { this.cloth(-31 - n * 2, 7.6, z, 1.3, 1.5, n % 2 ? mats.cream : mats.teal); } }
@@ -139,55 +268,78 @@ export class City {
   cloth(x: number, y: number, z: number, width: number, height: number, material: T.MeshStandardMaterial) {
     const geometry = new T.PlaneGeometry(width, height, 6, 10);
     geometry.translate(0, -height / 2, 0);
-    const fabric = material.clone(); fabric.side = T.DoubleSide;
+    const fabric = illustrated(material.clone()); fabric.side = T.DoubleSide;
     const mesh = new T.Mesh(geometry, fabric); mesh.position.set(x, y, z);
     mesh.userData.height = height; mesh.userData.rest = geometry.attributes.position.array.slice();
     this.flags.push(mesh); this.root.add(mesh);
   }
   buildBackground() { const g = new T.Group(); this.root.add(g);
-    buildSkyline(this.root);
-    for (const x of [-83, 83]) box(g, x, 2, 0, 3, 5, 180, mats.darkBrick); box(g, 0, 2, 83, 168, 5, 3, mats.darkBrick);
-    for (let i = 0; i < 14; i++) { const mountain = new T.Mesh(new T.ConeGeometry(40 + random() * 30, 70 + random() * 80, 5), new T.MeshStandardMaterial({ color: P.cool.navy, roughness: 1 })); mountain.position.set((i - 7) * 60, -10, -260 - random() * 60); g.add(mountain); }
+    // Outer ward: tenements close the south ends of the lanes instead of a bare wall.
+    for (const [x, type] of [[-48, 7], [-31, 6], [31, 8], [48, 6]]) { const b = new T.Group(); b.position.set(x, 0, 77); b.rotation.y = Math.PI; this.facade(b, 15, 13 + (type % 3) * 2, 9, type); this.housingFrontages.push({ x, z: 72.45, width: 15, height: 13 + (type % 3) * 2, family: type % 3, yaw: Math.PI }); g.add(b); this.collider(x, 77, 15, 9); }
+    buildSkyline(this.root); buildOuterCity(this.root, [housingPaint[0], housingPaint[1], housingPaint[2], mats.brick, mats.cream]);
+    // Low ward parapets: the boundary holds the player, not the view of the city beyond.
+    for (const x of [-83, 83]) box(g, x, .7, 0, 2, 1.4, 180, mats.stone); box(g, 0, .7, 83, 168, 1.4, 2, mats.stone);
     const balloon = sphere(this.airship, 0, 0, 0, 1, mats.cream); balloon.scale.set(10, 3, 3); for (const xx of [-5, 0, 5]) { const ring = torus(this.airship, xx, 0, 0, 2.95, .075, mats.copper); ring.rotation.y = Math.PI / 2; } box(this.airship, 0, -4.1, 0, 7, 1.5, 2.1, mats.wood); for (const xx of [-3, 3]) for (const z of [-.8, .8]) beam(this.airship, new T.Vector3(xx, -2.2, z * 2), new T.Vector3(xx, -3.8, z), .035); box(this.airship, -9, 0, 0, 3, 5, .13, mats.teal); this.root.add(this.airship); bake(this.airship); bake(g);
   }
   createPopulation() { for(let i=0;i<42;i++){
       const profile=sceneFor(i),npc=citizen(mats.rust,i,profile.role);
-      if(profile.activity==='carry'){const cargo=new T.Group();cargo.position.set(0,1.05,.31);npc.body.add(cargo);box(cargo,0,0,0,.43,.32,.33,mats.wood);for(const y of [-.11,.11])box(cargo,0,y,.175,.45,.035,.02,mats.cream);bake(cargo);}
-      if(profile.activity==='read'){const ledger=new T.Group();ledger.position.set(0,1.2,.29);ledger.rotation.x=-.55;npc.body.add(ledger);box(ledger,0,0,0,.27,.035,.32,mats.cream);bake(ledger);}
+      if(profile.activity==='carry'){const cargo=new T.Group();cargo.position.set(0,1.05,.31);npc.body.add(cargo);box(cargo,0,0,0,.43,.32,.33,mats.wood);for(const y of [-.11,.11])box(cargo,0,y,.175,.45,.035,.02,mats.cream);asProp(cargo);bake(cargo);}
+      if(profile.activity==='walk'&&i%3!==1){const umbrella=new T.Group();umbrella.position.set(.2,0,.12);npc.body.add(umbrella);cyl(umbrella,0,1.75,0,.012,1.1,mats.iron);
+        const shade=new T.Mesh(new T.ConeGeometry(.62,.3,8,1,true),fabricOf([mats.teal,mats.red,artMats.ochre,mats.cream][i%4]));shade.position.y=2.3;umbrella.add(shade);sphere(umbrella,0,2.46,0,.03,mats.brass);asProp(umbrella);bake(umbrella);umbrella.visible=false;npc.group.userData.umbrella=umbrella;}
+      if(profile.activity==='read'){const ledger=new T.Group();ledger.position.set(0,1.2,.29);ledger.rotation.x=-.55;npc.body.add(ledger);box(ledger,0,0,0,.27,.035,.32,mats.cream);asProp(ledger);bake(ledger);}
       this.root.add(npc.group);this.npcs.push(npc);
     }
-    for (let i = 0; i < 3; i++) { const cart = new T.Group(); box(cart, 0, .65, 0, 1.3, .25, 2); for (const x of [-.65, .65]) box(cart, x, 1, 0, .1, .65, 2); crate(cart, 0, .8, -.3, .7); barrel(cart, 0, .8, .55); const wheels: T.Group[] = []; for (const x of [-.85, .85]) { const wheel = new T.Group(); wheel.position.set(x, .45, 0); wheel.rotation.y = Math.PI / 2; cart.add(wheel); torus(wheel, 0, 0, 0, .43, .075, mats.iron); for (let j = 0; j < 4; j++) box(wheel, 0, 0, 0, .77, .045, .06, mats.brass).rotation.z = j * Math.PI / 4; bake(wheel); wheels.push(wheel); } this.cartWheels.push(wheels); this.root.add(cart); this.carts.push(cart); }
+    for (let i = 0; i < 3; i++) { const cart = new T.Group(); box(cart, 0, .65, 0, 1.3, .25, 2); for (const x of [-.65, .65]) box(cart, x, 1, 0, .1, .65, 2); crate(cart, 0, .8, -.3, .7); barrel(cart, 0, .8, .55); const wheels: T.Group[] = []; for (const x of [-.85, .85]) { const wheel = new T.Group(); wheel.position.set(x, .45, 0); wheel.rotation.y = Math.PI / 2; cart.add(wheel); torus(wheel, 0, 0, 0, .43, .075, mats.iron); for (let j = 0; j < 4; j++) box(wheel, 0, 0, 0, .77, .045, .06, mats.brass).rotation.z = j * Math.PI / 4; asProp(wheel); bake(wheel); wheels.push(wheel); } this.cartWheels.push(wheels); asProp(cart); this.root.add(cart); this.carts.push(cart); }
   }
   propertyUpgrade(id: PropertyId) { const v = this.properties.get(id)!; const level = this.economy.state.properties[id].level; v.level = level; this.disposeGroup(v.additions); const g = v.additions;
-    if (level > 0) { for (const x of [-5.8, 5.8]) windowUnit(g, x, .9, 5.82, true, 2.1, 2.6); box(g, 0, 3.75, 5.85, 15, .1, .1, mats.brass); box(g, 0, .08, 7.8, 15, .15, 3, mats.stone); for (const x of [-6.5, 6.5]) { cyl(g, x, 3, 6, .065, 2, mats.brass); sphere(g, x, 4, 6, .22, mats.glow); } }
-    if (level >= 2) { for (const x of [-6.5, -3.5, -.5, 2.5, 5.5]) windowUnit(g, x, 8, 5.7, true, 1.35, 2.3); for (const x of [-7.5, 7.5]) box(g, x, 6, 5.7, .25, 11, .15, mats.brass); sign(g, 'GUILD CERTIFIED', 'Quality in every turning', 0, 6.5, 5.76, 4, .65); }
+    // Shop windows: boarded while derelict, then stocked with the trade's own goods.
+    const index = PROPERTIES.findIndex(p => p.id === id);
+    for (const x of shopWindows[index]) {
+      if (level === 0 && index % 3 === 0) for (const a of [-.2, .3]) box(g, x, 1.8 + a, 6.16, 2.6, .23, .08, mats.wood).rotation.z = a;
+      if (level === 0) continue;
+      for (const [shelf, count] of [[1.54, 5], [2.29, level >= 3 ? 5 : 2]] as const) for (let k = 0; k < count; k++) { const gx = x - .9 + k * .45, gz = 5.78;
+        if (index === 0) { const w = torus(g, gx, shelf + .16, gz, .13, .04, k % 2 ? mats.rust : mats.iron); w.rotation.y = .4; }
+        if (index === 1) { const d = cyl(g, gx, shelf + .15, gz, .13, .05, mats.cream); d.rotation.x = Math.PI / 2; torus(g, gx, shelf + .15, gz + .03, .13, .02, mats.brass); }
+        if (index === 2) { cyl(g, gx, shelf + .12, gz, .12, .2, k % 2 ? mats.brass : mats.copper); sphere(g, gx, shelf + .26, gz, .06, mats.brass); }
+        if (index === 3) box(g, gx, shelf + .07, gz, .34, .12, .18, k % 2 ? artMats.ember : mats.iron);
+        if (index === 4) { cyl(g, gx, shelf + .15, gz, .055, .3, [mats.teal, artMats.wine, mats.copper][k % 3]); }
+        if (index === 5) { const bolt = cyl(g, gx, shelf + .1, gz, .09, .38, [mats.red, artMats.ochre, mats.teal, artMats.wine, mats.cream][k % 5]); bolt.rotation.x = Math.PI / 2; }
+      } }
+    if (level > 0) { box(g, 0, 3.75, 5.85, 15, .1, .1, mats.brass); box(g, 0, .08, 7.8, 15, .15, 3, mats.stone); for (const x of [-6.5, 6.5]) { cyl(g, x, 3, 6, .065, 2, mats.brass); sphere(g, x, 4, 6, .22, mats.glow); } }
+    const L = businessLift[index], front = L ? 6.7 : 5.76;
+    if (level >= 2) { if (id === 'tavern') for (const x of [-7.5, 7.5]) box(g, x, 6, 5.7, .25, 11, .15, mats.brass); sign(g, 'GUILD CERTIFIED', 'Quality in every turning', 0, L ? 4.45 + L - .45 : 6.5, front, 3, .55); }
     if(level>=3){
-      if(id==='scrap'){box(g,-3,12,0,8,2.5,8,mats.iron);roof(g,-3,13.3,0,8.5,2.5,8.5,mats.rust);for(const x of [-5,-3,-1])windowUnit(g,x,11.7,4.04,true,1.2,1.5);}
-      if(id==='workshop'){box(g,2,16,0,4.8,3.5,4.8,mats.cream);roof(g,2,17.8,0,5.6,4.2,5.3,mats.roof);for(const x of [.8,3.2])windowUnit(g,x,15.3,2.44,true,1.2,1.9);}
-      if(id==='boiler'){for(const x of [-3.4,2.7]){cyl(g,x,19,0,.12,5,mats.brass);}pipe(g,[[-5,10,6],[-5,14,6],[5,14,6],[5,10,6]],.2,mats.brass);}
-      if(id==='foundry'){box(g,0,14.5,-1,13,1.3,7,mats.iron);for(const x of [-4.5,0,4.5])box(g,x,14.5,2.6,3.5,.75,.08,mats.glow);roof(g,0,15.2,-1,14,2.8,8,mats.iron);}
+      if(id==='scrap'){box(g,-5,10.95+L,1.9,6,2.5,5.2,mats.iron);roof(g,-5,12.2+L,1.9,6.5,2.2,5.6,mats.rust);for(const x of [-6.6,-3.4])windowUnit(g,x,10.1+L,4.52,true,1.1,1.4,'grid');}
+      if(id==='workshop'){for(const x of [-6,6]){cyl(g,x,11+L,-1,.08,4.4,mats.brass);torus(g,x,12.6+L,-1,.35,.04,mats.brass);sphere(g,x,13.3+L,-1,.2,mats.copper);}}
+      if(id==='boiler'){pipe(g,[[-5,11+L,-1.6],[-5,12.8+L,-1.6],[4.4,12.8+L,-1.6],[4.4,11+L,-1.6]],.2,mats.brass);}
+      if(id==='foundry'){box(g,-3.25,12.9+L,-3.75,8,1.3,2.6,mats.iron);for(const x of [-6,-3.25,-.5])box(g,x,12.9+L,-2.44,2,.7,.06,mats.glow);roof(g,-3.25,13.55+L,-3.75,8.6,1.4,3.1,mats.iron);}
       if(id==='tavern'){box(g,0,12.8,5.9,12,.22,3,mats.cream);railing(g,0,13,7.4,12);for(const x of [-5,5])box(g,x,14.3,6.1,.13,3,.13,mats.brass);roof(g,0,15.9,6.1,12.8,1.3,3.3,mats.teal);}
       if(id==='market'){
-        box(g,0,5.2,6.6,14.8,.18,2.6,mats.teal);railing(g,0,5.3,7.9,14.2);
-        for(const x of [-7,-3.5,0,3.5,7])box(g,x,7.1,7.9,.11,3.8,.11,mats.brass);
-        for(const x of [-5.25,-1.75,1.75,5.25]){const vault=new T.Mesh(new T.TorusGeometry(1.69,.065,5,16,Math.PI),mats.brass);vault.position.set(x,7.15,7.9);g.add(vault);}
-        roof(g,0,9,6.6,15.3,1.5,3.2,mats.copper);
+        box(g,0,5.2+L,6.6,14.8,.18,2.6,mats.teal);railing(g,0,5.3+L,7.9,14.2);
+        for(const x of [-7,-3.5,0,3.5,7])box(g,x,7.1+L,7.9,.11,3.8,.11,mats.brass);
+        for(const x of [-5.25,-1.75,1.75,5.25]){const vault=new T.Mesh(new T.TorusGeometry(1.69,.065,5,16,Math.PI),mats.brass);vault.position.set(x,7.15+L,7.9);g.add(vault);}
+        roof(g,0,9+L,6.6,15.3,1.5,3.2,mats.copper);
       }
     }
-    if(level>=4){for(const x of [-6.5,6.5]){box(g,x,8.1,5.82,.85,2.4,.02,id==='foundry'?mats.rust:mats.teal);box(g,x,9.4,5.83,1.1,.08,.04,mats.brass);}if(id==='market'||id==='tavern')for(const x of [-6,6])tree(g,x,7,.55);}
-    if(level>=5&&(id==='workshop'||id==='boiler')){const x=id==='workshop'?2:-3.4;const y=id==='workshop'?23:23.4;cyl(g,x,y-1,0,.1,2,mats.brass);sphere(g,x,y,0,.35,mats.aether);}
+    if(level>=4){for(const x of [-6.5,6.5]){box(g,x,8.1+L,front+.06,.85,2.4,.02,id==='foundry'?mats.rust:mats.teal);box(g,x,9.4+L,front+.07,1.1,.08,.04,mats.brass);}if(id==='market'||id==='tavern')for(const x of [-6,6])tree(g,x,7,.55);}
+    if(level>=5&&(id==='workshop'||id==='boiler')){const [x,y,z]=id==='workshop'?[0,32.6+L,-2.4]:[-7.6,21.4+L,3.9];cyl(g,x,y-1,z,.1,2,mats.brass);sphere(g,x,y,z,.35,mats.aether);}
     bake(g);
   }
   disposeGroup(g: T.Group) { g.traverse(o => { if (o instanceof T.Mesh) o.geometry.dispose(); }); g.clear(); }
   buildInfrastructure() { this.disposeGroup(this.infrastructure); const g = this.infrastructure; const s = this.economy.state.infrastructure;setHousingCondition(s.housing);
 
     if (s.roads > 0) { box(g, 0, .07, 10, 12.6, .025, 130, mats.road); for (const x of [-7.8, 7.8]) box(g, x, .089, 10, .14, .02, 130, mats.brass); if (s.roads > 1) for (const x of [-2, 2]) box(g, x, .1, 10, .1, .05, 130, mats.iron); }
-    if (s.steam > 0) for (const z of [29]) { const pipe = cyl(g, 0, 7.8, z, .19, 23, mats.brass); pipe.rotation.z = Math.PI / 2; for (const x of [-7, 7]) { sphere(g, x, 7.8, z, .4, s.steam === 3 ? mats.aether : mats.copper); torus(g, x, 7.8, z + .35, .23, .05); } }
-    if (s.gardens > 0) { for (const x of [-7, 7]) for (const z of [-36, -51, 52]) { box(g, x, .3, z, 2.4, .6, 2.4, mats.stone); tree(g, x, z, .8 + s.gardens * .12); } cyl(g, 0, .6, -31, 1.55, .15, mats.aether); cyl(g, 0, 1.6, -31, .06, 1.6, mats.aether); }
+    if (s.steam > 0) for (let x = -24; x <= 24; x += 8) { const band = torus(g, x + 2, 14, 29, .9, .08 + s.steam * .02, s.steam === 3 ? mats.aether : mats.brass); band.rotation.y = Math.PI / 2; }
+    if (s.gardens > 0) { for (const x of [-7, 7]) for (const z of [-36, -51, 52]) { const lift = terraceRise(x, z); box(g, x, .3 + lift, z, 2.4, .6, 2.4, mats.stone); tree(g, x, z, .8 + s.gardens * .12).position.y = lift; } cyl(g, 0, .6, -31, 1.55, .15, mats.aether); cyl(g, 0, 1.6, -31, .06, 1.6, mats.aether); }
     for(const home of this.housingFrontages){const windows=new T.Group();windows.position.set(home.x,0,home.z);windows.rotation.y=home.yaw;residentialWindows(windows,home,s.housing);g.add(windows);}
     (this.water.material as T.MeshStandardMaterial).color.set(s.gardens?P.cool.turquoise:P.cool.cyan); bake(g);
   }
-  buildProsperity() { this.disposeGroup(this.prosperity); const g = this.prosperity; const stage = this.economy.stage; this.stage = stage;applyWorldPalette(stage);refreshCanopyColors();setCitizenProsperity(stage);
+  buildProsperity() { this.disposeGroup(this.prosperity); const g = this.prosperity; const stage = this.economy.stage; this.stage = stage;applyWorldPalette(stage);refreshFacades(stage);refreshCanopyColors();setCitizenProsperity(stage);
+    // Recovery is visible from the gate: pennants multiply along the spine.
+    if (stage >= 4) for (const z of stage >= 5 ? [36, -9] : [18]) bunting(g, new T.Vector3(-11.6, 8.3, z), new T.Vector3(11.6, 8.3, z + 1.5), 1.1, 16);
+    if (stage >= 4) for (const x of [-11, 11]) bunting(g, new T.Vector3(x, 7.5, -29), new T.Vector3(x * .12, 19, -43), .7, 12);
+    this.lantern.color.set(stage >= 5 ? P.aether.cyan : P.warm.lamp); this.lantern.emissive.set(stage >= 5 ? P.aether.glow : P.warm.lamp);
+    this.lantern.emissiveIntensity = [.18, .45, .7, .9, 1.1, 1.3][stage] + this.economy.state.infrastructure.steam * .15;
     if (stage >= 2) for (const x of [-6, 6]) { const flag = box(g, x, 6, -45, 1.1, 3, .05, mats.teal); cyl(g, x, 4, -45, .06, 8, mats.brass); sphere(g, x, 8.1, -45, .16, mats.brass); flag.rotation.y = .12; }
     if (stage >= 3) for (const x of [-22, 22]) { const b = new T.Group(); b.position.set(x, 12, -56); this.facade(b, 10, 4, 7, 6, true); g.add(b); }
     if (stage >= 4) { for (const x of [-23, 23]) { cyl(g, x, 23, -57, .12, 4, mats.brass); sphere(g, x, 25, -57, .35, mats.aether); const t = torus(g, x, 25, -57, .7, .05); t.rotation.y = Math.PI / 3; } }
@@ -198,14 +350,14 @@ export class City {
   }
   construct(kind: string, id: string) { if (!['property', 'infrastructure', 'district', 'research'].includes(kind)) return; const g = new T.Group(); this.root.add(g); const p = PROPERTIES.find(p => p.id === id); const x = p ? p.x : kind === 'district' && id === 'canal' ? 54 : 0; const z = p ? p.z : -40; g.position.set(x, 0, z); if (p) g.rotation.y = p.rotation;
     for (const xx of [-8, 8]) for (const zz of [5.9, 8.2]) { cyl(g, xx, 5, zz, .055, 10, mats.brass); for (const y of [2.7, 5.7, 8.7]) beam(g, new T.Vector3(-8, y, zz), new T.Vector3(8, y, zz), .055, mats.brass); } for (const y of [2.7, 5.7, 8.7]) box(g, 0, y, 7.1, 16, .09, 2.3, mats.wood); for (let xx = -8; xx < 8; xx += 4) beam(g, new T.Vector3(xx, 0, 8.2), new T.Vector3(xx + 4, 5.7, 8.2), .05, mats.iron);
-    const workers = [citizen(mats.cream), citizen(mats.rust)]; workers.forEach((w, i) => { w.group.position.set(i * 5 - 2.5, 0, 9); w.group.rotation.y = Math.PI; g.add(w.group); }); sign(g, 'TERRA IS REBUILDING', 'Guild of civic engineers', 0, 1.7, 9.2, 5, .8);
+    const workers = [citizen(mats.cream), citizen(mats.rust)]; workers.forEach((w, i) => { w.group.position.set(i ? 7 : -6.5, 0, 9.2); w.group.rotation.y = Math.PI; g.add(w.group); }); sign(g, 'TERRA IS REBUILDING', 'Guild of civic engineers', 0, 1.7, 9.2, 5, .8);
     this.constructions.push({ group: g, time: 0, duration: 6, workers, finish: () => { if (p) this.propertyUpgrade(p.id); this.sync(); } });
   }
   sync(initial = false) { if (initial) for (const p of PROPERTIES) this.propertyUpgrade(p.id); this.buildInfrastructure(); this.buildProsperity(); for (const [id, bars] of this.gateMeshes) bars.visible = !this.economy.state.districts.includes(id); this.presentation?.sync(); }
-  groundHeight(x: number, z: number) { if (x > -36.3 && x < -31.7 && z <= -29 && z >= -51) return .2 + (-z - 29) / 22 * 6; if (x > -37.5 && x < -30.5 && z < -51 && z >= -61.5) return 6.4; return .18; }
+  groundHeight(x: number, z: number) { const tr = terraceRise(x, z); if (tr > 0) return .18 + tr; if (x > -36.3 && x < -31.7 && z <= -29 && z >= -51) return .2 + (-z - 29) / 22 * 6; if (x > -37.5 && x < -30.5 && z < -51 && z >= -61.5) return 6.4; return .18; }
   blocked(x: number, z: number, feet: number) { if (x > 40.2 && x < 48.8 && (z < -9.5 || z > -2.5)) return true; if (x < -75 || x > 76 || z > 78 || z < -83) return true; if (x > 53 && !this.economy.state.districts.includes('canal')) return true; if (z < -69 && !this.economy.state.districts.includes('heights')) return true;
     return this.colliders.some(c => !(c.gate && this.economy.state.districts.includes(c.gate)) && feet < c.height && x > c.minX - .32 && x < c.maxX + .32 && z > c.minZ - .32 && z < c.maxZ + .32); }
-  update(dt: number, time: number, viewer?:T.Vector3) { if(viewer)this.viewer.copy(viewer);this.presentation.update(dt,time,this.viewer); if(this.clockMechanism)this.clockMechanism.rotation.z=this.economy.state.infrastructure.steam>0?-time*.1:0; for (const p of PROPERTIES) { const v = this.properties.get(p.id)!; const level = this.economy.state.properties[p.id].level; v.gear.rotation.z -= dt * (.35 + level * .6); v.piston.position.y = .95 + Math.sin(time * (1 + level)) * .22; v.machine.rotation.z = 0; }
+  update(dt: number, time: number, viewer?:T.Vector3) { if(viewer)this.viewer.copy(viewer);setLifeConditions(this.economy.stage,this.raining);this.presentation.update(dt,time,this.viewer); if(this.clockMechanism)this.clockMechanism.rotation.z=this.economy.state.infrastructure.steam>0?-time*.1:0; for (const p of PROPERTIES) { const v = this.properties.get(p.id)!; const level = this.economy.state.properties[p.id].level; v.gear.rotation.z -= dt * (.35 + level * .6); v.piston.position.y = .95 + Math.sin(time * (1 + level)) * .22; v.machine.rotation.z = 0; }
     for (const flag of this.flags) {
       const pos = flag.geometry.attributes.position; const rest = flag.userData.rest as Float32Array;
       for (let j = 0; j < pos.count; j++) { const drop = -rest[j * 3 + 1] / flag.userData.height;
@@ -217,16 +369,17 @@ export class City {
     this.npcs.forEach((npc,i)=>{npc.worn.visible=this.economy.stage<3;npc.finery.visible=this.economy.stage>=3;npc.group.visible=i<14+this.economy.stage*5;if(npc.group.visible)stageCitizen(npc,i,time);});
     for(const [i,npc] of this.npcs.entries()){
       if(!npc.group.visible)continue;
-      const {scene,moving}=stageCitizen(npc,i,time);
+      const {scene,moving}=stageCitizen(npc,i,time);npc.group.position.y=this.groundHeight(npc.group.position.x,npc.group.position.z);
       const partner=scene.partner===undefined?undefined:this.npcs[scene.partner];
       const target=partner?.group.position??(scene.target?this.lifeTarget.set(scene.target[0],1.7,scene.target[1]):undefined);
-      const speaking=scene.partner!==undefined?Math.floor(time/3.5)%2===(i<scene.partner?0:1):(time+npc.phase)%8<3;
+      const speaking=scene.partner!==undefined?turnTaking(time,i,scene.partner):(time+npc.phase)%8<3;
       animateLife(npc,scene.activity,dt,time,calm,this.viewer,target,speaking,moving);
     }
     this.crowd.update();
     this.carts.forEach((cart, i) => { cart.visible = i <= this.economy.stage; const speed = 1.1 + this.economy.state.infrastructure.roads * .3; cart.position.set(i % 2 ? -2.8 : 2.8, .18, 60 - (time * speed + i * 38) % 118); for (const wheel of this.cartWheels[i]) wheel.rotation.x = -time * speed / .43; });
     this.airship.position.set(Math.sin(time * .007) * 85, 46 + Math.sin(time * .04), -95 + Math.cos(time * .007) * 15); this.airship.rotation.y = -.1; this.tram.position.x = (time * (this.economy.stage>=3?4.5:2.5)) % 240 - 120;
     for (const hand of this.clockHands) hand.parent!.rotation.z = this.economy.state.infrastructure.steam > 0 ? -this.economy.state.day * Math.PI * 48 : -.4;
+    if (this.finchLift) { const u = (time * .06) % 2, pp = u < 1 ? u : 2 - u; this.finchLift.position.y = 14.4 + 9 * pp * pp * (3 - 2 * pp); }
     this.water.position.y = .025 + Math.sin(time * .9) * .012; (this.water.material as T.MeshStandardMaterial).roughness = .23 + Math.sin(time * .4) * .04;
     for (let i = this.constructions.length - 1; i >= 0; i--) { const c = this.constructions[i]; c.time += dt; for (const w of c.workers) w.arms[0].rotation.x = -1 + Math.sin(time * 14) * .7; if (c.time >= c.duration) { c.finish(); this.root.remove(c.group); this.constructions.splice(i, 1); } }
   }

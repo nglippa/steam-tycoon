@@ -78,3 +78,9 @@ __TERRA__.atmosphere.override = 'rain' // 'overcast', 'fog', or null for cycle
 ```
 
 Developer saves are isolated from the ordinary game. The starting district is the most detailed area; expansion districts are compact explorable extensions. NPC life is route-based ambient choreography, not a full individual-needs simulation. Prestige, politics, supply-chain logistics and multiplayer are deliberately reserved for future development.
+
+## Mobile and deployment
+
+On touch devices (coarse pointer) the game skips pointer lock. The left side of the screen is a floating joystick (push to the rim to sprint) and the right side drags the view. Buttons provide USE (enabled when aiming at a ledger or plaque), JUMP, LEDGER and pause. A fresh game on a phone starts on the performance renderer, at 1–1.25× pixel density. Code: `src/player/touch.ts`.
+
+Deployed to Vercel project `steam-tycoon` (https://steam-tycoon.vercel.app) with `vercel deploy --prod`. `.vercelignore` keeps screenshots and local tool folders out of the upload.

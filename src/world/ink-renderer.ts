@@ -11,31 +11,68 @@ export class InkRenderer {
     depthTest: false, depthWrite: false,
     uniforms: {
       picture: { value: this.target.texture }, depth: { value: this.target.depthTexture },
-      texel: { value: new T.Vector2(1, 1) }, near: { value: .08 }, far: { value: 500 },
+      texel: { value: new T.Vector2(1, 1) }, near: { value: .08 }, far: { value: 500 }, recovery: { value: 0 },
     },
     vertexShader: 'varying vec2 uvInk; void main(){uvInk=uv;gl_Position=vec4(position.xy,0.,1.);}',
     fragmentShader: `
       varying vec2 uvInk;
       uniform sampler2D picture, depth;
       uniform vec2 texel;
-      uniform float near, far;
+      uniform float near, far, recovery;
       float distanceAt(vec2 uv) {
         float d = texture2D(depth, uv).r;
         return (near * far) / (far - d * (far - near));
       }
+      // Stable screen-space value noise: the pen wanders, but never flickers.
+      float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+      float vnoise(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3. - 2. * f);
+        return mix(mix(hash(i), hash(i + vec2(1., 0.)), f.x), mix(hash(i + vec2(0., 1.)), hash(i + vec2(1., 1.)), f.x), f.y); }
+      float luma(vec3 c) { return dot(c, vec3(.299, .587, .114)); }
       void main() {
-        vec3 color = texture2D(picture, uvInk).rgb;
-        float center = distanceAt(uvInk);
-        float l = distanceAt(uvInk - vec2(texel.x, 0.));
-        float r = distanceAt(uvInk + vec2(texel.x, 0.));
-        float u = distanceAt(uvInk + vec2(0., texel.y));
-        float d = distanceAt(uvInk - vec2(0., texel.y));
-        float crease = max(abs(l + r - 2. * center), abs(u + d - 2. * center)) / max(center, 1.);
-        float ink = smoothstep(.012, .038, crease) * (1. - smoothstep(24., 105., center));
-        // A tiny stable paper tooth, never animated grain or flickering outlines.
-        float paper = fract(sin(dot(gl_FragCoord.xy, vec2(12.9898,78.233))) * 43758.5453);
-        color = mix(color, vec3(.035, .062, .065), ink * .69);
-        color += (paper - .5) * .002;
+        vec2 px = gl_FragCoord.xy;
+        vec4 sample0 = texture2D(picture, uvInk); vec3 color = sample0.rgb;
+        float text = 1. - step(.25, sample0.a); // printed surfaces: keep silhouettes, skip interior ink
+        float centerDist = distanceAt(uvInk);
+        // Line weight: heavy near the eye, thinning with distance, modulated along its length.
+        float weight = mix(3.0, 1.2, smoothstep(6., 80., centerDist)) * (.8 + .45 * vnoise(px * .045));
+        // Wobble: sample points drift a little, so straight edges read hand-drawn.
+        vec2 wob = (vec2(vnoise(px * .02), vnoise(px * .02 + 17.3)) - .5) * 1.6;
+        vec2 uv = uvInk + wob * texel;
+        // Line class: printed (a<.25) / thin people+props (a~.5) / world (a=1). Neighbours decide,
+        // so both sides of a character's silhouette get the thin line.
+        vec2 p0 = texel * weight;
+        float cls = min(min(texture2D(picture, uv + vec2(p0.x, 0.)).a, texture2D(picture, uv - vec2(p0.x, 0.)).a), min(texture2D(picture, uv + vec2(0., p0.y)).a, texture2D(picture, uv - vec2(0., p0.y)).a));
+        cls = min(cls, sample0.a);
+        float thin = step(.25, cls) * (1. - step(.75, cls));
+        vec2 o = texel * weight * mix(1., .38, thin);
+        float c0 = distanceAt(uv);
+        float l = distanceAt(uv - vec2(o.x, 0.)), r = distanceAt(uv + vec2(o.x, 0.));
+        float u = distanceAt(uv + vec2(0., o.y)), d = distanceAt(uv - vec2(0., o.y));
+        float a1 = distanceAt(uv + o * vec2(.7, .7)), a2 = distanceAt(uv + o * vec2(-.7, .7));
+        float a3 = distanceAt(uv - o * vec2(.7, .7)), a4 = distanceAt(uv - o * vec2(-.7, .7));
+        float nearest = min(min(min(c0, l), min(r, u)), min(min(d, a1), min(min(a2, a3), a4)));
+        float farthest = max(max(max(c0, l), max(r, u)), max(max(d, a1), max(max(a2, a3), a4)));
+        float jump = (farthest - nearest) / max(nearest, .5);
+        float crease = max(max(abs(l + r - 2. * c0), abs(u + d - 2. * c0)), max(abs(a1 + a3 - 2. * c0), abs(a2 + a4 - 2. * c0))) / max(c0, 1.);
+        // Interior lines where color blocks meet (frames, trims, clothing panels) — not on sky.
+        float lc = luma(texture2D(picture, uv).rgb);
+        float gl = abs(luma(texture2D(picture, uv - vec2(o.x, 0.)).rgb) - luma(texture2D(picture, uv + vec2(o.x, 0.)).rgb))
+                 + abs(luma(texture2D(picture, uv - vec2(0., o.y)).rgb) - luma(texture2D(picture, uv + vec2(0., o.y)).rgb));
+        float solid = 1. - step(far * .9, nearest);
+        float colorEdge = smoothstep(.16, .3, gl / max(lc, .18)) * solid * (1. - smoothstep(18., 60., nearest));
+        float fade = 1. - smoothstep(90., 320., nearest) * .65;
+        float ink = max(max(smoothstep(.07, .18, jump), smoothstep(.012, .035, crease) * .85 * (1. - text)), colorEdge * .6 * (1. - text)) * fade;
+        // Ink is a deep, color-aware navy-grey rather than black.
+        vec3 inkColor = mix(vec3(.06, .05, .05), color * .25, .2);
+        color = mix(color, inkColor, clamp(ink, 0., 1.) * .95);
+        // Dreary grade: soot-tinted desaturation, crushed highlights, lifted smoky blacks and a
+        // heavy vignette. Recovery (prosperity) gives back some colour, never the full candy.
+        float gradeL = dot(color, vec3(.299, .587, .114));
+        color = mix(vec3(gradeL), color, mix(.5, .72, recovery));
+        color *= mix(vec3(.88, .93, 1.06), mix(vec3(.95, .93, .86), vec3(.99, .97, .93), recovery), smoothstep(.08, .45, gradeL));
+        color = color / (1. + color * mix(.3, .18, recovery));
+        color = max(color, vec3(.022, .026, .042)) + vec3(.008, .011, .022) * (1. - gradeL);
+        vec2 vc = uvInk - .5; color *= 1. - dot(vc, vc) * mix(.95, .7, recovery);
         gl_FragColor = vec4(color, 1.);
         #include <colorspace_fragment>
       }`,
@@ -44,6 +81,7 @@ export class InkRenderer {
     renderer.info.autoReset = false;
     this.scene.add(new T.Mesh(new T.PlaneGeometry(2, 2), this.material));
   }
+  setRecovery(stage: number) { this.material.uniforms.recovery.value = Math.min(1, stage / 5); }
   setQuality(high: boolean) {
     const samples = high ? Math.min(4, this.renderer.capabilities.maxSamples) : 0;
     if (this.target.samples === samples) return;
@@ -55,7 +93,7 @@ export class InkRenderer {
     this.renderer.getDrawingBufferSize(this.size);
     if (this.target.width !== this.size.x || this.target.height !== this.size.y) {
       this.target.setSize(this.size.x, this.size.y);
-      this.material.uniforms.texel.value.set(1.15 / this.size.x, 1.15 / this.size.y);
+      this.material.uniforms.texel.value.set(1 / this.size.x, 1 / this.size.y);
     }
     this.material.uniforms.near.value = camera.near;
     this.material.uniforms.far.value = camera.far;

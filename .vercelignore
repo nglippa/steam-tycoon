@@ -1,0 +1,9 @@
+screenshots
+dist
+node_modules
+.claude
+.codex
+.entire
+.serena
+.fastembed_cache
+*.log

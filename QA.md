@@ -156,3 +156,17 @@ The final small staging changes retain the same population ceiling and shared ba
 `npm run typecheck` passes; all 11 economy tests pass; `npm run build` passes. Final production output: application 127.85 kB / 47.19 kB gzip; Three.js 543.22 kB / 137.66 kB gzip. Vite retains the existing vendor chunk-size advisory. Browser inspection reports no rendering warnings or errors.
 
 Facial changes are discrete atlas states, and conversations/work remain short authored loops. Residential families still share simple structural geometry. The work improves visual life without introducing dialogue, a social simulation or expensive facial animation.
+
+## Painted light and scale pass — 2026-09-25
+
+Typecheck passes; all 11 economy tests pass; production build passes (existing Three.js chunk-size advisory). Real-controller checks at levels 0 and 5: six of six ledgers reachable and raycast; main street, both pedestrian lanes, foundry and housing lanes, ramp and wall collision pass; no sampled route actor inside a collider. Played: entry, walking, E on the salvage ledger, 25-Crown commission, construction completion (income rose), save and reload persistence. No console warnings or errors.
+
+FPS in Chrome at 1280×720 and 1.5× pixel density: every representative scene sits at the display's vsync cap (71.9 FPS on a 72 Hz display, p95 14.4–14.8 ms; 165 FPS with p95 ≈6.8 ms on a 165 Hz display). Scenes: starting street, market (levels 0 and 5), level-5 crowd at the clock, foundry, boiler yard, rainy night and level-5 overview. Draw calls 219–539; triangles 0.20–0.49 M.
+
+## Character and life pass — 2026-09-25
+
+Typecheck passes; all 11 tests pass; build passes. Traversal and ledger checks pass at levels 0 and 5, with no route citizen sampled inside a collider. Of the staged workers, only the two bench sitters register inside a collider, and that is intentional. Gameplay: walking (8.8 m in 2 s), sprinting (14.3 m in 2 s), jump and landing, E interaction, purchase, construction, and save/reload all work; the reduced-motion setting freezes secondary motion. The automation browser refused real pointer lock, so the drag-look fallback was exercised instead. No console warnings or errors. FPS at 1280×720 and 1.5× pixel density sits at the 165 Hz display cap in every representative scene (p95 6.4–6.8 ms; 120–624 draws; 0.28–0.75 M triangles).
+
+## Structural pass — 2026-09-26
+
+Typecheck, all 11 tests and the build pass. Traversal and ledger checks pass at stages 0 and 5; no route citizen sits inside geometry; the only staged workers inside colliders are the intentional sitters and leaners. Gameplay checks pass: walk, sprint, jump, E interaction, purchase, construction, save/reload and reduced motion. The automation browser refuses pointer lock, so the drag-look fallback was used. No console issues. Uncapped Chrome at 1280×720 and 1.5× pixel density: 309–380 FPS (p95 3.8–4.4 ms). The elevated overview is about 0.83 M triangles and 650 draws. With vsync on, every scene sits at the display cap.

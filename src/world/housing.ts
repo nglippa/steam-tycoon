@@ -1,8 +1,8 @@
 import * as T from 'three';
 import { arch, box, sphere, beam, mats, illustrated } from './assets';
 import { palette as P } from './palette';
-import { V, canopy, artMats } from './art-kit';
-export const housingPaint=[P.neutral.plaster,P.cool.dustyBlue,'#c5a0ad'].map(color=>illustrated(new T.MeshStandardMaterial({color,roughness:.94})));
+import { V, canopy, artMats, plasterMap } from './art-kit';
+export const housingPaint=['#c9b28c','#9a9580','#a98a78'].map(color=>illustrated(new T.MeshStandardMaterial({color,roughness:.94,map:plasterMap})));
 export const housingGlass=['dark','warm','curtain','boarded','cracked','silhouette'].map((state,index)=>{
   const c=document.createElement('canvas');c.width=128;c.height=192;const x=c.getContext('2d')!;
   const gradient=x.createLinearGradient(0,0,0,192);gradient.addColorStop(0,index===0?P.cool.midnight:'#6d7188');gradient.addColorStop(1,index===0?P.metal.iron:P.warm.lamp);x.fillStyle=gradient;x.fillRect(0,0,128,192);
@@ -35,6 +35,6 @@ export function residentialWindows(g:T.Group,home:Home,level:number){
 }
 
 export function setHousingCondition(level:number){
-  const early=[P.neutral.plaster,P.cool.dustyBlue,'#c5a0ad'],late=['#f2e2c9','#acc8dd','#d6bdc5'];
+  const early=['#b3a080','#8a8676','#957b6b'],late=['#d8c49c','#a9a78c','#b99684'];
   housingPaint.forEach((material,index)=>material.color.set(early[index]).lerp(new T.Color(late[index]),Math.min(1,level/3)));
 }

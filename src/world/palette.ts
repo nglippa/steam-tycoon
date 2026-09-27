@@ -5,28 +5,32 @@ export const palette = {
   warm: { furnace:'#ff842e', ember:'#ffd18a', lamp:'#ffc773', crimson:'#b94c60', burgundy:'#793d59', mustard:'#d5ac5b', timber:'#a88464', leather:'#775346' },
   cool: { teal:'#236f78', turquoise:'#58a7ad', cyan:'#8caebf', navy:'#334a72', midnight:'#1c294e', emerald:'#277e69', dustyBlue:'#7995b6' },
   aether: { cyan:'#70e7e1', white:'#d1f3f1', glow:'#79dce6' },
-  skin: ['#e5bea3','#bd8f7c','#926d67'],
-  hair: ['#2d2d42','#74493e','#bd864e','#464253'],
-  sky: { clear:'#679dcc', horizon:'#f0d6b6', overcast:'#8d9abb', rain:'#697d9e', lavender:'#b8adbd', night:'#19284d', haze:'#37677c', cloud:'#f7ead7', dusk:'#eeb19f', rose:'#ae718f' },
+  skin: ['#d8b094','#b08470','#86625a'],
+  hair: ['#262a4a','#7c4331','#cf9450','#5a3a5e'],
+  sky: { clear:'#8aa6b6', horizon:'#efe0c4', overcast:'#86908f', rain:'#5a6366', lavender:'#9c9d95', night:'#070a18', haze:'#131729', cloud:'#f6ead3', cloudShade:'#b9aa98', dusk:'#f2a67f', rose:'#5d6c9e', smog:'#b7b8ae' },
 } as const;
 const p=palette;
+// Karnaca/Thief key: sandstone, umber, soot and slate, weathered but warm. Values drift
+// cleaner with prosperity; saturation stays for accents, signage and glow.
 export const worldColors = {
-  brick:[p.neutral.plaster,'#edc7af','#f1d9bf'], darkBrick:[p.neutral.industrial,'#9eafbc','#b9c9cc'],
-  stone:[p.neutral.stone,'#d9d2c6','#e5ddd0'], warmStone:[p.neutral.ivory,'#ebdfcb','#f4e6cd'],
-  road:[p.neutral.slate,'#657b98','#617894'], dirt:['#909599','#969a9b','#a1a9aa'],
-  roof:[p.cool.navy,'#345478','#294665'], iron:[p.metal.iron,p.metal.iron,p.metal.steel],
-  rust:[p.metal.rust,'#ae5543','#ba5e49'], brass:[p.metal.agedBrass,'#d7ae60',p.metal.brass],
-  copper:[p.metal.copper,'#dc986e','#e4ad7f'], wood:[p.warm.timber,'#b28b66','#bd976e'],
-  teal:[p.cool.teal,'#278992','#26989d'], red:[p.warm.crimson,'#c85a65','#cc5366'],
-  cream:[p.neutral.ivory,'#eedfc6','#fff0d8'], leaf:['#548578','#49886d','#4d936b'],
+  brick:['#b88a6c','#c29274','#cc9b7c'], darkBrick:['#5e544c','#645a51','#6b6157'],
+  stone:['#b9a78c','#c4b295','#cfbe9f'], warmStone:['#cdb892','#d6c29c','#dfcca8'],
+  road:['#8a8175','#918879','#998f80'], dirt:['#8d8070','#958877','#9c907f'],
+  roof:['#5a626a','#5d6870','#606e77'], iron:['#2e2d2c','#302f2e','#33322f'],
+  rust:['#5e3526','#6b3c2a','#78442f'], brass:['#7e6a3e','#96803f','#b09449'],
+  copper:['#6e4432','#7d4e38','#8e5a3f'], wood:['#7a5a3f','#846245','#8d6a4b'],
+  teal:['#44625b','#4a6d64','#50786e'], red:['#6e332e','#7c3831','#8a3e35'],
+  cream:['#a89c86','#b7ab93','#c6baa0'], leaf:['#56603e','#5e6a44','#67754a'],
 } as const;
 export type Archetype='worker'|'engineer'|'merchant'|'guard'|'resident'|'courier';
 // coat, secondary cloth, accent, restored coat: coherent outfits, not random hues.
+// Karnaca/Thief cloth: worn, dyed and patched. Oxblood, umber, soot, grey-green, bone,
+// with one muted accent each. The fourth color is the same garment in better times.
 export const wardrobes:Record<Archetype,readonly string[][]>={
-  worker:[[p.metal.rust,p.neutral.ivory,p.cool.teal,'#c9654d'],[p.neutral.ivory,p.warm.leather,p.warm.crimson,'#f1dfc3']],
-  engineer:[[p.cool.navy,p.neutral.ivory,p.warm.burgundy,'#335a89'],[p.cool.teal,p.neutral.ivory,p.warm.mustard,'#298d94']],
-  merchant:[[p.warm.mustard,p.warm.burgundy,p.neutral.ivory,'#e1b24b'],[p.warm.burgundy,p.neutral.ivory,p.cool.turquoise,'#923f66']],
-  guard:[[p.cool.teal,p.neutral.ink,p.metal.agedBrass,'#225967']],
-  resident:[[p.cool.dustyBlue,p.neutral.ivory,p.warm.crimson,'#4d7199'],[p.neutral.ivory,p.cool.navy,p.cool.teal,'#fff0d8']],
-  courier:[[p.warm.crimson,p.neutral.ivory,p.cool.navy,'#d55768']],
+  worker:[['#7a4a36','#c9b89a','#4e6358','#8c563c'],['#b3a283','#5a4636','#7a3a33','#c7b590']],
+  engineer:[['#3e4a55','#bfb193','#7a3a33','#465868'],['#4e6358','#c9b89a','#a88a4e','#557466']],
+  merchant:[['#9a7a42','#6e3430','#c9b89a','#ad8a48'],['#6e3430','#c9b89a','#4e6f6a','#7e3a35']],
+  guard:[['#2f3a3e','#1d1c1c','#a88a4e','#34454b']],
+  resident:[['#5d6a70','#c9b89a','#7a3a33','#687880'],['#b8a888','#3e4a55','#4e6358','#cbb997']],
+  courier:[['#7e3a35','#c9b89a','#3e4a55','#8e4038']],
 };
