@@ -1,0 +1,34 @@
+# src/simulation/economy.ts
+
+- PropertyId · type · L9-L9 — type PropertyId = typeof PROPERTIES[number]['id'];
+- InfraId · type · L17-L17 — type InfraId = typeof INFRA[number]['id'];
+- PropertyState · interface · L19-L19 — interface PropertyState
+- Settings · interface · L20-L20 — interface Settings
+- Save · interface · L21-L21 — interface Save
+- StorageAdapter · interface · L22-L22 — interface StorageAdapter
+- freshSave · function · L24-L26 — function freshSave(now = Date.now()): Save
+- finite · function · L27-L27 — finite = (v: unknown, fallback: number, max = 1e15)
+- decodeSave · function · L28-L42 — function decodeSave(raw: string | null): Save | null
+- Economy · class · L43-L72 — class Economy
+- constructor · method · L45-L49 — constructor(public storage: StorageAdapter, now = Date.now())
+- multiplier · method · L50-L50 — get multiplier()
+- output · method · L51-L51 — output(id: PropertyId)
+- rate · method · L52-L52 — get rate()
+- investment · method · L53-L53 — get investment()
+- stage · method · L54-L54 — get stage()
+- cost · method · L55-L55 — cost(id: PropertyId)
+- infraCost · method · L56-L56 — infraCost(id: InfraId)
+- spend · method · L57-L57 — spend(amount: number)
+- upgrade · method · L58-L58 — upgrade(id: PropertyId)
+- automate · method · L59-L59 — automate(id: PropertyId)
+- collect · method · L60-L60 — collect(id: PropertyId)
+- upgradeInfra · method · L61-L61 — upgradeInfra(id: InfraId)
+- unlock · method · L62-L62 — unlock(id: string)
+- research · method · L63-L63 — research(id: string)
+- discover · method · L64-L64 — discover(id: string)
+- inspect · method · L65-L65 — inspect(id: string)
+- checkObjective · method · L66-L66 — checkObjective()
+- tick · method · L67-L69 — tick(dt: number)
+- save · method · L70-L70 — save(now = Date.now())
+- reset · method · L71-L71 — reset()
+- format · function · L73-L73 — function format(n: number)

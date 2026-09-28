@@ -1,0 +1,13 @@
+{
+  "lastQuery": "wait wait sorry i didnt git pull disregard and delete all that",
+  "perAgentQuery": {},
+  "graftReads": 0,
+  "sourceReads": 5,
+  "savedTokens": 0,
+  "injectedPointers": [],
+  "nudges": 2,
+  "host": "claude-code",
+  "inputCostMicros": 1585237,
+  "inputTokensBilled": 2078207,
+  "lastBillingUuid": "dd85ff50-2e42-43ce-946b-67ed86d9e6a8"
+}
