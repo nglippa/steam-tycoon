@@ -16,15 +16,15 @@ export const artMats = {
   pool: new T.MeshBasicMaterial({color:P.warm.lamp,transparent:true,opacity:.1,depthWrite:false,side:T.DoubleSide}),
 };
 for(const material of [artMats.plaster,artMats.fadedPaint,artMats.ochre,artMats.wine,artMats.coal,artMats.mud,artMats.paper]) illustrated(material);
-// One confident wall color per business: salvage ochre, civic navy, Finch teal,
-// blackened foundry, tavern wine and the ivory Exchange. Investment cleans the paint.
-// One family: ochre, slate blue, soft teal, charcoal slate, brick rose, ivory. Muted early, clean late.
-// Rook ochre, civic slate, Finch verdigris, foundry soot, tavern oxblood, Exchange sandstone.
-const facadeKeys=[['#857258','#a58c62'],['#4f575e','#5b6a76'],['#4a5f57','#51736a'],['#2e2b28','#383431'],['#62352f','#7b3d34'],['#b0a286','#cbb998']];
+// One confident wall color per business: salvage ochre, civic navy, Finch teal, blackened
+// foundry, tavern wine and the ivory Exchange. Lowworks paint is faded but keeps its hue;
+// investment repaints it. The foundry stays blackened: it is still working industry.
+const facadeKeys=[['#877352','#c29440'],['#4a545d','#2f4b70'],['#4f625b','#2b7670'],['#2e2b28','#35393e'],['#5d3834','#86303a'],['#a89c82','#e7d9b8']];
 export const facadePaints=facadeKeys.map(([early])=>illustrated(new T.MeshStandardMaterial({color:early,map:plasterMap})));
-export function refreshFacades(stage:number){const worn=Math.max(.35,1-stage/4);
-  // The Lowworks are scarred; Grand Terra is freshly rendered. Same walls, different care.
-  soot.opacity=.08+.3*worn;patchDark.opacity=.04+.36*worn;wainscot.opacity=.1+.18*worn;rustRun.opacity=.06+.46*worn;patchLight.opacity=.1+.2*Math.max(0,1-Math.abs(stage-2)/2);exposedBrick.opacity=.88*Math.max(0,1-stage/2.5);exposedBrick.visible=stage<3;facadePaints.forEach((m,i)=>m.color.set(facadeKeys[i][0]).lerp(new T.Color(facadeKeys[i][1]),Math.min(1,stage/4)));}
+export function refreshFacades(stage:number){const worn=Math.max(0,1-stage/5);
+  // Grime reports condition: scarred Lowworks, maintained Grand Terra (only faint historical wear).
+  soot.opacity=.05+.33*worn;patchDark.opacity=.02+.38*worn;wainscot.opacity=.05+.23*worn;rustRun.opacity=.03+.49*worn;patchLight.opacity=.1+.2*Math.max(0,1-Math.abs(stage-2)/2);exposedBrick.opacity=.88*Math.max(0,1-stage/2.5);exposedBrick.visible=stage<3;const care=Math.min(1,stage/5);facadePaints.forEach((m,i)=>m.color.set(facadeKeys[i][0]).lerp(new T.Color(facadeKeys[i][1]),care));
+  artMats.plaster.color.set('#b3a488').lerp(new T.Color('#e0cfa8'),care);artMats.fadedPaint.color.set('#6f7a7c').lerp(new T.Color('#4a7a86'),care);}
 export const V = (x:number,y:number,z:number) => new T.Vector3(x,y,z);
 export function pipe(g:T.Object3D, points:number[][], radius=.12, material:Material=mats.copper) {
   for(let i=1;i<points.length;i++) {

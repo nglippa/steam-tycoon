@@ -3,7 +3,7 @@ import { palette as P } from './palette';
 import { seeded,mats } from './assets';
 import type { City } from './city';
 
-const duskShade=new T.Color('#b9718a'),rainCloud=new T.Color('#8a8f8e'),greyCloud=new T.Color('#c7c4b8');
+const duskShade=new T.Color('#b9718a'),rainCloud=new T.Color('#7c858c'),rainShade=new T.Color('#4c5660'),greyCloud=new T.Color('#c7c4b8');
 export class WeatherArt {
   colors=Object.fromEntries(Object.entries(P.sky).map(([key,color])=>[key,new T.Color(color)])) as Record<keyof typeof P.sky,T.Color>;
   sky:T.Mesh; splashes:T.Points; runoff:T.LineSegments; sparks:T.Points;
@@ -20,7 +20,7 @@ export class WeatherArt {
       // Torn painted cloud mass: flat shapes with hard ragged edges and a single tone step.
       float mass(vec2 p,float h){float band=smoothstep(.02,.16,h)*(1.-smoothstep(.55,.95,h));return fbm(p)*.9+band*.28-(1.-band)*.2;}
       void main(){vec3 dir=normalize(vSky);float h=max(dir.y,0.);
-        vec3 col=mix(skyHorizon,skyTop,smoothstep(0.,.6,pow(h,.75)));
+        vec3 col=mix(skyHorizon,skyTop,smoothstep(0.,.42,pow(h,.7)));
         vec2 p=vec2(atan(dir.z,dir.x)*2.6+time*.003,h*5.2)*vec2(1.,1.9);
         float thr=mix(.64,.47,cover),m=mass(p,h),e=.006;
         float cloud=smoothstep(thr,thr+e,m);
@@ -47,11 +47,11 @@ export class WeatherArt {
   update(time:number,daylight:number,rain:boolean,weather='overcast',dusk=0,smog=0){
     this.waterTime.value=time;const c=this.colors;
     const top=weather==='clear'?c.clear:rain?c.rain:c.overcast,horizon=weather==='clear'?c.horizon:c.lavender;
-    this.uniforms.skyTop.value.copy(c.night).lerp(top,daylight).lerp(c.rose,dusk*.55).lerp(c.smog,smog*.3*daylight);
+    this.uniforms.skyTop.value.copy(c.night).lerp(top,daylight).lerp(c.rose,dusk*.55).lerp(c.smog,smog*.5*daylight);
     this.uniforms.skyHorizon.value.copy(c.haze).lerp(horizon,daylight).lerp(c.dusk,dusk*.85).lerp(c.smog,smog*.5*daylight);
     this.uniforms.cloudTint.value.set('#1e2640').lerp(rain?rainCloud:weather==='clear'?c.cloud:greyCloud,daylight).lerp(c.dusk,dusk*.8).lerp(c.smog,smog*.25*daylight);
-    this.uniforms.cloudShade.value.set('#0c1020').lerp(weather==='clear'?c.cloudShade:c.overcast,daylight).lerp(duskShade,dusk*.8);
-    this.uniforms.cover.value=weather==='clear'?0:rain?1:.6;
+    this.uniforms.cloudShade.value.set('#0c1020').lerp(weather==='clear'?c.cloudShade:rain?rainShade:c.overcast,daylight).lerp(duskShade,dusk*.8);
+    this.uniforms.cover.value=weather==='clear'?-.7+smog*.85:rain?1:.6;
     this.uniforms.sunset.value=dusk;this.uniforms.daylight.value=daylight;this.uniforms.time.value=time;
     this.splashes.visible=this.runoff.visible=rain;
     if(rain){for(let i=0;i<160;i++)this.splashPositions[i*3+1]=.11+Math.max(0,Math.sin(time*7+i*17))*.025;this.splashes.geometry.attributes.position.needsUpdate=true;

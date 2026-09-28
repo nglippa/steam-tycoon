@@ -50,7 +50,7 @@ The economy suite covers spending, passive/manual accounting, automation, offlin
 
 - `src/simulation/economy.ts`: serializable simulation, progression data and an injected persistence adapter. It has no Three.js or DOM dependency. Replace the storage adapter to integrate server persistence later.
 - `src/world/assets.ts`: seeded modular modeling, generated textures and material-based static geometry batching.
-- `src/world/citizens.ts`: original illustrated faces, cel-shaded procedural models, and articulated limbs with batched vertex-color materials. See `ART_DIRECTION.md` for the anime-inspired visual direction.
+- `src/world/citizens.ts`: original illustrated faces, cel-shaded procedural models, and articulated limbs with batched vertex-color materials. See `ART_DIRECTION.md` for the authoritative art direction (`ART_DIRECTION_HISTORY.md` is a non-authoritative archive of earlier passes).
 - `src/world/architecture.ts`: façade families, business crowns and layered skyline.
 - `src/world/presentation.ts`: authored landmarks, street scenes, micro-activities and visual progression.
 - `src/world/art-kit.ts`: Terra crests, gauges, pipework, roofs and canopies.

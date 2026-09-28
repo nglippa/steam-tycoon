@@ -38,14 +38,14 @@ const look=new T.Vector3();
 let weariness=1;let raining=false;
 /** Early Terra walks tired; prosperity straightens backs. Rain opens umbrellas. */
 export function setLifeConditions(stage:number,rain:boolean){weariness=Math.max(0,1-stage/3);raining=rain;}
-const hipHeight=.84,bodyHeight=-.14;
+const hipHeight=.92,bodyHeight=-.14,seatDrop=.54;
 // Parameterized personality: one motion system, different bodies.
 const personality:Record<string,{cad:number;arm:number;bob:number;lean:number;stride:number;gesture:number}>={
   worker:{cad:.92,arm:.34,bob:.032,lean:.07,stride:.44,gesture:1},engineer:{cad:1.12,arm:.38,bob:.022,lean:.09,stride:.46,gesture:.9},
   merchant:{cad:.96,arm:.3,bob:.02,lean:.03,stride:.4,gesture:1.45},guard:{cad:.9,arm:.2,bob:.014,lean:-.01,stride:.44,gesture:.6},
   resident:{cad:.95,arm:.28,bob:.02,lean:.04,stride:.4,gesture:1.1},courier:{cad:1.18,arm:.42,bob:.028,lean:.1,stride:.48,gesture:1}};
 const ease=(x:number)=>x*x*(3-2*x),clamp01=(x:number)=>Math.min(1,Math.max(0,x));
-const STANCE=.62,LEG=.84;
+const STANCE=.62,LEG=.92;
 /** Stance: the foot sweeps back linearly (planted). Swing: it eases forward and lifts. */
 function footPhase(c:number){const u=c/(Math.PI*2)-Math.floor(c/(Math.PI*2));
   if(u<STANCE)return {z:1-2*u/STANCE,lift:0,stanceU:u/STANCE};const t=(u-STANCE)/(1-STANCE);return {z:-1+2*ease(t),lift:Math.sin(Math.PI*t),stanceU:0};}
@@ -69,10 +69,10 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
   const c=m.stride,seated=activity==='sit'||activity==='eat',tired=weariness*(activity==='guard'?.3:1);
   // Idle weight transfer holds on one leg, then shifts: never a metronome.
   const shift=Math.tanh(3*Math.sin(phase*.21+n.phase))*(1-g),bob=pr.bob*load*g*(Math.cos(2*c)*.5+.5);
-  n.body.position.set(shift*.022+g*Math.cos(c)*.012,bodyHeight+bob-(seated?.46:0)+breath*.003*(1-g),0);
+  n.body.position.set(shift*.022+g*Math.cos(c)*.012,bodyHeight+bob-(seated?seatDrop:0)+breath*.003*(1-g),0);
   n.body.rotation.set(g*(pr.lean+tired*.05)+(1-g)*tired*.06-(activity==='lean'?.07:0)-(activity==='carry'?.08:0)+(seated?-.06:0),-g*Math.sin(c)*.09+m.turn*.06,shift*.025+g*Math.sin(c)*.012);
   const feet=[footPhase(c),footPhase(c+Math.PI)];
-  n.legs.forEach((leg,k)=>{const {z,lift,stanceU}=feet[k];leg.position.y=hipHeight-(seated?.46:0);
+  n.legs.forEach((leg,k)=>{const {z,lift,stanceU}=feet[k];leg.position.y=hipHeight-(seated?seatDrop:0);
     if(seated){leg.position.z=0;leg.rotation.set(-1.42,0,(k?-1:1)*.06);n.knees[k].rotation.x=1.4+(activity==='eat'&&k?Math.sin(phase)*.05:0);return;}
     const stance=k===0?Math.max(0,-shift):Math.max(0,shift),amp=A*g;
     leg.position.z=0;leg.rotation.set(-amp*z+(1-g)*(k?-.02:.03),0,activity==='lean'&&k===1?-.1:(k?-1:1)*stance*.02);
@@ -87,7 +87,7 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
     if(speaking){const big=activity==='argue'?1.5:1;n.arms[0].rotation.set(-.3-gesture*.45*big,0,.2+gesture*.15);n.elbows[0].rotation.x=-.75-gesture*.35;
       if(activity==='argue'||gesture>.8){n.arms[1].rotation.set(-.25-Math.max(0,Math.sin(phase*1.9+1))*.4*big,0,-.22);n.elbows[1].rotation.x=-.9;}
       tilt=Math.sin(phase*.9)*.05;}
-    else if(activity!=='browse'){for(let k=0;k<2;k++){n.arms[k].rotation.set(-.42,0,(k?-1:1)*.45);n.elbows[k].rotation.x=-1.62;}
+    else if(activity!=='browse'){for(let k=0;k<2;k++){n.arms[k].rotation.set(-.14,0,(k?-1:1)*.42);n.elbows[k].rotation.x=-1.5;}
       nod=fract(phase*.27)<.12?Math.sin(fract(phase*.27)/.12*Math.PI*2)*.13:0;tilt=Math.sin(phase*.33)*.06;if(fract(phase*.13)<.05)expression='happy';}
     if(activity==='browse'){n.arms[1].rotation.x=-.45-gesture*.18;n.elbows[1].rotation.x=-.6;if(Math.floor(time/5+n.phase)%7===0)expression='annoyed';}
   }
@@ -112,7 +112,7 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
     n.body.rotation.x=.04+.1*reach;}
   if(activity==='warm'){expression='tired';const rub=Math.sin(phase*6)*.06;for(let k=0;k<2;k++){n.arms[k].rotation.set(-.9+breath*.06,0,(k?1:-1)*(.25+rub));n.elbows[k].rotation.x=-.9;}n.body.rotation.x=.1;}
   if(activity==='guard'){expression=Math.floor(time/12+n.phase)%3===0?'annoyed':'focused';for(let k=0;k<2;k++){n.arms[k].rotation.set(.15,0,(k?1:-1)*-.12);n.elbows[k].rotation.x=-.25;}}
-  if(activity==='lean'){for(let k=0;k<2;k++){n.arms[k].rotation.set(-.42,0,(k?-1:1)*.45);n.elbows[k].rotation.x=-1.65;}}
+  if(activity==='lean'){for(let k=0;k<2;k++){n.arms[k].rotation.set(-.14,0,(k?-1:1)*.42);n.elbows[k].rotation.x=-1.52;}}
   if(activity==='watch'){expression=(phase%10)<3?'surprised':'happy';for(let k=0;k<2;k++){n.arms[k].rotation.set(.2,0,(k?1:-1)*-.15);n.elbows[k].rotation.x=-.5;}if((phase%10)<3){n.arms[0].rotation.set(-2.2,0,.2);n.elbows[0].rotation.x=-.1;}}
   if(seated){for(let k=0;k<2;k++){n.arms[k].rotation.set(-.35,0,(k?-1:1)*.05);n.elbows[k].rotation.x=-.6;}
     if(activity==='eat'){const bite=Math.max(0,Math.sin(phase*.9));n.arms[0].rotation.x=-.4-bite*.9;n.elbows[0].rotation.x=-.8-bite*1.1;expression=bite>.8?'happy':'neutral';}}

@@ -1,157 +1,332 @@
-# Terra — anime art meets a steampunk world
+# Terra — Art Direction
 
-The visual language applies to architecture, lighting, materials, skyline, citizens and movement. The reference is [Messenger by Abeto](https://messenger.abeto.co/): graphic silhouettes, restrained illustrated surfaces, expressive characters and playful motion. Terra adapts that direction into original steampunk geometry and local procedural artwork; no reference assets are bundled.
+**This is the only authoritative art direction for Terra.** It describes the target, not the current build. Where the code, older screenshots, `QA.md` or `ART_DIRECTION_HISTORY.md` disagree with this document, this document wins. The history file is an archive of past passes and is **non-authoritative**.
 
-Copper, soot, cream and turquoise define the palette. Broad painted surfaces and subdued masonry marks replace photographic noise. Copper and brass read as matte painted enamel, with warm windows and aether accents kept distinct. A depth-based ink pass emphasizes close silhouettes and major structural creases, fading across distant geometry; stable, subtle paper grain avoids temporal flicker. Printed paper controls, irregular borders and a tall stacked title extend that language into the interface.
+Last consolidated: 2026-09-28. Reference board: `screenshots/references/reference-board.png`. Reference images guide study only. No reference asset is ever bundled, traced or copied.
 
-## Authored world families
+---
 
-- Terra's three-flue shield repeats on the gate, market masts, banners, municipal tanks and signs. The three-lantern fitting and numbered pressure gauge are recurring civic motifs.
-- Façades have supported iron balconies, timber infill, rear service elevations, shutters, vents, asymmetric dormers and connected copper drainage. The six businesses have distinct upper silhouettes: salvage gantry, twin pressure tanks, Finch workshop tower, sawtooth foundry roofs, layered tavern gables and the Exchange pediment.
-- One service bridge frames the market approach. A 12.6 m road, raised stone sidewalks, shallow rail channels and a few authored puddles define the street without narrowing its traversable corridors. Market stalls are staggered to preserve property-ledger access.
-- Lowworks Gate has a curved iron structure, civic crests, plumbing and lamps. The boiler yard has a pressure manifold, gauge, maintenance deck and worker. The foundry has a furnace mouth, hot metal, hoist and sparks. The 32 m clock tower has four enlarged illuminated dials, an exposed mechanism and a swept copper-green cupola. The 10.7 m yard boiler, high maintenance deck and oversized exhaust dwarf its engineer; the foundry pairs a near-black mass with an orange furnace mouth and one dominant stack.
-- Two simplified skyline layers use restrained roof clusters and an aqueduct; their heights and colors yield to the clock. Distant geometry avoids shadow casting.
-- Environmental scenes include a cold meal by Finch's workshop, a ration notice and toy cart in the housing lane, a memorial, service signs and named market traders.
+## 1. Vision
 
-## Progression
+Terra is **anime character design × Borderlands graphic rendering × Dishonored/Thief world atmosphere**, in its own fantasy-steampunk civilization: Terra, in the world of Locke.
 
-Existing game progression drives these changes; no new economy or progression system was added.
+The references have **different jobs** (§2). Do not blend them into an average.
 
-- Repairs restore shop glass and align replacement windows to the original openings.
-- Each business gains specific machinery, goods, signs or frontage details as its existing levels rise.
-- The market expands from two stalls to six within reserved side pockets. Thin counter legs, hanging cloth and curved fabric roofs preserve open space beneath. One anchored lantern string, planted pockets and an armillary fountain support the clock vista.
-- Business upgrades alter architecture: a salvage sorting clerestory, taller workshop tower, boiler manifold, foundry roof monitor, tavern terrace and open Exchange gallery. Roads retain the narrower lane; municipal lamps gain three-pronged fixtures and warm ground pools; steam repairs reduce leaks and light the clock structure.
-- Citizens retain the illustrated faces, hair, goggles and articulated limbs. Worn patches and aprons give way to tailored panels, satchels and watch details as prosperity rises. Heights and proportions vary. Almond eyes, angular fringes, high collars, scarves and cross-body satchels give the citizens a shared graphic vocabulary. Boots meet the ground and shared flat contact shadows anchor their silhouettes without crowd shadow-map cost.
+The city's physical condition tells the game's story. The emotional arc is:
 
-## Motion and atmosphere
+**Oppression → Recovery → Confidence → Prosperity → Wonder**
 
-The opening camera drifts over the city, then eases into the street on entry. Citizens have a restrained walking cadence, bent knees and elbows, subtle head turns and scarf movement. Continuous tapered body, sleeve and leg meshes replace stacked clothing blocks. Four painted face archetypes share three skin palettes; six hair silhouettes include a ponytail, bun, swept locks, messy bangs and two integrated cap styles. Small staged groups include a guard, talking pairs, and a merchant facing a customer. Both the device preference and in-game reduced-motion setting calm the camera and transitions, remove head bob and suppress the broken lamp’s flicker. Existing cloth and carts remain animated. Added loops show hammering, sweeping, reading, warming hands, a workshop drive and foundry hoist. Rain uses streaks, gutter runoff and small splash rings. The canal has geometric wave motion and drawn ripple highlights. Steam has multiple outlets; smoke remains industrial but diminishes with prosperity. The sky uses six broad authored cloud banks in two layers, with warm dusk and deep blue night colors. Location-based synthesized layers distinguish the foundry, market and housing from the boiler hum.
+Dreariness is Terra's **starting condition, never its identity**. The Lowworks is surviving; Grand Terra is thriving. The player restores one old industrial city until it becomes magnificent, and its industrial history stays visible throughout. Terra must win, and the player must be able to see that they won.
 
-## Performance and scope
+Standing constraints:
+- All art is generated procedurally in the project. No asset CDN or remote service is used.
+- Visual progression is gameplay feedback in an idle tycoon, so it must be obvious rather than subtle (§10).
 
-World art is built from local procedural assets; no remote asset service is required. Static additions are merged by material. Articulated citizens use material-based BatchedMesh submission, with their existing transforms driving each part. Street lighting uses four dynamic lights plus the foundry source, supported by emissive details. Shadow maps refresh periodically. Full quality caps pixel density at 1.5× and uses up to four samples in the ink render target; performance quality uses 1× and disables target multisampling while retaining outlines. Idle title screens and hidden pages render less often; active income still uses elapsed wall time.
+## 2. Reference hierarchy
 
-This is original stylized procedural game art. Citizens still use lightweight ambient choreography, and decorative upper structures do not imply new climbable paths. The existing industrial ramp remains the accessible elevated route.
+| Reference | Job | Takes from it | Does **not** take |
+|---|---|---|---|
+| **Borderlands** (2/3/4) | Rendering language + confident colour | Bold ink, hand-drawn imperfection, painted surfaces, confident colour, strong material separation, hard graphic value shapes, selective exaggerated saturation, readable silhouettes | Neon cyberpunk; global cyan/magenta/acid green; emissive neon as a default lighting mode |
+| **Dishonored 2 / Thief: Deadly Shadows** | World mood + architecture + industrial atmosphere | Enclosure, narrow streets, verticality, architectural drama, industrial oppression, raking light, warm light against cool shadow, soot, atmosphere, environmental storytelling, machinery built into the city, danger, mystery, night mood | Universal desaturation, permanently grey skies, muddy midtones, monochrome scenes, identical grime at every stage, Dishonored faces |
+| **Anime** | People + expression + character silhouette | Faces, eyes, hair, expression, pose language, elongated stylised bodies | Chibi proportions, toy scale |
+| **Messenger** | Clarity + restraint + graphic discipline | Clean shape language, readable planes, authored simplicity, selective detail, graphic clouds, visual hierarchy, knowing when *not* to add detail | Its world, palette or pastel high key. Messenger is not a visual-style target. |
+| **Locke / Terra** | The actual identity | Its own civilization, history, motifs and machinery (`WORLD.md`) | Anything that would make Terra read as a copy of any reference |
 
-## Refinement discipline — September 2026
+**More detail is not better art.** When a reference seems to ask for more, Messenger's discipline decides what is kept.
 
-Composition comes before surface decoration. The clock is the first landmark, followed by the district boiler, foundry, gate and market center. Residential roofs stay lower and quieter. Broad cool green-gray street planes support cream, charcoal, rust and faded teal buildings; market fabrics carry richer wine and mustard accents. Repeated dormant flues, excess bridge braces, diagonal street cables, spare signs, generic cargo, rivets, vents and tiny ground marks were removed. Business rooflines carry one or two large ideas rather than a common roof plus interchangeable ornaments.
+## 3. Rendering language
 
-The explicit `?dev=1&review=1` review mode uses memory-only economy storage. Named views, property levels, time and weather produce repeatable comparisons; DOM diagnostics expose measured frame timing and optional real-controller traversal checks. It does not change the normal save.
+- **Ink.** Lines are bold, near-black and colour-aware (a deep navy/umber ink, never pure black or grey). They carry stable hand-drawn wobble with no temporal flicker. Silhouettes and major creases are heaviest and thin with distance. Interior lines appear where colour blocks meet. The ink pass is a screen-space post pass (`src/world/ink-renderer.ts`).
+- **Line classes.**
+  - World architecture: heavy.
+  - Characters: a clearly inked outer silhouette at every gameplay distance, with lighter interior lines.
+  - Printed text: no interior ink.
+- **Painted surfaces.** Materials are hand-painted procedural maps: brick, plaster over brick, ashlar, slate, planks, corrugated sheet, setts. Each has inked construction lines and chipped edges. Grime on them is **graphic**: hard-edged soot shapes, painted stains and runs, never photographic noise.
+- **Shading.** One lighting language (`src/world/tone.ts`) is shared by world and characters. It uses a hard painted terminator between a warm lit side and a coloured cool shadow side. Shadows are never neutral grey, and painted materials have no PBR metalness sheen.
+- **Value shapes.** Big, hard light and shadow shapes do the compositional work: sun patches across a shaded street, one lit wall against a dark one.
+- **Final grade.** The grade may add a stage-dependent colour treatment (§10). It must never:
+  - apply one global saturation cap across all stages;
+  - lift blacks into a grey haze;
+  - compress highlights until clear light looks overcast;
+  - use a heavy global vignette.
 
-## Anime-steampunk life and palette — September 2026
+  Atmosphere adds depth; it never erases it.
 
-`src/world/palette.ts` defines semantic neutral, metal, warm, cool, sky, aether and wardrobe families. Roads now sit in cool slate/navy values against parchment/plaster and distinct iron, copper and brass. The paper HUD receives its primary colors from the same palette. Color restoration affects selected material families and clothing panels; it does not apply a global saturation filter. Brass becomes cleaner, housing paint lightens with housing investment, and warm street lighting remains gold even at maximum infrastructure. Cyan is reserved for aether and a few mechanical accents.
+## 4. Palette
 
-- Market: cream Exchange walls, burgundy/teal/mustard canvas, warm timber and curated merchant clothing.
-- Foundry: blackened blue iron, rust, orange furnace and cream markings.
-- Boiler and civic structures: dark blue-green reservoirs, copper connections, brass, pale stone and amber gauges.
-- Housing: ivory tenements, dusty blue rowhouses and dusty rose balcony houses. Window states follow grouped facade patterns rather than independent randomness. Curtains, shutters, boarded/cracked panes, dark rooms, occasional silhouettes and laundry distinguish homes; housing investment restores damaged panes and adds flower boxes.
+Colour is a material or role, never an individual prop. `src/world/palette.ts` is the palette's code home and must follow this section.
 
-Citizens retain the existing population ceiling. Six archetype wardrobes distinguish workers, engineers, merchants, guards, residents and couriers; existing prosperity changes selected cloth colors through one shared shader. Three skin atlases provide four facial archetypes, each with neutral, happy, tired, focused, annoyed and blinking states. Face changes use the existing BatchedMesh instance color channel as an atlas index, keeping faces in three shared material batches.
+**Confident colour.** A teal building is actually teal, and burgundy is actually burgundy. Copper reads as copper and brass as brass. Painted wood carries real pigment. Warm light feels warm and blue-violet shadow feels cool. Terra never collapses into grey-beige because it is industrial.
 
-Small scenes replace scattered walking: guard and courier; talking market pair; merchant and customer; engineer and worker; housing neighbors. Conversation partners alternate gestures. Gaze prioritizes partners/work targets, looks away, and allows only short staggered player glances within a few meters and within the actor's forward arc. Existing workers hammer, inspect a gauge, turn a valve, sweep, browse and read; existing route walkers haul crates or move more slowly in housing. Props and staged scenes remain clear of the six ledger approaches.
+**Base families.**
+- **Masonry:** sandstone, ochre ashlar, red-brown brick, ivory render.
+- **Metals:** blackened iron, copper, brass, verdigris.
+- **Roofs:** slate-teal, terracotta, verdigris copper.
+- **Wood:** umber and painted timber.
+- **Cloth:** oxblood, mustard, teal, navy, bone.
+- **Light:** amber lamp, orange furnace.
+- **Aether cyan:** reserved, rare, and increasingly present with progression.
 
-Clear skies use soft blue and a warm horizon, overcast uses blue-lavender, sunset adds peach/rose, and night combines midnight blue with teal haze and gold windows. The existing weather rotation now includes clear skies. There are no facial rigs, added currencies, district expansion, dialogue systems or additional population capacity.
+**Trade identities.** Each business owns one wall paint that is recognisable at every stage:
 
-## Painted light and scale — September 25, 2026
+| Business | Wall paint |
+|---|---|
+| Rook & Son (salvage) | Ochre |
+| Municipal boiler | Civic navy |
+| Finch | Teal |
+| Foundry | Blackened iron |
+| Tavern | Wine/burgundy |
+| Bellweather Exchange | Ivory |
 
-- **One lighting language.** `src/world/tone.ts` replaces per-material banding with a single hard terminator shared by world materials and citizens: a warm lit color and a colored (blue-violet) shadow color, keyed by weather, hour and prosperity in `atmosphere.ts`. Hemisphere light is neutral; all color comes from the keys. Never reintroduce gray shadows or metalness on painted materials.
-- **Ink.** The ink pass draws silhouettes from depth jumps against the nearer surface (including against the sky) and creases, fading only past ~55–240 m.
-- **Sky.** Saturated cerulean with flat-based anime cumulus whose lower band takes a colored shadow. Early prosperity adds a cool soot haze (never sepia); it clears by stage 4.
-- **Color blocking.** Each business owns one wall paint (`facadePaints`): salvage ochre, civic navy, Finch teal, blackened foundry, tavern wine, ivory Exchange. Ivory stone trim sits on colored walls. Roads are a dark painted-sett mass; sidewalks are light.
-- **Scale.** The clock tower is ~48 m (ivory shaft, navy clock stage, open pressure lantern, verdigris bell roof). The Great Main, a 1.7 m pressure artery on lattice pylons, crosses the street 14 m overhead from the municipal boiler. The backdrop is three planes: flat rooftops, the Pressure Spires, and Veyr's snow ridge.
-- **Rooflines.** Residential blocks use steep street-facing gables in navy, terracotta or verdigris, with tall chimneys and turrets on alternate blocks.
-- **Progression.** Pennant strings multiply along the spine (stage 2 → 4) and radiate from the clock at stage 4+; the clock lantern moves from a dim amber to aether cyan at Grand Terra.
-- **Citizens.** Larger heads, anime eyes (iris gradient, highlights, heavy lash flick, blush), overhanging hair caps with pointed bangs and face-framing side locks, A-line coats for civic roles and chunkier boots.
+**Material states, not saturation sliders.** Progression changes the *material*, not just a number:
 
-## Character, life and depth — September 25, 2026 (second pass)
+| Lowworks | Grand Terra |
+|---|---|
+| Faded, chalky teal | Repainted teal |
+| Dirty burgundy | Rich burgundy |
+| Tarnished, green-brown brass | Maintained, polished brass |
+| Oxidised, streaked copper | Clean copper with a deliberate verdigris patina on roofs |
+| Soot-black render | Cleaned render |
+| Dead planter, bare tree in an iron well | Healthy greenery and blossom |
+| Boarded, cracked or dark glass | Lit, clean glass |
 
-- **Characters** are built on the existing rig but no longer read as cylinders. Profiled torsos have a shoulder line, waist and hips. Legs have shaped thighs, calves and ankles and end in real boots. Hands are mittens with a thumb. Six clothing families change the silhouette: worker (rolled sleeves, canvas apron, tool belt), engineer (asymmetric coat, standing collar, coat tails, gloves, goggles), merchant (split vest, sash, skirt), guard (full coat, epaulettes, crest badge, peaked cap), resident (dress or coat) and courier (short jacket, satchel, cap). There are eight hairstyles, and the hair crown is a true hemisphere at the hairline so it never covers the eyes. Faces have seven states, including surprised.
-- **Motion.** Walks lean and bob; idle figures shift weight. Coat tails, skirts and aprons swing from a waist pivot, and ponytails and long hair from a head pivot. Early Terra stoops (`setLifeConditions`). Walkers open umbrellas in rain. Reduced motion freezes secondary motion.
-- **Motifs** (`art-kit.ts`): the split pressure ring, Finch's winged valve and the aether diamond, used on lamps, railings, the Great Main, pressure stations, the calliope and business signatures. Keep them selective.
-- **Façades.** There are four window families (arch, civic, grid, rect) with projecting jambs, lintels and bracketed sills, plus glass that fakes a room behind it. Doorways have jambs and steps; cornices have brackets. Shops get 0.6 m projecting displays with interior shells, boarded while a property is derelict and stocked with its trade's goods as it levels up.
-- **Life** lives in `Presentation`: staged workers gated by stage and time of day, partner conversations and walking paths. The Great Main has regulators, a catwalk, branch pipes and crews. There are also the calliope crowd, bench lunches, balconies, night drinkers at the tavern, the foundry ingot cart, the waterfront crane and barge, the salvage pulley and the clock swifts.
-- **Street and variety pass.** Warm-stone loading bands frame a roughly 9 m dark carriageway. Verge trees follow prosperity: bare in iron wells, then leafy, then blossoming at Grand Terra. Every other lamp is dead in the Lowworks; crest banners arrive at stage 3. Each house gets one idea (oriel, jettied timber top, iron stair to a landing door, or rooftop cistern) plus a stoop. Characters come in slim, standard and sturdy builds, lean on walls, sit on stoops, and a friendly few wave at the player. Skyline planes use weighted horizon tinting (`tintSkyline`), not fog.
+**Saturation budget.** Even the Lowworks keeps each family's hue identity; it is never greyscale. The most saturated colour at any stage goes to:
+- characters' accent cloth, signage and banners;
+- furnace, lamp and window glow;
+- aether;
+- trade paint (from mid-Terra onwards).
 
-## Structural pass — September 26, 2026
+**Neon is an anti-target** (§13).
 
-- **Massing before decoration.** Residential families: tenement (a taller narrow unit with an overhanging timber attic, plus a rear shop), rowhouse (jetty, side dormers, triple flue), merchant house (corbelled corner turret, outside stair) and workshop house (sawtooth rear shed, rooftop cistern). All sit on an older stone ground storey. Set-back infill houses close every gap, with vaulted passages into lit service courts.
-- **Businesses are two or three volumes:** a salvage lookout cantilevered on iron knees, an engaged copper pressure tower, Finch's narrow braced tower carrying a wider workroom, a foundry roof condenser and rear furnace hall, a jettied tavern with a timber turret, and the ribbed Exchange dome.
-- **Compression → reveal:** the Market Bridge-house (a vaulted masonry span with rooms above) frames the clock, and the Foundry Lane pipe gantry precedes the boiler yard. The Great Main now rides on masonry regulator towers whose rooms wrap the pipe.
-- **Characters:** the anime head profile (forward chin, 24-segment skull), separated back locks and crown tufts, hat-compatible hairstyles, the crested peaked cap, the engineer's crossed harness, flared cuffs and boot buckles.
+## 5. Lighting
 
-## Massing, outer city and motion — September 26, 2026
+- **Warm key against cool shadow** is the core relationship in every daylight weather.
+  - Clear sun is warm gold. Shade is blue-violet.
+  - Overcast and rain soften the split but keep a warm/cool difference.
+- **Clear daylight must read as clear daylight.** That means a blue sky, sunlit surfaces that are genuinely bright, hard cast shadows and readable highlights. Clear weather must never look overcast.
+- **Raking light:**
+  - a low or backlit sun down the canyon streets;
+  - sun patches crossing the street;
+  - light shafts held in the middle distance, never washing the camera.
+- **Controlled lows.** Deep shadow is dark and coloured, not lifted grey. Midtones stay separated.
+- **Atmospheric depth.** Haze bleaches and cools distance to layer the skyline. It never flattens the foreground.
+- **Civic light as progression.**
+  - Lamps: every other lamp is dead in the Lowworks; all lamps work, warm and strong, by Grand Terra.
+  - Windows and signs: few lit windows and dim signs early; many warm windows, lit signage and illuminated civic landmarks late.
+  - Clock lantern: amber moving to aether cyan at Grand Terra.
 
-- **Composed business bodies** (`architecture.businessBody`; `businessHeights` is the source of truth for heights). Every trade keeps a shared 4.4 m shopfront storey; above it:
-  - Rook: an accumulated set of old shop, lean-to shed, salvage tower with hoist jib and cantilevered sorting room.
-  - Boiler: a low control house before a horizontal boiler drum with catwalk, stack and engaged pressure tower.
-  - Finch: stepped symmetric wings around a braced instrument tower with a pressure lift.
-  - Foundry: a low sawtooth hall with furnace-glass teeth, a rear hall, one dominant exhaust and a crane.
-  - Tavern: the jettied box with turret.
-  - Exchange: a colonnaded base, pediment, open rotunda gallery, verdigris dome and restrained aether spire.
-- **Outer city** (`architecture.archetype`, `buildOuterCity`): eight silhouettes (tenement, stacked house, tower house, roof workshop, sawtooth shed, merchant row, courtyard block, pressure house). They are placed in 3–6 building clusters with one taller anchor and gaps between clusters, and the height rhythm varies along the ring. The far skyline ring uses the same grammar in flat tinted planes. Boundary walls are low parapets.
-- **Motion** (`citizen-life.ts`): gait is derived from real velocity, so routes that ease in and out produce start and stop transitions. Walks have a pelvis bob, hip and torso counter-rotation, knee lift, forward foot placement and a stabilized head. Idle weight holds on one leg, then shifts. Turns are led by the head. Tails and hair are damped springs. Personality parameters vary by role, and tempo varies per citizen. Conversations have irregular turn-taking, nods, tilts and gesture bursts. Valve, hammer, gauge and sweep loops follow reach-turn-release and raise-strike-recoil beats.
-- **Signatures:** a pneumatic parcel line with firing capsules, the Finch pressure lift, and night lamp-moths.
+## 6. Characters
 
-## North star (user, September 26, 2026)
+**Target: elongated stylised anime.** Characters are Terra's own recognisable style. They are neither chibi nor Dishonored people.
 
-Anime steampunk, art-directed by **Messenger and Borderlands**: steampunk grime rendered with Borderlands/anime smoothness. Grime is graphic (inked soot shapes, painted stains, hard-edged color blocks), never noisy texture. Messenger is the primary reference for atmosphere and composition.
+**Proportion.** Aim for about **1:6 to 1:6.5 head-to-body**. This is an art target, not a rigid ratio.
+- Long legs and arms.
+- Narrow, tapered torsos with readable shoulders and a defined waist and hips.
+- Expressive, larger hands.
+- Strong, grounded boots.
+- Longer face shapes.
 
-- **Ground floors differ by trade** (`architecture.shopfront`; `shopWindows` drives goods and boarding): Rook's half-raised yard shutter, the Boiler's louvred civic portal, Finch's continuous brass-mullioned glazing, the foundry's glowing loading mouth under an iron hood, the tavern's bow windows and the Exchange arcade. Awnings and sign boards are per trade.
-- **Grime language** (`art-kit.soot`, `grimeSkirt`, `sootStreak`): jagged soot skirts at every façade foot and streaks from cornices. Opacity falls with prosperity.
-- **Outer façades:** framed windows with sills and lintels, lit and dark room patterns, doors with steps and hoods, stone bases, merchant-row shopfronts with color-block awnings.
-- **Planted walk:** a stance/swing foot cycle (62% stance). Stride rate is solved from speed and leg length, so the stance foot drifts only about 15% of body travel. Turning in place takes steps.
+**Anime identity** stays obvious in:
+- **Face:** longer face with a tapered jaw.
+- **Eyes:** stylised anime eyes that stay **open and readable at gameplay distance** (about 8–15 m). They must never collapse into closed lines except for an intended blink or expression.
+- **Hair:** graphic shapes: pointed locks, bangs, strong silhouettes.
+- **Expression and pose language.**
 
-## Ink, palette and sky — September 26, 2026
+**Dishonored may influence** elongation, silhouette exaggeration and clothing shape (long coats, high collars, tall boots). It must not influence facial identity.
 
-- **Ink** (`ink-renderer.ts`): an 8-direction depth kernel plus interior lines where color blocks meet (luma edges, not on sky). Line weight is about 2.3 px near and 1 px far, modulated along the line. Sample positions wobble by stable screen-space noise, so edges read hand-drawn without flicker. Lines persist to about 320 m at reduced strength. Ink is a color-aware navy-grey, not black.
-- **Palette:** one family (sage, slate, ivory, soft teal) with muted trade identities (ochre, slate blue, soft teal, charcoal slate, brick rose, ivory). Roofs are slate-teal, terracotta and verdigris. Shadow keys are lifted and near-neutral teal-grey (clear shade ≈ 0.74/0.82/0.86). Saturation is reserved for characters, signage, furnace and lamp glow, and progression.
-- **Sky:** a turquoise top over a pale mint horizon. Clouds are torn flat fbm masses with hard ragged edges and one tone step (lit crown, shaded underside), plus high wisps. Dusk is not gated by daylight, so evenings turn peach and rose.
+**Silhouette by role.** Each role reads from its outline alone:
 
-## High-key Terra — September 26, 2026
+| Role | Silhouette |
+|---|---|
+| Worker | Rolled sleeves, apron, tool belt |
+| Engineer | Asymmetric coat, goggles, harness |
+| Merchant | Vest and sash, bowler or top hat |
+| Guard | Long coat, epaulettes, kepi |
+| Resident | Dress or coat |
+| Courier | Short jacket, satchel, cap |
 
-Messenger's lesson applied: lightness and cohesion come from value, not hue. The whole city now sits in a light key.
-- **Lighter values:** ivory render, sage and grey-green paint, light slate-teal roofs, mid-grey road, and iron lifted to slate grey. The foundry is the darkest mass and is still mid-grey.
-- **Soft light:** shadows sit only slightly below the lit tone (clear shade 0.80/0.88/0.89). Night uses teal-navy, not black.
-- **Grit is painted, not dark** (`art-kit.paintedWear`, `rustStreak`): a two-tone wainscot band, irregular light and dark render patches that the ink pass outlines, rust runs from downpipes and soot skirts. All are stronger in the Lowworks and fade with prosperity.
-- Saturated color is kept for characters, signage, glow and festival decoration. Measured cost of the wear layer: nothing measurable.
+Builds vary between slim, standard and sturdy.
 
-## Terrace, everyday layer, early vs late — September 26, 2026
+**Hats** are proportionate to the head. They are an accent, never the dominant mass of the figure: brim no wider than the shoulders, crown well under the head's height.
 
-- **Clock terrace** (`city.TERRACE`, `terraceRise`): a circle of six concentric 0.2 m steps rises 1.2 m to a paved plateau around the tower. It is walkable through `groundHeight` (steps stay under the controller's 0.38 m limit). NPCs, staged workers, lamps, the calliope and the planters are placed at terrace height.
-- **Everyday layer** (`presentation.everyday`): meters, vents and posters at homes; span wires with laundry across the housing lane; trolley wires over the rails hung from span wires; posters on civic masonry. Doorsteps follow prosperity: a dented bucket and crate, then herbs, then flowers and hanging baskets.
-- **Early vs late:** stage drives soot, dark patches, rust runs and exposed brick (all heavy in the Lowworks and gone by Grand Terra). Fresh light patches peak mid-recovery. Early paint is greyed; late paint is clean and bright.
+**Colour arc.** Clothing follows the city's arc:
+- **Lowworks:** worn, patched and dulled dye.
+- **Grand Terra:** tailored panels, clean dye, satchels, watches, brass fittings.
 
-## Direction reset — September 26, 2026 (supersedes the Messenger-pastel key)
+**Readability.** Characters must be readable in every weather and at night (§11). An inked silhouette and face must hold against any background.
 
-**Art style: Borderlands 2/3/4. Uniqueness: Messenger. World: Thief: Deadly Shadows / Dishonored 2.** The reference board is `screenshots/references/reference-board.png`.
+## 7. Architecture
 
-- **Hand-painted inked surfaces** (`assets.surface`): brick, plaster-over-brick with cracks and fallen patches (4 m tile), ashlar, cobbles, slate, corrugated sheet and planks. Each has inked construction lines, chipped light edges and grime at the foot. Painted walls (trade paints, housing, plaster) all carry the plaster map.
-- **Enclosure:** every composed business gains inserted storeys jettied 1.15 m over the pavement on timber corbels (`architecture.businessLift`, `liftCrown`). The trade's crown (towers, dome, drum, stacks) is lifted on top unchanged. The tavern is 16 m, residential blocks 16–24 m and the gate rows 17–21 m. The street reads as a stone canyon.
-- **Palette and light:** sandstone, umber, soot, slate and oxblood with verdigris accents. The sun is backlit and raking (ahead of the main view, about 28° up): the tall walls shade most of the street, light patches cross it, and the distance is bleached and hazy. Shadows are cool (clear shade 0.36/0.40/0.55). Night is near-black blue-violet with amber windows and lamp pools. Rain is wet grey.
-- **Ink:** near-black, 3 px near to 1.2 px far, with the hand-drawn wobble kept (Messenger).
-- **Sky:** Messenger's torn flat clouds on a dusty, sun-bleached blue.
-- **Night:** hemisphere light 0.28 and sun 0.12 at night; the night sky is near black. Additive lamp pools and wall halos (`presentation.nightLights`), plus door sconces on every house. Windows glow harder.
-- **Density:** wrought-iron balconies with scroll railings and brackets, painted protest slogans ("WHO OWNS THE STEAM?"), clutter pockets hugging walls with colliders, and additive sun shafts aligned to the sun ray, anchored in the sunlit half of each street (`presentation.density`, `setShafts`).
-- **Characters:** Karnaca/Thief wardrobes (oxblood, umber, soot, grey-green, bone) and an inked cloth map on `coloredToon`: side seams, stitched hems, hatching, patches and hem grime.
-- **Trees:** forked trunks with three limbs; many small faceted clumps with a darker drooping underside; inked foliage texture.
-- **Detail density** (`presentation.ornament`): dentil cornices, gutters and downpipes on every eave; string courses; iron hanging signs on scroll brackets; a cable web across the main street at the upper storeys; instanced debris (paper, bottles, broken setts) at wall feet (three draws).
-- **Faces:** inked cheek hatching, a nose shadow and face-contour lines on the atlas, deeper lip line, weathered skin tones.
-- **Trees:** lumpy subdivided clumps (sphere pushed by low sine bumps), no hard facets.
-- **Shafts:** stronger, but faded by eye distance (from 7 m to 20 m, and out beyond 70–110 m), so they sit in the middle distance and never wash the camera. Rain and overcast clouds are grey; only clear skies get cream clouds.
-- **Hand-built clutter** (`art-kit`: `labeledCrate`, `stencilBarrel`, `stove`, `workbench`, `cafeTable`, `anvil`, `pipeStack`; `presentation.vignettes`): stencilled cargo (VEYR IRON, ORISON SALT, FRAGILE GLASS...), per-trade spill-out with colliders. Keep ledger stands (±9, the ledger z) clear.
-- **Per-building carving** (`presentation.carving`): each house draws a seeded window hood (pediment, arch, cornice with consoles, or keystone), door surround (columns and pediment, voussoir arch, iron canopy, rusticated), corner (quoins or pilasters), crown (balustrade, gable with oculus, stepped parapet, clock gable) and a unique datestone.
-- **Faces:** heavier lash, brow and mouth ink with larger pupils; the atlas is mipmapped with anisotropy so features hold at 10–15 m.
-- **Line classes** (ink pass reads the render-target alpha): 1 = world (heavy line), 0.5 = people and movable objects (`thinLine`, `propMat`, `asProp`; about 38% line weight), 0 = printed text (no interior ink). The class is taken as the minimum over the kernel neighbours, so both sides of a silhouette agree. Buildings and fixed structures keep the heavy line.
-- **Faces:** angular Borderlands structure. The skull vertices are reshaped after build: a V jaw tapering to the chin, a flattened front plane giving a cheekbone edge, UVs unchanged. Hair, skin and metal use `plainToon` (no cloth stitching). Share `wardrobeHook` and never copy a painted `onBeforeCompile`, or tone uniforms are declared twice.
-- **Carving at Dishonored scale:** hoods, door surrounds, quoins and eave cornices about 1.5× deeper and taller.
+- **Enclosure and verticality.** Streets are stone canyons.
+  - Buildings stand 16–24 m on narrow frontages, over older stone ground storeys.
+  - Upper storeys jetty over the pavement on corbels.
+  - Cables and bridges cross overhead.
+- **Landmark hierarchy** (fixed order):
+  1. The clock tower
+  2. The district boiler and Great Main
+  3. The foundry
+  4. The gate
+  5. The market centre
 
-## Dreary pass — September 27, 2026 (user: "too toyish, more serious and dreary")
+  Residential roofs stay quieter than all of them.
+- **One or two big ideas per building.** Each business has a distinct composed body; `architecture.businessHeights` is the source of truth for heights:
 
-- **Final grade** (ink pass, `setRecovery(stage)`): desaturation (50% of original saturation early, rising to 72% at Grand Terra); soot-warm tint on lit tones and cool blue in the shadows; soft highlight roll-off; lifted blue-black floor; heavy vignette. Prosperity returns some colour, never the candy palette.
-- **Weather** is mostly overcast: the cycle is overcast, rain, fog, overcast, clear, rain. Haze is denser.
-- **Smoke:** heavy dark soot plumes (size 7.5, opacity 0.38 falling with stage).
-- **Palette:** muted trade paints, dark rust, copper and brass, dull leaves, soot-faded bunting only at stage 4+, no pink blossom. Wall grime never drops below 35% even at Grand Terra.
-- **Hats** are turned (lathe) profiles with a band and a shaped visor or brim: guard kepi (flared flat crown, crest pin, pitched visor), newsboy cap for workers and couriers, bowler and top hat for merchants and some residents. Under any hat the fringe is clipped at the band and the hair crown tucked in.
-- **Hair silhouettes:** side locks are tapered pointed strands (two per side), not slabs. The back mass wraps the whole rear skull to the nape.
+  | Business | Composed body |
+  |---|---|
+  | Rook & Son | Salvage tower and hoist |
+  | Municipal boiler | Horizontal drum and pressure tower |
+  | Finch | Braced instrument tower |
+  | Foundry | Sawtooth hall and dominant stack |
+  | Tavern | Jettied box with turret |
+  | Bellweather Exchange | Colonnade and verdigris dome |
+
+  Houses get one idea each (oriel, jetty, outside stair or cistern). There are no interchangeable ornament kits.
+- **Trade ground floors differ.** Each shopfront, awning and sign is specific to its trade.
+- **Compression then reveal.** Bridge-houses and gantries frame the landmarks behind them. The clock vista is the city's primary reveal.
+- **Skyline.** Layered planes show outer clusters, the Pressure Spires and Veyr's ridge, all in the same architectural grammar. The skyline stays below the clock's dominance.
+- **Gameplay constraints override art.** Six ledger approaches stay clear. Walkable corridors, collision layout and the one accessible elevated route (the industrial ramp) remain intact. Decorative upper structures never imply climbable paths.
+
+## 8. Steampunk systems
+
+Machinery is part of civic life, not decoration.
+- **Pressure** is Terra's circulatory system. The Great Main crosses the street overhead from the municipal boiler, carried on regulator towers with branch pipes and crews. Steam releases in periodic bursts.
+- **Industry:**
+  - The foundry furnace glows orange.
+  - The boiler hums.
+  - Smoke and soot come from real sources (stacks, furnace), never from the air in general.
+- **Aether** is induced through copper and crystal and supplements steam; it never replaces it. It is rare cyan in the Lowworks and grows into selective accents at Grand Terra: the clock lantern, the Exchange spire, lamp fittings and the parcel line. Aether is never a general wash of colour.
+- **Civic motifs:**
+  - Terra's three-flue shield
+  - The split pressure ring
+  - Finch's winged valve
+  - The aether diamond
+  - The three-lantern fitting
+  - The numbered pressure gauge
+
+  Use them selectively on civic and trade objects. A motif repeated everywhere loses its meaning.
+
+## 9. Environmental storytelling
+
+Every added prop must say something about Terra's condition.
+- **Lowworks:**
+  - protest slogans ("WHO OWNS THE STEAM?");
+  - ration and receipts notices;
+  - boarded shops;
+  - dead lamps;
+  - dented buckets and crates on doorsteps;
+  - clutter pockets against walls.
+- **Recovery onward:**
+  - repaired glass;
+  - stocked shop displays;
+  - herbs, then flowers, then hanging baskets on doorsteps;
+  - banners;
+  - more staged citizens at work and at leisure.
+- **Named places and goods:** stencilled cargo (VEYR IRON, ORISON SALT), named traders, datestones and plaques.
+- **Staged life:** conversations, work loops, bench lunches, night drinkers. The number and mood of people track prosperity.
+- **Placement:** props hug walls, carry colliders and never block ledger approaches.
+
+## 10. Prosperity progression
+
+Progression changes the **whole environmental condition**. More bunting, more props or fewer soot decals are not enough on their own. A side-by-side screenshot of the Lowworks and Grand Terra from the same view must need no explanation.
+
+The four conceptual stages map onto the six game eras:
+
+| | **Lowworks** (Lowworks) | **Recovery** (Recovery, Industry) | **Prosperity** (Commerce, Innovation) | **Grand Terra** |
+|---|---|---|---|---|
+| Emotion | Oppression | Recovery | Confidence | Prosperity → Wonder |
+| Colour | Restrained, cool, desaturated, but every hue still identifiable | Pigment returns on repaired surfaces | Strong, intentional colour | The full authored palette |
+| Paint | Faded, chalky, flaking | Patches of fresh paint | Repainted trades | Rich, clean paint everywhere that is maintained |
+| Metals | Tarnished brass, streaked copper, rust | Cleaner | Polished | Maintained brass, copper and deliberate patina |
+| Grime | High: soot skirts, streaks, stains, exposed brick | Reduced | Low | Selective historical grime only (§12) |
+| Vegetation | Bare trees, dead planters | Leafing | Healthy | Healthy greenery and blossom |
+| Light | Weak, dead lamps, few windows | More working lamps | Strong civic light | Many warm windows, lit landmarks, selective aether |
+| Air | Soot haze, heavy smoke | Thinning | Clear | Clean, bright air; smoke only at active industry |
+| Mids and values | Darker, compressed | Opening | Brighter mids | Brighter mids, crisp warm/cool light |
+| Life | Few, stooped, worn clothes | More activity | Busy trade | Socially active, festive, well dressed |
+
+The "Prosperity" column covers two game eras (Commerce, Innovation), as the "Recovery" column does (Recovery, Industry). Interpolate between them; don't hold one flat look for both.
+
+**Grand Terra must feel prosperous, clean, warm, colourful, technologically impressive, socially active and beautiful.** It must never feel sterile, like a white-marble utopia, like neon cyberpunk or like a generic fantasy kingdom.
+
+## 11. Night and weather
+
+**Night: dark but readable.** Thief sets the mood; night is never uniformly black.
+- **Compose from pools of light:**
+  - street lamps;
+  - shop windows and the tavern;
+  - the foundry furnace and boiler glow;
+  - occasional upper windows;
+  - selective civic lighting.
+- **Fill:** a cool moon and sky fill keeps silhouettes and roofline shapes legible.
+- **Characters stay readable at night.** They show an inked silhouette and a face that reads under lamps and against the sky. Pale, ghost-like figures are a rendering defect.
+- **Progression:** night becomes warmer and brighter with prosperity through more working lamps and lit windows.
+
+**Weather:**
+- Overcast, rain and fog are legitimate moods. Each keeps a warm/cool difference and never becomes grey mush.
+- Clear weather is fully clear (§5).
+- Rain reads as wet: darker ground, reflections of lamp colour, runoff.
+- The share of heavy soot-haze and smog days falls as industry is cleaned up. Grand Terra is not trapped under a permanent grey sky.
+- Clouds are graphic: torn flat masses with one tone step. Only clear skies get warm cream clouds; storm clouds are grey.
+
+## 12. Detail and restraint
+
+Messenger's discipline governs density.
+- **Composition before decoration.** Silhouette, value and landmark hierarchy come first.
+- **Concentrate detail.** Put it at eye level, at entrances and ledgers, and on landmarks. Leave calm planes between those clusters.
+- **Ground supports the scene; it never competes** with characters, architecture or landmarks.
+  - Use larger setts and grouped shapes rather than hundreds of individually inked cobbles.
+  - Keep ground contrast lower than walls.
+  - Reduce the ground's interior ink with distance.
+  - Prefer broad value masses.
+- **Grime communicates condition. It is not a permanent overlay.**
+  - There is no hard minimum grime level at maximum prosperity.
+  - Grand Terra may keep soot near active industry, weathering on old masonry, patina on copper and localised dirt.
+  - Maintained civic and commercial surfaces become visibly **clean**.
+- **Remove detail that doesn't read.** Anything invisible at gameplay distance, or repeated without a reason, gets cut.
+
+## 13. Anti-targets
+
+Terra must never become:
+- **Neon cyberpunk.** No global cyan, magenta, acid green or emissive neon flooding.
+- **Grey-beige industrial mush.** No universal desaturation, muddy midtones or monochrome scenes.
+- **Permanently dreary.** No grey skies at every stage, no fixed grime floor, no saturation cap at Grand Terra.
+- **Chibi.** No oversized heads, compressed bodies, toy proportions, giant hats or closed-line eyes at distance.
+- **Dishonored faces.** Faces are anime.
+- **Messenger pastel.** No washed-out high key.
+- **Noisy.** No texture noise, photographic grime or ground that outshouts the scene.
+- **Sterile.** Grand Terra is not white marble or a generic fantasy kingdom, and its industry is never erased.
+- **Flattened by the grade.** No lifted grey blacks, compressed highlights, heavy vignette or atmospheric wash over the foreground.
+- **Copied.** No bundled, traced or copied reference assets.
+
+## 14. Validation
+
+Judge the rendered game, not the code. Use review mode, which runs on memory-only storage and doesn't touch saves:
+
+```
+/?dev=1&review=1&clean=1&view=<view>&level=<0-5>&weather=<clear|overcast|rain|fog>&day=<0-1>
+```
+
+Views include `spawn`, `street`, `square`, `market`, `clock`, `conversation`, `citizens`, `housing`, `foundry`, `boilerYard`, `gate`, `canal`, `roof` and `overview`.
+
+`level` sets every property to that level, which is **not** the same as the prosperity era: levels 0–5 land on eras 0, 0, 2, 4, 5, 5. To review a specific era, call `__TERRA__.era(n)` in the console (dev mode only); it returns the era the economy actually reached.
+
+The spec passes only when all of these hold:
+1. **Terra wins.** `street`, `square` and `overview` at `level=0` next to `level=5`, same weather and time. The difference needs no explanation: colour, cleanliness, light, vegetation and life have all changed, not only the props.
+2. **Lowworks keeps colour.** At `level=0`, every trade paint is still identifiable by hue. A greyscale conversion is not an acceptable approximation of the frame.
+3. **Clear daylight is clear.** `square`, `level=5`, `weather=clear`, `day≈0.45`: blue sky, bright sunlit planes, and sampled shadows that are blue-violet rather than grey. It must not read as overcast.
+4. **Warm key, cool shadow** is visible in every daylight weather.
+5. **Night is dark but readable.** `housing` and `square`, `day≈0.9`, rain and clear: composed from light pools, characters inked and readable, no ghost figures, no uniform black.
+6. **Characters.** `conversation` and `citizens`: roughly 1:6–1:6.5 proportions, anime faces with eyes open and readable at 8–15 m, each role identifiable from silhouette alone, hats proportionate.
+7. **Ground is quiet.** `street` and `conversation`: close ground doesn't draw the eye before characters or architecture.
+8. **Hierarchy.** `overview` and `street`: the clock reads first, then the boiler and Great Main, the foundry, the gate and the market. Residential roofs stay quieter.
+9. **Grime tracks condition.** `level=0` → `5`: grime falls steadily, and maintained surfaces at `level=5` are clean.
+10. **Gameplay intact.** The review traversal and ledger checks (`&check`) pass at levels 0 and 5. Performance stays within the budget recorded in `QA.md`.
+
+### Known gaps between the current build and this spec (as of 2026-09-28, after pass 19)
+
+These are known deviations to fix. They are not rules. Evidence: `screenshots/review-2026-09-28-pass19/`.
+- **Characters.** Proportions are now about 1:6 and eyes read as open, but the construction is still stiff and doll-like next to the painted city. Shoulders are blocky, hands are mittens, and faces are small, simple painted planes that carry little expression at gameplay distance. Hair is serviceable rather than graphic anime.
+- **Lowworks mood.** Clear and overcast Lowworks days look almost the same. The Lowworks reads grey and flat rather than oppressive, and night along the main street lacks a strong dark–light–dark rhythm of lamp pools.
+- **Innovation → Grand Terra.** Stage 5 is warmer, greener and cleaner than stage 4, but the step is mostly colour and light. There is no memorable "wonder" beat yet (aether landmarks, civic illumination).
+- **Wet weather.** Rain is darker and cooler, but surfaces don't read as wet: the painted shading ignores specular, so there are no reflections.
+- **Composition.** In street-level views the road still fills the lower third of the frame. It is quieter now, but it's a large mass.

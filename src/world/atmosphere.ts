@@ -10,12 +10,16 @@ import type { City } from './city';
 const C = new T.Color();
 type Key = { lit: [number, number, number]; shade: [number, number, number] };
 const keys: Record<'clear' | 'overcast' | 'rain' | 'fog' | 'night', Key> = {
-  clear: { lit: [1.24, 1.06, .84], shade: [.36, .4, .55] },
-  overcast: { lit: [1.0, .98, .92], shade: [.6, .64, .7] },
-  fog: { lit: [.96, .94, .9], shade: [.64, .66, .7] },
-  rain: { lit: [.82, .86, .92], shade: [.48, .54, .64] },
-  night: { lit: [.2, .22, .4], shade: [.09, .1, .2] },
+  clear: { lit: [1.26, 1.07, .84], shade: [.4, .44, .64] },
+  overcast: { lit: [1.0, .97, .9], shade: [.7, .72, .8] },
+  fog: { lit: [.96, .94, .9], shade: [.72, .73, .77] },
+  rain: { lit: [.74, .79, .9], shade: [.52, .57, .7] }, // wet, cool and darker than overcast
+  night: { lit: [.26, .29, .48], shade: [.12, .14, .27] }, // cool moon fill keeps figures readable
 };
+// Rain and cloud never leave, but soot fog does: prosperity cleans the air, not the climate.
+function weatherCycle(stage: number) {
+  return stage < 2 ? ['fog', 'overcast', 'rain', 'fog', 'clear', 'overcast'] : stage < 4 ? ['overcast', 'rain', 'clear', 'fog', 'clear', 'overcast'] : ['clear', 'overcast', 'rain', 'clear', 'overcast', 'clear'];
+}
 export class Atmosphere {
   art: WeatherArt;
   sun: T.DirectionalLight; hemi: T.HemisphereLight; rain: T.LineSegments; smoke: T.Points; steam: T.Points; weather: 'rain' | 'overcast' | 'fog' | 'clear' = 'rain'; override: string | null = null;
@@ -40,22 +44,24 @@ export class Atmosphere {
     scene.add(this.steam); this.steam.frustumCulled = false; for (let i = 0; i < 90; i++) this.steamAge[i] = random() * 5;
   }
   update(dt: number, time: number, camera: T.Camera, preview = false) {
-    const day = preview ? .42 : this.city.economy.state.day; const phase = Math.sin(day * Math.PI * 2 - Math.PI / 2); const daylight = T.MathUtils.smoothstep(phase, -.25, .7); const weather = this.override ?? (['overcast','rain','fog','overcast','clear','rain'][Math.floor(time/110)%6]); this.weather = weather as typeof this.weather; this.city.raining = weather === 'rain'; const stage = this.city.economy.stage;
+    const day = preview ? .42 : this.city.economy.state.day; const phase = Math.sin(day * Math.PI * 2 - Math.PI / 2); const daylight = T.MathUtils.smoothstep(phase, -.25, .7); const weather = this.override ?? weatherCycle(this.city.economy.stage)[Math.floor(time/110)%6]; this.weather = weather as typeof this.weather; this.city.raining = weather === 'rain'; const stage = this.city.economy.stage;
     // Art-directed light keys: lit color, shadow color, sky and haze per weather and hour.
     const dusk = Math.max(0, 1 - Math.abs(day - .74) * 10) + Math.max(0, 1 - Math.abs(day - .26) * 14) * .6;
-    const smog = Math.max(0, 1 - stage / 3.5) * (weather === 'clear' ? .75 : 1);
+    const smog = Math.pow(Math.max(0, 1 - stage / 4), 1.3) * (weather === 'clear' ? .75 : 1); // soot haze thins from Recovery, gone by Innovation
     const key = keys[weather as keyof typeof keys] ?? keys.overcast;
-    tone.lit.value.setRGB(...keys.night.lit).lerp(C.setRGB(...key.lit), daylight).lerp(C.setRGB(1.12, .8, .6), dusk * .7).lerp(C.setRGB(.95, .93, .88), smog * .2 * daylight);
+    // Soot filters the Lowworks sun; a clean Grand Terra sky lets warm light through.
+    const care = Math.min(1, stage / 5), keyLight = daylight * (.8 + .26 * care);
+    tone.lit.value.setRGB(...keys.night.lit).lerp(C.setRGB(...key.lit).multiplyScalar(.8 + .26 * care), daylight).lerp(C.setRGB(1.12, .8, .6), dusk * .7).lerp(C.setRGB(.95, .93, .88), smog * .2 * daylight);
     tone.shade.value.setRGB(...keys.night.shade).lerp(C.setRGB(...key.shade), daylight).lerp(C.setRGB(.52, .45, .76), dusk * .6).lerp(C.setRGB(.66, .64, .7), smog * .3 * daylight);
     tone.rim.value.set(P.warm.lamp);
     this.hemi.intensity = .28 + daylight * 1.32; tone.ambient.value = this.hemi.intensity * .93 / Math.PI;
-    this.sun.intensity = .12 + daylight * (weather === 'clear' ? 3.1 : weather === 'rain' ? 1.6 : 2.2); this.sun.color.set(daylight > .4 ? '#fff3e0' : '#c2d0f5');
-    // Backlit, raking sun ahead of the main view: bright hazy distance, diagonal shadow bands.
-    this.sun.position.set(-34 + Math.cos(day * Math.PI * 2) * 14, 17 + Math.max(0, phase) * 16, -46 + Math.sin(day * Math.PI * 2) * 10);
+    this.sun.intensity = .12 + keyLight * (weather === 'clear' ? 3.1 : weather === 'rain' ? .75 : weather === 'fog' ? 1 : 1.25); // hard sun only in clear weather this.sun.color.set(daylight > .4 ? '#fff3e0' : '#c2d0f5');
+    // Raking west-south-west sun: warm light on the street fronts, diagonal shadow bands across the canyon.
+    this.sun.position.set(-44 + Math.cos(day * Math.PI * 2) * 14, 20 + Math.max(0, phase) * 18, 8 + Math.sin(day * Math.PI * 2) * 14);
     this.art.update(time, daylight, weather === 'rain', weather, dusk, smog);
     this.sky.copy(this.art.uniforms.skyHorizon.value); tintSkyline(this.art.uniforms.skyHorizon.value, daylight); this.scene.background = this.sky; const fog = this.scene.fog as T.FogExp2; fog.color.copy(this.sky);
-    fog.density = (weather === 'fog' ? .013 : weather === 'rain' ? .0105 : .0078) + smog * .0022;
-    mats.glow.emissiveIntensity = 1.5 - daylight * .9; this.city.presentation.setNight(1 - daylight); this.city.presentation.setShafts(weather === 'clear' ? daylight * (1 - smog * .4) : weather === 'overcast' ? daylight * .25 : 0); windowGlass.forEach((m,i)=>m.emissiveIntensity=i===3?.04:(1.05-daylight*.78));housingGlass.forEach((m,i)=>m.emissiveIntensity=i===0||i===3?.025:(.62-daylight*.36));
+    fog.density = (weather === 'fog' ? .013 : weather === 'rain' ? .0105 : .0068) + smog * .0042;
+    mats.glow.emissiveIntensity = 1.5 - daylight * .9; this.city.presentation.setNight(1 - daylight); this.city.presentation.setShafts(weather === 'clear' ? daylight * (1 - smog * .4) : weather === 'overcast' ? daylight * .25 : 0); const lit=.78+.08*stage;windowGlass.forEach((m,i)=>m.emissiveIntensity=i===3?.04:(1.05-daylight*.78)*lit);housingGlass.forEach((m,i)=>m.emissiveIntensity=i===0||i===3?.025:(.62-daylight*.36)*lit);
     this.city.lamps.forEach((lamp, i) => { lamp.intensity = (9 + this.city.economy.state.infrastructure.lamps * 14) * (1 - daylight * .65) * (stage === 0 && i === 0 && !reducedMotion(this.city.economy.state.settings.reducedMotion) ? .6 + Math.sin(time * 13) * .35 : 1); lamp.color.set(P.warm.lamp); });
     this.rain.visible = weather === 'rain'; this.rain.position.set(camera.position.x, 0, camera.position.z); if (this.rain.visible) { for (let i = 0; i < 1500; i++) { const j = i * 6; this.rainPositions[j + 1] -= dt * (13 + i % 4); this.rainPositions[j] += dt * .7; if (this.rainPositions[j + 1] < 0) this.rainPositions[j + 1] = 40;this.rainPositions[j+3]=this.rainPositions[j]-.015;this.rainPositions[j+4]=this.rainPositions[j+1]+.26;this.rainPositions[j+5]=this.rainPositions[j+2]; } this.rain.geometry.attributes.position.needsUpdate = true; }
     for (let i = 0; i < 220; i++) { this.age[i] = (this.age[i] + dt) % 15; const a = this.age[i]; const o = this.city.smokeOrigins[i % this.city.smokeOrigins.length]; this.smokePositions[i * 3] = o.x + a * .4 + Math.sin(i * 13 + a) * a * .1; this.smokePositions[i * 3 + 1] = o.y + a * .8; this.smokePositions[i * 3 + 2] = o.z + Math.cos(i * 9 + a * .5) * a * .12; } this.smoke.geometry.attributes.position.needsUpdate = true; (this.smoke.material as T.PointsMaterial).opacity = .38 - stage * .035;

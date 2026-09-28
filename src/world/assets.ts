@@ -34,11 +34,13 @@ export function surface(kind: Surface) {
       x.fillStyle = `rgba(110,95,78,${.05 + r() * .09})`; x.fillRect(px + 4, py + 4, bw - 8, h - 8); jitterLine(px, py, px + bw, py, 3, .6); jitterLine(px, py, px, py + h, 3, .6);
       x.strokeStyle = chalk(.5); x.lineWidth = 2; x.beginPath(); x.moveTo(px + 6, py + 6); x.lineTo(px + bw * .7, py + 6); x.stroke();
       if (r() < .35) { const cx = px + r() * bw, cy = py + r() * h; x.strokeStyle = ink(.45); x.lineWidth = 1.5; x.beginPath(); x.moveTo(cx, cy); x.lineTo(cx + 14, cy + 9); x.lineTo(cx + 8, cy + 22); x.stroke(); } } } }
-  if (kind === 'road') { // Cobbles: inked rounded setts, packed dark joints.
-    x.fillStyle = '#b7afa2'; x.fillRect(0, 0, S, S); const rows = 12, h = S / rows;
-    for (let row = 0; row < rows; row++) for (let col = -1; col < 9; col++) { const w = S / 8, px = col * w + (row % 2) * w / 2 + (r() - .5) * 4, py = row * h + (r() - .5) * 3; const v = 218 + Math.floor(r() * 26);
-      x.fillStyle = `rgb(${v},${v - 4},${v - 12})`; x.beginPath(); x.roundRect(px + 3, py + 3, w - 6, h - 6, 11); x.fill(); x.strokeStyle = ink(.55); x.lineWidth = 2; x.stroke();
-      x.strokeStyle = chalk(.45); x.lineWidth = 2; x.beginPath(); x.moveTo(px + 9, py + 8); x.lineTo(px + w * .55, py + 8); x.stroke(); } }
+  if (kind === 'road') { // Setts: large grouped stones, soft joints. Ground supports the scene; it never competes.
+    x.fillStyle = '#c9c1b3'; x.fillRect(0, 0, S, S); const rows = 6, cols = 4, h = S / rows, w = S / cols;
+    for (let row = 0; row < rows; row++) for (let col = -1; col <= cols; col++) { const px = col * w + (row % 2) * w / 2 + (r() - .5) * 3, py = row * h + (r() - .5) * 2; const v = 224 + Math.floor(r() * 12);
+      x.fillStyle = `rgb(${v},${v - 4},${v - 11})`; x.beginPath(); x.roundRect(px + 4, py + 4, w - 8, h - 8, 16); x.fill(); x.strokeStyle = ink(.26); x.lineWidth = 3; x.stroke();
+      if (r() < .5) { x.strokeStyle = chalk(.2); x.lineWidth = 3; x.beginPath(); x.moveTo(px + 14, py + 12); x.lineTo(px + w * .5, py + 12); x.stroke(); } }
+    // Broad worn and damp patches group the setts into a few large value shapes.
+    for (let i = 0; i < 4; i++) blotch(r() * S, r() * S, 90 + r() * 80, r() < .5 ? 'rgba(90,80,70,.1)' : 'rgba(255,250,236,.1)'); }
   if (kind === 'metal' || kind === 'slate') {
     if (kind === 'metal') { // Corrugated sheet with lapped seams and rivet rows.
       for (let i = 0; i < 24; i++) { const px = i * S / 24; x.fillStyle = i % 2 ? 'rgba(90,80,70,.14)' : 'rgba(255,250,235,.12)'; x.fillRect(px, 0, S / 24, S); jitterLine(px, 0, px, S, 1.2, .25); }
@@ -122,6 +124,12 @@ const propCache = new Map<T.Material, T.Material>();
 export function propMat(m: T.Material): T.Material { let v = propCache.get(m); if (!v) { const c = (m as T.MeshStandardMaterial).clone(); if (c instanceof T.MeshStandardMaterial) illustrated(c); v = thinLine(c); if ('color' in m && 'color' in v) (v as T.MeshStandardMaterial).color = (m as T.MeshStandardMaterial).color; propCache.set(m, v); } return v; }
 /** Swap every mesh in a prop group to its thin-outlined twin (call before bake). */
 export function asProp<G extends T.Object3D>(g: G): G { g.traverse(o => { if (o instanceof T.Mesh && !Array.isArray(o.material) && !o.material.customProgramCacheKey().includes('|thin')) o.material = propMat(o.material); }); return g; }
+/** Mark a ground material (alpha 0.8 class): edges stay inked, interior ink fades out with distance. */
+export function groundLine<M extends T.Material>(m: M): M {
+  const previous = m.onBeforeCompile.bind(m);
+  m.onBeforeCompile = (shader, r) => { previous(shader, r); shader.fragmentShader = shader.fragmentShader.replace('#include <opaque_fragment>', '#include <opaque_fragment>\ngl_FragColor.a = 0.8;'); };
+  const key = m.customProgramCacheKey.bind(m); m.customProgramCacheKey = () => key() + '|ground'; return m;
+}
 export function printed<M extends T.Material>(m: M): M {
   const previous = m.onBeforeCompile.bind(m);
   m.onBeforeCompile = (shader, r) => { previous(shader, r); shader.fragmentShader = shader.fragmentShader.replace('#include <opaque_fragment>', '#include <opaque_fragment>\ngl_FragColor.a = 0.0;'); };
@@ -221,10 +229,12 @@ export function illustrated(material: T.MeshStandardMaterial) {
   return painted(material);
 }
 for (const material of Object.values(mats)) illustrated(material);
+groundLine(mats.road);groundLine(mats.dirt);
 illustrated(leafShade);illustrated(blossom);
 
 /** Restore selected materials, not a global saturation filter. Shared meshes follow. */
 export function applyWorldPalette(stage:number){
-  const phase=Math.min(2,stage/2.5),a=Math.floor(phase),b=Math.min(2,a+1);
+  // Mid Terra's key arrives at Commerce (3); only Grand Terra (5) reaches the full palette.
+  const phase=stage<=3?stage/3:Math.min(2,1+(stage-3)/2),a=Math.floor(phase),b=Math.min(2,a+1);
   for(const [key,colors] of Object.entries(worldColors))mats[key as keyof typeof worldColors].color.set(colors[a]).lerp(new T.Color(colors[b]),phase-a);
 }

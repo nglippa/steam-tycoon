@@ -7,20 +7,20 @@ export const palette = {
   aether: { cyan:'#70e7e1', white:'#d1f3f1', glow:'#79dce6' },
   skin: ['#d8b094','#b08470','#86625a'],
   hair: ['#262a4a','#7c4331','#cf9450','#5a3a5e'],
-  sky: { clear:'#8aa6b6', horizon:'#efe0c4', overcast:'#86908f', rain:'#5a6366', lavender:'#9c9d95', night:'#070a18', haze:'#131729', cloud:'#f6ead3', cloudShade:'#b9aa98', dusk:'#f2a67f', rose:'#5d6c9e', smog:'#b7b8ae' },
+  sky: { clear:'#5b93c8', horizon:'#ecdcbc', overcast:'#8b97a0', rain:'#5d6870', lavender:'#aeb0a8', night:'#0b1430', haze:'#1a2440', cloud:'#f6ead3', cloudShade:'#b9aa98', dusk:'#f2a67f', rose:'#5d6c9e', smog:'#b7b8ae' },
 } as const;
 const p=palette;
-// Karnaca/Thief key: sandstone, umber, soot and slate, weathered but warm. Values drift
-// cleaner with prosperity; saturation stays for accents, signage and glow.
+// Material condition by prosperity: [Lowworks, mid Terra, Grand Terra]. Every family keeps its
+// hue in the Lowworks (faded teal is still teal); Grand Terra is repainted, polished and clean.
 export const worldColors = {
-  brick:['#b88a6c','#c29274','#cc9b7c'], darkBrick:['#5e544c','#645a51','#6b6157'],
-  stone:['#b9a78c','#c4b295','#cfbe9f'], warmStone:['#cdb892','#d6c29c','#dfcca8'],
-  road:['#8a8175','#918879','#998f80'], dirt:['#8d8070','#958877','#9c907f'],
-  roof:['#5a626a','#5d6870','#606e77'], iron:['#2e2d2c','#302f2e','#33322f'],
-  rust:['#5e3526','#6b3c2a','#78442f'], brass:['#7e6a3e','#96803f','#b09449'],
-  copper:['#6e4432','#7d4e38','#8e5a3f'], wood:['#7a5a3f','#846245','#8d6a4b'],
-  teal:['#44625b','#4a6d64','#50786e'], red:['#6e332e','#7c3831','#8a3e35'],
-  cream:['#a89c86','#b7ab93','#c6baa0'], leaf:['#56603e','#5e6a44','#67754a'],
+  brick:['#96765f','#b0846a','#c48c6a'], darkBrick:['#524a44','#5b4f47','#66554a'],
+  stone:['#a69884','#bba98e','#d3c09e'], warmStone:['#b5a382','#cbb690','#e2cda2'],
+  road:['#6e6964','#77716a','#817a70'], dirt:['#857a6c','#8e8373','#978b79'],
+  roof:['#4f5b61','#4a6770','#43737f'], iron:['#2f2e2d','#2c3035','#283039'],
+  rust:['#5e3526','#6e3a2a','#7c4030'], brass:['#6f6238','#9c8340','#cda24a'],
+  copper:['#6a4a3a','#8e5838','#b46a3e'], wood:['#6e5642','#83603f','#966b41'],
+  teal:['#52655f','#3e7168','#2c7b72'], red:['#5c3533','#7b3434','#912e37'],
+  cream:['#a29885','#c3b597','#e2d3ae'], leaf:['#5e6444','#58733f','#4a8442'],
 } as const;
 export type Archetype='worker'|'engineer'|'merchant'|'guard'|'resident'|'courier';
 // coat, secondary cloth, accent, restored coat: coherent outfits, not random hues.

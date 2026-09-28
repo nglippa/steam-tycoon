@@ -35,6 +35,6 @@ export function residentialWindows(g:T.Group,home:Home,level:number){
 }
 
 export function setHousingCondition(level:number){
-  const early=['#b3a080','#8a8676','#957b6b'],late=['#d8c49c','#a9a78c','#b99684'];
+  const early=['#a89877','#747f7d','#8b6f67'],late=['#e4d2a8','#7a9ab1','#bf897b']; // ivory, dusty blue, dusty rose
   housingPaint.forEach((material,index)=>material.color.set(early[index]).lerp(new T.Color(late[index]),Math.min(1,level/3)));
 }

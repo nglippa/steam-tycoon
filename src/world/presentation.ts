@@ -297,7 +297,7 @@ export class Presentation {
       sh.fragmentShader='varying float vEyeDist;\n'+sh.fragmentShader.replace('#include <opaque_fragment>','diffuseColor.a*=smoothstep(7.,20.,vEyeDist)*(1.-smoothstep(70.,110.,vEyeDist));\n#include <opaque_fragment>').replace('vec4( outgoingLight, diffuseColor.a )','vec4( outgoingLight*diffuseColor.a, diffuseColor.a )');};
     this.shaftMat.customProgramCacheKey=()=> 'terra-shaft-fade';
     const shafts=new T.Group();this.root.add(shafts);this.shafts=shafts;
-    const toSun=V(-34,29,-46).normalize(),q=new T.Quaternion().setFromUnitVectors(V(0,1,0),toSun);
+    const toSun=V(-54,35,10).normalize(),q=new T.Quaternion().setFromUnitVectors(V(0,1,0),toSun);
     for(const [sx,sz] of [[5,50],[6.5,30],[4,6],[7,-12],[-30.5,34],[-30,6],[37,30]])for(let k=0;k<3;k++)for(const twist of [0,Math.PI/2]){const m=new T.Mesh(new T.PlaneGeometry(2.6+k*1.3,34),this.shaftMat);
       m.quaternion.copy(q).multiply(new T.Quaternion().setFromAxisAngle(V(0,1,0),twist+k*.4));m.position.set(sx+k*1.7,0,sz+k*1.3).addScaledVector(toSun,15);shafts.add(m);}
     bake(g);
@@ -385,7 +385,7 @@ export class Presentation {
       const halo=new T.Mesh(new T.PlaneGeometry(3.4,3.4),this.poolMat);halo.position.set(1.8,2.9,.1);f.add(halo);
       const floor=new T.Mesh(new T.PlaneGeometry(6,6),this.poolMat);floor.rotation.x=-Math.PI/2;floor.position.set(1.8,.2,1.8);f.add(floor);}
   }
-  setNight(v:number){const n=Math.max(0,Math.min(1,(v-.35)/.4));if(this.poolMat)this.poolMat.opacity=n*.85;if(this.pools)this.pools.visible=n>0;}
+  setNight(v:number){const n=Math.max(0,Math.min(1,(v-.35)/.4));if(this.poolMat)this.poolMat.opacity=n*(.6+.07*this.city.economy.stage);if(this.pools)this.pools.visible=n>0;}
   animateSet(dt:number,time:number,calm:boolean){void dt;
     const m=new T.Matrix4(),q=new T.Quaternion(),e=new T.Euler(),p=new T.Vector3(),sc=new T.Vector3(1,1,1);
     for(let i=0;i<14;i++){const a=time*(.22+(i%3)*.03)+i*.45,r=9+(i%4)*2.2;p.set(Math.sin(a)*r,36+Math.sin(time*.7+i)*2.5+(i%5),-46+Math.cos(a)*r);e.set(0,a+Math.PI/2,calm?0:Math.sin(time*9+i)*.5);q.setFromEuler(e);sc.setScalar(1.4);m.compose(p,q,sc);this.birds.setMatrixAt(i,m);}

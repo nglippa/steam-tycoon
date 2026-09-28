@@ -170,3 +170,36 @@ Typecheck passes; all 11 tests pass; build passes. Traversal and ledger checks p
 ## Structural pass — 2026-09-26
 
 Typecheck, all 11 tests and the build pass. Traversal and ledger checks pass at stages 0 and 5; no route citizen sits inside geometry; the only staged workers inside colliders are the intentional sitters and leaners. Gameplay checks pass: walk, sprint, jump, E interaction, purchase, construction, save/reload and reduced motion. The automation browser refuses pointer lock, so the drag-look fallback was used. No console issues. Uncapped Chrome at 1280×720 and 1.5× pixel density: 309–380 FPS (p95 3.8–4.4 ms). The elevated overview is about 0.83 M triangles and 650 draws. With vsync on, every scene sits at the display cap.
+
+## Art-direction implementation pass 19 — 2026-09-28
+
+This pass implements `ART_DIRECTION.md` for colour and grade, the prosperity payoff, character proportions, night readability and ground noise. Evidence is in `screenshots/review-2026-09-28-pass19/`: the colour script, the required views 02–20, before/after comparisons and contact sheets. Architecture, layout, props and gameplay are unchanged. One addition: a dev-only `__TERRA__.era(n)` hook, because the review `level` parameter does not map one-to-one to prosperity eras (levels 0–5 land on eras 0, 0, 2, 4, 5, 5).
+
+Typecheck passes, all 11 tests pass, and the production build passes with the existing Three.js chunk advisory.
+
+**Gameplay** (headless Chromium, isolated context, drag-look fallback):
+- Six of six ledgers are reachable and raycast at levels 0 and 5.
+- The main street, both pedestrian lanes, the foundry and housing lanes, the ramp and wall collision all pass.
+- Walking covered 9.2 m in 2 s and sprinting 14.4 m. Jump rose 0.75 m and landed.
+- E on the salvage ledger opened it. The commission went from level 0 to 1, with the button disabled during the 6 s construction. Collection added Crowns, and the level survived save and reload.
+- The reduced-motion setting toggled through the real control and set the body class.
+- No console warnings or errors across all six eras × clear/rain/fog × day/night.
+- New seated and leaning poses were checked visually with no clipping. The folded-arms idle was re-posed for the longer forearms.
+
+**Performance.** Absolute FPS on this machine and session is far below earlier QA figures, for both the new build and unmodified HEAD, so treat the numbers as relative. Same scenes, same harness:
+
+| Environment | Scene | New build | HEAD |
+| --- | --- | ---: | ---: |
+| Headless Chromium, M2, 1280×720, 1.5× pixel density | Street, level 0 | 64 fps | 55 fps |
+| | Street, level 5 | 53 fps | 39 fps |
+| | Market, level 5 | 53 fps | 71 fps |
+| | Clock vista (crowded) | 46 fps | 51 fps |
+| | Foundry | 56 fps | 56 fps |
+| | Rainy-night square | 57 fps | 69 fps |
+| | Overview, level 5 | 44 fps | 49 fps |
+| User's Chrome | Overview, level 5 | 32.8 fps | 36.2 fps |
+
+- **Noise:** repeat runs of the same build vary by about ±15 fps.
+- **Frame time:** p95 is 32–39 ms in both builds, which points to the harness's frame pacing.
+- **Load:** draw calls and triangles match HEAD (level-5 overview: 898 draws and 1.29 M triangles against 897 draws and 1.29 M triangles).
+- **Conclusion:** no regression is attributable to this pass.

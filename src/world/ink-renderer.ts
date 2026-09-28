@@ -44,6 +44,8 @@ export class InkRenderer {
         float cls = min(min(texture2D(picture, uv + vec2(p0.x, 0.)).a, texture2D(picture, uv - vec2(p0.x, 0.)).a), min(texture2D(picture, uv + vec2(0., p0.y)).a, texture2D(picture, uv - vec2(0., p0.y)).a));
         cls = min(cls, sample0.a);
         float thin = step(.25, cls) * (1. - step(.75, cls));
+        // Ground (a~.8): a little interior definition near the eye, broad masses beyond.
+        float ground = step(.75, cls) * (1. - step(.9, cls)), groundInk = 1. - ground * mix(.55, 1., smoothstep(4., 20., centerDist));
         vec2 o = texel * weight * mix(1., .38, thin);
         float c0 = distanceAt(uv);
         float l = distanceAt(uv - vec2(o.x, 0.)), r = distanceAt(uv + vec2(o.x, 0.));
@@ -61,18 +63,20 @@ export class InkRenderer {
         float solid = 1. - step(far * .9, nearest);
         float colorEdge = smoothstep(.16, .3, gl / max(lc, .18)) * solid * (1. - smoothstep(18., 60., nearest));
         float fade = 1. - smoothstep(90., 320., nearest) * .65;
-        float ink = max(max(smoothstep(.07, .18, jump), smoothstep(.012, .035, crease) * .85 * (1. - text)), colorEdge * .6 * (1. - text)) * fade;
+        // People keep a clean silhouette but no colour-block interior ink: faces are already painted.
+        float ink = max(max(smoothstep(.07, .18, jump), smoothstep(.012, .035, crease) * .85 * (1. - text) * (1. - .7 * thin) * groundInk), colorEdge * .6 * (1. - text) * (1. - thin) * groundInk) * fade;
         // Ink is a deep, color-aware navy-grey rather than black.
-        vec3 inkColor = mix(vec3(.06, .05, .05), color * .25, .2);
+        // Never lighter than the surface it darkens: a fixed ink value glowed as a pale halo at night.
+        vec3 inkColor = min(mix(vec3(.03, .026, .03), color * .25, .2), color * .4);
         color = mix(color, inkColor, clamp(ink, 0., 1.) * .95);
-        // Dreary grade: soot-tinted desaturation, crushed highlights, lifted smoky blacks and a
-        // heavy vignette. Recovery (prosperity) gives back some colour, never the full candy.
+        // Condition grade: the Lowworks sit cool, sooty and restrained; prosperity brings back
+        // warm mids and the full authored colour. Lows stay dark, highlights roll off softly.
         float gradeL = dot(color, vec3(.299, .587, .114));
-        color = mix(vec3(gradeL), color, mix(.5, .72, recovery));
-        color *= mix(vec3(.88, .93, 1.06), mix(vec3(.95, .93, .86), vec3(.99, .97, .93), recovery), smoothstep(.08, .45, gradeL));
-        color = color / (1. + color * mix(.3, .18, recovery));
-        color = max(color, vec3(.022, .026, .042)) + vec3(.008, .011, .022) * (1. - gradeL);
-        vec2 vc = uvInk - .5; color *= 1. - dot(vc, vc) * mix(.95, .7, recovery);
+        color = mix(vec3(gradeL), color, mix(.8, 1.1, recovery));
+        color *= mix(mix(vec3(.9, .95, 1.06), vec3(.97, .99, 1.03), recovery), mix(vec3(.97, .97, .96), vec3(1.04, 1.01, .95), recovery), smoothstep(.04, .35, gradeL));
+        color *= mix(.92, 1.06, recovery);
+        vec3 over = max(color - .7, 0.); color = min(color, vec3(.7)) + over / (1. + over * 1.4);
+        vec2 vc = uvInk - .5; color *= 1. - dot(vc, vc) * mix(.42, .22, recovery);
         gl_FragColor = vec4(color, 1.);
         #include <colorspace_fragment>
       }`,
@@ -81,7 +85,8 @@ export class InkRenderer {
     renderer.info.autoReset = false;
     this.scene.add(new T.Mesh(new T.PlaneGeometry(2, 2), this.material));
   }
-  setRecovery(stage: number) { this.material.uniforms.recovery.value = Math.min(1, stage / 5); }
+  // Eased so Grand Terra keeps a visible step beyond Innovation.
+  setRecovery(stage: number) { const t = Math.min(1, stage / 5); this.material.uniforms.recovery.value = t * t * (1.6 - .6 * t); }
   setQuality(high: boolean) {
     const samples = high ? Math.min(4, this.renderer.capabilities.maxSamples) : 0;
     if (this.target.samples === samples) return;
