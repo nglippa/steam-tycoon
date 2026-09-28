@@ -1,13 +1,16 @@
 {
-  "lastQuery": "wait wait sorry i didnt git pull disregard and delete all that",
+  "lastQuery": "continue then commit and push",
   "perAgentQuery": {},
-  "graftReads": 0,
-  "sourceReads": 5,
+  "graftReads": 1,
+  "sourceReads": 117,
   "savedTokens": 0,
   "injectedPointers": [],
   "nudges": 2,
   "host": "claude-code",
-  "inputCostMicros": 1585237,
-  "inputTokensBilled": 2078207,
-  "lastBillingUuid": "dd85ff50-2e42-43ce-946b-67ed86d9e6a8"
+  "inputCostMicros": 12222520,
+  "inputTokensBilled": 22448145,
+  "lastBillingUuid": "bb51d155-bbe1-4144-9368-aa39c532a872",
+  "turnUsedGraft": false,
+  "graftTurns": 1,
+  "lastTallyUuid": "a4f6da81-47b9-453f-a51c-a4bf62446cd7"
 }

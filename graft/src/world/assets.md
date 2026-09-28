@@ -1,20 +1,34 @@
 # src/world/assets.ts
 
-- seeded · function · L4-L4 — seeded = (seed: number)
-- surface · function · L6-L23 — function surface(kind: 'brick' | 'stone' | 'road' | 'metal' | 'wood' | 'mud')
-- Material · type · L55-L55 — type Material = T.Material;
-- box · function · L57-L57 — function box(g: T.Object3D, x: number, y: number, z: number, w: number, h: number, d: number, m: Material = mats.iron)
-- cyl · function · L58-L58 — function cyl(g: T.Object3D, x: number, y: number, z: number, r: number, h: number, m: Material = mats.iron)
-- sphere · function · L59-L59 — function sphere(g: T.Object3D, x: number, y: number, z: number, r: number, m: Material = mats.brass)
-- torus · function · L60-L60 — function torus(g: T.Object3D, x: number, y: number, z: number, r: number, tube: number, m: Material = mats.brass)
-- beam · function · L61-L61 — function beam(g: T.Object3D, a: T.Vector3, b: T.Vector3, radius: number, mat: Material = mats.iron)
-- sign · function · L62-L65 — function sign(g: T.Object3D, text: string, sub: string, x: number, y: number, z: number, width = 6, height = 1.2, theme = '#bfa16b')
-- arch · function · L66-L66 — function arch(g: T.Object3D, x: number, y: number, z: number, w: number, h: number, mat: Material)
-- windowUnit · function · L67-L67 — function windowUnit(g: T.Object3D, x: number, y: number, z: number, lit = true, w = 1.35, h = 2.3)
-- gear · function · L68-L68 — function gear(g: T.Object3D, x: number, y: number, z: number, r: number)
-- barrel · function · L69-L69 — function barrel(g: T.Object3D, x: number, y: number, z: number)
-- crate · function · L70-L70 — function crate(g: T.Object3D, x: number, y: number, z: number, size = 1)
-- tree · function · L71-L71 — function tree(g: T.Object3D, x: number, z: number, scale = 1)
-- bake · function · L73-L79 — function bake(group: T.Group)
-- illustrated · function · L82-L98 — function illustrated(material: T.MeshStandardMaterial)
-- applyWorldPalette · function · L102-L107 — function applyWorldPalette(stage:number)
+- seeded · function · L5-L5 — seeded = (seed: number)
+- Surface · type · L9-L9 — type Surface = 'brick' | 'stone' | 'road' | 'metal' | 'wood' | 'mud' | 'plaster' | 'slate';
+- surface · function · L10-L61 — function surface(kind: Surface)
+- chalk · function · L13-L13 — chalk = (a: number)
+- ink · function · L13-L13 — ink = (a: number)
+- jitterLine · function · L14-L14 — jitterLine = (x0: number, y0: number, x1: number, y1: number, w: number, a: number)
+- blotch · function · L15-L15 — blotch = (cx: number, cy: number, rad: number, col: string)
+- brickPass · function · L21-L22 — brickPass = (alpha: number, mask?: (px: number, py: number) => boolean)
+- foliageMap · function · L63-L68 — function foliageMap()
+- Material · type · L107-L107 — type Material = T.Material;
+- box · function · L109-L109 — function box(g: T.Object3D, x: number, y: number, z: number, w: number, h: number, d: number, m: Material = mats.iron)
+- cyl · function · L110-L110 — function cyl(g: T.Object3D, x: number, y: number, z: number, r: number, h: number, m: Material = mats.iron)
+- sphere · function · L111-L111 — function sphere(g: T.Object3D, x: number, y: number, z: number, r: number, m: Material = mats.brass)
+- torus · function · L112-L112 — function torus(g: T.Object3D, x: number, y: number, z: number, r: number, tube: number, m: Material = mats.brass)
+- beam · function · L113-L113 — function beam(g: T.Object3D, a: T.Vector3, b: T.Vector3, radius: number, mat: Material = mats.iron)
+- thinLine · function · L117-L121 — function thinLine<M extends T.Material>(m: M): M
+- propMat · function · L124-L124 — function propMat(m: T.Material): T.Material
+- asProp · function · L126-L126 — function asProp<G extends T.Object3D>(g: G): G
+- groundLine · function · L128-L132 — function groundLine<M extends T.Material>(m: M): M
+- printed · function · L133-L137 — function printed<M extends T.Material>(m: M): M
+- sign · function · L141-L161 — function sign(g: T.Object3D, text: string, sub: string, x: number, y: number, z: number, width = 6, height = 1.2, theme = '#bfa16b')
+- arch · function · L162-L162 — function arch(g: T.Object3D, x: number, y: number, z: number, w: number, h: number, mat: Material)
+- WindowFamily · type · L163-L163 — type WindowFamily = 'arch' | 'civic' | 'grid' | 'rect';
+- windowUnit · function · L166-L189 — function windowUnit(g: T.Object3D, x: number, y: number, z: number, lit = true, w = 1.35, h = 2.3, family: WindowFamily = 'arch')
+- gear · function · L190-L190 — function gear(g: T.Object3D, x: number, y: number, z: number, r: number)
+- barrel · function · L191-L191 — function barrel(g: T.Object3D, x: number, y: number, z: number)
+- crate · function · L192-L192 — function crate(g: T.Object3D, x: number, y: number, z: number, size = 1)
+- tree · function · L203-L210 — function tree(g: T.Object3D, x: number, z: number, scale = 1)
+- bareTree · function · L212-L215 — function bareTree(g: T.Object3D, x: number, z: number, scale = 1)
+- bake · function · L217-L223 — function bake(group: T.Group)
+- illustrated · function · L226-L230 — function illustrated(material: T.MeshStandardMaterial)
+- applyWorldPalette · function · L236-L240 — function applyWorldPalette(stage:number)

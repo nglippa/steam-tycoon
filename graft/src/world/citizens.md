@@ -1,13 +1,36 @@
 # src/world/citizens.ts
 
-- toon · function · L7-L7 — toon = (color: T.ColorRepresentation)
-- setCitizenProsperity · function · L21-L21 — function setCitizenProsperity(stage:number)
-- outfitMaterial · function · L23-L23 — function outfitMaterial(early:string,late=early)
-- Expression · type · L25-L25 — type Expression=typeof expressions[number];
-- tailored · function · L28-L34 — function tailored(g:T.Object3D, rings:number[][], material:Material, segments=10, start=0, arc=Math.PI*2)
-- panel · function · L35-L35 — function panel(g:T.Object3D,points:number[][],z:number,material:Material)
-- bakeCharacter · function · L36-L46 — function bakeCharacter(group:T.Group)
-- hairChunk · function · L80-L80 — function hairChunk(g:T.Group,points:number[][],z:number,depth:number,material:Material)
-- citizen · function · L82-L146 — function citizen(coat:Material=mats.rust,seed=0,archetype:Archetype='worker')
-- setExpression · method · L145-L145 — setExpression(state:Expression)
-- Citizen · type · L148-L148 — type Citizen=ReturnType<typeof citizen>;
+- toon · function · L9-L9 — toon = (color: T.ColorRepresentation)
+- clothMap · function · L18-L26 — function clothMap()
+- wardrobeHook · function · L29-L33 — wardrobeHook=(shader:{uniforms:Record<string,T.IUniform>;vertexShader:string})
+- setCitizenProsperity · function · L40-L40 — function setCitizenProsperity(stage:number)
+- outfitMaterial · function · L42-L42 — function outfitMaterial(early:string,late=early)
+- Expression · type · L44-L44 — type Expression=typeof expressions[number];
+- tailored · function · L47-L53 — function tailored(g:T.Object3D, rings:number[][], material:Material, segments=10, start=0, arc=Math.PI*2)
+- panel · function · L54-L54 — function panel(g:T.Object3D,points:number[][],z:number,material:Material)
+- bakeCharacter · function · L55-L65 — function bakeCharacter(group:T.Group)
+- EyeShape · type · L70-L70 — type EyeShape={H:number;L:number;tilt:number;rx:number;ry:number;lash:number;flick:number;lid:number;ew:number};
+- shadeOf · function · L115-L115 — shadeOf=(hex:string,k:number)
+- upper · function · L137-L137 — upper=()
+- lower · function · L138-L138 — lower=()
+- crestPin · function · L206-L206 — function crestPin(g:T.Object3D)
+- handMesh · function · L210-L212 — function handMesh(state:HandState,side:number,color:T.Color)
+- ring · function · L214-L214 — ring=(g:T.Object3D,rings:number[][],mat:Material,seg=12,start=0,arc=Math.PI*2)
+- garment · function · L215-L215 — garment=(g:T.Object3D,rings:number[][],mat:Material,start=0,arc=Math.PI*2,thick=.01,seg=16)
+- ellipsoid · function · L217-L217 — ellipsoid=(g:T.Object3D,x:number,y:number,z:number,rx:number,ry:number,rz:number,mat:Material,n=2)
+- place · function · L219-L219 — place=<O extends T.Object3D>(g:T.Object3D,object:O,surf:Surface,a:number,y:number,lift:number)
+- strap · function · L220-L220 — strap=(g:T.Object3D,surf:Surface,path:number[][],mat:Material,lift=.004,thick=.007)
+- bandAt · function · L222-L223 — function bandAt(rings:number[][],y:number,grow:number)
+- v · function · L223-L223 — v=(k:number,d:number)
+- Trousers · type · L234-L234 — type Trousers='straight'|'breeches'|'fitted'|'tailored'|'loose'|'stocking';
+- CitizenLook · type · L236-L236 — type CitizenLook={hair?:number;hat?:string;face?:number;build?:number;fem?:boolean};
+- citizen · function · L237-L473 — function citizen(coat:Material=mats.rust,seed=0,archetype:Archetype='worker',look:CitizenLook={})
+- rise · function · L330-L330 — rise=(t:number)
+- skirt · function · L330-L336 — skirt=(length:number,spread:number,mat:Material,start=0,arc=Math.PI*2,thick=.01,tilt=0)
+- turned · function · L379-L379 — turned=(pts:number[][],mat:Material,y:number,sx=1,sz=.96)
+- visor · function · L380-L381 — visor=(w:number,d:number,y:number,z:number,tilt:number,mat:Material)
+- L · function · L397-L397 — L=(rings:number[][],f:number,side=0)
+- shaft · function · L423-L423 — shaft=(top:number,grow:number)
+- setExpression · method · L471-L471 — setExpression(state:Expression)
+- setHand · method · L472-L472 — setHand(side:0|1,state:HandState)
+- Citizen · type · L475-L475 — type Citizen=ReturnType<typeof citizen>;

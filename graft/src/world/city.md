@@ -1,28 +1,32 @@
 # src/world/city.ts
 
-- Collider · interface · L13-L13 — interface Collider
-- Target · interface · L14-L14 — interface Target
-- PropertyVisual · interface · L15-L15 — interface PropertyVisual
-- City · class · L16-L233 — class City
-- constructor · method · L25-L25 — constructor(public scene: T.Scene, public economy: Economy)
-- collider · method · L26-L26 — collider(x: number, z: number, w: number, d: number, height = 30, gate?: string)
-- target · method · L27-L27 — target(g: T.Group, id: string, kind: Target['kind'], label: string, x: number, y: number, z: number)
-- buildGround · method · L28-L43 — buildGround()
-- facade · method · L44-L54 — facade(g: T.Group, width: number, height: number, depth: number, type: number, clean = false, business = false)
-- buildBlocks · method · L55-L73 — buildBlocks()
-- buildLandmarks · method · L74-L107 — buildLandmarks()
-- buildSignatureMachinery · method · L108-L124 — buildSignatureMachinery()
-- lamp · method · L125-L125 — lamp(g: T.Group, x: number, z: number, enhanced = false)
-- buildDetails · method · L126-L138 — buildDetails()
-- cloth · method · L139-L146 — cloth(x: number, y: number, z: number, width: number, height: number, material: T.MeshStandardMaterial)
-- buildBackground · method · L147-L152 — buildBackground()
-- createPopulation · method · L153-L160 — createPopulation()
-- propertyUpgrade · method · L161-L180 — propertyUpgrade(id: PropertyId)
-- disposeGroup · method · L181-L181 — disposeGroup(g: T.Group)
-- buildInfrastructure · method · L182-L189 — buildInfrastructure()
-- buildProsperity · method · L190-L198 — buildProsperity()
-- construct · method · L199-L203 — construct(kind: string, id: string)
-- sync · method · L204-L204 — sync(initial = false)
-- groundHeight · method · L205-L205 — groundHeight(x: number, z: number)
-- blocked · method · L206-L207 — blocked(x: number, z: number, feet: number)
-- update · method · L208-L232 — update(dt: number, time: number, viewer?:T.Vector3)
+- Collider · interface · L14-L14 — interface Collider
+- Target · interface · L15-L15 — interface Target
+- PropertyVisual · interface · L16-L16 — interface PropertyVisual
+- terraceRise · function · L19-L19 — function terraceRise(x: number, z: number)
+- pitchOf · function · L20-L20 — pitchOf = (width: number, type: number)
+- City · class · L21-L386 — class City
+- constructor · method · L31-L31 — constructor(public scene: T.Scene, public economy: Economy)
+- localCollider · method · L33-L33 — localCollider(g: T.Object3D, x: number, z: number, w: number, d: number, height = 30)
+- collider · method · L34-L34 — collider(x: number, z: number, w: number, d: number, height = 30, gate?: string)
+- target · method · L35-L35 — target(g: T.Group, id: string, kind: Target['kind'], label: string, x: number, y: number, z: number)
+- buildGround · method · L36-L51 — buildGround()
+- facade · method · L52-L78 — facade(g: T.Group, width: number, height: number, depth: number, type: number, clean = false, business = false)
+- house · method · L86-L133 — house(g: T.Group, w: number, h: number, d: number, type: number, pitch: number)
+- buildBlocks · method · L134-L176 — buildBlocks()
+- buildLandmarks · method · L177-L217 — buildLandmarks()
+- buildSignatureMachinery · method · L218-L234 — buildSignatureMachinery()
+- lamp · method · L235-L241 — lamp(g: T.Group, x: number, z: number, enhanced = false)
+- buildDetails · method · L242-L267 — buildDetails()
+- cloth · method · L268-L275 — cloth(x: number, y: number, z: number, width: number, height: number, material: T.MeshStandardMaterial)
+- buildBackground · method · L276-L283 — buildBackground()
+- createPopulation · method · L284-L293 — createPopulation()
+- propertyUpgrade · method · L294-L327 — propertyUpgrade(id: PropertyId)
+- disposeGroup · method · L328-L328 — disposeGroup(g: T.Group)
+- buildInfrastructure · method · L329-L336 — buildInfrastructure()
+- buildProsperity · method · L337-L350 — buildProsperity()
+- construct · method · L351-L355 — construct(kind: string, id: string)
+- sync · method · L356-L356 — sync(initial = false)
+- groundHeight · method · L357-L357 — groundHeight(x: number, z: number)
+- blocked · method · L358-L359 — blocked(x: number, z: number, feet: number)
+- update · method · L360-L385 — update(dt: number, time: number, viewer?:T.Vector3)

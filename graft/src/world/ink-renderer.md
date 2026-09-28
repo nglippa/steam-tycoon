@@ -1,6 +1,7 @@
 # src/world/ink-renderer.ts
 
-- InkRenderer · class · L5-L67 — class InkRenderer
-- constructor · method · L43-L46 — constructor(private renderer: T.WebGLRenderer)
-- setQuality · method · L47-L52 — setQuality(high: boolean)
-- render · method · L53-L66 — render(scene: T.Scene, camera: T.PerspectiveCamera)
+- InkRenderer · class · L5-L110 — class InkRenderer
+- constructor · method · L84-L87 — constructor(private renderer: T.WebGLRenderer)
+- setRecovery · method · L89-L89 — setRecovery(stage: number)
+- setQuality · method · L90-L95 — setQuality(high: boolean)
+- render · method · L96-L109 — render(scene: T.Scene, camera: T.PerspectiveCamera)
