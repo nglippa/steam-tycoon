@@ -1,4 +1,5 @@
 import * as T from 'three';
+import type { HandState } from './character-kit';
 import type { Citizen, Expression } from './citizens';
 import type { Archetype } from './palette';
 export type Activity='talk'|'browse'|'guard'|'carry'|'walk'|'read'|'hammer'|'sweep'|'warm'|'gauge'|'valve'|'argue'|'sit'|'eat'|'lean'|'watch'|'clipboard'|'repair';
@@ -142,6 +143,16 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
   const blend=1-Math.exp(-dt*4);n.head.rotation.y=T.MathUtils.lerp(n.head.rotation.y,T.MathUtils.clamp(headYaw-n.body.rotation.y,-.6,.6),blend);
   n.head.rotation.x=T.MathUtils.lerp(n.head.rotation.x,pitch-n.body.rotation.x*.8+nod+(speaking?Math.sin(phase*2)*.03:0),blend);
   n.head.rotation.z=calm?0:breath*.012+tilt;
+  // Hands follow the task: tools and loads are gripped, speech opens or points, a raised arm waves.
+  let h0:HandState='relaxed',h1:HandState='relaxed';
+  if(activity==='carry'||activity==='valve'||activity==='sweep'){h0='grip';h1='grip';}
+  else if(activity==='hammer'||activity==='repair'||activity==='clipboard'||activity==='read'||activity==='eat'||activity==='gauge')h0='grip';
+  if(activity==='warm'){h0='open';h1='open';}
+  if(speaking){h0=Math.floor(phase*.5+n.phase)%4===0?'point':'open';if(activity==='argue')h1='open';}
+  else if(activity==='argue'){h0='fist';h1='fist';}
+  if(n.arms[0].rotation.x<-2)h0='open';
+  if(umbrella&&raining)h1='grip';
+  n.setHand(0,h0);n.setHand(1,h1);
   if((phase%4.7)<.13)expression='blink';n.setExpression(expression);
 }
 /** Route distance with acceleration and deceleration ramps (meters). */

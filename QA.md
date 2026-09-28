@@ -203,3 +203,35 @@ Typecheck passes, all 11 tests pass, and the production build passes with the ex
 - **Frame time:** p95 is 32–39 ms in both builds, which points to the harness's frame pacing.
 - **Load:** draw calls and triangles match HEAD (level-5 overview: 898 draws and 1.29 M triangles against 897 draws and 1.29 M triangles).
 - **Conclusion:** no regression is attributable to this pass.
+
+## Character art pass — 2026-09-28
+
+This pass covered character construction only (`src/world/character-kit.ts`, `citizens.ts`, and hand states in `citizen-life.ts`). Architecture, palette, grading, lighting, roads and population are unchanged. A dev-only `__TERRA__.studio(specs)` hook poses isolated citizens for review lineups. Evidence is in `screenshots/review-2026-09-28-characters/`.
+
+Typecheck passes, all 11 tests pass, and the build passes.
+
+**Gameplay:**
+- Ledger and traversal checks pass at levels 0 and 5.
+- Walking covered 9.0 m in 2 s and sprinting 14.4 m. Jump rose 0.75 m and landed.
+- The E interaction, commission, construction, collection and save/reload all work. The reduced-motion setting toggles correctly.
+- No console errors in any era, weather or time of day.
+
+**Visual checks:** no clipping or hair poke-through seen for:
+- all five hats;
+- sitting on the bench and chair, conversation, hammer work and the wave;
+- walking and the slim, standard and sturdy builds.
+
+**Performance** (same harness, interleaved runs against commit 85064e5): draw calls are unchanged. Triangles rose 3–11% (level-5 overview: 1.42 M against 1.29 M). FPS varied by ±30 between identical runs of either build, so no measurable frame-rate change.
+
+## Character follow-up: face, hands, silhouettes — 2026-09-28
+
+- **Faces:** geometric planes on the shared skull (brow shelf, eye sockets, cheek plane, chin), a lit and shaded nose wedge, a denser face grid (40×24) and a slightly larger head.
+- **Hands:** the relaxed hand is straighter and slimmer, the open hand fans lightly, and the palm ends are capped, so there is no hole when seen end-on.
+- **Role bodies:**
+  - Guard: V-taper.
+  - Worker: broad, straight waist.
+  - Merchant: belly.
+  - Engineer: lean, with a flared split coat and gauntlet cuffs.
+  - Civic resident: calf-length flared coat.
+
+Front and side black silhouettes now separate all five roles. Typecheck passes, all 11 tests pass, and the build passes. Ledger and traversal checks pass at levels 0 and 5. Gameplay checks (walk, sprint, jump, E, purchase, construction, collection, save/reload) pass with no console errors. The heaviest scene (level-5 overview) is 886 draws and 1.50 M triangles, about 70 k more triangles than the first character pass, with draw calls unchanged.

@@ -325,7 +325,7 @@ The spec passes only when all of these hold:
 ### Known gaps between the current build and this spec (as of 2026-09-28, after pass 19)
 
 These are known deviations to fix. They are not rules. Evidence: `screenshots/review-2026-09-28-pass19/`.
-- **Characters.** Proportions are now about 1:6 and eyes read as open, but the construction is still stiff and doll-like next to the painted city. Shoulders are blocky, hands are mittens, and faces are small, simple painted planes that carry little expression at gameplay distance. Hair is serviceable rather than graphic anime.
+- **Characters (after the 2026-09-28 character passes; evidence in `screenshots/review-2026-09-28-characters/`).** Faces now have geometric planes (nose wedge, brow shelf, eye sockets, cheek plane, chin), hands have five states with separated finger groups, and each role has its own body shape. Remaining gaps: faces are still a painted texture over a simple head, so expression carries weakly beyond conversation distance; the relaxed hand shows the curled fingertip ends as small ink rings; and the engineer's coat panels read as thin edges when seen exactly side-on.
 - **Lowworks mood.** Clear and overcast Lowworks days look almost the same. The Lowworks reads grey and flat rather than oppressive, and night along the main street lacks a strong dark–light–dark rhythm of lamp pools.
 - **Innovation → Grand Terra.** Stage 5 is warmer, greener and cleaner than stage 4, but the step is mostly colour and light. There is no memorable "wonder" beat yet (aether landmarks, civic illumination).
 - **Wet weather.** Rain is darker and cooler, but surfaces don't read as wet: the painted shading ignores specular, so there are no reflections.
