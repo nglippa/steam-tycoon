@@ -325,7 +325,15 @@ The spec passes only when all of these hold:
 ### Known gaps between the current build and this spec (as of 2026-09-28, after pass 19)
 
 These are known deviations to fix. They are not rules. Evidence: `screenshots/review-2026-09-28-pass19/`.
-- **Characters (after the 2026-09-28 character passes; evidence in `screenshots/review-2026-09-28-characters/`).** Faces now have geometric planes (nose wedge, brow shelf, eye sockets, cheek plane, chin), hands have five states with separated finger groups, and each role has its own body shape. Remaining gaps: faces are still a painted texture over a simple head, so expression carries weakly beyond conversation distance; the relaxed hand shows the curled fingertip ends as small ink rings; and the engineer's coat panels read as thin edges when seen exactly side-on.
+- **Characters (after the 2026-09-28 character and face passes; evidence in `screenshots/review-2026-09-28-characters/`).** Faces follow modern anime construction:
+  - Face shading uses sphere normals, so it is one clean shape.
+  - Large low-set almond eyes, a tall iris with lash shadow and two catchlights, and a heavy outer lash wing.
+  - A tiny nose tick and mouth, a hard hair shadow under the fringe, hatched blush, a chin shadow, and hair shine on the crown.
+
+  Remaining gaps:
+  - Face shadows follow a sphere, not a hand-authored face shadow map, so a side light can split the face awkwardly.
+  - Eyes read as dark marks beyond about 12 m.
+  - Relaxed-hand fingertips show small ink rings end-on.
 - **Lowworks mood.** Clear and overcast Lowworks days look almost the same. The Lowworks reads grey and flat rather than oppressive, and night along the main street lacks a strong dark–light–dark rhythm of lamp pools.
 - **Innovation → Grand Terra.** Stage 5 is warmer, greener and cleaner than stage 4, but the step is mostly colour and light. There is no memorable "wonder" beat yet (aether landmarks, civic illumination).
 - **Wet weather.** Rain is darker and cooler, but surfaces don't read as wet: the painted shading ignores specular, so there are no reflections.

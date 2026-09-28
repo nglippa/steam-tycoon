@@ -73,48 +73,69 @@ const eyeShapes:EyeShape[]=[
   {H:43,L:20,tilt:-2,rx:19,ry:25,lash:8,flick:6,lid:0,ew:42},    // soft
   {H:31,L:13,tilt:14,rx:16,ry:20,lash:11,flick:15,lid:0,ew:46},  // sharp
   {H:37,L:16,tilt:2,rx:17,ry:22,lash:9,flick:6,lid:.34,ew:44},   // tired
-  {H:34,L:12,tilt:9,rx:17,ry:21,lash:12,flick:12,lid:.14,ew:45}, // confident
+  {H:36,L:12,tilt:10,rx:17,ry:21,lash:13,flick:13,lid:.04,ew:45}, // confident
 ];
+const shadeOf=(hex:string,k:number)=>'#'+new T.Color(hex).multiplyScalar(k).getHexString();
+/** Modern anime face construction (2020s TV/game style): large almond eyes set low, heavy
+ * outer upper lash with a wing, tall iris with lash shadow and two catchlights, only a sliver
+ * of white; tiny nose tick and mouth; hard hair shadow across the forehead; hatched blush. */
 const faces=skinColors.map(tone=>{
   const canvas=document.createElement('canvas');canvas.width=1792;canvas.height=256*FACE_TYPES;const c=canvas.getContext('2d')!;
-  const irises=['#3d6b9a','#7a4b35','#2f7f72','#6d4a86','#8a6a2e'];
+  const irises=[['#2c4f86','#6fa6d8'],['#5a3322','#c0874a'],['#1f5f58','#63b3a3'],['#4b2f6e','#a07ac8'],['#6a4a1c','#d8a94a']];
+  const lineInk='#23161b',shade=shadeOf(tone,.8);
   for(let type=0;type<FACE_TYPES;type++)for(let state=0;state<7;state++){
     c.save();c.translate(state*256,type*256);c.scale(.5,.5);c.fillStyle=tone;c.fillRect(0,0,512,512);c.lineCap='round';c.lineJoin='round';
-    const e0=eyeShapes[type],E=1.15,e={...e0,H:e0.H*E,L:e0.L*E,rx:e0.rx*E,ry:e0.ry*E,ew:e0.ew*1.12,lash:e0.lash*1.1,flick:e0.flick*1.1},y0=282,pleasant=state===1,tiredS=state===2,focused=state===3,annoyed=state===4,blink=state===5,surprised=state===6;
-    let H=e.H*(surprised?1.2:focused?.84:annoyed?.8:pleasant?.9:1),L=e.L*(surprised?1.2:1),lid=Math.min(.6,e.lid+(tiredS?.3:0)+(annoyed?.16:0)+(focused?.06:0));
-    if(pleasant)L=-3;
-    // Soft blush and a whisper of nose; the mouth is one short confident stroke.
-    c.fillStyle=pleasant?'rgba(236,120,120,.3)':'rgba(236,130,125,.16)';for(const side of [-1,1]){c.beginPath();c.ellipse(256+side*96,332,24,9,0,0,Math.PI*2);c.fill();}
+    const e=eyeShapes[type],pleasant=state===1,tiredS=state===2,focused=state===3,annoyed=state===4,blink=state===5,surprised=state===6;
+    const y0=318,W=56*(e.ew/44),Hb=(e.H/40)*62*(surprised?1.15:focused?.86:annoyed?.8:1),lid=Math.min(.55,e.lid*.9+(tiredS?.28:0)+(annoyed?.12:0)+(focused?.05:0));
+    // Hand-painted hair shadow: a hard jagged band under the fringe.
+    c.fillStyle=shade;c.beginPath();c.moveTo(0,0);c.lineTo(512,0);for(let i=0;i<=12;i++){const x=512-i*512/12;c.lineTo(x,206+((i*37)%5)*6-(i%2?14:0));}c.closePath();c.fill();
+    // Blush: soft oval plus three hatch strokes.
+    c.fillStyle=pleasant?'rgba(232,110,112,.34)':'rgba(232,120,118,.2)';for(const side of [-1,1]){c.beginPath();c.ellipse(256+side*104,382,30,11,0,0,Math.PI*2);c.fill();
+      c.strokeStyle='rgba(200,90,92,.55)';c.lineWidth=3;for(let k=0;k<3;k++){c.beginPath();c.moveTo(256+side*(88+k*12),376);c.lineTo(256+side*(82+k*12),388);c.stroke();}}
     for(const side of [-1,1]){
-      const cx=256+side*84,inner=cx-side*e.ew*.9,outer=cx+side*e.ew;
-      if(blink){c.strokeStyle='#1d1418';c.lineWidth=8;c.beginPath();c.moveTo(inner,y0+2);c.quadraticCurveTo(cx,y0+12,outer,y0-e.tilt*.5);c.stroke();c.lineWidth=5;c.beginPath();c.moveTo(outer,y0-e.tilt*.5);c.lineTo(outer+side*9,y0-e.tilt*.5-4);c.stroke();}
+      const cx=256+side*94,inner=cx-side*W*.92,outer=cx+side*W,top=y0-Hb*.62,bot=y0+Hb*.38;
+      if(blink||pleasant&&false){c.strokeStyle=lineInk;c.lineWidth=9;c.beginPath();c.moveTo(inner,y0+4);c.quadraticCurveTo(cx,y0+18,outer,y0-e.tilt*.4);c.stroke();}
       else{
-        const upper=()=>{c.moveTo(inner,y0+2);c.quadraticCurveTo(cx-side*6,y0-H*1.25,outer,y0-e.tilt);};
-        c.save();c.beginPath();upper();c.quadraticCurveTo(cx+side*4,y0+L*1.6,inner,y0+2);c.closePath();c.fillStyle='#f6efe2';c.fill();c.clip();
-        const iy=y0-H*.18,rx=e.rx*(surprised?.85:1),ry=e.ry*(surprised?.85:1);
-        const g=c.createLinearGradient(0,iy-ry,0,iy+ry);g.addColorStop(0,'#231c34');g.addColorStop(.35,irises[type]);g.addColorStop(1,'#efe4cf');
-        c.fillStyle=g;c.beginPath();c.ellipse(cx-side*3,iy,rx,ry,0,0,Math.PI*2);c.fill();
-        c.fillStyle='#120e1c';c.beginPath();c.ellipse(cx-side*3,iy+2,rx*.46,ry*.5,0,0,Math.PI*2);c.fill();
-        c.fillStyle='#ffffff';c.beginPath();c.arc(cx-side*3-side*7,iy-ry*.42,rx*.46,0,Math.PI*2);c.fill();c.globalAlpha=.8;c.beginPath();c.arc(cx-side*3+side*6,iy+ry*.5,rx*.18,0,Math.PI*2);c.fill();c.globalAlpha=1;
-        if(lid>0){c.fillStyle=tone;c.fillRect(inner-60,y0-H*1.4,160,H*.4+lid*(H+L));c.strokeStyle='#2a1a1e';c.lineWidth=3;c.beginPath();c.moveTo(inner,y0-H*.95+lid*(H+L));c.lineTo(outer,y0-H*.95+lid*(H+L)-e.tilt*.4);c.stroke();}
+        // Opening: flatter top curve peaking toward the outer corner, soft lower curve.
+        const upper=()=>{c.moveTo(inner,y0);c.bezierCurveTo(inner+side*W*.3,top-4,outer-side*W*.35,top-e.tilt*.6,outer,y0-e.tilt);};
+        const lower=()=>{c.bezierCurveTo(outer-side*W*.2,bot,inner+side*W*.4,bot+2,inner,y0);};
+        c.save();c.beginPath();upper();lower();c.closePath();c.fillStyle='#fbf5ec';c.fill();c.clip();
+        const ix=cx-side*4,iy=y0+Hb*.02,rx=W*.5*(surprised?.8:1),ry=Hb*.62*(surprised?.8:1);
+        const g=c.createLinearGradient(0,iy-ry,0,iy+ry);g.addColorStop(0,'#150f1f');g.addColorStop(.28,irises[type][0]);g.addColorStop(.78,irises[type][1]);g.addColorStop(1,'#f3e8d2');
+        c.fillStyle=g;c.beginPath();c.ellipse(ix,iy,rx,ry,0,0,Math.PI*2);c.fill();
+        c.strokeStyle='rgba(20,14,30,.85)';c.lineWidth=3;c.stroke();
+        c.fillStyle='#0f0a18';c.beginPath();c.ellipse(ix,iy+ry*.05,rx*.34,ry*.42,0,0,Math.PI*2);c.fill();
+        // Lash shadow across the top of the iris.
+        c.fillStyle='rgba(20,12,28,.45)';c.beginPath();upper();c.lineTo(outer,top+Hb*.3);c.lineTo(inner,top+Hb*.3);c.closePath();c.fill();
+        c.fillStyle='#ffffff';c.beginPath();c.ellipse(ix-side*rx*.35,iy-ry*.4,rx*.32,ry*.24,-side*.4,0,Math.PI*2);c.fill();
+        c.globalAlpha=.85;c.beginPath();c.arc(ix+side*rx*.35,iy+ry*.45,rx*.13,0,Math.PI*2);c.fill();c.globalAlpha=1;
+        if(lid>0){c.fillStyle=tone;c.beginPath();c.rect(inner-40,top-40,W*2.2+80,40+lid*(bot-top+10));c.fill();}
         c.restore();
-        // Heavy upper lash with an outer flick, a light lower hint and a lid crease.
-        c.strokeStyle='#1d1418';c.lineWidth=e.lash;c.beginPath();upper();c.lineTo(outer+side*e.flick,y0-e.tilt-e.flick*.55);c.stroke();
-        c.strokeStyle='rgba(58,36,38,.8)';c.lineWidth=3;c.beginPath();c.moveTo(outer-side*3,y0-e.tilt+5);c.quadraticCurveTo(cx+side*14,y0+L*1.25,cx-side*6,y0+L*1.2);c.stroke();
-        c.strokeStyle='rgba(60,34,34,.35)';c.lineWidth=2.5;c.beginPath();c.moveTo(inner+side*10,y0-H*1.02-8);c.quadraticCurveTo(cx,y0-H*1.4-10,outer-side*2,y0-e.tilt-H*.5-10);c.stroke();
+        // Upper lash: thin at the inner corner, heavy at the outer third, ending in a wing.
+        const lidY=lid>0?top-40+40+lid*(bot-top+10):0;
+        c.fillStyle=lineInk;c.beginPath();c.moveTo(inner-side*2,y0+1);
+        if(lid>0){c.lineTo(inner,lidY);c.lineTo(outer,lidY-e.tilt*.4);}else c.bezierCurveTo(inner+side*W*.3,top-4,outer-side*W*.35,top-e.tilt*.6,outer,y0-e.tilt);
+        c.lineTo(outer+side*e.flick*1.4,y0-e.tilt-e.flick*.9);c.lineTo(outer+side*2,y0-e.tilt+e.lash*.55);
+        if(lid>0)c.lineTo(inner,lidY+e.lash*.4);else c.bezierCurveTo(outer-side*W*.35,top-e.tilt*.6+e.lash,inner+side*W*.3,top-4+e.lash*.5,inner,y0+3);
+        c.closePath();c.fill();
+        // Lower lash: a short tapered line on the outer third only.
+        c.strokeStyle=lineInk;c.lineWidth=3.5;c.beginPath();c.moveTo(outer-side*2,y0-e.tilt+6);c.quadraticCurveTo(outer-side*W*.3,bot+1,cx-side*2,bot+2);c.stroke();
+        // Lid crease.
+        c.strokeStyle='rgba(70,36,40,.5)';c.lineWidth=2.5;c.beginPath();c.moveTo(inner+side*W*.4,top-14);c.quadraticCurveTo(cx+side*W*.4,top-20-e.tilt*.3,outer-side*4,y0-e.tilt-Hb*.45);c.stroke();
       }
-      // Brows: emotion lives in their angle and height.
-      const slant=annoyed?side*-12:focused?side*-7:tiredS?side*6:pleasant?side*3:surprised?-14:type===4?side*-3:0;
-      c.fillStyle='#2a1c1e';c.beginPath();c.moveTo(256+side*38,216+slant);c.quadraticCurveTo(256+side*80,200+(surprised?-10:0)-Math.abs(slant)*.2,256+side*126,212-slant*.4+(surprised?-8:0));c.quadraticCurveTo(256+side*80,207+(surprised?-10:0),256+side*38,226+slant);c.closePath();c.fill();
+      // Thin high brows; emotion lives in their angle.
+      const slant=annoyed?side*-14:focused?side*-8:tiredS?side*7:pleasant?side*4:surprised?-16:type===4?side*-4:0;
+      c.strokeStyle='#2b1b1f';c.lineWidth=7;c.beginPath();c.moveTo(256+side*52,240+slant);c.quadraticCurveTo(256+side*96,224-Math.abs(slant)*.2+(surprised?-12:0),256+side*140,236-slant*.4+(surprised?-10:0));c.stroke();
     }
-    c.strokeStyle='rgba(150,88,78,.55)';c.lineWidth=3;c.beginPath();c.moveTo(252,347);c.lineTo(262,348);c.stroke();
-    c.strokeStyle='#5e2f35';c.lineWidth=4;c.beginPath();
-    if(surprised){c.fillStyle='#6c3b45';c.ellipse(256,408,7,10,0,0,Math.PI*2);c.fill();}
-    else if(pleasant){c.moveTo(236,400);c.quadraticCurveTo(256,418,276,400);c.stroke();}
-    else if(annoyed){c.moveTo(242,410);c.quadraticCurveTo(256,401,270,410);c.stroke();}
-    else if(focused){c.moveTo(245,406);c.lineTo(267,406);c.stroke();}
-    else if(tiredS){c.moveTo(242,409);c.quadraticCurveTo(256,405,270,409);c.stroke();}
-    else{c.moveTo(241,405);c.quadraticCurveTo(256,410,271,405);c.stroke();}
+    // Nose: a single small shadow tick. Mouth: small and close under it.
+    c.strokeStyle='rgba(150,86,78,.7)';c.lineWidth=3.5;c.beginPath();c.moveTo(258,366);c.lineTo(252,377);c.stroke();
+    c.strokeStyle='#6a2f36';c.lineWidth=4;c.beginPath();
+    if(surprised){c.fillStyle='#6c3b45';c.ellipse(256,412,7,10,0,0,Math.PI*2);c.fill();}
+    else if(pleasant){c.fillStyle='#7a3240';c.moveTo(242,404);c.quadraticCurveTo(256,422,270,404);c.closePath();c.fill();}
+    else if(annoyed){c.moveTo(246,412);c.quadraticCurveTo(256,406,266,412);c.stroke();}
+    else if(focused){c.moveTo(248,410);c.lineTo(264,410);c.stroke();}
+    else if(tiredS){c.moveTo(246,412);c.quadraticCurveTo(256,409,266,412);c.stroke();}
+    else{c.moveTo(247,408);c.quadraticCurveTo(256,412,265,408);c.stroke();}
     c.restore();
   }
   const map=new T.CanvasTexture(canvas);map.colorSpace=T.SRGBColorSpace;map.generateMipmaps=true;map.minFilter=T.LinearMipmapLinearFilter;map.anisotropy=8;
@@ -129,8 +150,9 @@ const contactShape=new T.CircleGeometry(.28,14);
 const contactInk=new T.MeshBasicMaterial({color:'#253d40',transparent:true,opacity:.19,depthWrite:false});
 
 const leather=toon(P.warm.leather),darkCloth=toon('#2c3148'),gloveInk=toon('#262a3c'),apronCanvas=toon('#c9b48f');
-const lens=toon(P.aether.cyan),shadowHair=P.hair.map(c=>toon(new T.Color(c).multiplyScalar(.72)));
-for(const m of [lens,...shadowHair])m.userData.plain=true;
+const lens=toon(P.aether.cyan),shadowHair=P.hair.map(c=>toon(new T.Color(c).multiplyScalar(.72))),shineHair=P.hair.map(c=>toon(new T.Color(c).lerp(new T.Color('#fff4e6'),.42)));
+const skinShade=P.skin.map(c=>toon(new T.Color(c).multiplyScalar(.74)));
+for(const m of [lens,...shadowHair,...shineHair,...skinShade])m.userData.plain=true;
 const soleMat=toon('#211b1b'),merchantTrousers=toon('#4a3428');
 /** Boot foot along the forward axis: heel, instep and a chunky rounded toe on a dark sole. */
 function foot(g:T.Object3D,y:number,material:Material,heavy:boolean){const f=heavy?1.14:1.04;
@@ -186,7 +208,7 @@ export function citizen(coat:Material=mats.rust,seed=0,archetype:Archetype='work
     [1.36,.152*(fem?.97:1)*R.chest+g,.11*R.chest+g,.012],[1.44,.164*(fem?.96:1)*S+g,(fem?.124:.118)*R.chest+g,fem?.02:.014],[1.5,.178*S+g,.112+g,.01,0,sq],[1.545,.2*S+g,.098+g,.004,0,sq],[1.585,.182*S+g,.086+g,0,0,sq],[1.615,.118*S+g,.074+g,0],[1.645,.064+g,.058+g,.004]]
     .map(([y,w,d,oz=0,ox=0,n=2])=>[y,w*k,d*kd,oz,ox,n]);
   ring(body,torso(),top,16);
-  ring(body,[[1.62,.058,.054,.004],[1.68,.053,.051,.008],[1.75,.05,.049,.01]],skinMat,10);
+  ring(body,[[1.62,.058,.054,.004],[1.68,.053,.051,.008],[1.72,.051,.05,.01]],skinMat,10);ring(body,[[1.72,.051,.05,.01],[1.75,.05,.049,.01]],skinShade[skinTone],10); // painted chin shadow
   // Collars sit off the neck with real depth.
   if(kit.collar==='stand')ring(body,[[1.615,.08*k,.072*kd,.006],[1.64,.076*k,.07*kd,.008],[1.715,.071,.067,.012]],archetype==='guard'?accent:cloth,14,.28,Math.PI*2-.56);
   if(kit.collar==='shirt')ring(body,[[1.625,.068*k,.064*kd,.004],[1.665,.092*k,.086*kd,.012]],kit.coat?secondary:ivory,12,-1.25,2.5);
@@ -250,7 +272,9 @@ export function citizen(coat:Material=mats.rust,seed=0,archetype:Archetype='work
   const hatted=kit.hat==='cap'||kit.hat==='peak'||kit.hat==='bowler'||kit.hat==='top';
   const pool=(fem?[3,4,5,6,2,7,1,3]:[0,1,2,8,7,0,8,6]).filter(i=>!hatted||hairStyles[i].hatSafe);
   const style=hairStyles[look.hair??pool[(seed*5+Math.floor(seed/7))%pool.length]];
-  const [hf,hs,hb,vol]=style.shell;head.add(new T.Mesh(shellGeometry(hatted?Math.max(hf,.13):hf,hs,hb,hatted?Math.min(vol,1.04):vol,(seed%3-1)*.6),hairMat));
+  const [hf,hs,hb,vol]=style.shell;head.add(new T.Mesh(shellGeometry(hatted?Math.max(hf,.13):hf-.025,hs,hb,hatted?Math.min(vol,1.04):vol,(seed%3-1)*.6),hairMat));
+  // Anime hair shine: a broken band of light locks across the crown.
+  if(!hatted)for(const a of [-62,-34,-8,18,44,70])head.add(new T.Mesh(lockGeometry({a:a*Math.PI/180,y0:.2-Math.abs(a)*.0006,len:.045+(Math.abs(a)%3)*.008,w:.022,out:0,th:.003},vol+.06),shineHair[hairIndex]));
   for(const l of style.locks){if(hatted&&l.y0>.2)continue;head.add(new T.Mesh(lockGeometry(hatted?{...l,y0:Math.min(l.y0,.16),out:Math.min(l.out??.04,.03)}:l),l.under?under:hairMat));}
   bakeCharacter(head);
   // Tied hair swings from its own pivot.

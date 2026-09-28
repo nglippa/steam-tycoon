@@ -235,3 +235,17 @@ Typecheck passes, all 11 tests pass, and the build passes.
   - Civic resident: calf-length flared coat.
 
 Front and side black silhouettes now separate all five roles. Typecheck passes, all 11 tests pass, and the build passes. Ledger and traversal checks pass at levels 0 and 5. Gameplay checks (walk, sprint, jump, E, purchase, construction, collection, save/reload) pass with no console errors. The heaviest scene (level-5 overview) is 886 draws and 1.50 M triangles, about 70 k more triangles than the first character pass, with draw calls unchanged.
+
+## Face pass — 2026-09-28
+
+The face rebuild follows 2020s anime references: Frieren TV stills, Genshin-style cel shading (per a public shader breakdown) and Messenger's restraint. The references were studied locally and are not stored in the repository.
+
+**Rendering changes:**
+- Faces shade from sphere normals instead of the sculpted geometry (the anime "face normal" technique), and the nose wedge only shows in profile.
+- A new atlas gives large, low-set almond eyes (tall iris, lash shadow, two catchlights), a winged upper lash, a short lower lash and a lid crease.
+- Small nose tick and mouth, hatched blush, a hard hair shadow across the forehead, and a painted chin shadow on the neck.
+- Hair shine locks on the crown and a lower hairline.
+
+Before/after: `screenshots/review-2026-09-28-characters/00-face-before-after.png`.
+
+**Checks:** typecheck passes, all 11 tests pass, and the build passes. Ledger and traversal checks pass. Walk, sprint, jump, construction, save/reload and reduced motion pass with no console errors. The level-5 overview is 886 draws and 1.51 M triangles.

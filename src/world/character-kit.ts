@@ -27,6 +27,13 @@ export function skullPoint(a: number, y: number, grow = 1) {
   return new T.Vector3(x * grow, y, z * grow + oz);
 }
 export const SKULL_TOP = .25, SKULL_BOTTOM = -.236;
+/** Anime face shading: normals from a sphere, not the sculpt, so the terminator sweeps across
+ * the face as one clean shape and features never pick up muddy local shading. */
+function sphereNormals(g: T.BufferGeometry) {
+  const p = g.attributes.position, n = new Float32Array(p.count * 3), v = new T.Vector3();
+  for (let i = 0; i < p.count; i++) { v.set(p.getX(i), (p.getY(i) - .01) * .8, p.getZ(i) + .03).normalize(); v.toArray(n, i * 3); }
+  g.setAttribute('normal', new T.BufferAttribute(n, 3)); return g;
+}
 function smooth(a: number, b: number, x: number) { const t = T.MathUtils.clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); }
 function bump(x: number, a: number, b: number) { const m = (a + b) / 2, h = Math.abs(b - a) / 2; return Math.max(0, 1 - Math.pow((x - m) / h, 2)); }
 /** A small graphic nose: a wedge whose lit and shaded sides give the face a real plane. */
@@ -35,7 +42,7 @@ export function noseGeometry() {
   const v = [[0, top.y, top.z - .002], [0, tip.y, tip.z + .024], [-.02, base, tip.z - .002], [.02, base, tip.z - .002], [-.012, -.03, top.z - .003], [.012, -.03, top.z - .003]];
   const f = [[0, 4, 1], [0, 1, 5], [4, 2, 1], [5, 1, 3], [2, 3, 1]];
   const pos: number[] = []; f.forEach(t => t.forEach(i => pos.push(...v[i])));
-  const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); g.computeVertexNormals(); return g;
+  const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); return sphereNormals(g);
 }
 /** Skull mesh with a planar face projection: painted features stay undistorted from the
  * front; the back of the head samples plain skin at the tile edge. */
@@ -50,7 +57,7 @@ export function skullGeometry(tile: (u: number, v: number) => [number, number]) 
     }
   }
   for (let j = 0; j < Y; j++) for (let i = 0; i < A; i++) { const a = j * (A + 1) + i, b = a + A + 1; idx.push(a, a + 1, b, a + 1, b + 1, b); }
-  const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new T.Float32BufferAttribute(uv, 2)); g.setIndex(idx); g.computeVertexNormals(); return g;
+  const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new T.Float32BufferAttribute(uv, 2)); g.setIndex(idx); return sphereNormals(g);
 }
 
 /** Elliptical (or squarer, n > 2) rings along y: [y, halfWidth, halfDepth, dz?, dx?, n?]. */
