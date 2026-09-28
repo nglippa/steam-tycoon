@@ -249,3 +249,104 @@ The face rebuild follows 2020s anime references: Frieren TV stills, Genshin-styl
 Before/after: `screenshots/review-2026-09-28-characters/00-face-before-after.png`.
 
 **Checks:** typecheck passes, all 11 tests pass, and the build passes. Ledger and traversal checks pass. Walk, sprint, jump, construction, save/reload and reduced motion pass with no console errors. The level-5 overview is 886 draws and 1.51 M triangles.
+
+## Face shadow map — 2026-09-28
+
+Faces now use an anime face shadow map, the technique Genshin-style renderers use, built procedurally in the face shader (`FACE_SHADOW` in `citizens.ts`):
+- **How it works:** the light direction is measured relative to the head's own axes. As the sun moves from in front of the face to its side, a threshold sweeps across the face from the far edge, carrying a cheek triangle under the eye and a triangular shadow beside the nose. The map mirrors toward whichever side the light is on.
+- **Cast shadow and night:** these still darken the whole face through the lighting term.
+- **Neck:** shaded by convention, because it sits in the chin's shadow.
+- **Removed:** the geometric nose wedge from earlier passes.
+- **Wiring:** `tone.sunDir` passes the sun direction to the face shader.
+
+Evidence: `26-face-shadow-sweep.png` (eight head headings against a fixed sun), plus sunlit 3/4 shots 23–25 and night shot 19.
+
+**Checks:**
+- Typecheck passes, all 11 tests pass, and the build passes.
+- Six of six ledgers pass at both levels, and all traversal checks pass.
+- Gameplay checks pass with no console errors.
+- The level-5 overview is 886 draws and 1.51 M triangles, unchanged.
+
+## Body-first character pass — 2026-09-28
+
+Character construction only (`character-kit.ts`, `citizens.ts`, `citizen-life.ts`, and the grip offsets for two tools in `presentation.ts`). Architecture, lighting, grade, weather, economy and HUD are unchanged. Evidence: `screenshots/review-2026-09-28-body/` (the labelled sheet is `00-review-sheet.png`; before/after is `00-before-after.png`). The "before" panels were rendered from the start-of-pass build.
+
+**Construction:**
+- **Torso:** a loft with separate front and back depth: crotch, seat, hips, waist, ribcage, chest, shoulder line and trapezius slope into a slimmer neck. The pelvis is its own trouser-coloured section.
+- **Joints:** shoulder caps roll the torso into the arm; knee and elbow caps keep joints closed at any bend. A new ankle pivot keeps planted feet flat and gives toe-off and heel strike.
+- **Limbs:** thighs taper, calves swell behind, and arms narrow at the elbow and wrist. Trouser cuts (straight with turn-ups, breeches, fitted, tailored, loose with spats, stockings) shape the leg.
+- **Hands:** six states (relaxed, open, gesture, grip, point, fist): a palm, a thumb with a clear notch, an index finger, a grouped middle and ring wedge, and a little finger stepping back.
+- **Boots:** work, civic, engineer and guard families, each with a welted sole, stacked heel, toe spring and a family-specific shaft.
+- **Garments:** real thickness (`garmentGeometry`). Straps, sashes and lapels are laid over the body surface (`ribbonGeometry`) instead of floating as boxes.
+- **Roles:**
+  - Worker: broad frame, rolled sleeves, bib apron, belt hammer.
+  - Engineer: cut-away asymmetric coat, harness, pressure pack, gauntlets.
+  - Merchant: waistcoat, cravat, open frock coat.
+  - Guard: squared shoulder boards, long skirted coat, tall boots.
+  - Civic: mid-calf A-line coat.
+- **Head:** an authored skull profile (broad cranium, temple, cheek plane, V jaw, small chin) with a modelled nose and lips in profile. Eyes are larger and more open, and the brows are tapered.
+- **Hair:** crown spikes, nape flicks and an ahoge break the helmet shape. A jagged shine band sits across the crown.
+- **Motion:** the pelvis drops onto the planted leg so feet stay on the street, and ankles plant. Idle arms hang away from the body, and speakers use the gesture hand. Seated coats fold over the lap.
+
+**Checks:**
+- Typecheck passes, all 11 tests pass, and the build passes.
+- Ledger and traversal checks pass at levels 0 and 5 (6/6 ledgers each).
+- Real-controller walking covered 8.86 m in 2 s and sprinting 14.36 m. Jump rose 0.75 m and landed.
+- The reduced-motion toggle works through the Settings UI.
+- The NPC wave, conversation, sitting, eating, leaning, hammer, valve and sweep poses were inspected, along with all three builds and all hats. Day, dusk, night, rain and night rain were inspected.
+- No console errors.
+
+**Performance:** uncapped and interleaved against the start-of-pass build, with medians of three runs. Draw calls are unchanged.
+
+| Scene | Triangles before → after | FPS before → after |
+| --- | --- | --- |
+| Level-5 overview | 1.52 M → 1.72 M | 67 → 77 |
+| Level-5 street | 1.18 M → 1.27 M | 73 → 85 |
+| Conversation | 0.87 M → 0.91 M | 93 → 91 |
+| Level-0 rain night | 0.57 M → 0.58 M | 102 → 101 |
+
+A visible citizen costs about 10.7 k triangles, up from about 7.9 k. FPS differences are within run-to-run noise (±15).
+
+## Anatomy correction: torso/pelvis axis — 2026-09-28
+
+**Root cause.** The torso group (`body`) has its origin below the feet (`BODY_Y`), while the thighs hang from hip joints on the character root. `animateLife` rotated `body` for walking lean, tiredness, sway and work poses, which swung the whole torso around that ground-level point. Measured in each character's own frame, walking lean slid the pelvis centre 6–14 cm ahead of the hip joints: worker 10.4 cm, engineer 12.5 cm, courier 13.7 cm. Standing, the geometry was already coherent (pelvis within 0.6 cm of the hips).
+
+**Fix** (`citizen-life.ts` `pivotAtHips`): after each frame's pose, the body position is compensated so that lean, sway and twist turn the torso about the hip joints. The idle weight shift and walk sway now move the hip joints with the torso (`hip.userData.baseX`). The pelvis centre now holds a constant 2.6 cm behind the hips (the designed seat) for every role in every pose.
+
+**Seated coats.** Coats now lie along the thighs and end at the knee (scaled to skirt length, flattened) instead of jutting out as a plank.
+
+No geometry changed. Per-citizen triangles: worker 11.8 k, engineer 13.0 k, merchant 10.8 k, guard 12.0 k, resident 10.0 k.
+
+**Checks:**
+- Typecheck passes, all 11 tests pass, and the build passes.
+- Ledgers pass 6/6 at levels 0 and 5, and all traversal checks pass.
+- Walk, sprint, jump, E, purchase, construction, collection, save/reload and reduced motion all pass.
+- No console errors across eras × weather × day/night.
+
+Evidence: `screenshots/review-2026-09-28-anatomy/`.
+
+## Character follow-up: profile face, knees, torsion — 2026-09-28
+
+These rules were distilled into a local `figure-construction` skill from open sources: Wikipedia (Contrapposto, Human gait, Walk cycle, Body proportions) and free AnimeOutline tutorials.
+
+**Profile face** (`character-kit.ts`):
+- The forehead slopes back from the crown, and a nose wedge reaches its tip at about 1/4 of head height, then cuts back.
+- A lip mound sits at about 1/8, and the chin is small and sits behind the lip.
+- The face curves back toward the sides, so the eye sits behind the nose in profile.
+- Sampling is denser across the face. Faces still use sphere normals, so the new shape changes the silhouette, not the shading.
+
+**Knees** (`citizens.ts`): the thigh ends at exactly the lower leg's top width, and the knee cap sits just inside both segments. The hard band at the knee is gone.
+
+**Torsion** (`citizen-life.ts`, new `pelvis` group):
+- The pelvis yaws ±0.09 rad to bring the swing-side hip forward, and drops 0.035 rad on the swing side. The thorax counter-rotates by -0.085.
+- The hip joints ride on the pelvis.
+- Idle stance is contrapposto: the engaged hip rises, the same-side shoulder drops, and the engaged knee stays straight.
+
+**Cost:** about 770 more triangles per citizen (10.7–13.7 k).
+
+**Checks:**
+- Typecheck passes, all 11 tests pass, and the build passes.
+- Ledgers pass 6/6 at levels 0 and 5, and all traversal checks pass.
+- Gameplay checks pass with no console errors.
+
+Evidence: `screenshots/review-2026-09-28-anatomy-2/`.

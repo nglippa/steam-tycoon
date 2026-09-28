@@ -58,6 +58,7 @@ export class Atmosphere {
     this.sun.intensity = .12 + keyLight * (weather === 'clear' ? 3.1 : weather === 'rain' ? .75 : weather === 'fog' ? 1 : 1.25); // hard sun only in clear weather this.sun.color.set(daylight > .4 ? '#fff3e0' : '#c2d0f5');
     // Raking west-south-west sun: warm light on the street fronts, diagonal shadow bands across the canyon.
     this.sun.position.set(-44 + Math.cos(day * Math.PI * 2) * 14, 20 + Math.max(0, phase) * 18, 8 + Math.sin(day * Math.PI * 2) * 14);
+    tone.sunDir.value.copy(this.sun.position).sub(this.sun.target.position).normalize();
     this.art.update(time, daylight, weather === 'rain', weather, dusk, smog);
     this.sky.copy(this.art.uniforms.skyHorizon.value); tintSkyline(this.art.uniforms.skyHorizon.value, daylight); this.scene.background = this.sky; const fog = this.scene.fog as T.FogExp2; fog.color.copy(this.sky);
     fog.density = (weather === 'fog' ? .013 : weather === 'rain' ? .0105 : .0068) + smog * .0042;

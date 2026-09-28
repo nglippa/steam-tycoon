@@ -402,8 +402,8 @@ export class Presentation {
     const role=o.role??(kind==='gauge'||kind==='valve'||kind==='clipboard'?'engineer':kind==='browse'||(z<0&&kind==='read')?'merchant':kind==='read'||kind==='watch'||kind==='lean'?'resident':'worker');
     const person=citizen(mats.rust,this.workers.length+43,role);const y=o.y!==undefined?o.y+.18:this.city.groundHeight(x,z);person.group.position.set(x,y,z);person.group.rotation.y=yaw;if(o.scale)person.group.scale.multiplyScalar(o.scale);this.root.add(person.group);
     const tool=new T.Group();person.elbows[0].add(tool);const t=o.tool??kind;
-    if(t==='hammer'){box(tool,0,-.36,.12,.05,.4,.05,mats.wood);box(tool,0,-.54,.12,.3,.1,.12,mats.iron);}
-    if(t==='sweep'){cyl(tool,0,-.6,.15,.024,1.1,mats.wood);box(tool,0,-1.12,.15,.4,.18,.15,mats.cream);}
+    if(t==='hammer'){box(tool,0,-.44,.03,.04,.36,.04,mats.wood);box(tool,0,-.6,.03,.26,.09,.1,mats.iron);}
+    if(t==='sweep'){cyl(tool,0,-.66,.03,.022,1.1,mats.wood);box(tool,0,-1.18,.03,.4,.18,.15,mats.cream);}
     if(t==='read'){box(tool,.2,-.3,.15,.4,.04,.28,artMats.paper);}
     if(t==='clipboard'){box(tool,.14,-.3,.14,.26,.02,.34,mats.wood);box(tool,.14,-.29,.14,.22,.02,.28,artMats.paper);}
     if(t==='repair'){box(tool,0,-.38,.02,.04,.3,.04,mats.iron);torus(tool,0,-.55,.02,.05,.018,mats.iron);}

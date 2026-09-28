@@ -1,6 +1,6 @@
 import * as T from 'three';
 import type { HandState } from './character-kit';
-import type { Citizen, Expression } from './citizens';
+import { HIP_Y, BODY_Y, THIGH, SHIN, type Citizen, type Expression } from './citizens';
 import type { Archetype } from './palette';
 export type Activity='talk'|'browse'|'guard'|'carry'|'walk'|'read'|'hammer'|'sweep'|'warm'|'gauge'|'valve'|'argue'|'sit'|'eat'|'lean'|'watch'|'clipboard'|'repair';
 type Scene={x:number;z:number;yaw:number;role:Archetype;activity:Activity;partner?:number;target?:[number,number];route?:number;speed?:number};
@@ -39,7 +39,7 @@ const look=new T.Vector3();
 let weariness=1;let raining=false;
 /** Early Terra walks tired; prosperity straightens backs. Rain opens umbrellas. */
 export function setLifeConditions(stage:number,rain:boolean){weariness=Math.max(0,1-stage/3);raining=rain;}
-const hipHeight=.92,bodyHeight=-.14,seatDrop=.54;
+const hipHeight=HIP_Y,bodyHeight=BODY_Y,seatDrop=.57;
 // Parameterized personality: one motion system, different bodies.
 const personality:Record<string,{cad:number;arm:number;bob:number;lean:number;stride:number;gesture:number}>={
   worker:{cad:.92,arm:.34,bob:.032,lean:.07,stride:.44,gesture:1},engineer:{cad:1.12,arm:.38,bob:.022,lean:.09,stride:.46,gesture:.9},
@@ -49,8 +49,25 @@ const ease=(x:number)=>x*x*(3-2*x),clamp01=(x:number)=>Math.min(1,Math.max(0,x))
 const STANCE=.62,LEG=.92;
 /** Stance: the foot sweeps back linearly (planted). Swing: it eases forward and lifts. */
 function footPhase(c:number){const u=c/(Math.PI*2)-Math.floor(c/(Math.PI*2));
-  if(u<STANCE)return {z:1-2*u/STANCE,lift:0,stanceU:u/STANCE};const t=(u-STANCE)/(1-STANCE);return {z:-1+2*ease(t),lift:Math.sin(Math.PI*t),stanceU:0};}
+  if(u<STANCE)return {z:1-2*u/STANCE,lift:0,stanceU:u/STANCE,swingU:-1};const t=(u-STANCE)/(1-STANCE);return {z:-1+2*ease(t),lift:Math.sin(Math.PI*t),stanceU:0,swingU:t};}
+/** Vertical reach of a leg from hip pivot to ankle pivot. */
+const reach=(hip:number,knee:number)=>THIGH*Math.cos(hip)+SHIN*Math.cos(hip+knee);
 const fract=(x:number)=>x-Math.floor(x);
+/** The torso group's origin sits below the feet, but the thighs hang from hip joints on the
+ * character root. Lean, sway and twist must therefore turn the torso about the hip joints, or
+ * the pelvis slides away from the thighs (a 0.1 rad walking lean moved it ~10 cm forward).
+ * Any lateral weight shift is carried by the hip joints too, so pelvis and legs stay one unit. */
+const PELVIS_Y=HIP_Y-BODY_Y,pivot=new T.Vector3();
+function pivotAtHips(n:Citizen){
+  const lateral=n.body.position.x;
+  pivot.set(0,PELVIS_Y,0).applyEuler(n.body.rotation);
+  n.body.position.x-=pivot.x;n.body.position.y+=PELVIS_Y-pivot.y;n.body.position.z-=pivot.z;
+  // Pelvis: world yaw/roll from the gait, independent of the thorax twist above it.
+  const m=n.motion,yaw=m.pelvisYaw??0,roll=m.pelvisRoll??0,thoraxYaw=n.body.rotation.y-m.turn*.06;
+  n.pelvis.rotation.set(0,yaw-thoraxYaw,roll-n.body.rotation.z);
+  // Hip joints ride on the pelvis: yaw swings one hip forward, roll drops the swing side.
+  n.legs.forEach(leg=>{const x=leg.userData.baseX;leg.position.x=x*Math.cos(yaw)+lateral;leg.position.z=-x*Math.sin(yaw);leg.position.y+=x*Math.sin(roll);leg.rotation.y=yaw;});
+}
 /** Irregular turn-taking per pair: uneven shares and short pauses where neither speaks. */
 export function turnTaking(time:number,self:number,partner:number){const pair=Math.min(self,partner),period=7.5+(pair%4)*1.8,u=fract((time+pair*5.3)/period),share=.45+(pair%3)*.08;
   if(Math.abs(u-share)<.04||u>.96)return false;return (u<share)===(self<partner);}
@@ -70,15 +87,28 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
   const c=m.stride,seated=activity==='sit'||activity==='eat',tired=weariness*(activity==='guard'?.3:1);
   // Idle weight transfer holds on one leg, then shifts: never a metronome.
   const shift=Math.tanh(3*Math.sin(phase*.21+n.phase))*(1-g),bob=pr.bob*load*g*(Math.cos(2*c)*.5+.5);
-  n.body.position.set(shift*.022+g*Math.cos(c)*.012,bodyHeight+bob-(seated?seatDrop:0)+breath*.003*(1-g),0);
-  n.body.rotation.set(g*(pr.lean+tired*.05)+(1-g)*tired*.06-(activity==='lean'?.07:0)-(activity==='carry'?.08:0)+(seated?-.06:0),-g*Math.sin(c)*.09+m.turn*.06,shift*.025+g*Math.sin(c)*.012);
   const feet=[footPhase(c),footPhase(c+Math.PI)];
-  n.legs.forEach((leg,k)=>{const {z,lift,stanceU}=feet[k];leg.position.y=hipHeight-(seated?seatDrop:0);
-    if(seated){leg.position.z=0;leg.rotation.set(-1.42,0,(k?-1:1)*.06);n.knees[k].rotation.x=1.4+(activity==='eat'&&k?Math.sin(phase)*.05:0);return;}
+  // Legs first: the pelvis settles onto whichever leg is planted, so feet stay on the street.
+  let drop=0;
+  n.legs.forEach((leg,k)=>{const {z,lift,stanceU,swingU}=feet[k],knee=n.knees[k],ankle=n.ankles[k];
+    if(seated){leg.position.z=0;leg.rotation.set(-1.42,0,(k?-1:1)*.06);knee.rotation.x=1.4+(activity==='eat'&&k?Math.sin(phase)*.05:0);ankle.rotation.x=-(leg.rotation.x+knee.rotation.x)-.08;return;}
     const stance=k===0?Math.max(0,-shift):Math.max(0,shift),amp=A*g;
-    leg.position.z=0;leg.rotation.set(-amp*z+(1-g)*(k?-.02:.03),0,activity==='lean'&&k===1?-.1:(k?-1:1)*stance*.02);
-    n.knees[k].rotation.x=.05+g*(.95*lift+.07*Math.sin(Math.PI*stanceU))+(1-g)*(k===0?Math.max(0,shift):Math.max(0,-shift))*.14;});
-  n.arms.forEach((arm,k)=>{const z=feet[k].z;arm.rotation.set(pr.arm*g*z-.05+breath*.008,0,(k?-1:1)*(.07+tired*.03));n.elbows[k].rotation.x=-.15-g*.3*Math.max(0,z)-(1-g)*.03*Math.sin(phase*.7+k);});
+    leg.position.z=0;leg.rotation.set(-amp*z+(1-g)*(k?-.02:.03),0,activity==='lean'&&k===1?-.1:(k?-1:1)*stance*.02+(k?1:-1)*[.008,.018,.034][n.build]*(1-g*.6));
+    knee.rotation.x=.05+g*(.8*lift+.07*Math.sin(Math.PI*stanceU))+(1-g)*(k===0?Math.max(0,shift):Math.max(0,-shift))*.14;
+    // Ankle: flat while planted; toe-off pushes the toe down, then it lifts for the heel strike.
+    const flat=-(leg.rotation.x+knee.rotation.x),toe=swingU<0?-.12*g*Math.max(0,.15-stanceU)/.15+.28*g*Math.max(0,stanceU-.8)/.2:g*(.35*Math.max(0,1-swingU*2.2)-.2*Math.max(0,swingU-.55)/.45);
+    ankle.rotation.x=flat+toe;
+    if(swingU<0)drop=Math.max(drop,reach(0,.05)-reach(leg.rotation.x,knee.rotation.x));});
+  if(!seated)drop=Math.min(drop,.05)*g;
+  for(const leg of n.legs)leg.position.y=hipHeight-(seated?seatDrop:0)-drop;
+  n.body.position.set(shift*.022+g*Math.cos(c)*.012,bodyHeight+bob*.3-drop-(seated?seatDrop:0)+breath*.003*(1-g),0);
+  // Torsion (figure-construction ch02/ch03): the pelvis turns the swing-side hip forward and drops
+  // on the swing side; the thorax counter-rotates. Standing: contrapposto, hip up on the engaged leg,
+  // the same-side shoulder down.
+  const z0=feet[0].z,swing=Math.sin(Math.PI*Math.max(0,feet[0].swingU))-Math.sin(Math.PI*Math.max(0,feet[1].swingU));
+  m.pelvisYaw=g*.09*z0;m.pelvisRoll=g*.035*swing+(1-g)*.045*shift; // shift>0: weight on the +x leg, whose hip rises
+  n.body.rotation.set(g*(pr.lean+tired*.05)+(1-g)*tired*.06-(activity==='lean'?.07:0)-(activity==='carry'?.08:0)+(seated?-.06:0),-g*.085*z0+m.turn*.06,-(1-g)*.03*shift+g*Math.sin(c)*.008); // engaged-side shoulder drops
+  n.arms.forEach((arm,k)=>{const z=feet[k].z;arm.rotation.set(pr.arm*g*z-.05+breath*.008,0,(k?1:-1)*(.11-tired*.025+g*.02));n.elbows[k].rotation.x=-.15-g*.3*Math.max(0,z)-(1-g)*.03*Math.sin(phase*.7+k);});
   let expression:Expression=tired>.6&&(phase%13)<5?'tired':'neutral';
   let nod=0,tilt=0;
   if(activity==='talk'||activity==='browse'||activity==='argue'){
@@ -126,6 +156,9 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
     m.tailV+=((tailTarget-m.tail)*55-m.tailV*8)*dt;m.tail+=m.tailV*dt;m.hairV+=((hairTarget-m.hair)*35-m.hairV*6)*dt;m.hair+=m.hairV*dt;
     n.tails.rotation.set(m.tail,0,g*Math.sin(c)*.035-m.turn*.03);n.swing.rotation.set(m.hair,0,Math.sin(c)*.08*g-m.turn*.08);n.scarf.rotation.x=m.tail*.8+Math.sin(phase*2.2)*.02;
   } else {n.tails.rotation.set(0,0,0);n.swing.rotation.set(.05,0,0);n.scarf.rotation.x=0;}
+  // Seated: coats and skirts fold forward over the lap instead of hanging through the seat.
+  // Seated: the skirt lies along the thighs and ends at the knee instead of jutting past it.
+  const skirtLength=n.tails.userData.length??.3;n.tails.scale.set(seated?.84:1,seated?Math.min(1,.5/skirtLength):1,seated?.62:1);if(seated)n.tails.rotation.x=-1.32;
   // Brief, staggered glances; turns are led by the head.
   const dx=player.x-pos.x,dz=player.z-pos.z,close=dx*dx+dz*dz<14;
   const glance=close&&(phase%11)<1.35;
@@ -148,11 +181,12 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
   if(activity==='carry'||activity==='valve'||activity==='sweep'){h0='grip';h1='grip';}
   else if(activity==='hammer'||activity==='repair'||activity==='clipboard'||activity==='read'||activity==='eat'||activity==='gauge')h0='grip';
   if(activity==='warm'){h0='open';h1='open';}
-  if(speaking){h0=Math.floor(phase*.5+n.phase)%4===0?'point':'open';if(activity==='argue')h1='open';}
+  if(speaking){const beat=Math.floor(phase*.5+n.phase)%4;h0=beat===0?'point':beat===3?'open':'gesture';if(activity==='argue')h1='open';}
   else if(activity==='argue'){h0='fist';h1='fist';}
   if(n.arms[0].rotation.x<-2)h0='open';
   if(umbrella&&raining)h1='grip';
   n.setHand(0,h0);n.setHand(1,h1);
+  pivotAtHips(n);
   if((phase%4.7)<.13)expression='blink';n.setExpression(expression);
 }
 /** Route distance with acceleration and deceleration ramps (meters). */

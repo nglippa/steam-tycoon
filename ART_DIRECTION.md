@@ -322,18 +322,15 @@ The spec passes only when all of these hold:
 9. **Grime tracks condition.** `level=0` → `5`: grime falls steadily, and maintained surfaces at `level=5` are clean.
 10. **Gameplay intact.** The review traversal and ledger checks (`&check`) pass at levels 0 and 5. Performance stays within the budget recorded in `QA.md`.
 
-### Known gaps between the current build and this spec (as of 2026-09-28, after pass 19)
+### Known gaps between the current build and this spec (as of 2026-09-28, after pass 19 and the body-first character pass)
 
 These are known deviations to fix. They are not rules. Evidence: `screenshots/review-2026-09-28-pass19/`.
-- **Characters (after the 2026-09-28 character and face passes; evidence in `screenshots/review-2026-09-28-characters/`).** Faces follow modern anime construction:
-  - Face shading uses sphere normals, so it is one clean shape.
-  - Large low-set almond eyes, a tall iris with lash shadow and two catchlights, and a heavy outer lash wing.
-  - A tiny nose tick and mouth, a hard hair shadow under the fringe, hatched blush, a chin shadow, and hair shine on the crown.
+- **Characters (after the 2026-09-28 body-first pass; evidence in `screenshots/review-2026-09-28-body/`, sheet `00-review-sheet.png`).** Bodies are built from a shared grammar in `character-kit.ts`/`citizens.ts`: a torso loft with separate front and back depth (chest, shoulder blades, lumbar hollow, seat), shoulder caps, knee and elbow caps, an ankle joint, six-state graphic hands, four boot families, and garments with real thickness. The five roles separate as black silhouettes from the front, side and mid-stride. The face uses an authored profile (forehead, nose, lips, chin) with the anime face shadow map.
 
   Remaining gaps:
-  - Face shadows follow a sphere, not a hand-authored face shadow map, so a side light can split the face awkwardly.
-  - Eyes read as dark marks beyond about 12 m.
-  - Relaxed-hand fingertips show small ink rings end-on.
+  - Garments are rigid: coat skirts swing as one piece and fold as one piece when seated, so long coats don't part around the stride.
+  - Hands are shared per state; there is no per-finger posing, and grips don't close around tool handles of different sizes.
+  - Eyes read as dark marks beyond about 12 m, and the face shadow terminator only follows the sun's left/right direction.
 - **Lowworks mood.** Clear and overcast Lowworks days look almost the same. The Lowworks reads grey and flat rather than oppressive, and night along the main street lacks a strong dark–light–dark rhythm of lamp pools.
 - **Innovation → Grand Terra.** Stage 5 is warmer, greener and cleaner than stage 4, but the step is mostly colour and light. There is no memorable "wonder" beat yet (aether landmarks, civic illumination).
 - **Wet weather.** Rain is darker and cooler, but surfaces don't read as wet: the painted shading ignores specular, so there are no reflections.

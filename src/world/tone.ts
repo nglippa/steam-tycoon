@@ -7,12 +7,18 @@ export const tone = {
   lit: { value: new T.Color('#fff4e2') },
   shade: { value: new T.Color('#8c95d0') },
   rim: { value: new T.Color('#ffd9a8') },
+  sunDir: { value: new T.Vector3(0, 1, 0) }, // world direction toward the sun (face shadow map)
 };
 
 const chunk = `
   vec3 inkLight = (reflectedLight.directDiffuse + reflectedLight.indirectDiffuse) / max(diffuseColor.rgb, vec3(.02));
   float inkValue = dot(inkLight, vec3(.2126, .7152, .0722));
   float inkLit = smoothstep(toneAmbient * 1.22, toneAmbient * 1.34, inkValue);
+#ifdef TERRA_FACE
+  // Faces: the authored shadow map decides the terminator; lighting only contributes cast
+  // shadow and night (a lenient threshold that fails only when the head is truly unlit).
+  inkLit = faceLit * smoothstep(toneAmbient * 1.03, toneAmbient * 1.15, inkValue);
+#endif
   float inkForm = clamp(inkValue / (toneAmbient * 2.2), .0, 1.25);
   vec3 inkTone = mix(toneShade * (.9 + .12 * inkForm), toneLit * (.92 + .1 * inkForm), inkLit);
   // Bright local light (lamps, furnaces) pushes past the sunlit tone into a warm pool.
