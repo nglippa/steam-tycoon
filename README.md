@@ -50,6 +50,20 @@ The Foundry tells a different story from the square. The regime runs it as a coa
 
 **The network.** Foundry step 1 needs the Copper Finch to vouch (Market Square covert step 1). Market Square's liberation needs the Foundry's cutters (Foundry step 3), and once they are forged a crate of them appears at the Finch's cellar door.
 
+## The city responds (Phase 3: Cinder Row)
+
+Cinder Row is the street between the Foundry gate and the main street. Its story is made of the other districts' consequences, so walking between businesses is part of progression.
+
+1. **The network.** Once the Copper Finch vouches (Market Square step 1) and the yard answers its shift board (Foundry step 1), the Steward chalks the Row's old ivory waymark. From then on a courier walks between the yard and the Finch cellar. A chalker works the waymark, and a lookout holds the corner.
+2. **They noticed.** Once crates leave the yard light (Foundry step 2) and couriers use the Row, the Directorate of Labour reacts on its own. An inspection post appears mid-Row (a table, sawhorses, a searched worker, an inspector) with a "materials are missing" notice and a searchlight mast. A barrier closes the foundry-lane shortcut north. The inspector turns between the Row and his table. The courier waits while the inspector could see him, and the chalker stops and turns to the street.
+3. **The cutters travel.** The Foundry's cutters no longer appear at the Finch by themselves. The Steward carries the crate from the yard to the Finch cellar. If the inspector sees it, it goes back to the yard with a whistle. The way through is to time the crossing for when he bends over his table, or to take the long way round. Market Square's liberation needs the crate delivered.
+4. **Terra under the lamp.** Cutting the searchlight feed lifts the cable plates: the Directorate was running its lamp off an ancient aether conduit, still faintly alight. A dark night also shortens the inspector's reach.
+5. **The Lantern Way.** With the square and the yard both free, the post comes down. The table becomes a stall, the sawhorses a bench, bunting goes up, the ivory street plate returns, and the conduit lights from end to end. +15% city income.
+
+Looking east along the Row, another floating isle hangs over the Canal Ward gate.
+
+**Pattern for future districts.** `cityFacts()` in `economy.ts` derives cross-location facts (network, courier run, inspection, cutters waiting or delivered, searchlight cut, Row free) from saved site progress. Layers show them with `when.fact(...)`. `inView()` in `patrol.ts` is the shared "occupation eyes" test for any observer. A site step marked `carried` completes by physical delivery (`Economy.deliver`) and cannot be bought.
+
 ## Terra's edge
 
 Behind the arrival gate the ward ends at a cliff. An ivory terrace juts past it. From its balustrade you can see a spillway pouring off into nothing, ancient ribs curving under the rim, a lesser isle hung on chains far below, a sister isle on the horizon, swifts on the updraft, and the cloud sea with Locke showing through. The sky, cloud sea and fall follow the day/night key and the weather.
@@ -84,6 +98,7 @@ The economy suite covers spending, passive/manual accounting, automation, offlin
 - `src/world/factions.ts`: the three visual languages (Ordinance, Embers, ancient Terra), with emblems, printed cloth and posters, and the travelling water/aether material.
 - `src/world/market-square.ts`: the Market Square slice. It covers the Saelspring, the Sael Gate, the checkpoint, the cellar and the restoration circuit.
 - `src/world/foundry-works.ts`: the Foundry slice. It covers the Armillary, the fabrication table, the overseer's gaze, covert packing and the wake.
+- `src/world/cinder-row.ts`: the connecting street. It covers the courier, the inspection post and its inspector, the carried cutters, the searchlight over the ancient conduit, and the liberated Lantern Way.
 - `src/world/terra-edge.ts`: the south edge, with the cliff plate, arrival terrace, spillway fall, ribs, hanging isles and swifts. The cloud sea and horizon live in `weather-art.ts`.
 - `src/world/patrol.ts`: one lightweight patrol that walks, notices, investigates, searches and returns, using a vision cone and collider line of sight.
 - `src/world/art-kit.ts`: Terra crests, gauges, pipework, roofs and canopies.
@@ -114,6 +129,9 @@ __TERRA__.view('marketSquare')   // also saelGate, cellar, spring
 __TERRA__.site(3, 'foundry')     // Foundry control, same ladder; &foundry=n in the URL
 __TERRA__.wake('foundry')        // replay the Armillary waking (site 5 only)
 __TERRA__.view('foundryYard')    // also shiftBoard, forge, edge, arrival
+__TERRA__.site(1, 'row')         // Cinder Row: 0 occupied, 1 courier run, 2 cutters delivered, 3 searchlight cut, 4 free; &row=n
+__TERRA__.carry()                // shoulder the cutters crate (when it waits at the yard)
+__TERRA__.view('rowPost')        // also row, rowLane, rowMast, rowSky
 ```
 
 Developer saves are isolated from the ordinary game. The starting district is the most detailed area; expansion districts are compact explorable extensions. NPC life is route-based ambient choreography, not a full individual-needs simulation. Prestige, politics, supply-chain logistics and multiplayer are deliberately reserved for future development.

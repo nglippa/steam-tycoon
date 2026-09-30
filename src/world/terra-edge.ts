@@ -14,7 +14,7 @@ export const EDGE_Z = 84, TERRACE = { half: 24.2, z: 88.6 };
 const rock = illustrated(new T.MeshStandardMaterial({ color: '#817a70', map: surface('stone') }));
 
 export class TerraEdge {
-  root = new T.Group(); fall: T.Mesh; water: T.MeshBasicMaterial; private waterBase = new T.Color('#dff5f2'); isle = new T.Group(); farIsle!: T.Group; birds: T.InstancedMesh; waterTime = { value: 0 };
+  root = new T.Group(); fall: T.Mesh; water: T.MeshBasicMaterial; private waterBase = new T.Color('#dff5f2'); isle = new T.Group(); farIsle!: T.Group; eastIsle!: T.Group; birds: T.InstancedMesh; waterTime = { value: 0 };
   constructor(public city: City) {
     city.root.add(this.root); const g = new T.Group(); this.root.add(g); const I = ancientMats.ivory, G = ancientMats.gold;
     // The plate Terra stands on: the ward and the far ring sit on it, with bastions and the
@@ -71,6 +71,8 @@ export class TerraEdge {
     cyl(far, 0, 6, 0, 34, 3, haze);
     for (const [x, z, h, r] of [[-8, -4, 44, 3.4], [6, 5, 30, 2.6], [15, -6, 22, 2]]) { cyl(far, x, 6 + h / 2, z, r, h, hazeLight); const c2 = new T.Mesh(new T.ConeGeometry(r * 1.3, r * 2.4, 8), hazeLight); c2.position.set(x, 7.5 + h + r, z); far.add(c2); }
     bake(far); far.position.set(-150, 0, 430); this.farIsle = far; this.root.add(far);
+    // Its twin hangs high in the east, over the Canal Ward gate at the end of Cinder Row.
+    this.eastIsle = far.clone(); this.eastIsle.position.set(210, 118, -1); this.eastIsle.scale.setScalar(.8); this.eastIsle.rotation.y = 1.3; this.root.add(this.eastIsle);
     // Swifts over the void: one instanced draw, riding the updraft off the cliff.
     const wing = new T.BufferGeometry(); wing.setAttribute('position', new T.Float32BufferAttribute([-.5, 0, .14, 0, 0, -.16, 0, .06, .14, 0, .06, .14, 0, 0, -.16, .5, 0, .14], 3)); wing.computeVertexNormals();
     this.birds = new T.InstancedMesh(wing, new T.MeshBasicMaterial({ color: '#2d3346', side: T.DoubleSide }), 9); this.birds.frustumCulled = false; this.root.add(this.birds);
@@ -79,7 +81,7 @@ export class TerraEdge {
     this.waterTime.value = calm ? time * .4 : time;
     // Unlit water follows the painted light key, so the fall dims with dusk and night.
     this.water.color.copy(this.waterBase).multiply(tone.lit.value);
-    this.isle.position.y = -58 + Math.sin(time * .12) * .8; this.isle.rotation.y = Math.sin(time * .02) * .05; this.farIsle.position.y = Math.sin(time * .07 + 1) * 1.5;
+    this.isle.position.y = -58 + Math.sin(time * .12) * .8; this.isle.rotation.y = Math.sin(time * .02) * .05; this.farIsle.position.y = Math.sin(time * .07 + 1) * 1.5; this.eastIsle.position.y = 118 + Math.sin(time * .06 + 2.4) * 1.8;
     const m = new T.Matrix4(), q = new T.Quaternion(), e = new T.Euler(), p = new T.Vector3(), s = new T.Vector3(2.2, 2.2, 2.2);
     for (let i = 0; i < 9; i++) { const a = time * (.16 + (i % 3) * .03) + i * .7, r = 14 + (i % 4) * 5; p.set(-4 + Math.sin(a) * r, -10 - (i % 3) * 7 + Math.sin(time * .5 + i) * 2, 128 + Math.cos(a) * r); e.set(0, a + Math.PI / 2, calm ? 0 : Math.sin(time * 7 + i) * .45); q.setFromEuler(e); m.compose(p, q, s); this.birds.setMatrixAt(i, m); }
     this.birds.instanceMatrix.needsUpdate = true;

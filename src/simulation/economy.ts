@@ -19,8 +19,10 @@ export const STAGES = ['The Lowworks', 'Recovery', 'Industry', 'Commerce', 'Inno
 /** Liberation is a second, place-bound progression. Each site climbs one ladder:
  * 0 occupied, 1-3 covert resistance, 4 liberated, 5 ancient Terra restored. Economic
  * prosperity gates the steps but is never the same thing as control of the street. */
-export type SiteId = 'market' | 'foundry';
-export interface SiteStep { name: string; kind: 'covert' | 'liberation' | 'restoration'; cost: number; detail: string; done: string; requires: { property?: PropertyId; infra?: InfraId; level?: number; stage?: number; site?: SiteId; control?: number } }
+export type SiteId = 'market' | 'foundry' | 'row';
+/** `sites` ties a step to progress elsewhere in the city; a `carried` step is never bought,
+ * it completes when something is physically delivered (see Economy.deliver). */
+export interface SiteStep { name: string; kind: 'covert' | 'liberation' | 'restoration'; cost: number; detail: string; done: string; carried?: true; requires: { property?: PropertyId; infra?: InfraId; level?: number; stage?: number; sites?: Partial<Record<SiteId, number>> } }
 /** A physical place in the street that carries some of a site's steps. Outside its own
  * steps it only speaks (before/after); `closed` refuses it outright; covert spots
  * refuse while occupation eyes are on the Steward. */
@@ -31,7 +33,7 @@ export const SITES: SiteDef[] = [
     { name: 'Knock at the Copper Finch cellar', kind: 'covert', cost: 120, detail: 'The taproom keeps a second ledger below the kegs. Stand the first round for the Embers.', done: 'A turquoise lamp is lit above the Copper Finch cellar. The Embers have a door in Market Square.', requires: { property: 'tavern', level: 1 } },
     { name: 'Turn the Bellweather stallholders', kind: 'covert', cost: 300, detail: 'Traders carry more than tea. Fund the couriers who move word between wards.', done: 'Someone has been at the checkpoint hoarding with chalk. Couriers cross the square with crates.', requires: { property: 'market', level: 1 } },
     { name: 'Stock the cellar', kind: 'covert', cost: 650, detail: 'Bolt cutters, lamp oil and pry bars, delivered with the Finch’s beer.', done: 'A tarp covers new crates by the cellar, and turquoise ribbons are tied to the lamp posts. Nobody at the gate has noticed.', requires: { property: 'tavern', level: 2 } },
-    { name: 'Raise Market Square', kind: 'liberation', cost: 1600, detail: 'On the signal, the square refuses the checkpoint. The foundry’s cutters take the gallery off the gate, and the Ordinance banners come down.', done: 'Market Square rises. The gallery is torn off the old gate, and the square flies Terra’s own colours.', requires: { stage: 2, site: 'foundry', control: 3 } },
+    { name: 'Raise Market Square', kind: 'liberation', cost: 1600, detail: 'On the signal, the square refuses the checkpoint. The foundry’s cutters take the gallery off the gate, and the Ordinance banners come down.', done: 'Market Square rises. The gallery is torn off the old gate, and the square flies Terra’s own colours.', requires: { stage: 2, sites: { row: 2 } } },
     { name: 'Wake the Saelspring', kind: 'restoration', cost: 3200, detail: 'Under the Ordinance seal sits a machine older than the city’s records. Clean mains may let it run again.', done: 'The civic engineers are cutting the Ordinance seal off the spring.', requires: { infra: 'gardens', level: 1 } },
   ], spots: {
     cell: { from: 0, to: 3, covert: true, before: '', after: 'The cellar is a meeting room now. The Embers hold Market Square in the open.', closed: s => s.sites.market === 0 && s.properties.tavern.level < 1 ? 'The cellar door is padlocked and the Copper Finch is shuttered. Nobody answers.' : null },
@@ -39,9 +41,9 @@ export const SITES: SiteDef[] = [
   }, watched: 'An Ordinance patrol is watching the square. Wait until it passes.',
   voice: { covert: ['THE EMBERS · BELOW THE COPPER FINCH', 'Nobody upstairs asks why the Steward drinks in the cellar.', 'Pass the coin'], liberation: ['THE EMBERS · THE SIGNAL', 'Every stall, every courier and every lamp is ready. One word and the square refuses the checkpoint.', 'Give the signal'], restoration: ['ANCIENT TERRA · BENEATH THE SEAL', 'Under the Ordinance cage: an ivory basin, a closed flower of turquoise petals and a dark crystal. The channels still lead to the gate.', 'Commission the restoration'] } },
   { id: 'foundry', name: 'Cinder No. 3', steps: [
-    { name: 'Answer the shift board', kind: 'covert', cost: 180, detail: 'The quota tallies hide a second count. Word from the Copper Finch lets you add your own mark to it.', done: 'Chalk tallies under the quota board now keep the Embers’ count. Behind the coal bunker, somebody has set out stools.', requires: { property: 'foundry', level: 1, site: 'market', control: 1 } },
+    { name: 'Answer the shift board', kind: 'covert', cost: 180, detail: 'The quota tallies hide a second count. Word from the Copper Finch lets you add your own mark to it.', done: 'Chalk tallies under the quota board now keep the Embers’ count. Behind the coal bunker, somebody has set out stools.', requires: { property: 'foundry', level: 1, sites: { market: 1 } } },
     { name: 'Hide work in the quota', kind: 'covert', cost: 420, detail: 'Legitimate castings leave the yard every hour. Some crates will carry a false bottom.', done: 'Every hundredth crate out of Cinder No. 3 has a false bottom. The overseer counts the crates, not what is in them.', requires: { property: 'foundry', level: 2 } },
-    { name: 'Forge the cutters', kind: 'covert', cost: 850, detail: 'Bolt cutters and pressure keys, cast between quota runs. Enough to take a checkpoint apart.', done: 'A rack of cutters and pressure keys waits under the tarp. The first crate has gone to the Copper Finch.', requires: { property: 'foundry', level: 3 } },
+    { name: 'Forge the cutters', kind: 'covert', cost: 850, detail: 'Bolt cutters and pressure keys, cast between quota runs. Enough to take a checkpoint apart.', done: 'A rack of cutters and pressure keys waits under the tarp, and a crate of them sits by the cage door. Someone has to carry it to the Copper Finch.', requires: { property: 'foundry', level: 3 } },
     { name: 'Down tools', kind: 'liberation', cost: 2200, detail: 'The whole yard stops at once. Without its workers the furnace is only iron, and the Ordinance knows it.', done: 'Cinder No. 3 downs tools. The overseer’s booth comes apart, the supply cage opens, and the workers post their own shifts.', requires: { stage: 3 } },
     { name: 'Wake the Armillary', kind: 'restoration', cost: 4200, detail: 'Behind the furnace, welded still, are rings older than any foundry. They want steady pressure, not coal.', done: 'The civic engineers are cutting Cinder No. 3 out of the old wall.', requires: { infra: 'steam', level: 2 } },
   ], spots: {
@@ -49,15 +51,47 @@ export const SITES: SiteDef[] = [
     forge: { from: 4, to: 4, before: 'An anvil is strapped to an ivory table that is far too fine for it. Behind the furnace, gold rings are welded into the wall.', after: 'The Armillary turns without a sound. Whatever it is making, the Ordinance never knew how to ask.' },
   }, watched: 'The overseer is looking this way. Wait until he turns back to the lane.',
   voice: { covert: ['THE EMBERS · CINDER No. 3', 'The quota board counts crates. The workers count something else.', 'Make your mark'], liberation: ['THE EMBERS · THE WHISTLE', 'Every furnace crew is ready. One whistle and the yard belongs to the people who work it.', 'Blow the whistle'], restoration: ['ANCIENT TERRA · THE ARMILLARY', 'Behind the coal furnace, welded still: an ivory frame, three gold rings and a dark core, and in front of it a fabrication table used as an anvil.', 'Commission the restoration'] } },
+  { id: 'row', name: 'Cinder Row', steps: [
+    { name: 'Chalk the courier run', kind: 'covert', cost: 150, detail: 'Mark the old waymark so the Finch’s runners and the yard’s packers know the Row. From then on, things move between them.', done: 'An ember is chalked on the old waymark. A courier now runs Cinder Row between the yard and the Copper Finch.', requires: { sites: { market: 1, foundry: 1 } } },
+    { name: 'Run the cutters to the Finch', kind: 'covert', cost: 0, carried: true, detail: 'The cutters are too heavy for a satchel. Carry the crate from Cinder No. 3 to the Copper Finch cellar yourself, past whatever the Directorate has put on the Row.', done: 'The crate is down the Finch’s cellar steps. Market Square has the tools to take the gallery off its gate.', requires: { sites: { foundry: 3 } } },
+    { name: 'Cut the searchlight feed', kind: 'covert', cost: 450, detail: 'The inspection searchlight draws its power from somewhere under the Row. Open the cable trench at the junction box and cut it.', done: 'The searchlight dies. Under the Directorate’s cable the trench is lined with turquoise tile, and something in it is still faintly alight. They were running their lamp off Terra.', requires: {} },
+    { name: 'Take down the inspection post', kind: 'liberation', cost: 900, detail: 'With the square and the yard both free, the post between them guards nothing. Take it apart in daylight.', done: 'The inspection post comes down. The Row fills with the people who were searched on it, and the old conduit lights from end to end.', requires: { sites: { market: 4, foundry: 4 } } },
+  ], spots: {
+    waymark: { from: 0, to: 0, covert: true, before: '', after: 'An ember in chalk on the old waymark. Under the soot the stone is ivory, and its arrow points to the square.' },
+    junction: { from: 2, to: 2, covert: true, before: 'A Directorate junction box, humming. Its cable runs down into an iron-covered trench.', after: 'The cut cable hangs over an open trench of turquoise tile.' },
+    post: { from: 3, to: 3, before: 'The inspection table. Nobody lingers here.', after: 'The inspection table is a stall now.' },
+  }, watched: 'The inspector is looking this way. Wait until he bends over his table.',
+  voice: { covert: ['THE EMBERS · CINDER ROW', 'Between the yard and the square, every doorway on the Row has an opinion about the Directorate.', 'Pass the chalk'], liberation: ['THE EMBERS · CINDER ROW', 'The square and the yard are free. The post between them is a table and four sawhorses.', 'Take it down'], restoration: ['ANCIENT TERRA · CINDER ROW', 'An old conduit runs under the Row.', 'Commission the restoration'] } },
 ];
 export const SITE_LIBERATED = 4, SITE_RESTORED = 5;
+/** What the city knows about itself: facts that follow from progress at several sites.
+ * Districts read these instead of re-deriving rules, so a change in one place shows up
+ * wherever it matters (the Directorate's response, the courier, the cutters' journey). */
+export function cityFacts(sites: Record<SiteId, number>) {
+  const { market, foundry, row } = sites;
+  return {
+    /** The Finch vouches: the Embers have a network in the square. */
+    network: market >= 1,
+    /** A courier runs Cinder Row between the yard and the Finch. */
+    courierRun: row >= 1,
+    /** Crates leave the yard light and couriers use the Row: the Directorate notices. */
+    inspection: row >= 1 && foundry >= 2 && row < SITE_LIBERATED,
+    /** The forged cutters wait at the yard for someone to carry them. */
+    cuttersWaiting: foundry >= 3 && row === 1,
+    /** The cutters reached the Finch. */
+    cuttersDelivered: row >= 2,
+    searchlightCut: row >= 3,
+    rowFree: row >= SITE_LIBERATED,
+  };
+}
+export type CityFacts = ReturnType<typeof cityFacts>;
 export interface PropertyState { level: number; automated: boolean; stored: number; progress: number }
 export interface Settings { master: number; ambience: number; sfx: number; music: number; sensitivity: number; reducedMotion: boolean; quality: 'high' | 'low' }
 export interface Save { version: 3; crowns: number; earned: number; properties: Record<PropertyId, PropertyState>; infrastructure: Record<InfraId, number>; districts: string[]; research: string[]; discoveries: string[]; sites: Record<SiteId, number>; objective: number; playtime: number; day: number; lastSave: number; settings: Settings }
 export interface StorageAdapter { read(): string | null; write(value: string): void; clear(): void }
 export const SAVE_KEY = 'locke.terra.save';
 export function freshSave(now = Date.now()): Save {
-  return { version: 3, crowns: 35, earned: 0, properties: Object.fromEntries(PROPERTIES.map(p => [p.id, { level: 0, automated: false, stored: 0, progress: 0 }])) as Save['properties'], infrastructure: { lamps: 0, roads: 0, steam: 0, gardens: 0, housing: 0 }, districts: [], research: [], discoveries: [], sites: { market: 0, foundry: 0 }, objective: 0, playtime: 0, day: .72, lastSave: now, settings: { master: .55, ambience: .45, sfx: .7, music: 0, sensitivity: 1, reducedMotion: false, quality: 'high' } };
+  return { version: 3, crowns: 35, earned: 0, properties: Object.fromEntries(PROPERTIES.map(p => [p.id, { level: 0, automated: false, stored: 0, progress: 0 }])) as Save['properties'], infrastructure: { lamps: 0, roads: 0, steam: 0, gardens: 0, housing: 0 }, districts: [], research: [], discoveries: [], sites: { market: 0, foundry: 0, row: 0 }, objective: 0, playtime: 0, day: .72, lastSave: now, settings: { master: .55, ambience: .45, sfx: .7, music: 0, sensitivity: 1, reducedMotion: false, quality: 'high' } };
 }
 const finite = (v: unknown, fallback: number, max = 1e15) => typeof v === 'number' && Number.isFinite(v) ? Math.min(max, Math.max(0, v)) : fallback;
 export function decodeSave(raw: string | null): Save | null {
@@ -102,11 +136,15 @@ export class Economy {
   discover(id: string) { if (!['map', 'automaton', 'shrine'].includes(id) || this.state.discoveries.includes(id)) return false; this.state.discoveries.push(id); this.state.crowns += 55; this.state.earned += 55; this.save(); return true; }
   site(id: SiteId) { return SITES.find(s => s.id === id)!; }
   /** Why the next step at a site cannot be taken yet; null when only the price stands in the way. */
-  siteBlocker(id: SiteId): string | null { const level = this.state.sites[id], step = this.site(id).steps[level]; if (!step) return 'Complete'; const r = step.requires;
+  siteBlocker(id: SiteId): string | null { const step = this.site(id).steps[this.state.sites[id]]; if (!step) return 'Complete';
+    return this.requirement(step) ?? (step.carried ? 'Carried by hand, not bought' : null); }
+  /** A carried step completes, free, when its goods arrive and everything else it needs is in place. */
+  deliver(id: SiteId) { const step = this.site(id).steps[this.state.sites[id]]; if (!step?.carried || this.requirement(step)) return false; this.state.sites[id]++; this.onChange('site', id); this.save(); return true; }
+  private requirement(step: SiteStep): string | null { const r = step.requires;
     if (r.property && this.state.properties[r.property].level < (r.level ?? 1)) return `Requires ${PROPERTIES.find(p => p.id === r.property)!.name} restored to level ${r.level ?? 1}`;
     if (r.infra && this.state.infrastructure[r.infra] < (r.level ?? 1)) return `Requires ${INFRA.find(i => i.id === r.infra)!.name.toLowerCase()} level ${r.level ?? 1}`;
     if (r.stage !== undefined && this.stage < r.stage) return `Requires Terra to reach ${STAGES[r.stage]}`;
-    if (r.site && this.state.sites[r.site] < (r.control ?? 1)) return `Requires ${this.site(r.site).name}: ${this.site(r.site).steps[(r.control ?? 1) - 1].name.toLowerCase()}`;
+    for (const [other, control] of Object.entries(r.sites ?? {}) as [SiteId, number][]) if (this.state.sites[other] < control) return `Requires ${this.site(other).name}: ${this.site(other).steps[control - 1].name.toLowerCase()}`;
     return null; }
   advanceSite(id: SiteId) { const level = this.state.sites[id], step = this.site(id).steps[level]; if (!step || this.siteBlocker(id) || !this.spend(step.cost)) return false; this.state.sites[id]++; this.onChange('site', id); this.save(); return true; }
   inspect(id: string) { if (id === 'scrap' && this.state.objective === 0) this.state.objective = 1; }

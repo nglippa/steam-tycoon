@@ -180,3 +180,9 @@ These rules come from figure-drawing and 3D-topology references (Love Life Drawi
 - **The legs hang from the pelvis.** Hip joints sit inside the pelvis, just above the crotch; the height's halfway line runs between the greater trochanters. Thighs are slimmer at the root, fullest in the upper-middle, and angle in so the knees sit closer than the hips.
 - **Motion turns about the hips.** Lean, twist and sway rotate the upper body around the hip joint, never around the feet. A sideways weight shift moves the hips, and the legs tilt so the feet stay planted.
 - **Proportion.** Terra's citizens are about 4 heads tall (big-head anime). At this scale legs to crotch are about 1.6 heads, and the shoulder-to-crotch torso is about 1 head. Do not stretch the legs to 6.5-head canon without restyling the head.
+
+## The city responds (2026-09-30)
+
+- **The Directorate's response** is one authored post, not a wanted level: a table, sawhorses in oxblood and bone, a stencil sign, a searchlight mast, a notice in the regime's own words, and a closed lane. The player should think "they noticed", not "the alarm went up".
+- **Resistance stays human and improvised:** chalk on a waymark, a courier with a satchel, a crate carried by hand, a lookout at a corner. No red banners. When the Row is freed, the colours are Terra's own turquoise and ivory, strung as small bunting.
+- **Ancient Terra is the connective tissue:** occupation infrastructure is bolted into it (a searchlight fed from an aether conduit, a Directorate plate over an ivory street name). Resistance acts reveal it a little at a time.

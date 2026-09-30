@@ -221,3 +221,31 @@ p95 frame time stays at about 4.5 ms. Each stratum is baked to one draw per mate
 | spawn (L1) | 230 | 211 | 935 → 986 | 5.4 → 5.7 |
 
 Per-site draw budget (visible meshes before culling): Foundry uses 39 draws occupied, 53 at covert step 3 (its peak) and 28 restored. Market uses 38 occupied and 31 restored. About 11–15 draws per site are unbaked animated parts (rings, gimbal, boards, lid, patrol lamp). The rest is baked strata at one draw per material per stratum, so a material shared by two strata that are visible together (occupation iron in `occ` and `dormant`) costs two draws. Frustum culling keeps an off-screen site cheap: the square view gained only 8 draws from the whole Foundry slice. Scaling rule of thumb: about 40 draws per district when in view. Before about six districts are live, merge co-visible strata that share materials, and fold ring and gimbal parts into fewer animated groups.
+
+## Phase 3: the city responds, Cinder Row (2026-09-30)
+
+Phase 2 and the character follow-up were committed first as `0cf9c57`. After that, `npm run typecheck`, `npm test` (23 tests; the 5 new ones cover cross-site gating, the carried step, the Directorate's response trigger, liberation clearing it, and persistence with pre-Row saves) and `npm run build` pass. The build's size warning is the existing Three.js vendor chunk.
+
+### Browser verification (Playwright, `?dev=1`)
+
+- Traversal and ledger checks (`&check=1`) ran in 10 states across the square, the Foundry, the Row and the edge, in clear, rain, fog and overcast. All 6 ledgers are reachable and raycast in every state, no NPC is blocked, and there are no console errors. `foundryLane` fails only while the inspection is active, which is intended: the Directorate's barrier closes that lane. It passes at baseline, during the courier stage and once liberated.
+- The cutters' journey, driven in the live game:
+  - The crate is taken at the yard. Standing in the Row as the inspector turned up-Row (gaze east), the crate was confiscated with the whistle and toast.
+  - Taken again, it was delivered at the Finch cellar: `row` goes from 1 to 2, `cuttersDelivered` becomes true, and the crate shows at the Finch.
+- Guard-aware citizens, sampled over 24 s: the courier was held near the post for about 4.4 s while the inspector could see him, then crossed (x 5.5 → 26.7). The chalker stopped work in 38 of 120 samples, whenever the inspector's eyes came round.
+- Ordinary-save round trip: market 3 / foundry 3 / row 3 are restored after reload, the inspection post stands and the searchlight stays cut.
+- Rendered review: `screenshots/review-2026-09-30-pass4/` (the Row across its states, day and night, rain and fog, the carried crate, the closed lane, the sky isle) and `collage.png`.
+
+### Performance (headed Chrome, uncapped, 1280×760, Phase 2 commit vs working tree, mean of 2 rounds)
+
+| View | Phase 2 FPS | Phase 3 FPS | Draws | p95 ms |
+| --- | --- | --- | --- | --- |
+| square, occupied | 288 | 266 | 426 → 426 | 4.4 → 4.6 |
+| square, restored | 214 | 224 | 444 → 444 | 5.7 → 5.5 |
+| foundry, inspection active | 225 | 208 | 785 → 811 | 5.3 → 5.75 |
+| Row from the yard gate, inspection | 235 | 219 | 677 → 700 | 5.15 → 5.45 |
+| Row from the yard gate, liberated | 221 | 200 | 687 → 704 | 5.45 → 6.2 |
+| Row looking east (whole Row + sky isle) | 269 | 248 | 478 → 528 | 4.7 → 4.95 |
+| spawn | 211 | 198 | 987 → 997 | 5.75 → 5.9 |
+
+The square cases draw the same, and their FPS moves in both directions, so that's run-to-run noise. The Row costs 17–50 draws where it's in view. Printed signs are the least shareable part, since each has its own texture. The sky isle is a clone that shares its baked geometry and materials. Per-frame logic is one inspector, one courier and two citizens, checked with `inView()` against colliders; there are no global scans.

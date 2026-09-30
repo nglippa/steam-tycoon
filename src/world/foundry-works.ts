@@ -131,6 +131,8 @@ export class FoundryWorks implements SiteModule {
   /** The overseer's gaze decides which corner of the yard can risk covert work. */
   private looking(zone: T.Vector3) { const o = this.pres.workers[this.overseer].person.group; return this.view.control < SITE_LIBERATED && Math.abs(wrap(o.rotation.y - bearing(o.position, zone))) < .6; }
   get watching() { return this.looking(BOARD_ZONE); }
+  /** The overseer is facing the outgoing stock, where the cutters crate waits to be carried off. */
+  get watchingStock() { return this.looking(CRATE_ZONE); }
   sync(view: SiteView) {
     const was = this.shown; this.view = view; this.shown = view.control; this.site.sync(view);
     this.board.material = this.boards[view.control >= SITE_LIBERATED ? 2 : view.levels.foundry >= 3 ? 1 : 0];

@@ -11,6 +11,7 @@ import { businessHeights, businessLift } from './architecture';
 import { TERRACE, terraceRise } from './city';
 import { MarketSquare } from './market-square';
 import { FoundryWorks } from './foundry-works';
+import { CinderRow } from './cinder-row';
 import type { SiteModule } from './layers';
 import { SITE_RESTORED } from '../simulation/economy';
 
@@ -20,7 +21,7 @@ export class Presentation {
   root=new T.Group(); restored=new T.Group(); worn=new T.Group(); market=new T.Group();
   mechanisms:{object:T.Object3D;axis:'x'|'y'|'z';speed:number}[]=[];
   workers:{person:ReturnType<typeof citizen>;kind:Activity;tool?:T.Group;minStage:number;maxStage:number;time:'any'|'day'|'night';partner?:number;path?:{a:T.Vector3;b:T.Vector3;speed:number};y:number;when?:()=>boolean}[]=[];
-  marketSquare!:MarketSquare; foundryWorks!:FoundryWorks; sites:SiteModule[]=[];
+  marketSquare!:MarketSquare; foundryWorks!:FoundryWorks; cinderRow!:CinderRow; sites:SiteModule[]=[];
   /** The Ordinance's coal furnace at Cinder No. 3: its own group, because restoration removes it. */
   foundryFurnace?:T.Group; foundryHoist?:T.Group; furnaceHammer=0;
   cartPusher=0;shaftMat?:T.MeshBasicMaterial;shafts?:T.Group;poolMat?:T.MeshBasicMaterial;pools?:T.Group;terracePlanters:[number,number][]=[];birds!:T.InstancedMesh;capsules:T.Group[]=[];moths!:T.InstancedMesh;hoistCrate!:T.Group;barge!:T.Group;craneJib!:T.Group;ingotCart!:T.Group;
@@ -30,7 +31,7 @@ export class Presentation {
   verges:[number,number][]=[[-7.3,42],[-7.3,16],[-7.3,-13],[7.3,38],[7.3,13],[7.3,-17]];
   tarp=illustrated(new T.MeshStandardMaterial({color:'#8f9d97',side:T.DoubleSide}));
   soot=new T.MeshBasicMaterial({color:'#2a2a36',transparent:true,opacity:.28,depthWrite:false});
-  constructor(public city:City){city.root.add(this.root);this.root.add(this.restored,this.worn,this.market);this.gate();this.street();this.industries();this.square();this.story();this.boundaries();this.greatMain();this.streetEdges();this.life();this.everyday();this.nightLights();this.density();this.ornament();this.carving();this.vignettes();this.marketSquare=new MarketSquare(this);this.foundryWorks=new FoundryWorks(this);this.sites=[this.marketSquare,this.foundryWorks];}
+  constructor(public city:City){city.root.add(this.root);this.root.add(this.restored,this.worn,this.market);this.gate();this.street();this.industries();this.square();this.story();this.boundaries();this.greatMain();this.streetEdges();this.life();this.everyday();this.nightLights();this.density();this.ornament();this.carving();this.vignettes();this.marketSquare=new MarketSquare(this);this.foundryWorks=new FoundryWorks(this);this.cinderRow=new CinderRow(this);this.sites=[this.marketSquare,this.foundryWorks,this.cinderRow];}
   section(){const g=new T.Group();this.root.add(g);return g;}
   gate(){const g=this.section();
     // Curved iron arch lowers the opening into the player's field of view.

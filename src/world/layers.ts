@@ -1,6 +1,6 @@
 import * as T from 'three';
 import { bake } from './assets';
-import { SITE_LIBERATED, SITE_RESTORED, type PropertyId, type SiteId } from '../simulation/economy';
+import { SITE_LIBERATED, SITE_RESTORED, cityFacts, type CityFacts, type PropertyId, type SiteId } from '../simulation/economy';
 
 /** Terra is one city in strata: an ancient base, the occupation built over it, the
  * damage of the Lowworks, economic repair, the resistance hidden inside it, and finally
@@ -21,6 +21,8 @@ export const when = {
   business: (id: PropertyId, test: (level: number) => boolean): When => v => test(v.levels[id]),
   /** Another site's control: the resistance network showing up somewhere else. */
   site: (id: SiteId, test: (control: number) => boolean): When => v => test(v.sites[id]),
+  /** A city-wide consequence (cityFacts): true wherever that fact holds, in any district. */
+  fact: (name: keyof CityFacts): When => v => cityFacts(v.sites)[name],
   all: (...tests: When[]): When => v => tests.every(t => t(v)),
 };
 

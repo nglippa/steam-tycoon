@@ -141,9 +141,9 @@ export class MarketSquare implements SiteModule {
     for (const s of [-1, 1]) { let d = strip([V(0, .146, GZ), V(s * 10.12, .146, GZ)], up, .12, 4.35, aether); flow.add(d.mesh);
       d = strip([V(s * 10.13, .15, GZ), V(s * 10.13, SPRING_Y, GZ)], V(-s, 0, 0), .16, d.end, aether); flow.add(d.mesh);
       for (const f of [-1, 1]) flow.add(strip(archCurve(10.82, 5.71, s, 0, 24).map(p => V(p.x, p.y, GZ + f * .59)), V(0, 0, f), .36, d.end, aether).mesh); }
-    // The network: once Cinder No. 3 forges its cutters, a crate of them waits in the Finch cellar,
-    // and after the square rises they lie by the plates they took off the gate.
-    const cutters = this.site.layer(when.all(when.site('foundry', c => c >= 3), when.occupied));
+    // The network: once the Foundry's cutters have been carried down Cinder Row, the same crate
+    // waits by the Finch cellar, and after the square rises they lie by the plates they took off the gate.
+    const cutters = this.site.layer(when.all(when.fact('cuttersDelivered'), when.occupied));
     for (let k = 0; k < 3; k++) boltCutters(cutters, -13.28, .05, -24.95 + k * .16, Math.PI / 2, .22); crate(cutters, -12.2, 0, -24.85, .62);
     { const m = new T.Mesh(new T.PlaneGeometry(.56, .2), printedMat(plate('CINDER No. 3', .56, .2))); m.position.set(-11.88, .42, -24.85); m.rotation.y = Math.PI / 2; cutters.add(m); } city.collider(-12.2, -24.85, .7, .7, .7);
     for (let k = 0; k < 2; k++) boltCutters(lib, 12.1, .08, GZ + 2.1 + k * .35, 0, 1.5);
