@@ -1,9 +1,9 @@
 import * as T from 'three';
 import { box, cyl, sphere, torus, beam, crate, mats } from './assets';
 import { V, fabricOf } from './art-kit';
-import { LayeredSite, when, type SiteView } from './layers';
+import { LayeredSite, when, type SiteModule, type SiteView } from './layers';
 import { Patrol } from './patrol';
-import { ancient, ancientMats, occupationMats, canvasTarp, regimeBanner, civicBanner, propaganda, sealPlaque, stencilPlate, emberChalk, emberPaint, medallion, grime, printedMat, decalMat, flowMaterial, flowClock, strip } from './factions';
+import { ancient, ancientMats, occupationMats, canvasTarp, lightCone, beamMat, boltCutters, stencilPlate as plate, regimeBanner, civicBanner, propaganda, sealPlaque, stencilPlate, emberChalk, emberPaint, medallion, grime, printedMat, decalMat, flowMaterial, flowClock, strip } from './factions';
 import type { Presentation } from './presentation';
 import { SITE_LIBERATED, SITE_RESTORED } from '../simulation/economy';
 
@@ -19,11 +19,12 @@ const up = V(0, 1, 0);
 const archY = (t: number, rise: number, k = .22) => rise * Math.sqrt(Math.max(0, 1 - t * t)) * (1 + k * (1 - Math.abs(t))) / (1 + k);
 const archCurve = (half: number, rise: number, from: number, to: number, n = 28) => Array.from({ length: n + 1 }, (_, i) => { const t = from + (to - from) * i / n; return new T.Vector2(t * half, SPRING_Y + archY(t, rise)); });
 
-export class MarketSquare {
-  site: LayeredSite; patrol: Patrol; view: SiteView = { control: 0, stage: 0, levels: {} as SiteView['levels'] };
+export class MarketSquare implements SiteModule {
+  id = 'market' as const; targets: SiteModule['targets'] = []; anchor = { x: 0, z: -37, rotation: 0 };
+  site: LayeredSite; patrol: Patrol; view: SiteView = { control: 0, stage: 0, levels: {} as SiteView['levels'], sites: {} as SiteView['sites'] };
   wake = 0; night = 0; private shown = -1; private waking = false;
   private petals: T.Group[] = []; private core: T.Mesh; private halo: T.Group; private disc: T.Group; private discFace: T.Mesh;
-  private yoke = new T.Group(); private beamMat: T.MeshBasicMaterial;
+  private yoke = new T.Group();
   springTarget!: T.Mesh; cellarTarget!: T.Mesh;
   constructor(public pres: Presentation) {
     const city = pres.city, root = new T.Group(); pres.root.add(root); this.site = new LayeredSite(root);
@@ -98,9 +99,7 @@ export class MarketSquare {
     // Searchlight on the gallery: at night it sweeps the square.
     this.yoke.position.set(5.2, 8.46, GZ); occLive.add(this.yoke); cyl(this.yoke, 0, .15, 0, .28, .3, O.iron);
     const aim = new T.Group(); aim.position.y = .55; aim.rotation.x = -.98; this.yoke.add(aim); cyl(aim, 0, 0, 0, .36, .6, O.iron); cyl(aim, 0, -.31, 0, .3, .03, mats.glow);
-    const bc = document.createElement('canvas'); bc.width = 4; bc.height = 128; const bx = bc.getContext('2d')!; const bg = bx.createLinearGradient(0, 0, 0, 128); bg.addColorStop(0, 'rgba(255,236,196,1)'); bg.addColorStop(.35, 'rgba(255,236,196,.45)'); bg.addColorStop(1, 'rgba(255,236,196,0)'); bx.fillStyle = bg; bx.fillRect(0, 0, 4, 128);
-    this.beamMat = new T.MeshBasicMaterial({ map: new T.CanvasTexture(bc), transparent: true, blending: T.AdditiveBlending, depthWrite: false, side: T.DoubleSide, opacity: 0, fog: false });
-    const cone = new T.ConeGeometry(2.4, 18, 20, 1, true); cone.translate(0, -9, 0); const beamMesh = new T.Mesh(cone, this.beamMat); beamMesh.position.y = -.32; aim.add(beamMesh);
+    lightCone(aim, 2.4, 18).position.y = -.32;
     // Two soldiers: one holds the boom, one walks the beat between the gate and the Finch.
     pres.addWorker(5.75, GZ + .8, 0, 'guard', { role: 'ordinal', when: () => this.view.control < SITE_LIBERATED });
     const beat = pres.addWorker(-1.25, -13.8, Math.PI, 'walk', { role: 'ordinal', when: () => this.view.control < SITE_LIBERATED });
@@ -141,10 +140,17 @@ export class MarketSquare {
     for (const [z0, z1] of [[-29.05, -14.5], [-32.95, GZ + .1]]) { flow.add(strip([V(SX, .118, z0), V(SX, .118, z1)], up, .44, 1.95, water).mesh); flow.add(strip([V(SX, .123, z0), V(SX, .123, z1)], up, .13, 1.95, aether).mesh); }
     for (const s of [-1, 1]) { let d = strip([V(0, .146, GZ), V(s * 10.12, .146, GZ)], up, .12, 4.35, aether); flow.add(d.mesh);
       d = strip([V(s * 10.13, .15, GZ), V(s * 10.13, SPRING_Y, GZ)], V(-s, 0, 0), .16, d.end, aether); flow.add(d.mesh);
-      for (const f of [-1, 1]) flow.add(strip(archCurve(10.82, 5.71, s, 0, 24).map(p => V(p.x, p.y, GZ + f * .585)), V(0, 0, f), .15, d.end, aether).mesh); }
+      for (const f of [-1, 1]) flow.add(strip(archCurve(10.82, 5.71, s, 0, 24).map(p => V(p.x, p.y, GZ + f * .59)), V(0, 0, f), .36, d.end, aether).mesh); }
+    // The network: once Cinder No. 3 forges its cutters, a crate of them waits in the Finch cellar,
+    // and after the square rises they lie by the plates they took off the gate.
+    const cutters = this.site.layer(when.all(when.site('foundry', c => c >= 3), when.occupied));
+    for (let k = 0; k < 3; k++) boltCutters(cutters, -13.28, .05, -24.95 + k * .16, Math.PI / 2, .22); crate(cutters, -12.2, 0, -24.85, .62);
+    { const m = new T.Mesh(new T.PlaneGeometry(.56, .2), printedMat(plate('CINDER No. 3', .56, .2))); m.position.set(-11.88, .42, -24.85); m.rotation.y = Math.PI / 2; cutters.add(m); } city.collider(-12.2, -24.85, .7, .7, .7);
+    for (let k = 0; k < 2; k++) boltCutters(lib, 12.1, .08, GZ + 2.1 + k * .35, 0, 1.5);
     this.springTarget = new T.Mesh(new T.CylinderGeometry(.8, .8, 3.2, 8), mats.dark); this.springTarget.position.set(SX, 1.9, SZ); this.springTarget.visible = false; live.add(this.springTarget);
     const restored = () => this.view.control >= SITE_RESTORED;
     pres.addWorker(-1.6, -33.6, .56, 'watch', { role: 'resident', scale: .72, when: restored }); pres.addWorker(-2.25, -34.15, .5, 'watch', { role: 'resident', when: restored });
+    this.targets.push({ object: this.cellarTarget, spot: 'cell', label: 'Copper Finch cellar', hint: 'KNOCK' }, { object: this.springTarget, spot: 'spring', label: 'Ordinance seal', hint: 'EXAMINE' });
     this.site.seal();
   }
   sync(view: SiteView) {
@@ -152,8 +158,9 @@ export class MarketSquare {
     if (view.control >= SITE_RESTORED) { if (was === SITE_RESTORED - 1) { this.wake = 0; this.waking = true; this.pres.city.onEvent('The seal is off. Water rises in the old basin, and the light runs out along the stones to the gate. Terra is older than anyone was told.'); } else if (!this.waking) this.wake = 1; }
     else { this.wake = 0; this.waking = false; }
     if (view.control >= SITE_LIBERATED) this.patrol.hide();
-    const t = this.pres.city.targets.find(t => t.object === this.springTarget); if (t) { t.label = view.control >= SITE_RESTORED ? 'The Saelspring' : view.control >= SITE_LIBERATED ? 'Dormant spring' : 'Ordinance seal'; t.hint = view.control >= SITE_RESTORED ? 'LISTEN' : 'EXAMINE'; }
+    this.pres.city.relabel(this.springTarget, view.control >= SITE_RESTORED ? 'The Saelspring' : view.control >= SITE_LIBERATED ? 'Dormant spring' : 'Ordinance seal', view.control >= SITE_RESTORED ? 'LISTEN' : 'EXAMINE');
   }
+  get watching() { return this.view.control < SITE_LIBERATED && this.patrol.watching; }
   /** Replays the restoration from a dry basin. Developer review only. */
   replayWake() { if (this.view.control >= SITE_RESTORED) { this.wake = 0; this.waking = true; } }
   setNight(v: number) { this.night = Math.max(0, Math.min(1, (v - .3) / .4)); }
@@ -165,6 +172,6 @@ export class MarketSquare {
     for (const p of this.petals) p.rotation.x = T.MathUtils.lerp(-.12, .78, open);
     this.core.material = lit ? ancientMats.awake : ancientMats.dormant; this.discFace.material = this.wake > .88 ? ancientMats.awake : ancientMats.dormant;
     if (lit) { this.halo.rotation.y += dt * (calm ? .2 : .7); this.halo.rotation.x = .35; this.disc.rotation.y = Math.sin(time * .3) * (calm ? .1 : .35); this.core.position.y = 2.72 + Math.sin(time * 1.3) * .04; }
-    if (this.view.control < SITE_LIBERATED) { this.yoke.rotation.y = Math.sin(time * .21) * 1.05; this.beamMat.opacity = this.night * .2; this.patrol.update(dt, time, viewer); }
+    if (this.view.control < SITE_LIBERATED) { this.yoke.rotation.y = Math.sin(time * .21) * 1.05; beamMat.opacity = this.night * .2; this.patrol.update(dt, time, viewer); }
   }
 }

@@ -34,7 +34,7 @@ function makeScene(index:number):Scene{
 const scenes=Array.from({length:42},(_,index)=>makeScene(index));
 export function sceneFor(index:number){return scenes[index];}
 function angle(value:number){return Math.atan2(Math.sin(value),Math.cos(value));}
-const look=new T.Vector3();
+const look=new T.Vector3(),pelvisPoint=new T.Vector3();
 let weariness=1;let raining=false;
 /** Early Terra walks tired; prosperity straightens backs. Rain opens umbrellas. */
 export function setLifeConditions(stage:number,rain:boolean){weariness=Math.max(0,1-stage/3);raining=rain;}
@@ -138,6 +138,12 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
     const relative=angle(Math.atan2(look.x-pos.x,look.z-pos.z)-yaw);
     if(Math.abs(relative)<1.25)headYaw=T.MathUtils.clamp(relative,-.48,.48);else n.gaze='away';
   }
+  // The pelvis is the rigid base the legs hang from: lean, twist and sway turn the torso
+  // about the hip joint, not about the feet, and a sideways weight shift carries the hips
+  // (legs tilt so the feet stay planted) instead of sliding the torso off the thighs.
+  const sway=n.body.position.x,pelvis=hipHeight-bodyHeight;pelvisPoint.set(0,pelvis,0).applyEuler(n.body.rotation);
+  n.body.position.x-=pelvisPoint.x;n.body.position.y+=pelvis-pelvisPoint.y;n.body.position.z-=pelvisPoint.z;
+  n.legs.forEach(leg=>{leg.position.x=(leg.userData.hipX??=leg.position.x)+sway;if(!seated)leg.rotation.z-=sway/LEG;});
   // Head stabilization: the head cancels torso lean and twist.
   const blend=1-Math.exp(-dt*4);n.head.rotation.y=T.MathUtils.lerp(n.head.rotation.y,T.MathUtils.clamp(headYaw-n.body.rotation.y,-.6,.6),blend);
   n.head.rotation.x=T.MathUtils.lerp(n.head.rotation.x,pitch-n.body.rotation.x*.8+nod+(speaking?Math.sin(phase*2)*.03:0),blend);

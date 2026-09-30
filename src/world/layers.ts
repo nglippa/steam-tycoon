@@ -1,12 +1,12 @@
 import * as T from 'three';
 import { bake } from './assets';
-import { SITE_LIBERATED, SITE_RESTORED, type PropertyId } from '../simulation/economy';
+import { SITE_LIBERATED, SITE_RESTORED, type PropertyId, type SiteId } from '../simulation/economy';
 
 /** Terra is one city in strata: an ancient base, the occupation built over it, the
  * damage of the Lowworks, economic repair, the resistance hidden inside it, and finally
  * liberation and the ancient works running again. A layered site authors each stratum
  * once and lets saved state decide what is standing, so every district can reuse it. */
-export interface SiteView { control: number; stage: number; levels: Record<PropertyId, number> }
+export interface SiteView { control: number; stage: number; levels: Record<PropertyId, number>; sites: Record<SiteId, number> }
 export type When = (v: SiteView) => boolean;
 
 export const when = {
@@ -19,6 +19,8 @@ export const when = {
   dormant: ((v) => v.control < SITE_RESTORED) as When,
   /** Economic condition of one business, independent of who controls the street. */
   business: (id: PropertyId, test: (level: number) => boolean): When => v => test(v.levels[id]),
+  /** Another site's control: the resistance network showing up somewhere else. */
+  site: (id: SiteId, test: (control: number) => boolean): When => v => test(v.sites[id]),
   all: (...tests: When[]): When => v => tests.every(t => t(v)),
 };
 
@@ -30,4 +32,11 @@ export class LayeredSite {
   layer(test: When, baked = true) { const group = new T.Group(); this.root.add(group); this.layers.push({ group, when: test, baked }); return group; }
   seal() { for (const l of this.layers) if (l.baked) bake(l.group); }
   sync(view: SiteView) { for (const l of this.layers) l.group.visible = l.when(view); }
+}
+/** What a layered district offers the rest of the world: physical spots to interact
+ * with, where restoration crews set up, whether occupation eyes are on the Steward. */
+export interface SiteModule {
+  id: SiteId; view: SiteView; targets: { object: T.Mesh; spot: string; label: string; hint: string }[];
+  anchor: { x: number; z: number; rotation: number }; readonly watching: boolean;
+  sync(view: SiteView): void; update(dt: number, time: number, viewer: T.Vector3, calm: boolean): void; setNight(v: number): void;
 }

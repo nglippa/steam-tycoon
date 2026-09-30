@@ -165,3 +165,18 @@ The existing dark industrial Terra is now the occupation layer over an ancient s
 - **Ancient Terra:** ivory stone, turquoise tile, gold and aether blue. It uses slender piers, a gently pointed ring, swept gold fins, a sun-medallion in the paving, and a flower-like fountain whose petals open. It keeps to a few clean silhouettes and saves the luminous effects for the restoration.
 
 Economic prosperity washes soot and fills stalls, but it never removes the occupation. Liberation removes the Ordinance's objects from the same stones. Restoration is the only thing that makes the ancient layer glow.
+
+## Two industries and the sky below (2026-09-30)
+
+- **Occupation industry** is welded, braced, riveted and smoky: plates bolted on at angles, braces welding moving parts still, a flue shoved into something finer, an anvil strapped over ivory. It is loud, and everything in it is mechanically obvious.
+- **Ancient industry** is a different philosophy, not cleaner steampunk: broken gold arcs that turn in the plane of the wall, negative space inside the frame, a gimballed core, and a table that levitates and aligns parts. It moves silently and slowly and has no visible drive.
+- **The sky** is painted, not simulated: layered flat cloud banks below eye level, haze planes for depth, and distant isles in flat skyline materials. Keep silhouettes readable at range. A single inverted cone reads as an arrow, so floating isles hang lopsided clusters of rock roots.
+
+## Body construction: torso, pelvis and legs (2026-09-30)
+
+These rules come from figure-drawing and 3D-topology references (Love Life Drawing on the pelvis; Wikipedia on body proportions; AnimeOutline's full-body anime proportions; Blender Artists and TopologyGuides on hip topology). Apply them to every character.
+
+- **Two rigid masses.** The ribcage and the pelvis are separate masses joined at the waist. The shirt or coat body ends at the belt. The pelvis is its own mesh in the trouser material: widest at the hip joints, set slightly back into a seat (forward pelvic tilt), and closing under into the crotch, so the legs leave from a V and not from the rim of a tube.
+- **The legs hang from the pelvis.** Hip joints sit inside the pelvis, just above the crotch; the height's halfway line runs between the greater trochanters. Thighs are slimmer at the root, fullest in the upper-middle, and angle in so the knees sit closer than the hips.
+- **Motion turns about the hips.** Lean, twist and sway rotate the upper body around the hip joint, never around the feet. A sideways weight shift moves the hips, and the legs tilt so the feet stay planted.
+- **Proportion.** Terra's citizens are about 4 heads tall (big-head anime). At this scale legs to crotch are about 1.6 heads, and the shoulder-to-crotch torso is about 1 head. Do not stretch the legs to 6.5-head canon without restyling the head.

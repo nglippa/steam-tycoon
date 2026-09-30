@@ -52,7 +52,7 @@ export class Atmosphere {
     this.sun.intensity = .12 + daylight * (weather === 'clear' ? 3.1 : weather === 'rain' ? 1.6 : 2.2); this.sun.color.set(daylight > .4 ? '#fff3e0' : '#c2d0f5');
     // Backlit, raking sun ahead of the main view: bright hazy distance, diagonal shadow bands.
     this.sun.position.set(-34 + Math.cos(day * Math.PI * 2) * 14, 17 + Math.max(0, phase) * 16, -46 + Math.sin(day * Math.PI * 2) * 10);
-    this.art.update(time, daylight, weather === 'rain', weather, dusk, smog);
+    this.art.update(time, daylight, weather === 'rain', weather, dusk, smog); this.art.follow(camera.position);
     this.sky.copy(this.art.uniforms.skyHorizon.value); tintSkyline(this.art.uniforms.skyHorizon.value, daylight); this.scene.background = this.sky; const fog = this.scene.fog as T.FogExp2; fog.color.copy(this.sky);
     fog.density = (weather === 'fog' ? .013 : weather === 'rain' ? .0105 : .0078) + smog * .0022;
     mats.glow.emissiveIntensity = 1.5 - daylight * .9; this.city.presentation.setNight(1 - daylight); this.city.presentation.setShafts(weather === 'clear' ? daylight * (1 - smog * .4) : weather === 'overcast' ? daylight * .25 : 0); windowGlass.forEach((m,i)=>m.emissiveIntensity=i===3?.04:(1.05-daylight*.78));housingGlass.forEach((m,i)=>m.emissiveIntensity=i===0||i===3?.025:(.62-daylight*.36));

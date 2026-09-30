@@ -37,7 +37,7 @@ test('site steps are gated by the economy and never advance on a blocked or unaf
 });
 test('liberation raises income without changing prosperity stage; restoration adds more', () => {
   const e = new Economy(memory()); e.state.crowns = 1e8; for (const p of PROPERTIES) { e.upgrade(p.id); e.upgrade(p.id); } e.upgradeInfra('lamps'); e.upgradeInfra('gardens');
-  for (let i = 0; i < 3; i++) assert.equal(e.advanceSite('market'), true);
+  for (let i = 0; i < 3; i++) assert.equal(e.advanceSite('market'), true); e.state.sites.foundry = 3;
   const stage = e.stage, occupied = e.rate; assert.equal(e.advanceSite('market'), true); assert.equal(e.state.sites.market, SITE_LIBERATED);
   assert.equal(e.stage, stage); assert.ok(Math.abs(e.rate / occupied - 1.15) < 1e-9);
   assert.equal(e.advanceSite('market'), true); assert.ok(Math.abs(e.rate / occupied - 1.25) < 1e-9);
@@ -46,6 +46,7 @@ test('liberation raises income without changing prosperity stage; restoration ad
 test('liberation waits for prosperity and restoration waits for clean water', () => {
   const e = new Economy(memory()); e.state.crowns = 1e8; e.upgrade('tavern'); e.upgrade('tavern'); e.upgrade('market'); for (let i = 0; i < 3; i++) e.advanceSite('market');
   assert.match(e.siteBlocker('market')!, /Industry/); for (const p of PROPERTIES) { e.upgrade(p.id); e.upgrade(p.id); } assert.equal(e.stage, 2);
+  assert.match(e.siteBlocker('market')!, /Cinder No\. 3: forge the cutters/); e.state.sites.foundry = 3;
   assert.equal(e.advanceSite('market'), true); assert.match(e.siteBlocker('market')!, /gardens/); e.upgradeInfra('gardens'); assert.equal(e.advanceSite('market'), true);
 });
 test('site progress survives save roundtrip, v2 saves migrate as occupied and invalid values clamp', () => {
@@ -53,4 +54,23 @@ test('site progress survives save roundtrip, v2 saves migrate as occupied and in
   const v2 = { ...freshSave(), version: 2 } as Record<string, unknown>; delete v2.sites; assert.equal(decodeSave(JSON.stringify(v2))?.sites.market, 0);
   assert.equal(decodeSave(JSON.stringify({ ...freshSave(), sites: { market: 99 } }))?.sites.market, 5);
   assert.equal(decodeSave(JSON.stringify({ ...freshSave(), sites: { market: 'x' } }))?.sites.market, 0);
+});
+test('the resistance is a network: the Finch vouches for the foundry, the foundry arms the square', () => {
+  const e = new Economy(memory()); e.state.crowns = 1e8; e.upgrade('foundry');
+  assert.match(e.siteBlocker('foundry')!, /Market Square: knock at the copper finch cellar/); assert.equal(e.advanceSite('foundry'), false);
+  e.upgrade('tavern'); e.advanceSite('market'); assert.equal(e.advanceSite('foundry'), true);
+  assert.match(e.siteBlocker('foundry')!, /Cinder & Iron restored to level 2/); e.upgrade('foundry'); assert.equal(e.advanceSite('foundry'), true);
+  e.upgrade('foundry'); assert.equal(e.advanceSite('foundry'), true); assert.equal(e.state.sites.foundry, 3);
+});
+test('a profitable foundry stays occupied until its own workers down tools', () => {
+  const e = new Economy(memory()); e.state.crowns = 1e9; for (let i = 0; i < 5; i++) for (const p of PROPERTIES) e.upgrade(p.id);
+  assert.equal(e.state.properties.foundry.level, 5); assert.equal(e.state.sites.foundry, 0);
+  e.state.sites.market = 1; for (let i = 0; i < 3; i++) assert.equal(e.advanceSite('foundry'), true);
+  const before = e.rate; assert.equal(e.advanceSite('foundry'), true); assert.equal(e.state.sites.foundry, SITE_LIBERATED); assert.ok(Math.abs(e.rate / before - 1.15) < 1e-9);
+  assert.match(e.siteBlocker('foundry')!, /steam distribution level 2/); e.upgradeInfra('steam'); e.upgradeInfra('steam'); assert.equal(e.advanceSite('foundry'), true);
+  assert.equal(e.state.sites.market, 1);
+});
+test('v3 saves written before the foundry site load it as occupied', () => {
+  const s = freshSave() as unknown as Record<string, unknown>; s.sites = { market: 4 };
+  const d = decodeSave(JSON.stringify(s))!; assert.equal(d.sites.market, 4); assert.equal(d.sites.foundry, 0);
 });

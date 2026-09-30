@@ -158,9 +158,13 @@ export function citizen(coat:Material=mats.rust,seed=0,archetype:Archetype='work
   // Builds: slim, standard and sturdy frames change the silhouette at any distance.
   const k=archetype==='worker'||archetype==='guard'||archetype==='ordinal'?[1.16,1,1.1][seed%3]:[1,.9,1.08,1][seed%4];
   const kz=1+(k-1)*.8;
-  const W=(rings:number[][])=>rings.map(([y,w,d])=>[y,w*k,d*(1+(k-1)*.8)]);
-  // Torso: shoulder line, chest, a readable waist and a hip transition.
-  tailored(body,W([[.9,.17,.12],[.97,.188,.128],[1.06,.168,.118],[1.13,.148+(k-1)*.12,.108],[1.24,.17,.118],[1.35,.2,.13],[1.42,.225,.126],[1.47,.212,.112],[1.52,.12,.085],[1.545,.06,.055]]),top,14);
+  const W=(rings:number[][])=>rings.map(([y,w,d,oz=0])=>[y,w*k,d*(1+(k-1)*.8),oz]);
+  // Torso: ribcage mass from the belt up, with shoulder line, chest and a readable waist.
+  tailored(body,W([[1.09,.15,.11],[1.13,.148+(k-1)*.12,.108],[1.24,.17,.118],[1.35,.2,.13],[1.42,.225,.126],[1.47,.212,.112],[1.52,.12,.085],[1.545,.06,.055]]),top,14);
+  // Pelvis: a separate rigid mass in the trousers, not the shirt run down to the crotch.
+  // Widest at the hip joints, set back into a seat (forward tilt), then turning under
+  // into a closed crotch that the thighs leave from, so the legs start at a V, not a rim.
+  tailored(body,W([[1.14,.146+(k-1)*.12,.108],[1.06,.162,.12,-.004],[.99,.18,.13,-.012],[.93,.172,.126,-.013],[.885,.126,.104,-.009],[.862,.058,.06,-.004],[.855,0,0,-.004]]),kit.trousers,14);
   tailored(body,[[1.5,.05,.047],[1.6,.04,.04],[1.7,.041,.04]],skinMat,10);
   // Belt at the waist, everyone: the clearest single read of an anime figure.
   tailored(body,W([[1.1,.156+(k-1)*.12,.114],[1.15,.154+(k-1)*.12,.113]]),archetype==='guard'||archetype==='engineer'||archetype==='ordinal'?gloveInk:leather,14);
@@ -173,6 +177,8 @@ export function citizen(coat:Material=mats.rust,seed=0,archetype:Archetype='work
   } else {
     panel(body,[[-.05,1.5],[0,1.44],[.05,1.5],[0,1.53]],.1*kz,ivory);
   }
+  // The Ordinance's high oxblood collar closes the throat.
+  if(archetype==='ordinal')tailored(body,W([[1.47,.106,.092],[1.53,.112,.098],[1.6,.108,.094]]),accent,12);
   if(archetype==='guard'){
     const shield=new T.Shape();shield.moveTo(-.045,.05);shield.lineTo(.045,.05);shield.lineTo(.045,-.01);shield.lineTo(0,-.055);shield.lineTo(-.045,-.01);shield.closePath();
     const badge=new T.Mesh(new T.ShapeGeometry(shield),brass);badge.position.set(-.1,1.33,.128*kz+.004);body.add(badge);
@@ -257,7 +263,7 @@ export function citizen(coat:Material=mats.rust,seed=0,archetype:Archetype='work
     // blunt brow ridge and a thin iron crest. Reads as occupation at any distance.
     const dome=turned([[.238,0],[.25,.07],[.246,.15],[.2,.23],[.11,.275],[0,.285]],darkCloth,.08,1.02,1.06);dome.rotation.x=-.05;
     const flare=turned([[.3,0],[.27,.03],[.24,.07]],darkCloth,.07,1,1.12);flare.position.z=-.03;flare.rotation.x=.2;
-    visor(.21,.1,.1,.2,.12,boot);box(hat,0,.34,-.01,.018,.07,.36,boot);turned([[.241,0],[.243,.03],[0,.03]],accent,.1);}
+    visor(.21,.1,.1,.2,.12,boot);box(hat,0,.37,-.02,.03,.13,.44,boot);box(hat,0,.31,.2,.032,.05,.06,accent);turned([[.241,0],[.243,.03],[0,.03]],accent,.1);}
   if(kit.hat==='cap'){// Newsboy cap: soft crown pulled forward over the brow, short stiff peak.
     const c=turned([[.228,0],[.262,.045],[.272,.085],[.24,.125],[.13,.155],[0,.16]],cloth,.1,1.04,1.02);c.position.z=.025;c.rotation.x=.14;sphere(hat,0,.265,.02,.022,cloth);visor(.17,.12,.12,.19,.3,darkCloth);}
   if(kit.hat==='bowler'){// Bowler: round dome, curled narrow brim.
@@ -272,9 +278,13 @@ export function citizen(coat:Material=mats.rust,seed=0,archetype:Archetype='work
   const legs:T.Group[]=[],knees:T.Group[]=[],arms:T.Group[]=[],elbows:T.Group[]=[];
   for(const side of [-1,1]){
     // Legs: shaped thigh, knee, calf and a clear ankle into real boots.
-    const hip=new T.Group();hip.position.set(side*.095*k,.98,0);group.add(hip);legs.push(hip);
-    tailored(hip,W([[.04,.098,.104],[-.08,.094,.1],[-.26,.076,.082],[-.43,.062,.066]]),kit.trousers,12);bakeCharacter(hip);
-    const knee=new T.Group();knee.position.y=-.43;hip.add(knee);knees.push(knee);
+    // The hip joint sits inside the pelvis; the thigh is slimmer at its root, fullest in the
+    // upper-middle, and angles in so the knees sit closer than the hips (no parallel posts).
+    const hip=new T.Group();hip.position.set(side*.09*k,.98,0);group.add(hip);legs.push(hip);
+    const thigh=tailored(hip,W([[.04,.088,.096],[-.08,.094,.1],[-.26,.078,.084],[-.43,.062,.066]]),kit.trousers,12),inward=side*-.022;
+    {const pos=thigh.geometry.attributes.position;for(let i=0;i<pos.count;i++)pos.setX(i,pos.getX(i)+inward*Math.max(0,-pos.getY(i))/.43);thigh.geometry.computeVertexNormals();}
+    bakeCharacter(hip);
+    const knee=new T.Group();knee.position.set(inward,-.43,0);hip.add(knee);knees.push(knee);
     tailored(knee,W([[.01,.063,.067],[-.1,.068,.074],[-.27,.05,.054],[-.4,.042,.046]]),kit.trousers,12);
     const bootMat=kit.boots==='soft'?leather:boot;
     if(kit.boots==='tall'){tailored(knee,[[-.08,.07,.075],[-.14,.066,.071],[-.42,.053,.058],[-.49,.056,.062]],bootMat,12);tailored(knee,[[-.3,.061,.066],[-.33,.061,.066]],brass,12);}
@@ -286,6 +296,8 @@ export function citizen(coat:Material=mats.rust,seed=0,archetype:Archetype='work
     const sleeve=kit.sleeve==='rolled'?kit.shirt:top;
     tailored(shoulder,W([[.075,.02,.02],[.05,.058,.06],[0,.07,.072],[-.12,kit.sleeve==='puff'?.078:.064,kit.sleeve==='puff'?.078:.066],[-.25,.05,.052]]),sleeve,12).rotation.z=side*.06;
     if(archetype==='ordinal'&&side<0)tailored(shoulder,W([[-.05,.074,.076],[-.13,.07,.072]]),accent,12);
+    // Squared shoulder boards: the occupation silhouette is wider and harder than any civilian's.
+    if(archetype==='ordinal'){const board=box(shoulder,side*.035,.075,0,.2,.035,.17,boot);board.rotation.z=side*-.18;box(shoulder,side*.13,.075,0,.02,.04,.17,accent);}
     if(archetype==='guard'){const pad=sphere(shoulder,side*.02,.035,0,1,cloth);pad.scale.set(.1,.05,.095);torus(shoulder,side*.02,.02,0,.085,.012,brass).rotation.x=Math.PI/2;}
     bakeCharacter(shoulder);
     const elbow=new T.Group();elbow.position.set(side*.015,-.25,0);elbow.rotation.x=-.12;shoulder.add(elbow);elbows.push(elbow);

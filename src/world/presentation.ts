@@ -10,6 +10,9 @@ import { PROPERTIES } from '../simulation/economy';
 import { businessHeights, businessLift } from './architecture';
 import { TERRACE, terraceRise } from './city';
 import { MarketSquare } from './market-square';
+import { FoundryWorks } from './foundry-works';
+import type { SiteModule } from './layers';
+import { SITE_RESTORED } from '../simulation/economy';
 
 /** World-only presentation. Reads completed visual levels; never changes the economy. */
 const w2=(w:number)=>w*.18;
@@ -17,7 +20,9 @@ export class Presentation {
   root=new T.Group(); restored=new T.Group(); worn=new T.Group(); market=new T.Group();
   mechanisms:{object:T.Object3D;axis:'x'|'y'|'z';speed:number}[]=[];
   workers:{person:ReturnType<typeof citizen>;kind:Activity;tool?:T.Group;minStage:number;maxStage:number;time:'any'|'day'|'night';partner?:number;path?:{a:T.Vector3;b:T.Vector3;speed:number};y:number;when?:()=>boolean}[]=[];
-  marketSquare!:MarketSquare;
+  marketSquare!:MarketSquare; foundryWorks!:FoundryWorks; sites:SiteModule[]=[];
+  /** The Ordinance's coal furnace at Cinder No. 3: its own group, because restoration removes it. */
+  foundryFurnace?:T.Group; foundryHoist?:T.Group; furnaceHammer=0;
   cartPusher=0;shaftMat?:T.MeshBasicMaterial;shafts?:T.Group;poolMat?:T.MeshBasicMaterial;pools?:T.Group;terracePlanters:[number,number][]=[];birds!:T.InstancedMesh;capsules:T.Group[]=[];moths!:T.InstancedMesh;hoistCrate!:T.Group;barge!:T.Group;craneJib!:T.Group;ingotCart!:T.Group;
   steamOrigins=[V(32.8,13,40),V(0,17.9,29),V(-9,.25,25),V(31,3,14),V(-29,2,14),V(9,.3,-25)];
   runoff: T.Vector3[]=[]; heat:T.Mesh[]=[]; lanterns:T.Mesh[]=[];
@@ -25,7 +30,7 @@ export class Presentation {
   verges:[number,number][]=[[-7.3,42],[-7.3,16],[-7.3,-13],[7.3,38],[7.3,13],[7.3,-17]];
   tarp=illustrated(new T.MeshStandardMaterial({color:'#8f9d97',side:T.DoubleSide}));
   soot=new T.MeshBasicMaterial({color:'#2a2a36',transparent:true,opacity:.28,depthWrite:false});
-  constructor(public city:City){city.root.add(this.root);this.root.add(this.restored,this.worn,this.market);this.gate();this.street();this.industries();this.square();this.story();this.boundaries();this.greatMain();this.streetEdges();this.life();this.everyday();this.nightLights();this.density();this.ornament();this.carving();this.vignettes();this.marketSquare=new MarketSquare(this);}
+  constructor(public city:City){city.root.add(this.root);this.root.add(this.restored,this.worn,this.market);this.gate();this.street();this.industries();this.square();this.story();this.boundaries();this.greatMain();this.streetEdges();this.life();this.everyday();this.nightLights();this.density();this.ornament();this.carving();this.vignettes();this.marketSquare=new MarketSquare(this);this.foundryWorks=new FoundryWorks(this);this.sites=[this.marketSquare,this.foundryWorks];}
   section(){const g=new T.Group();this.root.add(g);return g;}
   gate(){const g=this.section();
     // Curved iron arch lowers the opening into the player's field of view.
@@ -85,22 +90,22 @@ export class Presentation {
     sign(b,'MUNICIPAL No. 07','PRESSURE IS A PUBLIC TRUST',0,7.2,2.6,5.5,.65);
     pipe(b,[[0,11,0],[0,13,0],[0,13,2.8]],.5,mats.iron);
     // Foundry's heavy open furnace and overhead material-handling crane.
-    const f=new T.Group();f.position.set(29,0,14);f.rotation.y=Math.PI/2;g.add(f);
+    const f=new T.Group();f.position.set(29,0,14);f.rotation.y=Math.PI/2;this.root.add(f);this.foundryFurnace=f;
     for(const x of [-3,3])box(f,x,4.7,0,.28,9.4,.35,mats.iron);
     box(f,0,9.2,0,8,.55,.5,mats.rust);for(let i=0;i<7;i++)beam(f,V(-3+i,8.95,0),V(-2+i,9.45,0),.035,mats.brass);
     box(f,0,2.7,.5,4.6,5.4,2.5,artMats.coal);arch(f,0,.3,1.79,3,3.5,mats.iron);arch(f,0,.5,1.82,2.5,3,artMats.furnace);
     for(const x of [-1.5,1.5]){box(f,x,2.1,2,.3,3.3,.3,mats.rust);for(let y=.8;y<3.6;y+=.5)sphere(f,x,y,2.18,.075,mats.brass);}
     box(f,0,.35,3,3,.25,2,mats.iron);for(const x of [-.8,0,.8])box(f,x,.51,3.1,.4,.08,1.2,artMats.ember);
     const hoist=new T.Group();hoist.position.set(0,8.7,0);f.add(hoist);cyl(hoist,0,-1.3,0,.025,2.6,mats.iron);torus(hoist,0,-2.8,0,.26,.065,mats.brass);bake(hoist);
-    f.remove(hoist);hoist.position.set(29,8.7,14);this.root.add(hoist);this.mechanisms.push({object:hoist,axis:'z',speed:.05});
+    f.remove(hoist);hoist.position.set(29,8.7,14);this.root.add(hoist);this.foundryHoist=hoist;this.mechanisms.push({object:hoist,axis:'z',speed:.05});
     pipe(f,[[0,5.4,.5],[0,7.3,.5],[-2,7.3,.5],[-2,12,.5]],.65,mats.iron);
     sign(f,'CINDER No. 3','FOUNDRY • HOT METAL',0,5.6,2.05,3.8,.65);
-    this.city.collider(29,14,3.4,4.5,6);this.city.collider(29.5,40,4.5,4.5,7);
+    bake(f);this.city.collider(29,14,3.4,4.5,6,undefined,()=>this.city.economy.state.sites.foundry>=SITE_RESTORED);this.city.collider(29.5,40,4.5,4.5,7);
     // Belt-driven wheel at the workshop. The axle and bearing supports connect it.
     const drive=new T.Group();drive.position.set(-29,2.7,14);this.root.add(drive);const wheel=gear(drive,0,0,0,1.3);this.mechanisms.push({object:wheel,axis:'z',speed:-.75});
     beam(g,V(-29,2.7,13.6),V(-29,2.7,15.4),.11,mats.iron);for(const z of [13.7,15.3])box(g,-29,1.25,z,.35,2.5,.35,mats.iron);
     for(const x of [-30.25,-27.75])box(g,x,1.75,14,.06,2,.16,mats.wood);
-    this.addWorker(33.6,16,-Math.PI/2,'hammer');this.addWorker(33.1,42,-Math.PI/2,'gauge');this.addWorker(-30,12,Math.PI/2,'valve');
+    this.furnaceHammer=this.addWorker(33.6,16,-Math.PI/2,'hammer');this.addWorker(33.1,42,-Math.PI/2,'gauge');this.addWorker(-30,12,Math.PI/2,'valve');
     const valve=torus(g,-29.4,1.55,12,.28,.04,mats.brass);valve.rotation.y=Math.PI/2;pipe(g,[[-29.4,1.55,12],[-29.4,1.55,14]],.055);
     bake(g);
   }
@@ -387,7 +392,7 @@ export class Presentation {
       const halo=new T.Mesh(new T.PlaneGeometry(3.4,3.4),this.poolMat);halo.position.set(1.8,2.9,.1);f.add(halo);
       const floor=new T.Mesh(new T.PlaneGeometry(6,6),this.poolMat);floor.rotation.x=-Math.PI/2;floor.position.set(1.8,.2,1.8);f.add(floor);}
   }
-  setNight(v:number){this.marketSquare.setNight(v);const n=Math.max(0,Math.min(1,(v-.35)/.4));if(this.poolMat)this.poolMat.opacity=n*.85;if(this.pools)this.pools.visible=n>0;}
+  setNight(v:number){for(const s of this.sites)s.setNight(v);const n=Math.max(0,Math.min(1,(v-.35)/.4));if(this.poolMat)this.poolMat.opacity=n*.85;if(this.pools)this.pools.visible=n>0;}
   animateSet(dt:number,time:number,calm:boolean){void dt;
     const m=new T.Matrix4(),q=new T.Quaternion(),e=new T.Euler(),p=new T.Vector3(),sc=new T.Vector3(1,1,1);
     for(let i=0;i<14;i++){const a=time*(.22+(i%3)*.03)+i*.45,r=9+(i%4)*2.2;p.set(Math.sin(a)*r,36+Math.sin(time*.7+i)*2.5+(i%5),-46+Math.cos(a)*r);e.set(0,a+Math.PI/2,calm?0:Math.sin(time*9+i)*.5);q.setFromEuler(e);sc.setScalar(1.4);m.compose(p,q,sc);this.birds.setMatrixAt(i,m);}
@@ -417,7 +422,8 @@ export class Presentation {
   }
   sync(){
     const e=this.city.economy;const levels=PROPERTIES.map(p=>this.city.properties.get(p.id)!.level);const key=[...levels,...Object.values(e.state.infrastructure),...Object.values(e.state.sites),e.stage].join(':');if(key===this.signature)return;this.signature=key;
-    this.marketSquare.sync({control:e.state.sites.market,stage:e.stage,levels:Object.fromEntries(PROPERTIES.map((p,i)=>[p.id,levels[i]])) as Record<typeof PROPERTIES[number]['id'],number>});
+    const businesses=Object.fromEntries(PROPERTIES.map((p,i)=>[p.id,levels[i]])) as Record<typeof PROPERTIES[number]['id'],number>;
+    for(const s of this.sites)s.sync({control:e.state.sites[s.id],stage:e.stage,levels:businesses,sites:{...e.state.sites}});
     this.worn.visible=e.state.infrastructure.roads===0;
     this.city.disposeGroup(this.restored);this.city.disposeGroup(this.market);const g=this.restored;const rich=e.stage>=3;const soot=this.soot;const marketLevel=levels[5];
     // Repairs have literal mechanical consequences unique to every property.
@@ -493,7 +499,7 @@ export class Presentation {
     for(const m of this.mechanisms)m.object.rotation[m.axis]=Math.sin(time*m.speed)*.12+(m.axis==='z'&&Math.abs(m.speed)>.2?time*m.speed:0);
     const calm=reducedMotion(this.city.economy.state.settings.reducedMotion);
     const stage=this.city.economy.stage,day=this.city.economy.state.day,night=day<.24||day>.78;
-    this.marketSquare.update(dt,time,viewer,calm);
+    for(const s of this.sites)s.update(dt,time,viewer,calm);
     this.workers.forEach((w,i)=>{const {person,kind}=w;
       const on=stage>=w.minStage&&stage<=w.maxStage&&(w.time==='any'||(w.time==='night')===night)&&(w.when?.()??true);person.group.visible=on;if(!on)return;
       person.worn.visible=stage<3;person.finery.visible=stage>=3;

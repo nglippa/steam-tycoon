@@ -36,7 +36,23 @@ Terra is occupied. The Ordinance built its checkpoints, iron and propaganda over
 - **Liberated:** the gallery, banners, boom, patrol and plates come off the same stones. Civic ivory-and-turquoise banners hang where the regime's did, and resistance members stand openly at the gate. +15% city income.
 - **Restored:** the spring itself carries the last step. Once the water mains are clean (gardens level 1), civic engineers break the seal. The petals open, water fills the basin, and light runs from the spring along the channels, up the piers and around the arch. +10% city income.
 
-Economic prosperity and control are separate. A rich, occupied square still has its checkpoint. Liberation needs Terra to reach Industry, and the covert steps are gated by the Copper Finch and Bellweather Exchange levels.
+Economic prosperity and control are separate. A rich, occupied square still has its checkpoint. Liberation needs Terra to reach Industry and the Foundry's cutters (see below), and the covert steps are gated by the Copper Finch and Bellweather Exchange levels.
+
+## Liberation (Phase 2: Cinder No. 3, the Foundry)
+
+The Foundry tells a different story from the square. The regime runs it as a coal foundry built into something older. Behind its furnace sits the **Armillary**, an ancient ivory frame with three gold rings that the Ordinance welded still. In front of the furnace, an ivory fabrication table serves as an anvil.
+
+- **Occupied:** plates are bolted over the frame, braces weld the rings to the wall, and the furnace flue is driven into the core. An inspection booth and turnstile stand at the gate, along with a floodlight, a locked supply cage, a quota board and a requisition plate over the business sign. The overseer turns between the quota board and the outgoing stock.
+- **Prosperous but occupied:** Foundry levels stack more output crates and raise the quota, and nothing else changes.
+- **Covert (3 steps), at the shift board:** (1) a second count chalked under the quota, and stools behind the coal bunker. (2) A false-bottom crate among the stock; the packer only lifts the lid while the overseer faces away. (3) Bolt cutters and pressure keys racked under a tarp. The workers at the board talk when the overseer's back is turned and go back to their clipboards when he looks.
+- **Liberated ("Down tools", needs Terra to reach Commerce):** the booth, turnstile, floodlight and half the plates come off. The cage stands open, the board becomes the works council's, and the workers hold the gate. +15% city income.
+- **Restored ("Wake the Armillary", needs steam distribution level 2):** the furnace comes out of the wall. The rings turn silently, aether runs around the frame, and the table lifts the parts it was built to make. +10% city income.
+
+**The network.** Foundry step 1 needs the Copper Finch to vouch (Market Square covert step 1). Market Square's liberation needs the Foundry's cutters (Foundry step 3), and once they are forged a crate of them appears at the Finch's cellar door.
+
+## Terra's edge
+
+Behind the arrival gate the ward ends at a cliff. An ivory terrace juts past it. From its balustrade you can see a spillway pouring off into nothing, ancient ribs curving under the rim, a lesser isle hung on chains far below, a sister isle on the horizon, swifts on the updraft, and the cloud sea with Locke showing through. The sky, cloud sea and fall follow the day/night key and the weather.
 
 The industrial ramp in the western alley reaches a six-metre-high overlook. Three discoverable plaques/objects offer original Locke lore, a small reward and persistent output bonuses.
 
@@ -67,6 +83,8 @@ The economy suite covers spending, passive/manual accounting, automation, offlin
 - `src/world/layers.ts`: `LayeredSite`. A location authors each stratum (ancient, occupation, economic condition, covert, liberated, restored) once, and saved state decides which strata stand. Static strata are baked; animated ones are not.
 - `src/world/factions.ts`: the three visual languages (Ordinance, Embers, ancient Terra), with emblems, printed cloth and posters, and the travelling water/aether material.
 - `src/world/market-square.ts`: the Market Square slice. It covers the Saelspring, the Sael Gate, the checkpoint, the cellar and the restoration circuit.
+- `src/world/foundry-works.ts`: the Foundry slice. It covers the Armillary, the fabrication table, the overseer's gaze, covert packing and the wake.
+- `src/world/terra-edge.ts`: the south edge, with the cliff plate, arrival terrace, spillway fall, ribs, hanging isles and swifts. The cloud sea and horizon live in `weather-art.ts`.
 - `src/world/patrol.ts`: one lightweight patrol that walks, notices, investigates, searches and returns, using a vision cone and collider line of sight.
 - `src/world/art-kit.ts`: Terra crests, gauges, pipework, roofs and canopies.
 - `src/world/weather-art.ts`: illustrated sky, canal ripples, runoff, splashes and sparks.
@@ -93,6 +111,9 @@ __TERRA__.atmosphere.override = 'rain' // 'overcast', 'fog', or null for cycle
 __TERRA__.site(4)                // Market Square control: 0 occupied, 1-3 covert, 4 liberated, 5 restored
 __TERRA__.wake()                 // replay the Saelspring restoration (site 5 only)
 __TERRA__.view('marketSquare')   // also saelGate, cellar, spring
+__TERRA__.site(3, 'foundry')     // Foundry control, same ladder; &foundry=n in the URL
+__TERRA__.wake('foundry')        // replay the Armillary waking (site 5 only)
+__TERRA__.view('foundryYard')    // also shiftBoard, forge, edge, arrival
 ```
 
 Developer saves are isolated from the ordinary game. The starting district is the most detailed area; expansion districts are compact explorable extensions. NPC life is route-based ambient choreography, not a full individual-needs simulation. Prestige, politics, supply-chain logistics and multiplayer are deliberately reserved for future development.

@@ -266,7 +266,8 @@ export function archetype(g:T.Object3D,kind:number,x:number,w:number,h:number,wa
 export function buildOuterCity(root:T.Group,walls:T.Material[]){
   const g=new T.Group();root.add(g);const roofsBy=[mats.roof,mats.rust,mats.teal];
   const path:[number,number,number][]=[];// x,z,yaw facing the city
-  for(let z=92;z>=-92;z-=26)path.push([-92,z,Math.PI/2],[92,z,-Math.PI/2]);for(let x=-66;x<=66;x+=26){path.push([x,98,Math.PI]);if(Math.abs(x)>20)path.push([x,-98,0]);}
+  // South of the arrival terrace Terra simply ends: no outer ward beyond z≈80, only sky.
+  for(let z=66;z>=-92;z-=26)path.push([-92,z,Math.PI/2],[92,z,-Math.PI/2]);for(let x=-66;x<=66;x+=26)if(Math.abs(x)>20)path.push([x,-98,0]);
   path.forEach(([px,pz,yaw],c)=>{const cl=new T.Group();cl.position.set(px,0,pz);cl.rotation.y=yaw;g.add(cl);
     const count=3+(c*7)%4,anchor=(c*3)%count,rhythm=.8+.35*Math.sin((px*.9+pz)*.035),wallMat=walls[(c*5)%walls.length],roofMat=roofsBy[(c*2)%3];
     const kinds=Array.from({length:count},(_,k)=>k===anchor?[2,7,4][c%3]:[0,1,5,3,6,0,1][(c+k*3)%7]);
@@ -277,6 +278,8 @@ export function buildOuterCity(root:T.Group,walls:T.Material[]){
 /** Illustrated aerial perspective: each backdrop plane mixes toward the horizon by a
  * fixed weight and dims at night, instead of dissolving in exponential fog. */
 const skylineLayers:{material:T.MeshBasicMaterial;base:T.Color;weight:number}[]=[];
+/** A flat, unfogged painted-distance material tinted with the rest of the skyline each frame. */
+export function skylineMaterial(color:string,weight=.3){const m=new T.MeshBasicMaterial({color,fog:false});skylineLayers.push({material:m,base:new T.Color(color),weight});return m;}
 export function tintSkyline(horizon:T.Color,daylight:number){for(const l of skylineLayers)l.material.color.copy(l.base).multiplyScalar(.28+.72*daylight).lerp(horizon,l.weight);}
 /** A painted backdrop in three planes: rooftops, the old Pressure Spires and the
  * snow ridges of Veyr. Flat fog-tinted color keeps it behind the playable street. */
@@ -286,7 +289,7 @@ export function buildSkyline(root:T.Group) {
   const wall=flat('#a9c8c2',.25),roofs=flat('#88aead',.25),deep=flat('#98bab7',.4),spire=flat('#80a8a8',.42);
   // Far ring: the same archetype grammar in flat, tinted planes.
   const far2=[wall,deep];let t=0;
-  for(let c=0;c<26;c++){const a=c/26*Math.PI*2+.05,r=118+(c%3)*7,rhythm=.75+.35*Math.sin(a*3+.6);const grp=new T.Group();grp.position.set(Math.sin(a)*r,0,Math.cos(a)*r);grp.rotation.y=a+Math.PI;near.add(grp);
+  for(let c=0;c<26;c++){const a=c/26*Math.PI*2+.05,r=118+(c%3)*7,rhythm=.75+.35*Math.sin(a*3+.6);if(Math.cos(a)>.5)continue;const grp=new T.Group();grp.position.set(Math.sin(a)*r,0,Math.cos(a)*r);grp.rotation.y=a+Math.PI;near.add(grp);
     let x=-9;for(let k=0;k<3+c%3;k++){const kind=(c*3+k*5)%8,w=kindWidth[kind];archetype(grp,kind,x+w/2,w,(9+((c+k)%4)*2.2)*rhythm*(k===1?1.35:1),far2[(c+k)%2],roofs,false);x+=w+.2;t++;}}
   void t;
   // Gasometers and a viaduct give the middle distance an engineered rhythm.

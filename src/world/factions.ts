@@ -94,6 +94,23 @@ export const propaganda = (() => {
 export const sealPlaque = texture(256, 256, x => { x.fillStyle = ordinance.oxblood; x.beginPath(); x.arc(128, 128, 120, 0, Math.PI * 2); x.fill(); x.strokeStyle = ordinance.bone; x.lineWidth = 8; x.beginPath(); x.arc(128, 128, 104, 0, Math.PI * 2); x.stroke(); drawClamp(x, 128, 128, 70, ordinance.bone); weather(x, 256, 256, 3); });
 export function stencilPlate(text: string, w: number, h: number) { return texture(Math.round(w * 160), Math.round(h * 160), x => { const W = x.canvas.width, H = x.canvas.height; x.fillStyle = ordinance.charcoal; x.fillRect(0, 0, W, H); x.fillStyle = ordinance.bone; x.font = stencilFont(H * .56); x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(text, W / 2, H / 2, W * .92); weather(x, W, H, text.length); }); }
 export const emberChalk = texture(256, 256, x => drawEmber(x, 128, 136, 170, embers.chalk));
+/** The regime's quota board. Prosperity raises the number; it never changes who sets it. */
+export function quotaBoard(quota: string) { return texture(384, 288, x => {
+  x.fillStyle = ordinance.charcoal; x.fillRect(0, 0, 384, 288); x.strokeStyle = ordinance.oxblood; x.lineWidth = 10; x.strokeRect(8, 8, 368, 272);
+  drawClamp(x, 48, 50, 36, ordinance.bone); x.fillStyle = ordinance.bone; x.textAlign = 'left'; x.textBaseline = 'middle';
+  x.font = stencilFont(30); x.fillText('ORDINANCE WORKS No. 3', 84, 42, 280); x.font = stencilFont(22); x.fillText('SHIFT QUOTA · CASTINGS', 84, 72, 280);
+  x.textAlign = 'center'; x.font = stencilFont(92); x.fillText(quota, 192, 150); x.fillStyle = ordinance.oxblood; x.fillRect(40, 204, 304, 6);
+  x.fillStyle = ordinance.bone; x.font = stencilFont(28); x.fillText('WORK IS ORDER', 192, 244); weather(x, 384, 288, quota.length * 7); }); }
+export const councilBoard = texture(384, 288, x => {
+  x.fillStyle = '#2c3a33'; x.fillRect(0, 0, 384, 288); x.strokeStyle = '#6b5a44'; x.lineWidth = 12; x.strokeRect(6, 6, 372, 276);
+  x.fillStyle = embers.chalk; x.globalAlpha = .9; x.textAlign = 'left'; x.textBaseline = 'middle'; x.font = '700 30px "Marker Felt","Chalkduster",fantasy';
+  x.fillText('WORKS COUNCIL', 30, 40); x.font = '600 22px "Marker Felt","Chalkduster",fantasy';
+  ['EARLY  Holt · Marr · Oyelaran', 'LATE    Vess · Corrin · Ada', 'RINGS   everyone, Thursday', 'NO QUOTA. REST ON THE HOUR.'].forEach((t, i) => x.fillText(t, 30, 92 + i * 44, 270));
+  drawEmber(x, 330, 230, 80, embers.ember, false);
+});
+export const tallies = texture(256, 128, x => { const r = seeded(31); x.strokeStyle = embers.chalk; x.lineCap = 'round'; x.globalAlpha = .8; x.lineWidth = 4;
+  for (let g = 0; g < 4; g++) { const gx = 14 + g * 44; for (let k = 0; k < 4; k++) { x.beginPath(); x.moveTo(gx + k * 8, 30 + r() * 4); x.lineTo(gx + k * 8 + 2, 74 + r() * 4); x.stroke(); } x.beginPath(); x.moveTo(gx - 4, 66); x.lineTo(gx + 32, 38); x.stroke(); }
+  drawEmber(x, 222, 64, 70, embers.chalk); });
 export const emberPaint = texture(256, 256, x => drawEmber(x, 128, 136, 170, embers.ember, false));
 /** Ancient paving: a sun medallion of ivory rays and turquoise tile set around the spring. */
 export const medallion = texture(1024, 1024, x => {
@@ -112,23 +129,31 @@ tiles.wrapS = tiles.wrapT = T.RepeatWrapping;
 export const grime = texture(512, 512, x => { const r = seeded(15); const g = x.createRadialGradient(256, 256, 60, 256, 256, 256); g.addColorStop(0, 'rgba(24,22,18,.8)'); g.addColorStop(.8, 'rgba(24,22,18,.68)'); g.addColorStop(1, 'rgba(24,22,18,0)'); x.fillStyle = g; x.fillRect(0, 0, 512, 512); x.globalCompositeOperation = 'destination-out'; for (let i = 0; i < 70; i++) { x.globalAlpha = .15 + r() * .4; x.beginPath(); x.arc(r() * 512, r() * 512, 8 + r() * 34, 0, Math.PI * 2); x.fill(); } });
 
 const lit = (color: string, map?: T.Texture) => illustrated(new T.MeshStandardMaterial({ color, map: map ?? null }));
+/** One sweeping-light material for every occupation searchlight and floodlight: opacity follows the night. */
+export const beamMat = (() => { const c = document.createElement('canvas'); c.width = 4; c.height = 128; const x = c.getContext('2d')!; const g = x.createLinearGradient(0, 0, 0, 128); g.addColorStop(0, 'rgba(255,236,196,1)'); g.addColorStop(.35, 'rgba(255,236,196,.45)'); g.addColorStop(1, 'rgba(255,236,196,0)'); x.fillStyle = g; x.fillRect(0, 0, 4, 128);
+  return new T.MeshBasicMaterial({ map: new T.CanvasTexture(c), transparent: true, blending: T.AdditiveBlending, depthWrite: false, side: T.DoubleSide, opacity: 0, fog: false }); })();
+export function lightCone(parent: T.Object3D, radius: number, length: number) { const cone = new T.ConeGeometry(radius, length, 20, 1, true); cone.translate(0, -length / 2, 0); const m = new T.Mesh(cone, beamMat); parent.add(m); return m; }
 export const canvasTarp = illustrated(new T.MeshStandardMaterial({ color: '#58563f', side: T.DoubleSide }));
 export const occupationMats = { iron: lit(ordinance.iron, surface('metal')), green: lit(ordinance.green), oxblood: lit(ordinance.oxblood), rust: lit(ordinance.rust), bone: lit(ordinance.bone) };
-export const ancientMats = { ivory: lit(ancient.ivory, surface('stone')), turquoise: lit(ancient.turquoise), gold: lit(ancient.gold), tile: lit('#ffffff', tiles), dormant: lit('#51677a'),
+export const ancientMats = { ivory: lit(ancient.ivory, surface('stone')), ivoryDark: lit('#8c8676'), turquoise: lit(ancient.turquoise), gold: lit(ancient.gold), tile: lit('#ffffff', tiles), dormant: lit('#51677a'),
   awake: new T.MeshStandardMaterial({ color: ancient.aether, emissive: ancient.aether, emissiveIntensity: 1.6, roughness: .3 }) };
 ancientMats.dormant.side = ancientMats.awake.side = T.DoubleSide;
+// Ancient stone keeps a little of its own light: in backlight it reads as pale stone, not grey concrete.
+ancientMats.ivory.emissive.set('#3d3628');
 /** Printed cloth and paper: lit like the world, but the ink pass keeps out of the lettering. */
 export function printedMat(map: T.Texture, doubleSide = false) { const m = printed(illustrated(new T.MeshStandardMaterial({ map, alphaTest: .5 }))); if (doubleSide) m.side = T.DoubleSide; return m; }
 export function decalMat(map: T.Texture, opacity = .9) { return new T.MeshBasicMaterial({ map, transparent: true, opacity, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -3 }); }
 
 /** Water and aether that travel: uv.x is metres along the circuit from the spring, so a
  * single front uniform can wake the whole system in order and pulses run outward. */
-export const flowClock = { time: { value: 0 }, front: { value: 0 } };
-export function flowMaterial(color: string, kind: 'water' | 'aether', opacity: number) {
+export type FlowClock = { time: { value: number }; front: { value: number } };
+export const flowClock: FlowClock = { time: { value: 0 }, front: { value: 0 } };
+/** Each restored site owns a clock, so one waking never replays another. */
+export function flowMaterial(color: string, kind: 'water' | 'aether', opacity: number, clock: FlowClock = flowClock) {
   const aether = kind === 'aether';
   const m = new T.MeshBasicMaterial({ color, transparent: true, opacity, depthWrite: false, fog: false, side: T.DoubleSide, blending: aether ? T.AdditiveBlending : T.NormalBlending, polygonOffset: true, polygonOffsetFactor: -2 });
   m.onBeforeCompile = sh => {
-    sh.uniforms.flowTime = flowClock.time; sh.uniforms.flowFront = flowClock.front;
+    sh.uniforms.flowTime = clock.time; sh.uniforms.flowFront = clock.front;
     sh.vertexShader = 'varying vec2 vFlow;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvFlow = uv;');
     sh.fragmentShader = 'uniform float flowTime, flowFront;\nvarying vec2 vFlow;\n' + sh.fragmentShader.replace('#include <color_fragment>', `#include <color_fragment>
       float reach = smoothstep(flowFront, flowFront - 1.4, vFlow.x);
@@ -148,4 +173,10 @@ export function strip(points: T.Vector3[], normal: T.Vector3, width: number, d0:
     if (i) { const k = i * 2; index.push(k - 2, k - 1, k, k - 1, k + 1, k); } });
   const geo = new T.BufferGeometry(); geo.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); geo.setAttribute('normal', new T.Float32BufferAttribute(nor, 3)); geo.setAttribute('uv', new T.Float32BufferAttribute(uv, 2)); geo.setIndex(index);
   return { mesh: new T.Mesh(geo, material), end: d };
+}
+/** Worker-made bolt cutters: iron jaws, long handles taped in turquoise. */
+export function boltCutters(g: T.Object3D, x: number, y: number, z: number, yaw: number, tilt = 0) {
+  const c = new T.Group(); c.position.set(x, y, z); c.rotation.set(0, yaw, tilt); g.add(c);
+  for (const s of [-1, 1]) { const h = new T.Mesh(new T.CylinderGeometry(.025, .025, 1.1, 6), occupationMats.iron); h.position.set(s * .05, .55, 0); h.rotation.z = s * .05; c.add(h); const grip = new T.Mesh(new T.CylinderGeometry(.034, .034, .32, 6), ancientMats.turquoise); grip.position.set(s * .07, .2, 0); c.add(grip); }
+  const jaw = new T.Mesh(new T.BoxGeometry(.16, .22, .05), occupationMats.iron); jaw.position.y = 1.18; c.add(jaw); return c;
 }

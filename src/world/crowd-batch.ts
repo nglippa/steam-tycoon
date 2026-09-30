@@ -2,12 +2,12 @@ import * as T from 'three';
 
 /** Keep the existing articulated models, but submit shared materials together. */
 export class CrowdBatch {
-  entries:{source:T.Mesh;batch:T.BatchedMesh;id:number;expression?:number}[]=[];
+  entries:{source:T.Mesh;batch:T.BatchedMesh;id:number;actor:T.Object3D;expression?:number;hidden?:boolean}[]=[];
   constructor(public actors:T.Group[],root:T.Group){
-    const buckets=new Map<T.Material,T.Mesh[]>();
+    const buckets=new Map<T.Material,T.Mesh[]>(),owner=new Map<T.Mesh,T.Object3D>();
     for(const actor of actors)actor.traverse(o=>{
       if(!(o instanceof T.Mesh)||Array.isArray(o.material))return;
-      const list=buckets.get(o.material)??[];list.push(o);buckets.set(o.material,list);
+      const list=buckets.get(o.material)??[];list.push(o);buckets.set(o.material,list);owner.set(o,actor);
     });
     for(const [material,sources] of buckets){
       const geometryMap=new Map<T.BufferGeometry,T.BufferGeometry>();
@@ -16,14 +16,16 @@ export class CrowdBatch {
       const batch=new T.BatchedMesh(sources.length,vertices,0,material);batch.castShadow=false;batch.receiveShadow=true;batch.frustumCulled=false;root.add(batch);
       const ids=new Map<T.BufferGeometry,number>();
       for(const [original,geo] of geometryMap){ids.set(original,batch.addGeometry(geo));geo.dispose();}
-      for(const source of sources){const id=batch.addInstance(ids.get(source.geometry)!);source.updateMatrix();source.matrixAutoUpdate=false;source.visible=false;if(material.userData.faceAtlas)batch.setColorAt(id,new T.Color(1,1,1));this.entries.push({source,batch,id});}
+      for(const source of sources){const id=batch.addInstance(ids.get(source.geometry)!);source.updateMatrix();source.matrixAutoUpdate=false;source.visible=false;if(material.userData.faceAtlas)batch.setColorAt(id,new T.Color(1,1,1));this.entries.push({source,batch,id,actor:owner.get(source)!});}
     }
     this.update();
   }
   update(){
-    for(const actor of this.actors)actor.updateWorldMatrix(true,true);
+    // Story-staged actors are often hidden (a liberated square has no patrol): skip their matrices.
+    for(const actor of this.actors)if(actor.visible)actor.updateWorldMatrix(true,true);
     for(const entry of this.entries){
       const {source,batch,id}=entry;
+      if(!entry.actor.visible){if(!entry.hidden){batch.setVisibleAt(id,false);entry.hidden=true;}continue;}entry.hidden=false;
       if(source.userData.expression!==undefined&&entry.expression!==source.userData.expression){entry.expression=source.userData.expression;batch.setColorAt(id,new T.Color(1+entry.expression!,1,1));}
       let visible=true;let parent=source.parent;
       while(parent){if(!parent.visible){visible=false;break;}parent=parent.parent;}

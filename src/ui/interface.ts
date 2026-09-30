@@ -1,4 +1,4 @@
-import { Economy, PROPERTIES, INFRA, STAGES, SITE_LIBERATED, SITE_RESTORED, format, type PropertyId, type InfraId, type SiteId } from '../simulation/economy';
+import { Economy, PROPERTIES, INFRA, STAGES, format, type PropertyId, type InfraId, type SiteId } from '../simulation/economy';
 import type { Player } from '../player/controller';
 import type { City, Target } from '../world/city';
 import type { Soundscape } from '../audio/sound';
@@ -24,17 +24,13 @@ export class Interface {
   toast(message: string, duration = 4500) { const el = document.querySelector('#toast')!; el.textContent = message; el.classList.add('show'); clearTimeout(this.toastTimer); this.toastTimer = window.setTimeout(() => el.classList.remove('show'), duration); }
   openLedger(tab = this.tab) { this.panel = 'ledger'; this.tab = tab; this.selected = null; this.player.release(); document.querySelector('#pause')!.setAttribute('hidden', ''); this.render(); document.querySelector<HTMLButtonElement>('#panel [data-action=close]')?.focus(); }
   interact(t: Target) { if (t.kind === 'property') { this.economy.inspect(t.id); this.selected = t.id as PropertyId; this.panel = 'property'; this.player.release(); this.render(); } else if (t.kind === 'ledger') this.openLedger(); else if (t.kind === 'district') this.openLedger('Districts'); else if (t.kind === 'site') this.openSite(t.id); else { const lore: Record<string, string> = { map: 'The Seven Provinces: Veyr sends iron; Orison sends salt. Terra once kept them all in motion.', automaton: 'A maker’s mark: FINCH, 1841. Its last instruction was “keep the lamps burning.”', shrine: '“No ember is too small.” The first engineers lit this flame when Terra was only a bridge.' }; if (this.economy.discover(t.id)) { this.sound.collect(); this.toast(`${lore[t.id]}  +55 Crowns · +3% income`, 9500); } else this.toast(lore[t.id], 7000); } }
-  /** Physical places, not menus: the cellar door carries the covert steps and the signal,
-   * the spring carries the restoration. Covert work needs the patrol to look away. */
-  openSite(key: string) { const [id, spot] = key.split('.') as [SiteId, 'cell' | 'spring']; const s = this.economy.state, level = s.sites[id];
-    if (spot === 'cell') {
-      if (level >= SITE_LIBERATED) return this.toast('The cellar is a meeting room now. The Embers hold Market Square in the open.');
-      if (level === 0 && s.properties.tavern.level < 1) return this.toast('The cellar door is padlocked and the Copper Finch is shuttered. Nobody answers.');
-      if (this.city.watched()) return this.toast('An Ordinance patrol is watching the square. Wait until it passes.');
-    } else {
-      if (level < SITE_LIBERATED) return this.toast('An Ordinance seal is welded around something older than the city’s records. Under the soot, the stone is pale and the tiles are turquoise.', 8000);
-      if (level >= SITE_RESTORED) return this.toast('The Saelspring runs. Its light follows the old channels to the Sael Gate.', 6000);
-    }
+  /** Physical places, not menus: each site's spots (a cellar door, a shift board, a spring,
+   * a forge) carry their own steps. Covert spots refuse while occupation eyes are on you. */
+  openSite(key: string) { const [id, name] = key.split('.') as [SiteId, string]; const s = this.economy.state, level = s.sites[id], site = this.economy.site(id), spot = site.spots[name];
+    if (level < spot.from) return this.toast(spot.before, 8000);
+    if (level > spot.to) return this.toast(spot.after, 7000);
+    const closed = spot.closed?.(s); if (closed) return this.toast(closed);
+    if (spot.covert && this.city.watched(id)) return this.toast(site.watched);
     this.siteKey = key; this.panel = 'site'; this.player.release(); this.render(); }
   close(resume = false) { this.panel = null; this.selected = null; this.confirmReset = false; document.querySelector('#panel')!.setAttribute('hidden', ''); if (resume) void this.player.lock(); else document.querySelector('#pause')!.removeAttribute('hidden'); }
   action(action: string, id: string) {
@@ -57,7 +53,7 @@ export class Interface {
   render() { if (!this.panel) return; const el = document.querySelector('#panel')!; el.removeAttribute('hidden'); document.querySelector('#pause')!.setAttribute('hidden', '');
     let body = ''; const s = this.economy.state;
     if (this.panel === 'site') { const id = this.siteKey.split('.')[0] as SiteId, site = this.economy.site(id), level = s.sites[id], step = site.steps[level], blocker = this.economy.siteBlocker(id), busy = this.city.constructions.some(c => c.site === id);
-      const voice = { covert: ['THE EMBERS · BELOW THE COPPER FINCH', 'Nobody upstairs asks why the Steward drinks in the cellar.', 'Pass the coin'], liberation: ['THE EMBERS · THE SIGNAL', 'Every stall, every courier and every lamp is ready. One word and the square refuses the checkpoint.', 'Give the signal'], restoration: ['ANCIENT TERRA · BENEATH THE SEAL', 'Under the Ordinance cage: an ivory basin, a closed flower of turquoise petals and a dark crystal. The channels still lead to the gate.', 'Commission the restoration'] }[step.kind];
+      const voice = site.voice[step.kind];
       body = `<div class="overline">${voice[0]}</div><h2>${site.name}</h2><p class="description">${voice[1]}</p><div class="level-track">${site.steps.map((_, i) => `<span class="${i < level ? 'done' : ''}">${String(i + 1).padStart(2, '0')}</span>`).join('')}</div><div class="section-label">${step.kind === 'covert' ? 'QUIET WORK' : step.kind === 'liberation' ? 'OPEN RESISTANCE' : 'RESTORATION'}</div><h3>${step.name}</h3><p class="muted">${step.detail}${step.kind === 'liberation' ? ' Lifting the occupation levy raises city income by 15%.' : step.kind === 'restoration' ? ' The running spring adds another 10% to city income.' : ''}</p>${this.button('site', id, busy ? 'Work in progress…' : blocker ?? voice[2], step.cost, !!blocker || busy)}`;
     } else if (this.panel === 'property' && this.selected) { const p = PROPERTIES.find(p => p.id === this.selected)!; const v = s.properties[p.id]; const constructing = this.city.constructions.some(c => Math.abs(c.group.position.x - p.x) < 1 && Math.abs(c.group.position.z - p.z) < 1);
       body = `<div class="overline">${p.kind} / LOWWORKS</div><h2>${p.name}</h2><p class="description">${p.description}</p><div class="level-track">${p.upgrades.map((_, i) => `<span class="${i < v.level ? 'done' : ''}">${String(i + 1).padStart(2, '0')}</span>`).join('')}</div><div class="instrument"><div><small>PRODUCTION</small><strong>${format(this.economy.output(p.id))} <em>♜</em></strong><span>every ${p.interval} seconds</span></div><div><small>CITY CONTRIBUTION</small><strong>${(this.economy.output(p.id) / p.interval * (v.automated ? 1 : .4)).toFixed(1)} <em>/s</em></strong><span>${v.automated ? 'Fully automated' : '40% passive · 60% on site'}</span></div></div><div class="production-bar"><span style="width:${v.progress / p.interval * 100}%"></span></div>`;

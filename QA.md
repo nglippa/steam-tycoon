@@ -1,6 +1,6 @@
 # City Tycoon verification — 2026-09-06
 
-The previous implementation was recovered from the earlier task's work directory into `~/city-tycoon`. The active development server runs this repository at http://127.0.0.1:5174/.
+The repository lives at `~/Projects/steam-tycoon` (older task prompts named `~/city-tycoon`, which does not exist). The development server runs it at http://127.0.0.1:5174/.
 
 ## Automated verification
 
@@ -196,3 +196,28 @@ Typecheck, all 11 tests and the build pass. Traversal and ledger checks pass at 
 | market (L2) | 297 | 291 | 388 → 410 | 664k → 707k |
 
 p95 frame time stays at about 4.5 ms. Each stratum is baked to one draw per material and toggled by visibility. The flowing water and aether are two shared shader materials driven by two uniforms, and no lights were added.
+
+## Liberation pivot, Phase 2: Cinder No. 3 and Terra's edge (2026-09-30)
+
+`npm run typecheck`, `npm test` (18 tests: 3 new ones cover the Foundry ladder, the Finch↔Foundry network and v3 saves that predate the Foundry site) and `npm run build` pass. The build's size warning is the existing Three.js vendor chunk.
+
+### Browser verification (Playwright, `?dev=1`)
+
+- Review traversal (`&check=1`) passes in 8 cases: square at L1 (sites 0/0) clear, L3 (3/0) rain and L4 (5/5) clear; foundry at L1 (0/0) clear, L3 (4/3) fog and L4 (5/5) overcast; edge at L2 in rain; arrival at L2 (5/5). In every case all six ledgers are reachable and raycast, and the main street, lanes, ramp and wall collision pass. There were no console or page errors.
+- Save round trip on an ordinary (non-review) save: market 2 and foundry 4 are set, saved and reloaded. Both the state and the visible layers come back the same.
+- Real UI path: the shift board is cold until the Foundry reopens, then refuses until the Finch vouches. The covert steps are refused while the overseer faces the board. Liberation requires Commerce. The Armillary scaffold hugs the rear wall; the wake pulls the furnace, turns the rings and lifts the table's parts.
+- Rendered review: `screenshots/review-2026-09-30-pass1/` (16 frames plus `collage.png`) and `screenshots/review-2026-09-30-pass2/` (the vista after the sister-isle silhouette fix, in clear, rain and dusk).
+
+### Performance (headed Chrome, uncapped, 1280×760, A/B against the Phase 1 commit, mean of 2 rounds)
+
+| View | Phase 1 FPS | Phase 2 FPS | Draws | p95 ms |
+| --- | --- | --- | --- | --- |
+| square, occupied (L0) | 314 | 313 | 310 → 319 | 4.2 → 4.1 |
+| square, restored (L4) | 284 | 285 | 346 → 354 | 4.5 → 4.5 |
+| foundry, occupied (L1) | 250 | 229 | 716 → 764 | 4.9 → 5.2 |
+| foundry, restored (L3) | 224 | 211 | 733 → 768 | 5.5 → 5.8 |
+| street (L2) | 251 | 236 | 677 → 686 | 5.0 → 5.1 |
+| gate (L1) | 375 | 350 | 199 → 221 | 3.7 → 3.8 |
+| spawn (L1) | 230 | 211 | 935 → 986 | 5.4 → 5.7 |
+
+Per-site draw budget (visible meshes before culling): Foundry uses 39 draws occupied, 53 at covert step 3 (its peak) and 28 restored. Market uses 38 occupied and 31 restored. About 11–15 draws per site are unbaked animated parts (rings, gimbal, boards, lid, patrol lamp). The rest is baked strata at one draw per material per stratum, so a material shared by two strata that are visible together (occupation iron in `occ` and `dormant`) costs two draws. Frustum culling keeps an off-screen site cheap: the square view gained only 8 draws from the whole Foundry slice. Scaling rule of thumb: about 40 draws per district when in view. Before about six districts are live, merge co-visible strata that share materials, and fold ring and gimbal parts into fewer animated groups.
