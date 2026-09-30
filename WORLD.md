@@ -15,3 +15,11 @@ The player inherits the office of City Steward. Their authority comes from commi
 - **Aether**: a luminous phenomenon that can be induced through copper and crystal. It supplements steam engineering instead of erasing it.
 
 Terra’s old civic motto is **“No ember is too small.”** The forgotten automaton’s last instruction was **“Keep the lamps burning.”** Progress should preserve this sense of collective care, repair and mechanical ingenuity.
+
+## Terra before and under the Ordinance (liberation pivot, 2026-09-29)
+
+Terra is a floating city above Locke. The dark industrial Lowworks is real. It is also the occupation's work. Terra was a luminous sky civilization of pale stone, turquoise tile, gold and aether-driven water before the **Ordinance** conquered it, and the conquerors riveted iron over what they could not use.
+
+- **The Ordinance**: the occupying regime. Its emblem is the Clamp, two brackets gripping a bar with a weight held above it. It dresses in charcoal, dirty green and oxblood. Its propaganda says *Without Order, Terra Falls*, and it claims to be what keeps the city aloft. The 1841 datestones and the "founding" of Terra as a bridge settlement are the Ordinance's official history.
+- **The Embers**: the resistance. Their mark is a ring left open at the top with a flame rising out of it, the civic motto "No ember is too small" made into a sign. Their colour is the old turquoise.
+- **Sael**: what the old city called its sky works. The **Saelspring** in Market Square is an ancient fountain machine that the Ordinance caged and sealed. The **Sael Gate** is the arch behind it, turned into a checkpoint. When the spring runs, its light travels to the gate. That is the first hint of the great aether engines that once let Terra move through the skies.

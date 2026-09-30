@@ -5,7 +5,7 @@
 ## Play locally
 
 ```sh
-cd ~/city-tycoon
+cd ~/Projects/steam-tycoon
 npm install
 npm run dev -- --port 5174
 ```
@@ -27,13 +27,24 @@ Unstaffed businesses deposit 40% of their production directly and keep 60% for c
 
 Prosperity advances through **The Lowworks → Recovery → Industry → Commerce → Innovation → Grand Terra**. Individual property improvements add functioning windows, brass detailing, upper floors, copper roofs and aether machinery. Lighting, paving/transit, pressure mains, housing and gardens each have three civic levels. The canal and institute districts unlock through charters. Citizens, carts, banners, pipes, the clock landmark, steam, smoke, elevated railway and a distant airship populate the district.
 
+## Liberation (Phase 1: Market Square)
+
+Terra is occupied. The Ordinance built its checkpoints, iron and propaganda over an older sky civilization. Market Square is the first place where the player can peel that back, and progress is shown in the street itself rather than in a menu.
+
+- **Occupied:** a checkpoint gallery is bolted across the ancient Sael Gate, with regime banners on its piers. The Saelspring is caged under an Ordinance seal, the water channels are plated over, a soldier holds the boom and a patrol walks the beat. At night a searchlight sweeps the square.
+- **Covert (3 steps):** the cellar door of the Copper Finch is the Embers' contact. It appears once the tavern reopens. Knocking buys quiet steps: a turquoise signal lamp and a lookout, defaced propaganda and couriers crossing the square, then tools under a tarp and ribbons on the lamps. The door refuses you while the patrol is watching.
+- **Liberated:** the gallery, banners, boom, patrol and plates come off the same stones. Civic ivory-and-turquoise banners hang where the regime's did, and resistance members stand openly at the gate. +15% city income.
+- **Restored:** the spring itself carries the last step. Once the water mains are clean (gardens level 1), civic engineers break the seal. The petals open, water fills the basin, and light runs from the spring along the channels, up the piers and around the arch. +10% city income.
+
+Economic prosperity and control are separate. A rich, occupied square still has its checkpoint. Liberation needs Terra to reach Industry, and the covert steps are gated by the Copper Finch and Bellweather Exchange levels.
+
 The industrial ramp in the western alley reaches a six-metre-high overlook. Three discoverable plaques/objects offer original Locke lore, a small reward and persistent output bonuses.
 
 The world has a 12-minute day/night cycle and rotating drizzle, overcast and industrial fog. Original Web Audio synthesis supplies rain/steam ambience, positional machinery, steps, bells, construction and purchase sounds. There is no recorded music track.
 
 ## Saves
 
-Versioned localStorage saves persist treasury, businesses, civic works, districts, discoveries, research, settings and city time. Records autosave every ten seconds and on commissions. Opening the game credits up to **four hours** of automatic dividends since the last save. Invalid saves recover to a fresh city; v1 data migrates to v2. Settings contains manual save and a confirmed new-game/reset flow. Saves are browser- and origin-specific. Browser storage must be enabled.
+Versioned localStorage saves persist treasury, businesses, civic works, districts, discoveries, research, site liberation, settings and city time. Records autosave every ten seconds and on commissions. Opening the game credits up to **four hours** of automatic dividends since the last save. Invalid saves recover to a fresh city. v1 and v2 data migrate to v3, with every site starting occupied. Settings contains manual save and a confirmed new-game/reset flow. Saves are browser- and origin-specific. Browser storage must be enabled.
 
 ## Verification
 
@@ -53,6 +64,10 @@ The economy suite covers spending, passive/manual accounting, automation, offlin
 - `src/world/citizens.ts`: original illustrated faces, cel-shaded procedural models, and articulated limbs with batched vertex-color materials. See `ART_DIRECTION.md` for the anime-inspired visual direction.
 - `src/world/architecture.ts`: façade families, business crowns and layered skyline.
 - `src/world/presentation.ts`: authored landmarks, street scenes, micro-activities and visual progression.
+- `src/world/layers.ts`: `LayeredSite`. A location authors each stratum (ancient, occupation, economic condition, covert, liberated, restored) once, and saved state decides which strata stand. Static strata are baked; animated ones are not.
+- `src/world/factions.ts`: the three visual languages (Ordinance, Embers, ancient Terra), with emblems, printed cloth and posters, and the travelling water/aether material.
+- `src/world/market-square.ts`: the Market Square slice. It covers the Saelspring, the Sael Gate, the checkpoint, the cellar and the restoration circuit.
+- `src/world/patrol.ts`: one lightweight patrol that walks, notices, investigates, searches and returns, using a vision cone and collider line of sight.
 - `src/world/art-kit.ts`: Terra crests, gauges, pipework, roofs and canopies.
 - `src/world/weather-art.ts`: illustrated sky, canal ripples, runoff, splashes and sparks.
 - `src/world/crowd-batch.ts`: shared draw submission for articulated citizens.
@@ -75,6 +90,9 @@ __TERRA__.view('market')         // spawn, street, scrap, boiler, market, square
 __TERRA__.stage(3)               // set property/infrastructure visual test state
 __TERRA__.economy.state.day = .5 // noon; 0 = midnight
 __TERRA__.atmosphere.override = 'rain' // 'overcast', 'fog', or null for cycle
+__TERRA__.site(4)                // Market Square control: 0 occupied, 1-3 covert, 4 liberated, 5 restored
+__TERRA__.wake()                 // replay the Saelspring restoration (site 5 only)
+__TERRA__.view('marketSquare')   // also saelGate, cellar, spring
 ```
 
 Developer saves are isolated from the ordinary game. The starting district is the most detailed area; expansion districts are compact explorable extensions. NPC life is route-based ambient choreography, not a full individual-needs simulation. Prestige, politics, supply-chain logistics and multiplayer are deliberately reserved for future development.

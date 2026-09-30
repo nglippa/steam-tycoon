@@ -16,25 +16,41 @@ export const INFRA = [
 ] as const;
 export type InfraId = typeof INFRA[number]['id'];
 export const STAGES = ['The Lowworks', 'Recovery', 'Industry', 'Commerce', 'Innovation', 'Grand Terra'];
+/** Liberation is a second, place-bound progression. Each site climbs one ladder:
+ * 0 occupied, 1-3 covert resistance, 4 liberated, 5 ancient Terra restored. Economic
+ * prosperity gates the steps but is never the same thing as control of the street. */
+export interface SiteStep { name: string; kind: 'covert' | 'liberation' | 'restoration'; cost: number; detail: string; done: string; requires: { property?: PropertyId; infra?: InfraId; level?: number; stage?: number } }
+export const SITES = [
+  { id: 'market', name: 'Market Square', steps: [
+    { name: 'Knock at the Copper Finch cellar', kind: 'covert', cost: 120, detail: 'The taproom keeps a second ledger below the kegs. Stand the first round for the Embers.', done: 'A turquoise lamp is lit above the Copper Finch cellar. The Embers have a door in Market Square.', requires: { property: 'tavern', level: 1 } },
+    { name: 'Turn the Bellweather stallholders', kind: 'covert', cost: 300, detail: 'Traders carry more than tea. Fund the couriers who move word between wards.', done: 'Someone has been at the checkpoint hoarding with chalk. Couriers cross the square with crates.', requires: { property: 'market', level: 1 } },
+    { name: 'Stock the cellar', kind: 'covert', cost: 650, detail: 'Bolt cutters, lamp oil and pry bars, delivered with the Finch’s beer.', done: 'A tarp covers new crates by the cellar, and turquoise ribbons are tied to the lamp posts. Nobody at the gate has noticed.', requires: { property: 'tavern', level: 2 } },
+    { name: 'Raise Market Square', kind: 'liberation', cost: 1600, detail: 'On the signal, the square refuses the checkpoint. The Ordinance banners come down.', done: 'Market Square rises. The gallery is torn off the old gate, and the square flies Terra’s own colours.', requires: { stage: 2 } },
+    { name: 'Wake the Saelspring', kind: 'restoration', cost: 3200, detail: 'Under the Ordinance seal sits a machine older than the city’s records. Clean mains may let it run again.', done: 'The civic engineers are cutting the Ordinance seal off the spring.', requires: { infra: 'gardens', level: 1 } },
+  ] as SiteStep[] },
+] as const;
+export type SiteId = typeof SITES[number]['id'];
+export const SITE_LIBERATED = 4, SITE_RESTORED = 5;
 export interface PropertyState { level: number; automated: boolean; stored: number; progress: number }
 export interface Settings { master: number; ambience: number; sfx: number; music: number; sensitivity: number; reducedMotion: boolean; quality: 'high' | 'low' }
-export interface Save { version: 2; crowns: number; earned: number; properties: Record<PropertyId, PropertyState>; infrastructure: Record<InfraId, number>; districts: string[]; research: string[]; discoveries: string[]; objective: number; playtime: number; day: number; lastSave: number; settings: Settings }
+export interface Save { version: 3; crowns: number; earned: number; properties: Record<PropertyId, PropertyState>; infrastructure: Record<InfraId, number>; districts: string[]; research: string[]; discoveries: string[]; sites: Record<SiteId, number>; objective: number; playtime: number; day: number; lastSave: number; settings: Settings }
 export interface StorageAdapter { read(): string | null; write(value: string): void; clear(): void }
 export const SAVE_KEY = 'locke.terra.save';
 export function freshSave(now = Date.now()): Save {
-  return { version: 2, crowns: 35, earned: 0, properties: Object.fromEntries(PROPERTIES.map(p => [p.id, { level: 0, automated: false, stored: 0, progress: 0 }])) as Save['properties'], infrastructure: { lamps: 0, roads: 0, steam: 0, gardens: 0, housing: 0 }, districts: [], research: [], discoveries: [], objective: 0, playtime: 0, day: .72, lastSave: now, settings: { master: .55, ambience: .45, sfx: .7, music: 0, sensitivity: 1, reducedMotion: false, quality: 'high' } };
+  return { version: 3, crowns: 35, earned: 0, properties: Object.fromEntries(PROPERTIES.map(p => [p.id, { level: 0, automated: false, stored: 0, progress: 0 }])) as Save['properties'], infrastructure: { lamps: 0, roads: 0, steam: 0, gardens: 0, housing: 0 }, districts: [], research: [], discoveries: [], sites: { market: 0 }, objective: 0, playtime: 0, day: .72, lastSave: now, settings: { master: .55, ambience: .45, sfx: .7, music: 0, sensitivity: 1, reducedMotion: false, quality: 'high' } };
 }
 const finite = (v: unknown, fallback: number, max = 1e15) => typeof v === 'number' && Number.isFinite(v) ? Math.min(max, Math.max(0, v)) : fallback;
 export function decodeSave(raw: string | null): Save | null {
   if (!raw) return null;
   try {
-    const data = JSON.parse(raw); if (!data || ![1, 2].includes(data.version)) return null;
+    const data = JSON.parse(raw); if (!data || ![1, 2, 3].includes(data.version)) return null;
     const s = freshSave(); s.crowns = finite(data.crowns, 35); s.earned = finite(data.earned, 0);
     for (const p of PROPERTIES) { const v = data.properties?.[p.id]; if (v) s.properties[p.id] = { level: Math.floor(finite(v.level, 0, 5)), automated: Boolean(v.automated), stored: finite(v.stored, 0), progress: finite(v.progress, 0, p.interval) }; }
     for (const i of INFRA) s.infrastructure[i.id] = Math.floor(finite(data.infrastructure?.[i.id], 0, 3));
     s.districts = Array.isArray(data.districts) ? [...new Set<string>(data.districts.filter((x: unknown) => typeof x === 'string' && ['canal', 'heights'].includes(x)))] : [];
     s.research = Array.isArray(data.research) ? [...new Set<string>(data.research.filter((x: unknown) => typeof x === 'string' && ['governors', 'aether', 'charter'].includes(x)))] : [];
     s.discoveries = Array.isArray(data.discoveries) ? [...new Set<string>(data.discoveries.filter((x: unknown) => typeof x === 'string' && ['map', 'automaton', 'shrine'].includes(x)))] : [];
+    for (const site of SITES) s.sites[site.id] = Math.floor(finite(data.sites?.[site.id], 0, SITE_RESTORED));
     s.objective = Math.floor(finite(data.objective, 0, 5)); s.playtime = finite(data.playtime, 0); s.day = finite(data.day, .72, 1); s.lastSave = finite(data.lastSave, Date.now());
     for (const key of ['master', 'ambience', 'sfx', 'music', 'sensitivity'] as const) s.settings[key] = finite(data.settings?.[key], s.settings[key], key === 'sensitivity' ? 2 : 1);
     s.settings.reducedMotion = Boolean(data.settings?.reducedMotion); s.settings.quality = data.settings?.quality === 'low' ? 'low' : 'high'; return s;
@@ -47,7 +63,9 @@ export class Economy {
     const seconds = Math.max(0, Math.min(4 * 3600, (now - this.state.lastSave) / 1000));
     this.offlineAward = this.rate * seconds; this.state.crowns += this.offlineAward; this.state.earned += this.offlineAward; this.state.lastSave = now;
   }
-  get multiplier() { const i = this.state.infrastructure; return (1 + i.lamps * .08 + i.roads * .1 + i.steam * .15 + i.gardens * .08 + i.housing * .12) * (1 + this.state.districts.length * .25) * (1 + this.state.research.length * .25) * (1 + this.state.discoveries.length * .03); }
+  get multiplier() { const i = this.state.infrastructure; return (1 + i.lamps * .08 + i.roads * .1 + i.steam * .15 + i.gardens * .08 + i.housing * .12) * (1 + this.state.districts.length * .25) * (1 + this.state.research.length * .25) * (1 + this.state.discoveries.length * .03) * this.liberation; }
+  /** Lifting the occupation levy: +15% per liberated site, +10% more once its ancient works run. */
+  get liberation() { return 1 + SITES.reduce((n, s) => { const v = this.state.sites[s.id]; return n + (v >= SITE_LIBERATED ? .15 : 0) + (v >= SITE_RESTORED ? .1 : 0); }, 0); }
   output(id: PropertyId) { const p = PROPERTIES.find(p => p.id === id)!; const level = this.state.properties[id].level; return p.base * (level === 0 ? .25 : Math.pow(1.85, level - 1)) * (level >= 3 ? 1.5 : 1) * (level === 5 ? 2 : 1) * this.multiplier; }
   get rate() { return PROPERTIES.reduce((sum, p) => sum + this.output(p.id) / p.interval * (this.state.properties[p.id].automated ? 1 : .4), 0); }
   get investment() { return Object.values(this.state.properties).reduce((n, p) => n + p.level, 0) + Object.values(this.state.infrastructure).reduce((a, b) => a + b, 0); }
@@ -62,6 +80,14 @@ export class Economy {
   unlock(id: string) { const price = id === 'canal' ? 750 : 3000; const stage = id === 'canal' ? 1 : 3; if (!['canal', 'heights'].includes(id) || this.state.districts.includes(id) || this.stage < stage || !this.spend(price)) return false; this.state.districts.push(id); this.onChange('district', id); this.save(); return true; }
   research(id: string) { const price = { governors: 450, aether: 1800, charter: 4500 }[id]; if (!price || this.state.research.includes(id) || this.stage < (id === 'governors' ? 1 : 3) || !this.spend(price)) return false; this.state.research.push(id); this.onChange('research', id); this.save(); return true; }
   discover(id: string) { if (!['map', 'automaton', 'shrine'].includes(id) || this.state.discoveries.includes(id)) return false; this.state.discoveries.push(id); this.state.crowns += 55; this.state.earned += 55; this.save(); return true; }
+  site(id: SiteId) { return SITES.find(s => s.id === id)!; }
+  /** Why the next step at a site cannot be taken yet; null when only the price stands in the way. */
+  siteBlocker(id: SiteId): string | null { const level = this.state.sites[id], step = this.site(id).steps[level]; if (!step) return 'Complete'; const r = step.requires;
+    if (r.property && this.state.properties[r.property].level < (r.level ?? 1)) return `Requires ${PROPERTIES.find(p => p.id === r.property)!.name} restored to level ${r.level ?? 1}`;
+    if (r.infra && this.state.infrastructure[r.infra] < (r.level ?? 1)) return `Requires ${INFRA.find(i => i.id === r.infra)!.name.toLowerCase()} level ${r.level ?? 1}`;
+    if (r.stage !== undefined && this.stage < r.stage) return `Requires Terra to reach ${STAGES[r.stage]}`;
+    return null; }
+  advanceSite(id: SiteId) { const level = this.state.sites[id], step = this.site(id).steps[level]; if (!step || this.siteBlocker(id) || !this.spend(step.cost)) return false; this.state.sites[id]++; this.onChange('site', id); this.save(); return true; }
   inspect(id: string) { if (id === 'scrap' && this.state.objective === 0) this.state.objective = 1; }
   checkObjective() { if (this.state.objective === 2 && this.state.properties.scrap.level > 0) this.state.objective = 3; if (this.state.objective === 3 && this.state.properties.boiler.level > 0) this.state.objective = 4; if (this.state.objective === 4 && this.state.infrastructure.lamps > 0) this.state.objective = 5; }
   tick(dt: number) { dt = Number.isFinite(dt) ? Math.max(0, Math.min(dt, 14400)) : 0; this.state.playtime += dt; this.state.day = (this.state.day + dt / 720) % 1;

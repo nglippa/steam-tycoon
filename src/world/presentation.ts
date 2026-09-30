@@ -9,13 +9,15 @@ import type { City } from './city';
 import { PROPERTIES } from '../simulation/economy';
 import { businessHeights, businessLift } from './architecture';
 import { TERRACE, terraceRise } from './city';
+import { MarketSquare } from './market-square';
 
 /** World-only presentation. Reads completed visual levels; never changes the economy. */
 const w2=(w:number)=>w*.18;
 export class Presentation {
   root=new T.Group(); restored=new T.Group(); worn=new T.Group(); market=new T.Group();
   mechanisms:{object:T.Object3D;axis:'x'|'y'|'z';speed:number}[]=[];
-  workers:{person:ReturnType<typeof citizen>;kind:Activity;tool?:T.Group;minStage:number;maxStage:number;time:'any'|'day'|'night';partner?:number;path?:{a:T.Vector3;b:T.Vector3;speed:number};y:number}[]=[];
+  workers:{person:ReturnType<typeof citizen>;kind:Activity;tool?:T.Group;minStage:number;maxStage:number;time:'any'|'day'|'night';partner?:number;path?:{a:T.Vector3;b:T.Vector3;speed:number};y:number;when?:()=>boolean}[]=[];
+  marketSquare!:MarketSquare;
   cartPusher=0;shaftMat?:T.MeshBasicMaterial;shafts?:T.Group;poolMat?:T.MeshBasicMaterial;pools?:T.Group;terracePlanters:[number,number][]=[];birds!:T.InstancedMesh;capsules:T.Group[]=[];moths!:T.InstancedMesh;hoistCrate!:T.Group;barge!:T.Group;craneJib!:T.Group;ingotCart!:T.Group;
   steamOrigins=[V(32.8,13,40),V(0,17.9,29),V(-9,.25,25),V(31,3,14),V(-29,2,14),V(9,.3,-25)];
   runoff: T.Vector3[]=[]; heat:T.Mesh[]=[]; lanterns:T.Mesh[]=[];
@@ -23,7 +25,7 @@ export class Presentation {
   verges:[number,number][]=[[-7.3,42],[-7.3,16],[-7.3,-13],[7.3,38],[7.3,13],[7.3,-17]];
   tarp=illustrated(new T.MeshStandardMaterial({color:'#8f9d97',side:T.DoubleSide}));
   soot=new T.MeshBasicMaterial({color:'#2a2a36',transparent:true,opacity:.28,depthWrite:false});
-  constructor(public city:City){city.root.add(this.root);this.root.add(this.restored,this.worn,this.market);this.gate();this.street();this.industries();this.square();this.story();this.boundaries();this.greatMain();this.streetEdges();this.life();this.everyday();this.nightLights();this.density();this.ornament();this.carving();this.vignettes();}
+  constructor(public city:City){city.root.add(this.root);this.root.add(this.restored,this.worn,this.market);this.gate();this.street();this.industries();this.square();this.story();this.boundaries();this.greatMain();this.streetEdges();this.life();this.everyday();this.nightLights();this.density();this.ornament();this.carving();this.vignettes();this.marketSquare=new MarketSquare(this);}
   section(){const g=new T.Group();this.root.add(g);return g;}
   gate(){const g=this.section();
     // Curved iron arch lowers the opening into the player's field of view.
@@ -385,7 +387,7 @@ export class Presentation {
       const halo=new T.Mesh(new T.PlaneGeometry(3.4,3.4),this.poolMat);halo.position.set(1.8,2.9,.1);f.add(halo);
       const floor=new T.Mesh(new T.PlaneGeometry(6,6),this.poolMat);floor.rotation.x=-Math.PI/2;floor.position.set(1.8,.2,1.8);f.add(floor);}
   }
-  setNight(v:number){const n=Math.max(0,Math.min(1,(v-.35)/.4));if(this.poolMat)this.poolMat.opacity=n*.85;if(this.pools)this.pools.visible=n>0;}
+  setNight(v:number){this.marketSquare.setNight(v);const n=Math.max(0,Math.min(1,(v-.35)/.4));if(this.poolMat)this.poolMat.opacity=n*.85;if(this.pools)this.pools.visible=n>0;}
   animateSet(dt:number,time:number,calm:boolean){void dt;
     const m=new T.Matrix4(),q=new T.Quaternion(),e=new T.Euler(),p=new T.Vector3(),sc=new T.Vector3(1,1,1);
     for(let i=0;i<14;i++){const a=time*(.22+(i%3)*.03)+i*.45,r=9+(i%4)*2.2;p.set(Math.sin(a)*r,36+Math.sin(time*.7+i)*2.5+(i%5),-46+Math.cos(a)*r);e.set(0,a+Math.PI/2,calm?0:Math.sin(time*9+i)*.5);q.setFromEuler(e);sc.setScalar(1.4);m.compose(p,q,sc);this.birds.setMatrixAt(i,m);}
@@ -398,7 +400,7 @@ export class Presentation {
     if(night){let n=0;for(let z=57;z>=-56;z-=19)for(const lx of [-9.8,9.8])for(let k=0;k<3&&n<36;k++,n++){const a=time*(2.2+k*.7)+n*1.9,r=.35+.15*Math.sin(time*1.3+n);p.set(lx+Math.cos(a)*r,4.95+Math.sin(time*3+n)*.25,z+Math.sin(a)*r);e.set(0,a,Math.sin(time*18+n)*.8);q.setFromEuler(e);sc.setScalar(1);m.compose(p,q,sc);this.moths.setMatrixAt(n,m);}this.moths.instanceMatrix.needsUpdate=true;}
     const leg=(time*.9)%116,drift=leg<58?leg:116-leg;this.barge.position.set(44.5,.05,3+drift);this.barge.rotation.y=leg<58?0:Math.PI;
   }
-  addWorker(x:number,z:number,yaw:number,kind:Activity,o:{y?:number;role?:Archetype;minStage?:number;maxStage?:number;time?:'any'|'day'|'night';scale?:number;partner?:number;path?:[number,number,number];tool?:string}={}) {
+  addWorker(x:number,z:number,yaw:number,kind:Activity,o:{y?:number;role?:Archetype;minStage?:number;maxStage?:number;time?:'any'|'day'|'night';scale?:number;partner?:number;path?:[number,number,number];tool?:string;when?:()=>boolean}={}) {
     const role=o.role??(kind==='gauge'||kind==='valve'||kind==='clipboard'?'engineer':kind==='browse'||(z<0&&kind==='read')?'merchant':kind==='read'||kind==='watch'||kind==='lean'?'resident':'worker');
     const person=citizen(mats.rust,this.workers.length+43,role);const y=o.y!==undefined?o.y+.18:this.city.groundHeight(x,z);person.group.position.set(x,y,z);person.group.rotation.y=yaw;if(o.scale)person.group.scale.multiplyScalar(o.scale);this.root.add(person.group);
     const tool=new T.Group();person.elbows[0].add(tool);const t=o.tool??kind;
@@ -411,10 +413,11 @@ export class Presentation {
     if(t==='mug'){cyl(tool,0,-.36,.06,.045,.1,mats.copper);}
     if(t==='basket'){cyl(tool,0,-.42,.05,.14,.16,mats.wood);sphere(tool,0,-.34,.05,.08,mats.red);}
     asProp(tool);bake(tool);const path=o.path?{a:V(x,y,z),b:V(o.path[0],y,o.path[1]),speed:o.path[2]}:undefined;
-    this.workers.push({person,kind,tool,minStage:o.minStage??0,maxStage:o.maxStage??5,time:o.time??'any',partner:o.partner,path,y});return this.workers.length-1;
+    this.workers.push({person,kind,tool,minStage:o.minStage??0,maxStage:o.maxStage??5,time:o.time??'any',partner:o.partner,path,y,when:o.when});return this.workers.length-1;
   }
   sync(){
-    const e=this.city.economy;const levels=PROPERTIES.map(p=>this.city.properties.get(p.id)!.level);const key=[...levels,...Object.values(e.state.infrastructure),e.stage].join(':');if(key===this.signature)return;this.signature=key;
+    const e=this.city.economy;const levels=PROPERTIES.map(p=>this.city.properties.get(p.id)!.level);const key=[...levels,...Object.values(e.state.infrastructure),...Object.values(e.state.sites),e.stage].join(':');if(key===this.signature)return;this.signature=key;
+    this.marketSquare.sync({control:e.state.sites.market,stage:e.stage,levels:Object.fromEntries(PROPERTIES.map((p,i)=>[p.id,levels[i]])) as Record<typeof PROPERTIES[number]['id'],number>});
     this.worn.visible=e.state.infrastructure.roads===0;
     this.city.disposeGroup(this.restored);this.city.disposeGroup(this.market);const g=this.restored;const rich=e.stage>=3;const soot=this.soot;const marketLevel=levels[5];
     // Repairs have literal mechanical consequences unique to every property.
@@ -483,7 +486,6 @@ export class Presentation {
       // Collision footprints reserve the same market pockets in all stages.
     }
     if(level>=2)for(const z of [-28]){const curve=cable(g,V(-11,7.6,z),V(11,7.6,z),.9);for(let i=1;i<6;i++){const p=curve.getPoint(i/6);cyl(g,p.x,p.y-.15,p.z,.025,.3,mats.iron);sphere(g,p.x,p.y-.38,p.z,.12,mats.glow);}}
-    if(level>=3){const ring=torus(g,0,.43,-31,1.9,.13,mats.brass);ring.rotation.x=Math.PI/2;for(let i=0;i<8;i++){const a=i*Math.PI/4;cyl(g,Math.sin(a)*1.45,.7,-31+Math.cos(a)*1.45,.05,.4,mats.copper);}}
     if(rich){for(const x of [-10.5,10.5])for(const z of [-35,-43]){const l=terraceRise(x,z);box(g,x,.4+l,z,1.5,.8,1.2,mats.stone);for(let i=0;i<6;i++)sphere(g,x+(i%3-1)*.4,.9+l,z+Math.floor(i/3)*.3,.2,i%2?mats.leaf:artMats.wine);}}
     bake(g);
   }
@@ -491,8 +493,9 @@ export class Presentation {
     for(const m of this.mechanisms)m.object.rotation[m.axis]=Math.sin(time*m.speed)*.12+(m.axis==='z'&&Math.abs(m.speed)>.2?time*m.speed:0);
     const calm=reducedMotion(this.city.economy.state.settings.reducedMotion);
     const stage=this.city.economy.stage,day=this.city.economy.state.day,night=day<.24||day>.78;
+    this.marketSquare.update(dt,time,viewer,calm);
     this.workers.forEach((w,i)=>{const {person,kind}=w;
-      const on=stage>=w.minStage&&stage<=w.maxStage&&(w.time==='any'||(w.time==='night')===night);person.group.visible=on;if(!on)return;
+      const on=stage>=w.minStage&&stage<=w.maxStage&&(w.time==='any'||(w.time==='night')===night)&&(w.when?.()??true);person.group.visible=on;if(!on)return;
       person.worn.visible=stage<3;person.finery.visible=stage>=3;
       let moving=false;const position=person.group.position;
       if(w.path){const {a,b,speed}=w.path,length=a.distanceTo(b),cycle=(time*speed+i*2.3)%(length*2+4);

@@ -155,3 +155,13 @@ Messenger's lesson applied: lightness and cohesion come from value, not hue. The
 - **Palette:** muted trade paints, dark rust, copper and brass, dull leaves, soot-faded bunting only at stage 4+, no pink blossom. Wall grime never drops below 35% even at Grand Terra.
 - **Hats** are turned (lathe) profiles with a band and a shaped visor or brim: guard kepi (flared flat crown, crest pin, pitched visor), newsboy cap for workers and couriers, bowler and top hat for merchants and some residents. Under any hat the fringe is clipped at the band and the hair crown tucked in.
 - **Hair silhouettes:** side locks are tapered pointed strands (two per side), not slabs. The back mass wraps the whole rear skull to the nape.
+
+## Liberation pivot: three visual languages (2026-09-29)
+
+The existing dark industrial Terra is now the occupation layer over an ancient sky city. A frame should tell you whose hand made each thing.
+
+- **Ordinance (occupation):** charcoal, black-green iron, oxblood and bone. Riveted boxes bolted onto older stone, stencil type, the Clamp emblem, harsh printed propaganda and a searchlight. It is ugly on purpose, but composed, with one large statement per place rather than clutter.
+- **Embers (resistance):** chalk and ember-orange paint, turquoise signal glass and ribbons. It stays small and secret until liberation, when the same colours are flown openly.
+- **Ancient Terra:** ivory stone, turquoise tile, gold and aether blue. It uses slender piers, a gently pointed ring, swept gold fins, a sun-medallion in the paving, and a flower-like fountain whose petals open. It keeps to a few clean silhouettes and saves the luminous effects for the restoration.
+
+Economic prosperity washes soot and fills stalls, but it never removes the occupation. Liberation removes the Ordinance's objects from the same stones. Restoration is the only thing that makes the ancient layer glow.

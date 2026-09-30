@@ -170,3 +170,29 @@ Typecheck passes; all 11 tests pass; build passes. Traversal and ledger checks p
 ## Structural pass — 2026-09-26
 
 Typecheck, all 11 tests and the build pass. Traversal and ledger checks pass at stages 0 and 5; no route citizen sits inside geometry; the only staged workers inside colliders are the intentional sitters and leaners. Gameplay checks pass: walk, sprint, jump, E interaction, purchase, construction, save/reload and reduced motion. The automation browser refuses pointer lock, so the drag-look fallback was used. No console issues. Uncapped Chrome at 1280×720 and 1.5× pixel density: 309–380 FPS (p95 3.8–4.4 ms). The elevated overview is about 0.83 M triangles and 650 draws. With vsync on, every scene sits at the display cap.
+
+## Liberation pivot, Phase 1: Market Square slice (2026-09-29)
+
+`npm run typecheck`, `npm test` (15 tests, 4 of them new for site progression, gating, income, save migration and clamping) and `npm run build` pass. The build's size warning is the existing Three.js vendor chunk.
+
+### Browser verification (Playwright, `?dev=1`)
+
+- Review traversal (`&check=1`) passes at level 0/site 0, level 3/site 3 and level 4/site 5: all six ledgers are reachable and raycast, and main street, lanes, ramp and wall collision all pass. The life monitor reports no NPC blocked by the new colliders. No console or page errors.
+- Real UI path on an ordinary save, not review mode:
+  - The cellar door raycasts as `market.cell`. It stays padlocked until the Copper Finch reopens. The covert panel opens, and buying a step advances `sites.market`, closes the panel and voices the change.
+  - The door refuses while the patrol is watching.
+  - Liberation requires Industry. The spring refuses until gardens level 1, then brings the civic-engineer scaffold. After 6 s the wake runs from the basin along the channels to the gate.
+  - After a reload, the save restores `sites.market` and exactly the matching layers.
+- Patrol: walking its beat it notices a Steward loitering at the cellar, investigates, confronts ("Papers, Steward…"), then returns to its beat. The first run exposed a stall 0.15 m short of the return point, which is fixed.
+- Rendered review: `screenshots/review-2026-09-29-pass1/` (nine frames plus `collage.png`).
+
+### Performance (headed Chrome, `--disable-gpu-vsync --disable-frame-rate-limit`, 1280×760 @1.5, A/B against the pre-change commit)
+
+| View | Baseline FPS | Slice FPS | Draws | Triangles |
+| --- | --- | --- | --- | --- |
+| square, occupied (L0) | 324 | 306 | 275 → 311 | 545k → 590k |
+| square, covert (L3) | 289 | 272 | 321 → 355 | 808k → 853k |
+| square, restored (L4) | 288 | 279 | 321 → 346 | 820k → 847k |
+| market (L2) | 297 | 291 | 388 → 410 | 664k → 707k |
+
+p95 frame time stays at about 4.5 ms. Each stratum is baked to one draw per material and toggled by visibility. The flowing water and aether are two shared shader materials driven by two uniforms, and no lights were added.

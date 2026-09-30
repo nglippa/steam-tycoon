@@ -22,7 +22,7 @@ export const worldColors = {
   teal:['#44625b','#4a6d64','#50786e'], red:['#6e332e','#7c3831','#8a3e35'],
   cream:['#a89c86','#b7ab93','#c6baa0'], leaf:['#56603e','#5e6a44','#67754a'],
 } as const;
-export type Archetype='worker'|'engineer'|'merchant'|'guard'|'resident'|'courier';
+export type Archetype='worker'|'engineer'|'merchant'|'guard'|'resident'|'courier'|'ordinal';
 // coat, secondary cloth, accent, restored coat: coherent outfits, not random hues.
 // Karnaca/Thief cloth: worn, dyed and patched. Oxblood, umber, soot, grey-green, bone,
 // with one muted accent each. The fourth color is the same garment in better times.
@@ -33,4 +33,6 @@ export const wardrobes:Record<Archetype,readonly string[][]>={
   guard:[['#2f3a3e','#1d1c1c','#a88a4e','#34454b']],
   resident:[['#5d6a70','#c9b89a','#7a3a33','#687880'],['#b8a888','#3e4a55','#4e6358','#cbb997']],
   courier:[['#7e3a35','#c9b89a','#3e4a55','#8e4038']],
+  // The Ordinance: dirty green-charcoal and an oxblood armband. Occupiers never dress up for prosperity.
+  ordinal:[['#343d35','#1b1c1b','#5e2328','#343d35']],
 };

@@ -10,9 +10,9 @@ import { citizen, setCitizenProsperity } from './citizens';
 import { palette as P } from './palette';
 import { housingPaint, setHousingCondition, residentialWindows, type Home } from './housing';
 import { animateLife, sceneFor, stageCitizen, setLifeConditions, turnTaking } from './citizen-life';
-import { Economy, PROPERTIES, type PropertyId } from '../simulation/economy';
+import { Economy, PROPERTIES, SITE_LIBERATED, SITE_RESTORED, type PropertyId, type SiteId } from '../simulation/economy';
 export interface Collider { minX: number; maxX: number; minZ: number; maxZ: number; height: number; gate?: string }
-export interface Target { object: T.Object3D; id: string; kind: 'property' | 'ledger' | 'discovery' | 'district'; label: string; position: T.Vector3 }
+export interface Target { object: T.Object3D; id: string; kind: 'property' | 'ledger' | 'discovery' | 'district' | 'site'; label: string; position: T.Vector3; hint?: string }
 interface PropertyVisual { root: T.Group; additions: T.Group; machine: T.Group; gear: T.Group; piston: T.Mesh; level: number; building: T.Group; sign: T.Mesh }
 /** Clock terrace: concentric 0.2 m steps rising 1.2 m toward the tower. */
 export const TERRACE = { x: 0, z: -49.5, outer: 13.5, inner: 9, rise: 1.2, steps: 6 };
@@ -25,10 +25,12 @@ export class City {
   presentation!: Presentation;
   root = new T.Group(); colliders: Collider[] = []; targets: Target[] = []; properties = new Map<PropertyId, PropertyVisual>();
   infrastructure = new T.Group(); prosperity = new T.Group(); gears: T.Group[] = []; smokeOrigins: T.Vector3[] = []; lamps: T.PointLight[] = [];
-  npcs: ReturnType<typeof citizen>[] = []; constructions: { group: T.Group; time: number; duration: number; finish: () => void; workers: ReturnType<typeof citizen>[] }[] = [];
+  npcs: ReturnType<typeof citizen>[] = []; constructions: { group: T.Group; time: number; duration: number; finish: () => void; workers: ReturnType<typeof citizen>[]; site?: string }[] = [];
+  /** World-originated messages (a patrol's warning, an ancient machine waking) for the UI to voice. */
+  onEvent: (message: string) => void = () => {};
   gateMeshes = new Map<string, T.Group>(); flags: T.Mesh[] = []; carts: T.Group[] = []; cartWheels: T.Group[][] = []; airship = new T.Group(); tram = new T.Group();
-  clockMechanism?: T.Group; lantern = new T.MeshStandardMaterial({ color: P.warm.lamp, emissive: P.warm.lamp, emissiveIntensity: .9 }); fountain!: T.Mesh; water!: T.Mesh; clockHands: T.Mesh[] = []; stage = -1; raining = false; finchLift?: T.Group;
-  constructor(public scene: T.Scene, public economy: Economy) { scene.add(this.root); this.root.add(this.infrastructure, this.prosperity); this.buildGround(); this.buildBlocks(); this.buildLandmarks(); this.buildSignatureMachinery(); this.buildDetails(); this.buildBackground(); this.createPopulation(); this.presentation = new Presentation(this); for(const x of [-7.9,7.9]) for(const z of (x>0?[-22,-28,-34]:[-26,-32,-38])) this.collider(x,z,2.3,3.6,3.5); this.sync(true); this.crowd = new CrowdBatch([...this.npcs.map(n=>n.group),...this.presentation.workers.map(w=>w.person.group)],this.root); }
+  clockMechanism?: T.Group; lantern = new T.MeshStandardMaterial({ color: P.warm.lamp, emissive: P.warm.lamp, emissiveIntensity: .9 }); water!: T.Mesh; clockHands: T.Mesh[] = []; stage = -1; raining = false; finchLift?: T.Group;
+  constructor(public scene: T.Scene, public economy: Economy) { scene.add(this.root); this.root.add(this.infrastructure, this.prosperity); this.buildGround(); this.buildBlocks(); this.buildLandmarks(); this.buildSignatureMachinery(); this.buildDetails(); this.buildBackground(); this.createPopulation(); this.presentation = new Presentation(this); this.siteTargets(); for(const x of [-7.9,7.9]) for(const z of (x>0?[-22,-28,-34]:[-26,-32,-38])) this.collider(x,z,2.3,3.6,3.5); this.sync(true); this.crowd = new CrowdBatch([...this.npcs.map(n=>n.group),...this.presentation.workers.map(w=>w.person.group)],this.root); }
   /** Collider from a footprint in a (possibly rotated) building group's local frame. */
   localCollider(g: T.Object3D, x: number, z: number, w: number, d: number, height = 30) { g.updateWorldMatrix(true, false); const p = g.localToWorld(new T.Vector3(x, 0, z)); const turned = Math.abs(Math.sin(g.getWorldQuaternion(new T.Quaternion()).angleTo(new T.Quaternion()))) > .5; this.collider(p.x, p.z, turned ? d : w, turned ? w : d, height); }
   collider(x: number, z: number, w: number, d: number, height = 30, gate?: string) { this.colliders.push({ minX: x - w / 2, maxX: x + w / 2, minZ: z - d / 2, maxZ: z + d / 2, height, gate }); }
@@ -261,7 +263,7 @@ export class City {
     for (const z of [25, -1]) { beam(g, new T.Vector3(-29, 8, z), new T.Vector3(-43, 7.3, z), .025); for (let n = 0; n < 5; n++) { this.cloth(-31 - n * 2, 7.6, z, 1.3, 1.5, n % 2 ? mats.cream : mats.teal); } }
     for (let z = 38; z > -35; z -= 20) { this.cloth(-10, 6.7, z, 1, 2, mats.teal); box(g, -10, 6.75, z, 1.4, .08, .08, mats.brass); }
     for (const x of [-6, 6]) { box(g, x, .65, -39, 2.7, .16, .75, mats.wood); for (const dx of [-1, 1]) { box(g, x + dx, .3, -39, .1, .6, .7); box(g, x + dx, 1, -39.35, .1, 1.2, .1); } box(g, x, 1.1, -39.35, 2.7, .4, .1, mats.wood); }
-    cyl(g, 0, .2, -31, 1.8, .4, mats.stone); cyl(g,0,.55,-31,.24,.7,mats.copper);cyl(g,0,.86,-31,1.05,.16,mats.stone);const ring=torus(g,0,1.5,-31,.65,.055,mats.brass);ring.rotation.y=.5;const orbit=torus(g,0,1.5,-31,.65,.04,mats.copper);orbit.rotation.y=Math.PI/2;this.fountain=sphere(this.root,0,1.5,-31,.22,mats.copper); this.collider(0, -31, 3.5, 3.5, 1.5);
+    // Clock Square's spring and the Sael Gate belong to the layered Market Square (market-square.ts).
     sign(g,'CLOCK SQUARE ↑','CANAL WARD →',-8.8,3.1,54,2.7,.8);
     bake(g);
   }
@@ -330,14 +332,14 @@ export class City {
 
     if (s.roads > 0) { box(g, 0, .07, 10, 12.6, .025, 130, mats.road); for (const x of [-7.8, 7.8]) box(g, x, .089, 10, .14, .02, 130, mats.brass); if (s.roads > 1) for (const x of [-2, 2]) box(g, x, .1, 10, .1, .05, 130, mats.iron); }
     if (s.steam > 0) for (let x = -24; x <= 24; x += 8) { const band = torus(g, x + 2, 14, 29, .9, .08 + s.steam * .02, s.steam === 3 ? mats.aether : mats.brass); band.rotation.y = Math.PI / 2; }
-    if (s.gardens > 0) { for (const x of [-7, 7]) for (const z of [-36, -51, 52]) { const lift = terraceRise(x, z); box(g, x, .3 + lift, z, 2.4, .6, 2.4, mats.stone); tree(g, x, z, .8 + s.gardens * .12).position.y = lift; } cyl(g, 0, .6, -31, 1.55, .15, mats.aether); cyl(g, 0, 1.6, -31, .06, 1.6, mats.aether); }
+    if (s.gardens > 0) { for (const x of [-7, 7]) for (const z of [-36, -51, 52]) { const lift = terraceRise(x, z); box(g, x, .3 + lift, z, 2.4, .6, 2.4, mats.stone); tree(g, x, z, .8 + s.gardens * .12).position.y = lift; } }
     for(const home of this.housingFrontages){const windows=new T.Group();windows.position.set(home.x,0,home.z);windows.rotation.y=home.yaw;residentialWindows(windows,home,s.housing);g.add(windows);}
     (this.water.material as T.MeshStandardMaterial).color.set(s.gardens?P.cool.turquoise:P.cool.cyan); bake(g);
   }
   buildProsperity() { this.disposeGroup(this.prosperity); const g = this.prosperity; const stage = this.economy.stage; this.stage = stage;applyWorldPalette(stage);refreshFacades(stage);refreshCanopyColors();setCitizenProsperity(stage);
     // Recovery is visible from the gate: pennants multiply along the spine.
     if (stage >= 4) for (const z of stage >= 5 ? [36, -9] : [18]) bunting(g, new T.Vector3(-11.6, 8.3, z), new T.Vector3(11.6, 8.3, z + 1.5), 1.1, 16);
-    if (stage >= 4) for (const x of [-11, 11]) bunting(g, new T.Vector3(x, 7.5, -29), new T.Vector3(x * .12, 19, -43), .7, 12);
+    if (stage >= 4) for (const x of [-11, 11]) bunting(g, new T.Vector3(x, 7.5, -38), new T.Vector3(x * .12, 19, -43), .7, 9);
     this.lantern.color.set(stage >= 5 ? P.aether.cyan : P.warm.lamp); this.lantern.emissive.set(stage >= 5 ? P.aether.glow : P.warm.lamp);
     this.lantern.emissiveIntensity = [.18, .45, .7, .9, 1.1, 1.3][stage] + this.economy.state.infrastructure.steam * .15;
     if (stage >= 2) for (const x of [-6, 6]) { const flag = box(g, x, 6, -45, 1.1, 3, .05, mats.teal); cyl(g, x, 4, -45, .06, 8, mats.brass); sphere(g, x, 8.1, -45, .16, mats.brass); flag.rotation.y = .12; }
@@ -348,11 +350,15 @@ export class City {
     if (this.economy.state.districts.includes('heights')) { box(g, 0, .12, -78, 20, .25, 15, mats.warmStone); for (const x of [-7, 7]) tree(g, x, -78, 1.2); sign(g, 'THE AETHER INSTITUTE', 'Tomorrow is a civic undertaking', 0, 4, -84, 10, 1.3); }
     bake(g);
   }
-  construct(kind: string, id: string) { if (!['property', 'infrastructure', 'district', 'research'].includes(kind)) return; const g = new T.Group(); this.root.add(g); const p = PROPERTIES.find(p => p.id === id); const x = p ? p.x : kind === 'district' && id === 'canal' ? 54 : 0; const z = p ? p.z : -40; g.position.set(x, 0, z); if (p) g.rotation.y = p.rotation;
+  /** Covert and liberation steps land at once, unannounced; only restoring the ancient works brings the civic engineers. */
+  construct(kind: string, id: string) { if (kind === 'site' && this.economy.state.sites[id as SiteId] < SITE_RESTORED) { this.sync(); return; } if (!['property', 'infrastructure', 'district', 'research', 'site'].includes(kind)) return; const g = new T.Group(); this.root.add(g); const p = PROPERTIES.find(p => p.id === id); const x = p ? p.x : kind === 'district' && id === 'canal' ? 54 : 0; const z = p ? p.z : kind === 'site' ? -37 : -40; g.position.set(x, 0, z); if (p) g.rotation.y = p.rotation;
     for (const xx of [-8, 8]) for (const zz of [5.9, 8.2]) { cyl(g, xx, 5, zz, .055, 10, mats.brass); for (const y of [2.7, 5.7, 8.7]) beam(g, new T.Vector3(-8, y, zz), new T.Vector3(8, y, zz), .055, mats.brass); } for (const y of [2.7, 5.7, 8.7]) box(g, 0, y, 7.1, 16, .09, 2.3, mats.wood); for (let xx = -8; xx < 8; xx += 4) beam(g, new T.Vector3(xx, 0, 8.2), new T.Vector3(xx + 4, 5.7, 8.2), .05, mats.iron);
     const workers = [citizen(mats.cream), citizen(mats.rust)]; workers.forEach((w, i) => { w.group.position.set(i ? 7 : -6.5, 0, 9.2); w.group.rotation.y = Math.PI; g.add(w.group); }); sign(g, 'TERRA IS REBUILDING', 'Guild of civic engineers', 0, 1.7, 9.2, 5, .8);
-    this.constructions.push({ group: g, time: 0, duration: 6, workers, finish: () => { if (p) this.propertyUpgrade(p.id); this.sync(); } });
+    this.constructions.push({ group: g, time: 0, duration: 6, workers, site: kind === 'site' ? id : undefined, finish: () => { if (p) this.propertyUpgrade(p.id); this.sync(); } });
   }
+  siteTargets() { const m = this.presentation.marketSquare; for (const [object, id, label, hint] of [[m.cellarTarget, 'market.cell', 'Copper Finch cellar', 'KNOCK'], [m.springTarget, 'market.spring', 'Ordinance seal', 'EXAMINE']] as const) { object.updateWorldMatrix(true, false); this.targets.push({ object, id, kind: 'site', label, hint, position: object.getWorldPosition(new T.Vector3()) }); } }
+  /** True while an Ordinance patrol has eyes on the Steward. */
+  watched() { return this.presentation.marketSquare.view.control < SITE_LIBERATED && this.presentation.marketSquare.patrol.watching; }
   sync(initial = false) { if (initial) for (const p of PROPERTIES) this.propertyUpgrade(p.id); this.buildInfrastructure(); this.buildProsperity(); for (const [id, bars] of this.gateMeshes) bars.visible = !this.economy.state.districts.includes(id); this.presentation?.sync(); }
   groundHeight(x: number, z: number) { const tr = terraceRise(x, z); if (tr > 0) return .18 + tr; if (x > -36.3 && x < -31.7 && z <= -29 && z >= -51) return .2 + (-z - 29) / 22 * 6; if (x > -37.5 && x < -30.5 && z < -51 && z >= -61.5) return 6.4; return .18; }
   blocked(x: number, z: number, feet: number) { if (x > 40.2 && x < 48.8 && (z < -9.5 || z > -2.5)) return true; if (x < -75 || x > 76 || z > 78 || z < -83) return true; if (x > 53 && !this.economy.state.districts.includes('canal')) return true; if (z < -69 && !this.economy.state.districts.includes('heights')) return true;

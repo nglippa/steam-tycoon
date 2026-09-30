@@ -43,7 +43,7 @@ const hipHeight=.84,bodyHeight=-.14;
 const personality:Record<string,{cad:number;arm:number;bob:number;lean:number;stride:number;gesture:number}>={
   worker:{cad:.92,arm:.34,bob:.032,lean:.07,stride:.44,gesture:1},engineer:{cad:1.12,arm:.38,bob:.022,lean:.09,stride:.46,gesture:.9},
   merchant:{cad:.96,arm:.3,bob:.02,lean:.03,stride:.4,gesture:1.45},guard:{cad:.9,arm:.2,bob:.014,lean:-.01,stride:.44,gesture:.6},
-  resident:{cad:.95,arm:.28,bob:.02,lean:.04,stride:.4,gesture:1.1},courier:{cad:1.18,arm:.42,bob:.028,lean:.1,stride:.48,gesture:1}};
+  resident:{cad:.95,arm:.28,bob:.02,lean:.04,stride:.4,gesture:1.1},ordinal:{cad:.84,arm:.14,bob:.01,lean:-.03,stride:.47,gesture:.35},courier:{cad:1.18,arm:.42,bob:.028,lean:.1,stride:.48,gesture:1}};
 const ease=(x:number)=>x*x*(3-2*x),clamp01=(x:number)=>Math.min(1,Math.max(0,x));
 const STANCE=.62,LEG=.84;
 /** Stance: the foot sweeps back linearly (planted). Swing: it eases forward and lifts. */
