@@ -2,7 +2,7 @@ import * as T from 'three';
 import { box, cyl, sphere, torus, beam, crate, mats, bake } from './assets';
 import { V, pipe } from './art-kit';
 import { LayeredSite, when, type SiteModule, type SiteView } from './layers';
-import { ancient, ancientMats, occupationMats, canvasTarp, stencilPlate, quotaBoard, councilBoard, tallies, emberChalk, printedMat, decalMat, flowMaterial, lightCone, beamMat, boltCutters, strip, type FlowClock } from './factions';
+import { ancient, ancientMats, occupationMats, canvasTarp, stencilPlate, quotaBoard, councilBoard, tallies, emberChalk, printedMat, decalMat, flowMaterial, lightCone, beamMat, boltCutters, strip, type FlowClock, signs } from './factions';
 import type { Presentation } from './presentation';
 import type { Activity } from './citizen-life';
 import { SITE_LIBERATED, SITE_RESTORED } from '../simulation/economy';
@@ -74,12 +74,12 @@ export class FoundryWorks implements SiteModule {
     // Booth, turnstile and floodlight: every shift passes the overseer.
     box(occ, 31.9, 1.2, 5, 1.3, 2.4, 1.3, O.iron); box(occ, 31.9, 1.55, 5.66, 1, .18, .03, mats.dark); box(occ, 31.9, 2.02, 5, 1.36, .16, 1.36, O.oxblood); const bcap = new T.Mesh(new T.ConeGeometry(1.05, .5, 4), O.green); bcap.rotation.y = Math.PI / 4; bcap.position.set(31.9, 2.66, 5); occ.add(bcap);
     for (const x of [30.2, 31.1]) cyl(occ, x, .55, 5.1, .06, 1.1, O.iron); for (let k = 0; k < 3; k++) { const arm = box(occ, 30.65, .9, 5.1, .9, .05, .05, O.oxblood); arm.rotation.y = k * Math.PI / 3; }
-    { const s = new T.Mesh(new T.PlaneGeometry(1.1, .3), printedMat(stencilPlate('INSPECTION', 1.1, .3))); s.position.set(31.9, 2.3, 5.67); occ.add(s); }
+    { const s = new T.Mesh(signs.plate('INSPECTION', 1.1, .3), signs.material); s.position.set(31.9, 2.3, 5.67); occ.add(s); }
     city.collider(31.9, 5, 1.4, 1.4, 2.6, undefined, () => this.view.control >= SITE_LIBERATED);
     cyl(occ, 33.1, 3.3, 7.8, .09, 6.6, O.iron); const lamp = new T.Group(); lamp.position.set(33.1, 6.55, 7.8); occLive.add(lamp); lamp.lookAt(26, 3.4, CZ); box(lamp, 0, 0, 0, .5, .4, .55, O.iron); box(lamp, 0, 0, .29, .38, .28, .02, mats.glow); lightCone(lamp, 2.1, 11).rotation.x = -Math.PI / 2;
     city.collider(33.1, 7.8, .3, .3, 6, undefined, () => this.view.control >= SITE_LIBERATED);
     // On the main street: the business sign is overruled by a requisition plate.
-    { const p = new T.Mesh(new T.PlaneGeometry(5.2, .66), printedMat(stencilPlate('REQUISITIONED · ORDINANCE WORKS No. 3', 5.2, .66))); p.position.set(13.0, 5.36, 14); p.rotation.y = -Math.PI / 2; occ.add(p); for (const dz of [-2.4, 2.4]) box(occ, 13.08, 5.36, 14 + dz, .1, .8, .08, O.iron); }
+    { const p = new T.Mesh(signs.plate('REQUISITIONED · ORDINANCE WORKS No. 3', 5.2, .66), signs.material); p.position.set(13.0, 5.36, 14); p.rotation.y = -Math.PI / 2; occ.add(p); for (const dz of [-2.4, 2.4]) box(occ, 13.08, 5.36, 14 + dz, .1, .8, .08, O.iron); }
     // Closed cage door with a padlock (occupied) versus swung open (liberated).
     const door = (g: T.Group, open: boolean) => { const d = new T.Group(); d.position.set(26.8, 0, 19.2); d.rotation.y = open ? -1.9 : 0; g.add(d); for (let z = .15; z < 1.2; z += .3) cyl(d, 0, 1.2, z, .025, 2.3, O.iron); for (const y of [.3, 2.2]) box(d, 0, y, .6, .05, .05, 1.2, O.iron); if (!open) box(d, .05, 1.2, 1.1, .08, .16, .12, mats.brass); };
     door(occ, false);

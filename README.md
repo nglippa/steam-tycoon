@@ -64,6 +64,18 @@ Looking east along the Row, another floating isle hangs over the Canal Ward gate
 
 **Pattern for future districts.** `cityFacts()` in `economy.ts` derives cross-location facts (network, courier run, inspection, cutters waiting or delivered, searchlight cut, Row free) from saved site progress. Layers show them with `when.fact(...)`. `inView()` in `patrol.ts` is the shared "occupation eyes" test for any observer. A site step marked `carried` completes by physical delivery (`Economy.deliver`) and cannot be bought.
 
+## The Ration Line (Phase 4: a second route through the same pattern)
+
+Between the Boiler yard and Cinder No. 3, the Directorate meters the Boiler's pressure into the Foundry through a caged valve fixed at forty per cent. An older copper main runs beneath it, under iron plates.
+
+1. **Learn the knock** (needs the Boiler restored and the yard's shift board answered). The stokers talk to the yard by tapping the main, and they chalk the true count under the gauge.
+2. **They noticed.** Once the yard runs covert work (Foundry step 2), pressure goes missing. A valve warden is posted with a logbook, the valve gets a second seal, and a "pressure theft is sabotage" notice goes up. The warden turns between the gauge, the yard, his logbook and the Boiler yard. The knocking stoker stops while the warden could see him.
+3. **Carry a pressure key.** The yard forged pressure keys alongside the cutters. The Steward carries one past the warden to a socket in the valve the Directorate never used. If he sees it, it goes back to the yard. You only have one pair of hands: the cutters and the key can't be carried together.
+4. **Open the old main.** The Directorate's gauge still reads forty per cent, but the yard now gets all of it through ancient Terra. **Waking the Armillary now needs this**, because it "wants steady pressure, not coal".
+5. **Break the ration** (the yard free, the Boiler at level 3). The valve is chained open and the station becomes the stokers', with a brazier shared by both yards and the old plate *The Breathing Main*.
+
+The same pieces carry both routes. `cityFacts()` and `when.fact()` hold the rules. `Attention` (in `patrol.ts`) is an observer's authored gaze schedule, and `inView()` is its eyes. `Consignment` (in `logistics.ts`) is goods carried by hand, one at a time. Printed plates share one texture sheet (`signs` in `factions.ts`).
+
 ## Terra's edge
 
 Behind the arrival gate the ward ends at a cliff. An ivory terrace juts past it. From its balustrade you can see a spillway pouring off into nothing, ancient ribs curving under the rim, a lesser isle hung on chains far below, a sister isle on the horizon, swifts on the updraft, and the cloud sea with Locke showing through. The sky, cloud sea and fall follow the day/night key and the weather.
@@ -99,6 +111,8 @@ The economy suite covers spending, passive/manual accounting, automation, offlin
 - `src/world/market-square.ts`: the Market Square slice. It covers the Saelspring, the Sael Gate, the checkpoint, the cellar and the restoration circuit.
 - `src/world/foundry-works.ts`: the Foundry slice. It covers the Armillary, the fabrication table, the overseer's gaze, covert packing and the wake.
 - `src/world/cinder-row.ts`: the connecting street. It covers the courier, the inspection post and its inspector, the carried cutters, the searchlight over the ancient conduit, and the liberated Lantern Way.
+- `src/world/ration-line.ts`: the Boiler–Foundry route. It covers the ration valve, the warden, the knocking stoker, the pressure key and the old main.
+- `src/world/logistics.ts`: `Consignment`, goods the Steward carries by hand between districts.
 - `src/world/terra-edge.ts`: the south edge, with the cliff plate, arrival terrace, spillway fall, ribs, hanging isles and swifts. The cloud sea and horizon live in `weather-art.ts`.
 - `src/world/patrol.ts`: one lightweight patrol that walks, notices, investigates, searches and returns, using a vision cone and collider line of sight.
 - `src/world/art-kit.ts`: Terra crests, gauges, pipework, roofs and canopies.
@@ -130,7 +144,8 @@ __TERRA__.site(3, 'foundry')     // Foundry control, same ladder; &foundry=n in 
 __TERRA__.wake('foundry')        // replay the Armillary waking (site 5 only)
 __TERRA__.view('foundryYard')    // also shiftBoard, forge, edge, arrival
 __TERRA__.site(1, 'row')         // Cinder Row: 0 occupied, 1 courier run, 2 cutters delivered, 3 searchlight cut, 4 free; &row=n
-__TERRA__.carry()                // shoulder the cutters crate (when it waits at the yard)
+__TERRA__.carry('gauge.key')     // shoulder a waiting consignment ('row.crate' by default)
+__TERRA__.site(2, 'gauge')       // the Ration Line; &gauge=n; views gauge, gaugeValve, gaugeYard
 __TERRA__.view('rowPost')        // also row, rowLane, rowMast, rowSky
 ```
 

@@ -3,7 +3,7 @@ import { box, cyl, sphere, torus, beam, crate, mats } from './assets';
 import { V, fabricOf } from './art-kit';
 import { LayeredSite, when, type SiteModule, type SiteView } from './layers';
 import { Patrol } from './patrol';
-import { ancient, ancientMats, occupationMats, canvasTarp, lightCone, beamMat, boltCutters, stencilPlate as plate, regimeBanner, civicBanner, propaganda, sealPlaque, stencilPlate, emberChalk, emberPaint, medallion, grime, printedMat, decalMat, flowMaterial, flowClock, strip } from './factions';
+import { ancient, ancientMats, occupationMats, canvasTarp, lightCone, beamMat, boltCutters, stencilPlate as plate, regimeBanner, civicBanner, propaganda, sealPlaque, stencilPlate, emberChalk, emberPaint, medallion, grime, printedMat, decalMat, flowMaterial, flowClock, strip, signs } from './factions';
 import type { Presentation } from './presentation';
 import { SITE_LIBERATED, SITE_RESTORED } from '../simulation/economy';
 
@@ -79,7 +79,7 @@ export class MarketSquare implements SiteModule {
     for (let x = -9.8; x <= 9.8; x += .7) for (const f of [-1, 1]) for (const y of [6.32, 8.18]) sphere(occ, x, y, GZ + f * .86, .045, O.rust);
     for (const s of [-1, 1]) for (const f of [-1, 1]) beam(occ, V(s * 9.4, 6.15, GZ + f * .6), V(s * 10.12, 4.5, GZ + f * .6), .07, O.iron);
     const board = new T.Mesh(new T.PlaneGeometry(14, 1.86), printedMat(propaganda.board)); board.position.set(0, 7.25, GZ + .861); occ.add(board);
-    const back = new T.Mesh(new T.PlaneGeometry(5, .62), printedMat(stencilPlate('ORDINANCE CHECKPOINT 07', 5, .62))); back.position.set(0, 7.3, GZ - .861); back.rotation.y = Math.PI; occ.add(back);
+    const back = new T.Mesh(signs.plate('ORDINANCE CHECKPOINT 07', 5, .62), signs.material); back.position.set(0, 7.3, GZ - .861); back.rotation.y = Math.PI; occ.add(back);
     for (const s of [-1, 1]) for (let k = 0; k < 4; k++) box(occ, s * (5 + k * 1.1), 7.2, GZ - .86, .5, .14, .03, mats.dark);
     for (const s of [-1, 1]) { const b = new T.Mesh(new T.PlaneGeometry(1.15, 4.8), printedMat(regimeBanner, true)); b.position.set(s * PX, 5.25, GZ + .69); occ.add(b); box(occ, s * PX, 7.72, GZ + .72, 1.45, .07, .07, O.iron); for (const dx of [-.72, .72]) sphere(occ, s * PX + dx, 7.72, GZ + .72, .06, O.iron); }
     // The spring caged and sealed: plated below, barred above, a wax-red seal facing the market.
@@ -95,7 +95,7 @@ export class MarketSquare implements SiteModule {
     // The checkpoint boom, raised for carts, banded in occupation colours.
     for (const x of [-6.75, 6.75]) box(occ, x, .95, GZ + .45, .32, .14, .32, O.oxblood);
     { const pivot = V(6.75, 1.2, GZ + .2), dir = V(-Math.cos(1.25), Math.sin(1.25), 0); for (let k = 0; k < 6; k++) beam(occ, pivot.clone().addScaledVector(dir, k), pivot.clone().addScaledVector(dir, k + 1), .07, k % 2 ? O.bone : O.oxblood); box(occ, 7.1, 1.05, GZ + .2, .5, .35, .3, O.iron); }
-    box(occ, 10.85, 1.55, -32.9, 1.18, .18, 1.18, O.oxblood); const s07 = new T.Mesh(new T.PlaneGeometry(.6, .3), printedMat(stencilPlate('07', .6, .3))); s07.position.set(10.85, 2.1, -32.31); occ.add(s07);
+    box(occ, 10.85, 1.55, -32.9, 1.18, .18, 1.18, O.oxblood); const s07 = new T.Mesh(signs.plate('07', .6, .3), signs.material); s07.position.set(10.85, 2.1, -32.31); occ.add(s07);
     // Searchlight on the gallery: at night it sweeps the square.
     this.yoke.position.set(5.2, 8.46, GZ); occLive.add(this.yoke); cyl(this.yoke, 0, .15, 0, .28, .3, O.iron);
     const aim = new T.Group(); aim.position.y = .55; aim.rotation.x = -.98; this.yoke.add(aim); cyl(aim, 0, 0, 0, .36, .6, O.iron); cyl(aim, 0, -.31, 0, .3, .03, mats.glow);
@@ -145,7 +145,7 @@ export class MarketSquare implements SiteModule {
     // waits by the Finch cellar, and after the square rises they lie by the plates they took off the gate.
     const cutters = this.site.layer(when.all(when.fact('cuttersDelivered'), when.occupied));
     for (let k = 0; k < 3; k++) boltCutters(cutters, -13.28, .05, -24.95 + k * .16, Math.PI / 2, .22); crate(cutters, -12.2, 0, -24.85, .62);
-    { const m = new T.Mesh(new T.PlaneGeometry(.56, .2), printedMat(plate('CINDER No. 3', .56, .2))); m.position.set(-11.88, .42, -24.85); m.rotation.y = Math.PI / 2; cutters.add(m); } city.collider(-12.2, -24.85, .7, .7, .7);
+    { const m = new T.Mesh(signs.plate('CINDER No. 3', .56, .2), signs.material); m.position.set(-11.88, .42, -24.85); m.rotation.y = Math.PI / 2; cutters.add(m); } city.collider(-12.2, -24.85, .7, .7, .7);
     for (let k = 0; k < 2; k++) boltCutters(lib, 12.1, .08, GZ + 2.1 + k * .35, 0, 1.5);
     this.springTarget = new T.Mesh(new T.CylinderGeometry(.8, .8, 3.2, 8), mats.dark); this.springTarget.position.set(SX, 1.9, SZ); this.springTarget.visible = false; live.add(this.springTarget);
     const restored = () => this.view.control >= SITE_RESTORED;

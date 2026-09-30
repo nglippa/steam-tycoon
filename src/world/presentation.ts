@@ -12,6 +12,7 @@ import { TERRACE, terraceRise } from './city';
 import { MarketSquare } from './market-square';
 import { FoundryWorks } from './foundry-works';
 import { CinderRow } from './cinder-row';
+import { RationLine } from './ration-line';
 import type { SiteModule } from './layers';
 import { SITE_RESTORED } from '../simulation/economy';
 
@@ -21,7 +22,7 @@ export class Presentation {
   root=new T.Group(); restored=new T.Group(); worn=new T.Group(); market=new T.Group();
   mechanisms:{object:T.Object3D;axis:'x'|'y'|'z';speed:number}[]=[];
   workers:{person:ReturnType<typeof citizen>;kind:Activity;tool?:T.Group;minStage:number;maxStage:number;time:'any'|'day'|'night';partner?:number;path?:{a:T.Vector3;b:T.Vector3;speed:number};y:number;when?:()=>boolean}[]=[];
-  marketSquare!:MarketSquare; foundryWorks!:FoundryWorks; cinderRow!:CinderRow; sites:SiteModule[]=[];
+  marketSquare!:MarketSquare; foundryWorks!:FoundryWorks; cinderRow!:CinderRow; rationLine!:RationLine; sites:SiteModule[]=[];
   /** The Ordinance's coal furnace at Cinder No. 3: its own group, because restoration removes it. */
   foundryFurnace?:T.Group; foundryHoist?:T.Group; furnaceHammer=0;
   cartPusher=0;shaftMat?:T.MeshBasicMaterial;shafts?:T.Group;poolMat?:T.MeshBasicMaterial;pools?:T.Group;terracePlanters:[number,number][]=[];birds!:T.InstancedMesh;capsules:T.Group[]=[];moths!:T.InstancedMesh;hoistCrate!:T.Group;barge!:T.Group;craneJib!:T.Group;ingotCart!:T.Group;
@@ -31,7 +32,7 @@ export class Presentation {
   verges:[number,number][]=[[-7.3,42],[-7.3,16],[-7.3,-13],[7.3,38],[7.3,13],[7.3,-17]];
   tarp=illustrated(new T.MeshStandardMaterial({color:'#8f9d97',side:T.DoubleSide}));
   soot=new T.MeshBasicMaterial({color:'#2a2a36',transparent:true,opacity:.28,depthWrite:false});
-  constructor(public city:City){city.root.add(this.root);this.root.add(this.restored,this.worn,this.market);this.gate();this.street();this.industries();this.square();this.story();this.boundaries();this.greatMain();this.streetEdges();this.life();this.everyday();this.nightLights();this.density();this.ornament();this.carving();this.vignettes();this.marketSquare=new MarketSquare(this);this.foundryWorks=new FoundryWorks(this);this.cinderRow=new CinderRow(this);this.sites=[this.marketSquare,this.foundryWorks,this.cinderRow];}
+  constructor(public city:City){city.root.add(this.root);this.root.add(this.restored,this.worn,this.market);this.gate();this.street();this.industries();this.square();this.story();this.boundaries();this.greatMain();this.streetEdges();this.life();this.everyday();this.nightLights();this.density();this.ornament();this.carving();this.vignettes();this.marketSquare=new MarketSquare(this);this.foundryWorks=new FoundryWorks(this);this.cinderRow=new CinderRow(this);this.rationLine=new RationLine(this);this.sites=[this.marketSquare,this.foundryWorks,this.cinderRow,this.rationLine];}
   section(){const g=new T.Group();this.root.add(g);return g;}
   gate(){const g=this.section();
     // Curved iron arch lowers the opening into the player's field of view.
@@ -213,7 +214,7 @@ export class Presentation {
     this.addWorker(6.4,-29,Math.PI/2,'sweep',{role:'merchant',time:'night',minStage:1});
     // Engineer on the boiler deck; foundry cart; waterfront crane crew.
     this.addWorker(32.2,38,-Math.PI/2+.4,'clipboard',{y:8.1,role:'engineer'});
-    this.cartPusher=this.addWorker(36.4,7.6,0,'carry',{path:[36.4,18.4,.45],role:'worker'});
+    this.cartPusher=this.addWorker(36.4,7.6,0,'carry',{path:[36.4,18.4,.45],role:'worker',tool:'none'});
     this.ingotCart=new T.Group();box(this.ingotCart,0,.55,0,1,.4,1.4,mats.iron);for(const x of [-.35,0,.35])box(this.ingotCart,x,.82,0,.26,.14,1.1,artMats.ember);for(const x of [-.5,.5])for(const z of [-.45,.45]){const w=torus(this.ingotCart,x,.25,z,.2,.05,mats.iron);w.rotation.y=Math.PI/2;}asProp(this.ingotCart);bake(this.ingotCart);this.root.add(this.ingotCart);
     for(const x of [35.9,36.9])box(g,x,.1,13.9,.08,.06,13,mats.iron);
     const crane=new T.Group();crane.position.set(38.8,0,24);g.add(crane);box(crane,0,.3,0,1.8,.6,1.8,mats.stone);cyl(crane,0,3.5,0,.28,6.4,mats.iron);cyl(crane,0,6.9,0,.5,.6,mats.brass);
@@ -409,15 +410,19 @@ export class Presentation {
   addWorker(x:number,z:number,yaw:number,kind:Activity,o:{y?:number;role?:Archetype;minStage?:number;maxStage?:number;time?:'any'|'day'|'night';scale?:number;partner?:number;path?:[number,number,number];tool?:string;when?:()=>boolean}={}) {
     const role=o.role??(kind==='gauge'||kind==='valve'||kind==='clipboard'?'engineer':kind==='browse'||(z<0&&kind==='read')?'merchant':kind==='read'||kind==='watch'||kind==='lean'?'resident':'worker');
     const person=citizen(mats.rust,this.workers.length+43,role);const y=o.y!==undefined?o.y+.18:this.city.groundHeight(x,z);person.group.position.set(x,y,z);person.group.rotation.y=yaw;if(o.scale)person.group.scale.multiplyScalar(o.scale);this.root.add(person.group);
-    const tool=new T.Group();person.elbows[0].add(tool);const t=o.tool??kind;
-    if(t==='hammer'){box(tool,0,-.36,.12,.05,.4,.05,mats.wood);box(tool,0,-.54,.12,.3,.1,.12,mats.iron);}
-    if(t==='sweep'){cyl(tool,0,-.6,.15,.024,1.1,mats.wood);box(tool,0,-1.12,.15,.4,.18,.15,mats.cream);}
-    if(t==='read'){box(tool,.2,-.3,.15,.4,.04,.28,artMats.paper);}
-    if(t==='clipboard'){box(tool,.14,-.3,.14,.26,.02,.34,mats.wood);box(tool,.14,-.29,.14,.22,.02,.28,artMats.paper);}
-    if(t==='repair'){box(tool,0,-.38,.02,.04,.3,.04,mats.iron);torus(tool,0,-.55,.02,.05,.018,mats.iron);}
-    if(t==='eat'){const bun=sphere(tool,0,-.36,.06,1,artMats.ochre);bun.scale.set(.07,.05,.1);}
-    if(t==='mug'){cyl(tool,0,-.36,.06,.045,.1,mats.copper);}
-    if(t==='basket'){cyl(tool,0,-.42,.05,.14,.16,mats.wood);sphere(tool,0,-.34,.05,.08,mats.red);}
+    // Held things sit in the right hand's grip socket, authored grip-first: the handle runs through
+    // the fist along z and the rest hangs off it (figure-construction: arms-hands). Crates are
+    // carried against the body between both palms.
+    const tool=new T.Group();person.grips[0].add(tool);const t=o.tool??kind,inward=.03;
+    if(t==='hammer'){cyl(tool,0,0,.1,.021,.36,mats.wood).rotation.x=Math.PI/2;box(tool,0,0,.29,.08,.2,.08,mats.iron);}
+    if(t==='sweep'){const broom=new T.Group();broom.rotation.x=1.1;tool.add(broom);cyl(broom,0,0,.36,.02,1.3,mats.wood).rotation.x=Math.PI/2;box(broom,0,0,1.02,.4,.08,.13,mats.wood);box(broom,0,-.08,1.02,.42,.1,.1,mats.cream);}
+    if(t==='read'){const sheet=box(tool,inward+.13,-.03,.02,.26,.2,.012,artMats.paper);sheet.rotation.x=-.25;}
+    if(t==='clipboard'){box(tool,inward+.11,.03,.03,.24,.32,.02,mats.wood);box(tool,inward+.11,.03,.042,.2,.26,.006,artMats.paper);box(tool,inward+.11,.17,.045,.07,.03,.02,mats.brass);}
+    if(t==='repair'){box(tool,0,0,.09,.028,.028,.28,mats.iron);torus(tool,0,0,.25,.045,.016,mats.iron);}
+    if(t==='eat'){const bun=sphere(tool,inward*.3,0,.05,1,artMats.ochre);bun.scale.set(.05,.045,.07);}
+    if(t==='mug'){cyl(tool,inward+.035,.01,.01,.042,.11,mats.copper);torus(tool,inward*.3,.01,.01,.028,.009,mats.copper).rotation.x=Math.PI/2;}
+    if(t==='basket'){torus(tool,0,-.02,0,.1,.011,mats.wood).rotation.y=Math.PI/2;cyl(tool,0,-.2,0,.13,.16,mats.wood);sphere(tool,0,-.12,0,.07,mats.red);}
+    if(t==='carry'){const cargo=new T.Group();cargo.position.set(0,1.05,.31);person.body.add(cargo);box(cargo,0,0,0,.43,.32,.33,mats.wood);for(const y of [-.11,.11])box(cargo,0,y,.175,.45,.035,.02,mats.cream);asProp(cargo);bake(cargo);}
     asProp(tool);bake(tool);const path=o.path?{a:V(x,y,z),b:V(o.path[0],y,o.path[1]),speed:o.path[2]}:undefined;
     this.workers.push({person,kind,tool,minStage:o.minStage??0,maxStage:o.maxStage??5,time:o.time??'any',partner:o.partner,path,y,when:o.when});return this.workers.length-1;
   }

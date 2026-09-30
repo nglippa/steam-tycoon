@@ -93,3 +93,14 @@ export class Patrol {
     this.s = best; this.back.copy(this.along(best)); }
   hide() { this.state = 'patrol'; this.suspicion = 0; this.seen = false; this.marker.visible = false; }
 }
+/** An observer's authored attention: a repeating schedule of headings (yaw, seconds), turned
+ * into smoothly. The gaps in a schedule are the player's windows. */
+export class Attention {
+  yaw: number; private period: number;
+  constructor(public schedule: [yaw: number, seconds: number][], public rate = 2.6) { this.yaw = schedule[0][0]; this.period = schedule.reduce((n, [, s]) => n + s, 0); }
+  /** Where the schedule says to look at this moment. */
+  target(time: number) { let u = time % this.period; for (const [yaw, s] of this.schedule) { if (u < s) return yaw; u -= s; } return this.schedule[0][0]; }
+  update(dt: number, time: number, observer: T.Object3D) { this.yaw += wrap(this.target(time) - this.yaw) * Math.min(1, dt * this.rate); observer.rotation.y = this.yaw; return this.yaw; }
+  /** True once the observer has settled on this heading. */
+  facing(yaw: number, tolerance = .3) { return Math.abs(wrap(this.yaw - yaw)) < tolerance; }
+}

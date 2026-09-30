@@ -180,3 +180,21 @@ export function boltCutters(g: T.Object3D, x: number, y: number, z: number, yaw:
   for (const s of [-1, 1]) { const h = new T.Mesh(new T.CylinderGeometry(.025, .025, 1.1, 6), occupationMats.iron); h.position.set(s * .05, .55, 0); h.rotation.z = s * .05; c.add(h); const grip = new T.Mesh(new T.CylinderGeometry(.034, .034, .32, 6), ancientMats.turquoise); grip.position.set(s * .07, .2, 0); c.add(grip); }
   const jaw = new T.Mesh(new T.BoxGeometry(.16, .22, .05), occupationMats.iron); jaw.position.y = 1.18; c.add(jaw); return c;
 }
+/** Every printed plate in one texture and one material. Signs in the same stratum then bake
+ * to a single draw instead of one per plate, so districts can carry many without paying
+ * a draw each. `stencil` is the Ordinance's bone-on-charcoal; `ivory` is ancient Terra. */
+export const signs = (() => {
+  const W = 2048, H = 2048, PX = 160, GAP = 8, canvas = document.createElement('canvas'); canvas.width = W; canvas.height = H;
+  const x = canvas.getContext('2d')!, map = new T.CanvasTexture(canvas); map.colorSpace = T.SRGBColorSpace; map.anisotropy = 8;
+  let cx = 0, cy = 0, row = 0;
+  return { material: printedMat(map), plate(text: string, w: number, h: number, style: 'stencil' | 'ivory' = 'stencil') {
+    const pw = Math.round(w * PX), ph = Math.round(h * PX);
+    if (cx + pw > W) { cx = 0; cy += row + GAP; row = 0; } if (cy + ph > H) throw new Error('sign sheet is full');
+    x.save(); x.translate(cx, cy); x.beginPath(); x.rect(0, 0, pw, ph); x.clip();
+    if (style === 'stencil') { x.fillStyle = ordinance.charcoal; x.fillRect(0, 0, pw, ph); x.fillStyle = ordinance.bone; x.font = stencilFont(ph * .56); x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(text, pw / 2, ph / 2, pw * .92); weather(x, pw, ph, text.length); }
+    else { x.fillStyle = ancient.ivory; x.fillRect(0, 0, pw, ph); x.strokeStyle = ancient.gold; x.lineWidth = 7; x.strokeRect(9, 9, pw - 18, ph - 18); x.fillStyle = ancient.deep; x.font = `600 ${Math.round(ph * .4)}px Georgia, serif`; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(text, pw / 2, ph / 2 + 2, pw * .9); }
+    x.restore();
+    const g = new T.PlaneGeometry(w, h), uv = g.attributes.uv;
+    for (let i = 0; i < uv.count; i++) uv.setXY(i, (cx + uv.getX(i) * pw) / W, 1 - (cy + (1 - uv.getY(i)) * ph) / H);
+    cx += pw + GAP; row = Math.max(row, ph); map.needsUpdate = true; return g; } };
+})();

@@ -62,52 +62,76 @@ function bakeCharacter(group:T.Group){
     geometry.setAttribute('restoredColor',new T.BufferAttribute(late,3));object.geometry=geometry;object.material=object.material.userData.plain?plainToon:coloredToon;
   });return bake(group);
 }
-// One atlas per skin tone: four face archetypes, five expressions and a blink.
-// Face selection uses the existing BatchedMesh instance color channel as an index.
+// One atlas per skin tone: eight face types (rows) by five expressions and a blink (columns).
+// Types vary eye shape, brows, nose, mouth and marks independently, so a crowd reads as
+// different people drawn by one hand (figure-construction: faces). The expression column
+// comes from the BatchedMesh instance colour channel; the type row comes from the UVs.
+export const FACE_TYPES = 8;
+type Nose = 'dash' | 'dot' | 'hook' | 'button'; type Mark = 'none' | 'freckles' | 'stubble' | 'mole' | 'bags' | 'scar' | 'lines';
+const faceTypes: { rise: number; w: number; tilt: number; lash: number; iris: string; brow: [thick: number, arch: number, tilt: number]; nose: Nose; mouth: number; marks: Mark }[] = [
+  { rise: 48, w: 34, tilt: 0, lash: 13, iris: '#3d6b9a', brow: [8, 10, 0], nose: 'dash', mouth: 1, marks: 'none' },
+  { rise: 54, w: 34, tilt: 7, lash: 15, iris: '#7a4b35', brow: [6, 15, -3], nose: 'dot', mouth: .8, marks: 'freckles' },
+  { rise: 36, w: 37, tilt: -4, lash: 11, iris: '#2f7f72', brow: [12, 4, 4], nose: 'hook', mouth: 1.2, marks: 'stubble' },
+  { rise: 44, w: 33, tilt: 3, lash: 15, iris: '#6d4a86', brow: [6, 12, -2], nose: 'button', mouth: .85, marks: 'mole' },
+  { rise: 40, w: 35, tilt: -8, lash: 12, iris: '#56606e', brow: [10, 6, 6], nose: 'dash', mouth: 1.1, marks: 'bags' },
+  { rise: 58, w: 32, tilt: 2, lash: 14, iris: '#8a6a2a', brow: [5, 17, 0], nose: 'dot', mouth: .75, marks: 'none' },
+  { rise: 38, w: 36, tilt: 5, lash: 12, iris: '#3b5b3a', brow: [13, 3, -5], nose: 'hook', mouth: 1.15, marks: 'scar' },
+  { rise: 46, w: 34, tilt: -2, lash: 13, iris: '#8c3f46', brow: [8, 9, 2], nose: 'button', mouth: .95, marks: 'lines' },
+];
 const faces=skinColors.map(tone=>{
-  const canvas=document.createElement('canvas');canvas.width=1792;canvas.height=1024;const c=canvas.getContext('2d')!;
-  const irises=['#3d6b9a','#7a4b35','#2f7f72','#6d4a86'];
-  for(let type=0;type<4;type++)for(let state=0;state<7;state++){
+  const canvas=document.createElement('canvas');canvas.width=1792;canvas.height=256*FACE_TYPES;const c=canvas.getContext('2d')!;
+  for(let type=0;type<FACE_TYPES;type++)for(let state=0;state<7;state++){
+    const f=faceTypes[type];
     c.save();c.translate(state*256,type*256);c.scale(.5,.5);c.fillStyle=tone;c.fillRect(0,0,512,512);c.lineCap='round';c.lineJoin='round';
     const ink=P.neutral.ink,closed=state===5||state===1,y=296;
-    // Borderlands-style inked face: jaw shadow shape, nose side, under-eye lines, cheek hatching.
-    c.fillStyle='rgba(90,50,45,.22)';c.beginPath();c.moveTo(262,300);c.lineTo(274,340);c.lineTo(258,348);c.closePath();c.fill();
-    c.strokeStyle='rgba(40,24,24,.5)';c.lineWidth=2.5;for(const side of [-1,1]){const cx=256+side*72;for(let k=0;k<3;k++){c.beginPath();c.moveTo(cx-10+k*8,y+58);c.lineTo(cx-4+k*8,y+72);c.stroke();}
-      c.beginPath();c.moveTo(256+side*30,y+28);c.quadraticCurveTo(256+side*50,y+36,256+side*70,y+28);c.stroke();}
+    // The house inking: a jaw shadow and light under-eye hatching, lighter on smooth faces.
+    c.fillStyle='rgba(90,50,45,.2)';c.beginPath();c.moveTo(262,300);c.lineTo(274,340);c.lineTo(258,348);c.closePath();c.fill();
+    c.strokeStyle=`rgba(40,24,24,${f.marks==='none'?.3:.45})`;c.lineWidth=2.5;for(const side of [-1,1]){const cx=256+side*72;for(let k=0;k<(f.marks==='none'?2:3);k++){c.beginPath();c.moveTo(cx-10+k*8,y+58);c.lineTo(cx-4+k*8,y+72);c.stroke();}}
     c.strokeStyle='rgba(40,24,24,.4)';c.lineWidth=3;c.beginPath();c.moveTo(150,250);c.quadraticCurveTo(145,330,190,420);c.stroke();c.beginPath();c.moveTo(362,250);c.quadraticCurveTo(367,330,322,420);c.stroke();
-    // Soft cheek color sits under every expression; happiness warms it.
+    // Soft cheek colour under every expression; happiness warms it.
     c.fillStyle=state===1?'#f0848a66':'#ee8f8a30';for(const side of [-1,1]){c.beginPath();c.ellipse(256+side*64,y+50,26,12,0,0,Math.PI*2);c.fill();}
+    // Marks: the small particular things that make a stranger someone.
+    if(f.marks==='freckles'){c.fillStyle='rgba(120,62,44,.55)';for(const side of [-1,1])for(let k=0;k<7;k++){c.beginPath();c.arc(256+side*(44+(k*13)%34),y+40+(k*7)%18,2.6,0,Math.PI*2);c.fill();}}
+    if(f.marks==='stubble'){c.fillStyle='rgba(40,30,32,.22)';for(let k=0;k<140;k++){const a=(k*2.399)%Math.PI,r=78+(k*7)%40;c.fillRect(256+Math.cos(a)*r*.95-1,382+Math.sin(a)*r*.55-1,2.4,2.4);}}
+    if(f.marks==='mole'){c.fillStyle='#3a2426';c.beginPath();c.arc(300,372,4.2,0,Math.PI*2);c.fill();}
+    if(f.marks==='bags'){c.strokeStyle='rgba(70,44,48,.5)';c.lineWidth=2.4;for(const side of [-1,1]){c.beginPath();c.moveTo(256+side*28,y+38);c.quadraticCurveTo(256+side*52,y+48,256+side*76,y+36);c.stroke();}}
+    if(f.marks==='scar'){c.strokeStyle='rgba(150,72,72,.75)';c.lineWidth=4;c.beginPath();c.moveTo(178,236);c.lineTo(206,330);c.stroke();c.lineWidth=2;for(let k=0;k<4;k++){const t=k/3,sx=178+28*t,sy=236+94*t;c.beginPath();c.moveTo(sx-7,sy+2);c.lineTo(sx+7,sy-2);c.stroke();}}
+    if(f.marks==='lines'){c.strokeStyle='rgba(70,44,48,.42)';c.lineWidth=2.4;for(const side of [-1,1]){c.beginPath();c.moveTo(256+side*18,y+50);c.quadraticCurveTo(256+side*34,y+74,256+side*30,y+92);c.stroke();}}
     for(const side of [-1,1]){
-      const surprised=state===6,x=256+side*50,w=type===2?36:34,rise=[48,54,38,46][type]*(state===3?.72:state===4?.6:surprised?1.25:1),lid=state===2?.52:0;
+      const surprised=state===6,x=256+side*50,w=f.w,rise=f.rise*(state===3?.72:state===4?.6:surprised?1.25:1),lid=state===2?.52:0,up=f.tilt;
       const outer=x+side*w,inner=x-side*w;
       if(closed){c.strokeStyle=ink;c.lineWidth=8;c.beginPath();
-        if(state===1){c.moveTo(inner,y+4);c.quadraticCurveTo(x,y-30,outer,y+2);}else{c.moveTo(inner,y-2);c.quadraticCurveTo(x,y+16,outer+side*4,y-6);}
+        if(state===1){c.moveTo(inner,y+4);c.quadraticCurveTo(x,y-30,outer,y+2-up);}else{c.moveTo(inner,y-2);c.quadraticCurveTo(x,y+16,outer+side*4,y-6-up);}
         c.stroke();}
       else{
-        const lidPath=()=>{c.beginPath();c.moveTo(inner,y-2);c.quadraticCurveTo(x-side*6,y-rise,outer,y-10);c.quadraticCurveTo(x+side*6,y+36,inner,y-2);c.closePath();};
+        const lidPath=()=>{c.beginPath();c.moveTo(inner,y-2);c.quadraticCurveTo(x-side*6,y-rise,outer,y-10-up);c.quadraticCurveTo(x+side*6,y+36,inner,y-2);c.closePath();};
         c.save();lidPath();c.fillStyle=P.neutral.paper;c.fill();c.clip();
-        const iris=c.createLinearGradient(0,y-30,0,y+28);iris.addColorStop(0,'#1d1a2e');iris.addColorStop(.45,irises[type]);iris.addColorStop(1,'#e6ddc9');
+        const iris=c.createLinearGradient(0,y-30,0,y+28);iris.addColorStop(0,'#1d1a2e');iris.addColorStop(.45,f.iris);iris.addColorStop(1,'#e6ddc9');
         c.fillStyle=iris;c.beginPath();c.ellipse(x-side*3,y+2,surprised?15:21,surprised?21:29,0,0,Math.PI*2);c.fill();
         c.fillStyle='#120f1e';c.beginPath();c.ellipse(x-side*3,y+1,12,18,0,0,Math.PI*2);c.fill();
         c.fillStyle='#ffffff';c.beginPath();c.arc(x-side*3-8,y-10,7.5,0,Math.PI*2);c.fill();c.beginPath();c.arc(x-side*3+6,y+11,2.6,0,Math.PI*2);c.fill();
         if(lid){c.fillStyle=tone;c.fillRect(inner-40,y-60,120,60*lid+10);}
         c.restore();
-        // A heavy upper lash line with an outer flick carries the anime read.
-        c.strokeStyle='#120f16';c.lineWidth=type===1||type===3?15:13;c.beginPath();
+        // A heavy upper lash line with an outer flick carries the anime read; its weight and tilt vary.
+        c.strokeStyle='#120f16';c.lineWidth=f.lash;c.beginPath();
         const top=lid?y-rise*.25:y-rise;
-        c.moveTo(inner-side*2,y-1);c.quadraticCurveTo(x-side*6,top,outer,y-10);c.lineTo(outer+side*(type===1?11:7),y-17);c.stroke();
+        c.moveTo(inner-side*2,y-1);c.quadraticCurveTo(x-side*6,top,outer,y-10-up);c.lineTo(outer+side*(f.lash>13?11:7),y-17-up*1.4);c.stroke();
         c.lineWidth=3;c.beginPath();c.moveTo(outer-side*2,y-6);c.quadraticCurveTo(x+side*10,y+22,x-side*6,y+21);c.stroke();
       }
-      // Brows stay thin and high; emotion lives in their angle.
-      const slant=state===4?side*-13:state===3?side*-7:state===2?side*6:state===1?side*4:surprised?-12:0;
-      c.strokeStyle='#1c1418';c.lineWidth=10;c.beginPath();c.moveTo(inner,y-66+slant);c.quadraticCurveTo(x,y-78,outer,y-66-slant*.4);c.stroke();
-      if(type===3){c.strokeStyle='#9a736b';c.lineWidth=2;c.beginPath();c.moveTo(outer,y+14);c.lineTo(outer+side*8,y+21);c.stroke();}
+      // Brows: thickness, arch and set vary by face; emotion lives in their angle.
+      const slant=state===4?side*-13:state===3?side*-7:state===2?side*6:state===1?side*4:surprised?-12:0,[thick,arch,set]=f.brow;
+      c.strokeStyle='#1c1418';c.lineWidth=thick;c.beginPath();c.moveTo(inner,y-66+slant+set);c.quadraticCurveTo(x,y-66-arch-(surprised?8:0),outer,y-66-slant*.4-set*.5);c.stroke();
     }
-    c.strokeStyle='#b27a70';c.lineWidth=3;c.beginPath();c.moveTo(262,338);c.lineTo(258,346);c.stroke();
-    c.strokeStyle='#3a1e24';c.lineWidth=7;
-    if(state===1){c.fillStyle='#8c3a47';c.beginPath();c.moveTo(240,370);c.quadraticCurveTo(256,396,272,370);c.closePath();c.fill();c.fillStyle='#e0848a';c.beginPath();c.ellipse(256,384,8,4,0,0,Math.PI*2);c.fill();}
+    // Nose: halfway between the tops of the eyes and the chin (figure-construction: faces).
+    if(f.nose==='dash'){c.strokeStyle='#b27a70';c.lineWidth=3;c.beginPath();c.moveTo(262,338);c.lineTo(258,346);c.stroke();}
+    if(f.nose==='dot'){c.fillStyle='#b27a70';c.beginPath();c.ellipse(258,343,3.4,2.6,0,0,Math.PI*2);c.fill();}
+    if(f.nose==='hook'){c.fillStyle='rgba(120,70,62,.35)';c.beginPath();c.moveTo(262,306);c.quadraticCurveTo(276,332,270,344);c.lineTo(256,348);c.closePath();c.fill();c.strokeStyle='#9c6a62';c.lineWidth=3;c.beginPath();c.moveTo(270,344);c.lineTo(256,348);c.stroke();}
+    if(f.nose==='button'){c.strokeStyle='#b27a70';c.lineWidth=3;c.beginPath();c.moveTo(250,341);c.quadraticCurveTo(257,349,264,341);c.stroke();}
+    // Mouth: slightly above halfway between nose and chin; its width varies by face.
+    const m=f.mouth;c.strokeStyle='#3a1e24';c.lineWidth=7;
+    if(state===1){c.fillStyle='#8c3a47';c.beginPath();c.moveTo(256-16*m,370);c.quadraticCurveTo(256,396,256+16*m,370);c.closePath();c.fill();c.fillStyle='#e0848a';c.beginPath();c.ellipse(256,384,8*m,4,0,0,Math.PI*2);c.fill();}
     else if(state===6){c.fillStyle='#6c3b45';c.beginPath();c.ellipse(256,378,8,10,0,0,Math.PI*2);c.fill();}
-    else{c.beginPath();c.moveTo(246,374);c.quadraticCurveTo(256,state===4?368:state===2?374:380,266,374);c.stroke();}
+    else{c.beginPath();c.moveTo(256-10*m,374);c.quadraticCurveTo(256,state===4?368:state===2?374:380,256+10*m,374);c.stroke();}
     c.restore();
   }
   const map=new T.CanvasTexture(canvas);map.colorSpace=T.SRGBColorSpace;map.generateMipmaps=true;map.minFilter=T.LinearMipmapLinearFilter;map.anisotropy=8;
@@ -131,10 +155,17 @@ function foot(g:T.Object3D,y:number,material:Material,heavy:boolean){const f=hea
   mesh.rotation.x=Math.PI/2;mesh.position.set(0,y,.035);return mesh;}
 /** The guard's cap badge: a small brass shield on the band. */
 function crestPin(g:T.Object3D){const shield=new T.Shape();shield.moveTo(-.035,.035);shield.lineTo(.035,.035);shield.lineTo(.035,0);shield.lineTo(0,-.04);shield.lineTo(-.035,0);shield.closePath();const m=new T.Mesh(new T.ShapeGeometry(shield),brass);m.position.set(0,.19,.235);g.add(m);}
-/** Flat mitten hand with a thumb: reads as a hand, costs two small meshes. */
-function hand(g:T.Object3D,material:Material,side:number){
-  tailored(g,[[-.235,.022,.03],[-.27,.026,.042],[-.32,.025,.043],[-.36,.018,.032],[-.378,.004,.006]],material,8);
-  const thumb=sphere(g,side*.012,-.275,.035,1,material);thumb.scale.set(.016,.03,.016);thumb.rotation.x=.4;}
+/** A small relaxed hand in a C-curl: palm, one curled finger mass and a thumb, the "glove
+ * shape" that reads as a hand both empty and around a handle (figure-construction: arms-hands). */
+function hand(g:T.Object3D,material:Material,side:number){const inward=-side;
+  tailored(g,[[-.232,.024,.03],[-.255,.028,.042],[-.29,.029,.045],[-.305,.026,.043]],material,8);
+  const fingers=new T.Group();fingers.position.set(0,-.3,0);fingers.rotation.z=inward*1.05;g.add(fingers);
+  tailored(fingers,[[.004,.025,.042],[-.03,.022,.04],[-.052,.016,.032],[-.064,.004,.01]],material,8);
+  const thumb=new T.Group();thumb.position.set(inward*.012,-.262,.036);thumb.rotation.set(.55,0,inward*.7);g.add(thumb);
+  tailored(thumb,[[0,.013,.014],[-.035,.012,.012],[-.05,.003,.004]],material,6);}
+/** The grip socket: the palm centre inside the curl, in the forearm's frame. Held things are
+ * authored with their grip point at their own origin and their handle along local z. */
+function gripSocket(elbow:T.Object3D,side:number){const grip=new T.Group();grip.position.set(-side*.028,-.312,.004);elbow.add(grip);return grip;}
 
 export function citizen(coat:Material=mats.rust,seed=0,archetype:Archetype='worker'){
   void coat;
@@ -206,14 +237,18 @@ export function citizen(coat:Material=mats.rust,seed=0,archetype:Archetype='work
   // Head and hair.
   const head=new T.Group();head.position.y=1.86;head.scale.setScalar(1.16);body.add(head);
   const jaw=.94+(seed*7%5)*.03;
+  // Face type and skull shape vary independently of skin tone and of each other (shape language:
+  // round reads soft, square reads steady, triangle reads sharp).
+  const faceType=(seed*5+Math.floor(seed/3)*3+archetype.length)%FACE_TYPES,skullShape=(seed*11+Math.floor(seed/2))%3,taper=[.2,.27,.42][skullShape],cheek=[1.05,1,.96][skullShape];
   // Anime head: a round cranium, soft cheeks and a small chin carried forward.
   const rings=[[-.228,.03,.03,.04],[-.2,.075*jaw,.085,.028],[-.15,.118*jaw,.126,.012],[-.11,.145,.142,.004],[-.07,.163,.154,0],[.03,.18,.172,-.006],[.13,.168,.163,-.016],[.205,.112,.112,-.022],[.245,.004,.004,-.022]];
   const skull=tailored(head,rings,faces[skinTone],24,-Math.PI,Math.PI*2);
-  const uv=skull.geometry.attributes.uv;for(let j=0;j<rings.length;j++)for(let i=0;i<=24;i++){uv.setX(j*25+i,uv.getX(j*25+i)/7);uv.setY(j*25+i,((Math.max(-.22,rings[j][0])+.22)/.465+3-seed%4)/4);}
+  const uv=skull.geometry.attributes.uv;for(let j=0;j<rings.length;j++)for(let i=0;i<=24;i++){uv.setX(j*25+i,uv.getX(j*25+i)/7);uv.setY(j*25+i,((Math.max(-.22,rings[j][0])+.22)/.465+FACE_TYPES-1-faceType)/FACE_TYPES);}
   // Harder, more angular face: a flattened front plane (cheekbone edge) and a jaw that
   // tapers to a V toward the chin. The painted features keep the same UVs.
   {const pos=skull.geometry.attributes.position;for(let i=0;i<pos.count;i++){let x=pos.getX(i),z=pos.getZ(i);const y=pos.getY(i),front=Math.max(0,z)/(.17);
-    if(y<-.04){const t=Math.min(1,(-.04-y)/.19);x*=1-t*.32*Math.min(1,front*1.4);z*=1-t*.08;}
+    if(y<-.04){const t=Math.min(1,(-.04-y)/.19);x*=1-t*taper*Math.min(1,front*1.4);z*=1-t*.08;}
+    if(y>-.1&&y<.04)x*=cheek;
     if(z>.128&&y>-.16&&y<.1)z=.128+(z-.128)*.35;
     if(y>-.08&&y<.02&&Math.abs(x)>.13)x*=1.03;
     pos.setXYZ(i,x,y,z);}skull.geometry.computeVertexNormals();}
@@ -275,7 +310,7 @@ export function citizen(coat:Material=mats.rust,seed=0,archetype:Archetype='work
   if(kit.hat==='goggles'){tailored(hat,[[.12,.214,.2],[.16,.214,.2]],leather,14);for(const x of [-.075,.075]){const rim=torus(hat,x,.15,.19,.045,.014,brass);rim.rotation.x=-.3;const glass=sphere(hat,x,.15,.19,1,lens);glass.scale.set(.034,.034,.012);}}
   bakeCharacter(hat);
   const face=head.children.find(o=>o instanceof T.Mesh&&o.material===faces[skinTone]) as T.Mesh;face.userData.expression=0;
-  const legs:T.Group[]=[],knees:T.Group[]=[],arms:T.Group[]=[],elbows:T.Group[]=[];
+  const legs:T.Group[]=[],knees:T.Group[]=[],arms:T.Group[]=[],elbows:T.Group[]=[],grips:T.Group[]=[];
   for(const side of [-1,1]){
     // Legs: shaped thigh, knee, calf and a clear ankle into real boots.
     // The hip joint sits inside the pelvis; the thigh is slimmer at its root, fullest in the
@@ -303,7 +338,9 @@ export function citizen(coat:Material=mats.rust,seed=0,archetype:Archetype='work
     const elbow=new T.Group();elbow.position.set(side*.015,-.25,0);elbow.rotation.x=-.12;shoulder.add(elbow);elbows.push(elbow);
     if(kit.sleeve==='rolled'){tailored(elbow,[[.03,.062,.064],[-.03,.062,.064]],kit.shirt,12);tailored(elbow,[[0,.046,.048],[-.08,.05,.05],[-.2,.036,.038],[-.24,.032,.034]],skinMat,10);}
     else{tailored(elbow,[[.01,.051,.053],[-.08,.055,.055],[-.2,.042,.044],[-.235,.041,.043]],sleeve,12);tailored(elbow,[[-.19,.046,.048],[-.237,kit.coat?.056:.047,kit.coat?.058:.049]],kit.coat?accent:ivory,12);}
-    hand(elbow,kit.hands,side);bakeCharacter(elbow);
+    // A joint cap closes the notch that opens on the outside of a bent elbow.
+    sphere(elbow,0,0,0,.05,kit.sleeve==='rolled'?kit.shirt:sleeve);
+    hand(elbow,kit.hands,side);bakeCharacter(elbow);grips.push(gripSocket(elbow,side));
   }
   // Early Terra: patches and grime. Later: brass watch chains and clean trims.
   const worn=new T.Group();body.add(worn);
@@ -317,7 +354,7 @@ export function citizen(coat:Material=mats.rust,seed=0,archetype:Archetype='work
   group.scale.set(1+(seed%4-1.5)*.03,.95+(seed%5)*.022,1);
   group.traverse(o=>{if(o instanceof T.Mesh)o.castShadow=false;});
   const motion={stride:seed*1.3,gait:0,speed:0,prevX:NaN,prevZ:0,prevYaw:0,turn:0,tail:0,tailV:0,hair:0,hairV:0,tempo:.88+((seed*37)%25)/100,idle:0};
-  return {group,body,legs,knees,arms,elbows,head,worn,finery,scarf,tails,swing,face,archetype,motion,phase:seed*1.7,expression:'neutral' as Expression,gaze:'away',setExpression(state:Expression){this.expression=state;face.userData.expression=expressions.indexOf(state);}};
+  return {group,body,legs,knees,arms,elbows,grips,head,worn,finery,scarf,tails,swing,face,archetype,motion,phase:seed*1.7,expression:'neutral' as Expression,gaze:'away',setExpression(state:Expression){this.expression=state;face.userData.expression=expressions.indexOf(state);}};
 }
 
 export type Citizen=ReturnType<typeof citizen>;

@@ -249,3 +249,18 @@ Phase 2 and the character follow-up were committed first as `0cf9c57`. After tha
 | spawn | 211 | 198 | 987 → 997 | 5.75 → 5.9 |
 
 The square cases draw the same, and their FPS moves in both directions, so that's run-to-run noise. The Row costs 17–50 draws where it's in view. Printed signs are the least shareable part, since each has its own texture. The sky isle is a clone that shares its baked geometry and materials. Per-frame logic is one inspector, one courier and two citizens, checked with `inView()` against colliders; there are no global scans.
+
+## Phase 4: the Ration Line, a second route (2026-09-30)
+
+Phase 3 was committed as `9c227f9`. After that, `npm run typecheck`, `npm test` (26 tests; the 3 new ones cover the Line's gating, the warden trigger and its end, the carried key, the Armillary's new pressure dependency, and pre-Line saves) and `npm run build` pass.
+
+- The pattern held for a second route without new systems. `CinderRow` was refactored onto the shared `Attention`, `Consignment` and `signs`, and `RationLine` is built from the same pieces.
+- Behaviour, in the live game:
+  - Holding the cutters, the key is refused ("Your arms are already full").
+  - The key was taken when the warden turned toward the yard, then seated at the valve on the next attempt.
+  - The stoker knocked in 61 of 100 samples and stopped in 39, whenever the warden could see him.
+  - The Armillary stays blocked ("Requires The Ration Line: open the old main") until the main is open.
+  - An ordinary save restores all four sites.
+- Traversal and ledgers (`&check=1`) ran in 15 states, including the Line at 1, 2, 3 and 4. All 6 ledgers pass everywhere, no NPC is blocked, and there are no console errors. `foundryLane` fails only while Cinder Row's inspection is active, as in Phase 3.
+- Performance (uncapped headed Chrome, Phase 3 vs Phase 4, mean of 2 rounds): the Line costs +12 to +19 draws where it's in view (the Row cost +17 to +50), and p95 stays at or below 6.9 ms. Existing districts are within ±2 draws. The shared sign sheet saved only a draw or two there, because most plates already shared a stratum with other geometry.
+- Rendered review: `screenshots/review-2026-09-30-pass5/` and `collage.png`.

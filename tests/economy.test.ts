@@ -67,7 +67,8 @@ test('a profitable foundry stays occupied until its own workers down tools', () 
   assert.equal(e.state.properties.foundry.level, 5); assert.equal(e.state.sites.foundry, 0);
   e.state.sites.market = 1; for (let i = 0; i < 3; i++) assert.equal(e.advanceSite('foundry'), true);
   const before = e.rate; assert.equal(e.advanceSite('foundry'), true); assert.equal(e.state.sites.foundry, SITE_LIBERATED); assert.ok(Math.abs(e.rate / before - 1.15) < 1e-9);
-  assert.match(e.siteBlocker('foundry')!, /steam distribution level 2/); e.upgradeInfra('steam'); e.upgradeInfra('steam'); assert.equal(e.advanceSite('foundry'), true);
+  assert.match(e.siteBlocker('foundry')!, /steam distribution level 2/); e.upgradeInfra('steam'); e.upgradeInfra('steam');
+  assert.match(e.siteBlocker('foundry')!, /The Ration Line: open the old main/); e.state.sites.gauge = 3; assert.equal(e.advanceSite('foundry'), true);
   assert.equal(e.state.sites.market, 1);
 });
 test('v3 saves written before the foundry site load it as occupied', () => {
@@ -82,7 +83,7 @@ test('Cinder Row needs both ends of the network before a courier can run it', ()
   e.advanceSite('foundry'); assert.equal(e.advanceSite('row'), true); assert.equal(cityFacts(e.state.sites).courierRun, true);
 });
 test('the cutters must be carried: the step cannot be bought, only delivered once forged', () => {
-  const e = new Economy(memory()); e.state.crowns = 1e8; e.state.sites = { market: 3, foundry: 2, row: 1 };
+  const e = new Economy(memory()); e.state.crowns = 1e8; e.state.sites = { market: 3, foundry: 2, row: 1, gauge: 0 };
   const before = e.state.crowns; assert.equal(e.advanceSite('row'), false); assert.equal(e.deliver('row'), false); assert.match(e.siteBlocker('row')!, /forge the cutters/);
   e.state.sites.foundry = 3; assert.equal(cityFacts(e.state.sites).cuttersWaiting, true);
   assert.equal(e.siteBlocker('row'), 'Carried by hand, not bought'); assert.equal(e.advanceSite('row'), false);
@@ -90,24 +91,44 @@ test('the cutters must be carried: the step cannot be bought, only delivered onc
   assert.equal(cityFacts(e.state.sites).cuttersWaiting, false); assert.equal(cityFacts(e.state.sites).cuttersDelivered, true); assert.equal(e.deliver('row'), false);
 });
 test('the Directorate responds to smuggling on the Row, and liberation takes the post down', () => {
-  const f = (market: number, foundry: number, row: number) => cityFacts({ market, foundry, row });
+  const f = (market: number, foundry: number, row: number) => cityFacts({ market, foundry, row, gauge: 0 });
   assert.equal(f(1, 1, 1).inspection, false, 'a courier alone is not noticed');
   assert.equal(f(1, 2, 0).inspection, false, 'false-bottom crates alone are not noticed');
   assert.equal(f(1, 2, 1).inspection, true, 'crates leaving light and a courier run: they notice');
   assert.equal(f(4, 4, 3).inspection, true, 'the post stays until the Row itself is taken');
-  const e = new Economy(memory()); e.state.crowns = 1e8; e.state.sites = { market: 3, foundry: 3, row: 3 };
+  const e = new Economy(memory()); e.state.crowns = 1e8; e.state.sites = { market: 3, foundry: 3, row: 3, gauge: 0 };
   assert.match(e.siteBlocker('row')!, /Market Square: raise market square/); e.state.sites.market = 4;
   assert.match(e.siteBlocker('row')!, /Cinder No\. 3: down tools/); e.state.sites.foundry = 4;
   assert.equal(e.advanceSite('row'), true); assert.equal(cityFacts(e.state.sites).inspection, false); assert.equal(cityFacts(e.state.sites).rowFree, true);
   assert.equal(e.siteBlocker('row'), 'Complete');
 });
 test('the square only rises once the cutters have crossed the city', () => {
-  const e = new Economy(memory()); e.state.crowns = 1e8; for (const p of PROPERTIES) { e.upgrade(p.id); e.upgrade(p.id); } e.upgradeInfra('lamps'); e.upgradeInfra('gardens'); e.state.sites = { market: 3, foundry: 3, row: 1 };
+  const e = new Economy(memory()); e.state.crowns = 1e8; for (const p of PROPERTIES) { e.upgrade(p.id); e.upgrade(p.id); } e.upgradeInfra('lamps'); e.upgradeInfra('gardens'); e.state.sites = { market: 3, foundry: 3, row: 1, gauge: 0 };
   assert.match(e.siteBlocker('market')!, /Cinder Row: run the cutters to the finch/); e.deliver('row'); assert.equal(e.advanceSite('market'), true);
 });
 test('cross-location progress persists, and saves from before the Row load it as untouched', () => {
-  const m = memory(); const e = new Economy(m, 1000); e.state.sites = { market: 2, foundry: 3, row: 2 }; e.save(1000);
-  const back = new Economy(m, 1000).state.sites; assert.deepEqual(back, { market: 2, foundry: 3, row: 2 }); assert.equal(cityFacts(back).inspection, true);
+  const m = memory(); const e = new Economy(m, 1000); e.state.sites = { market: 2, foundry: 3, row: 2, gauge: 0 }; e.save(1000);
+  const back = new Economy(m, 1000).state.sites; assert.deepEqual(back, { market: 2, foundry: 3, row: 2, gauge: 0 }); assert.equal(cityFacts(back).inspection, true);
   const old = freshSave() as unknown as Record<string, unknown>; old.sites = { market: 3, foundry: 3 };
   const d = decodeSave(JSON.stringify(old))!; assert.equal(d.sites.row, 0); assert.equal(cityFacts(d.sites).inspection, false);
+});
+// Phase 4: the Ration Line, a second route through the same pattern.
+test('the Ration Line opens from the Boiler and the yard, and the Directorate posts a warden', () => {
+  const e = new Economy(memory()); e.state.crowns = 1e8; e.upgrade('boiler');
+  assert.match(e.siteBlocker('gauge')!, /Cinder No\. 3: answer the shift board/); e.state.sites.foundry = 1; assert.equal(e.advanceSite('gauge'), true);
+  const f = (foundry: number, gauge: number) => cityFacts({ market: 1, foundry, row: 0, gauge });
+  assert.equal(f(1, 1).pressureWatch, false, 'knocking alone is not noticed'); assert.equal(f(2, 1).pressureWatch, true, 'pressure bled to covert work is');
+  assert.equal(f(4, 3).pressureWatch, true); assert.equal(f(4, 4).pressureWatch, false, 'breaking the ration ends the watch');
+});
+test('the pressure key is carried, never bought, and the old main is what wakes the Armillary', () => {
+  const e = new Economy(memory()); e.state.crowns = 1e8; e.upgradeInfra('steam'); e.upgradeInfra('steam'); e.state.sites = { market: 4, foundry: 4, row: 4, gauge: 1 };
+  assert.equal(e.deliver('gauge'), true); assert.equal(e.advanceSite('gauge'), true); assert.equal(cityFacts(e.state.sites).mainOpen, true);
+  e.state.sites.gauge = 1; e.state.sites.foundry = 2; assert.equal(e.deliver('gauge'), false, 'no key before the yard forges one'); assert.equal(e.advanceSite('gauge'), false);
+  e.state.sites.foundry = 3; assert.equal(cityFacts(e.state.sites).keyWaiting, true); assert.equal(e.deliver('gauge'), true); assert.equal(cityFacts(e.state.sites).keyDelivered, true);
+});
+test('breaking the ration needs the yard free and the Boiler strong; pre-Line saves load it untouched', () => {
+  const e = new Economy(memory()); e.state.crowns = 1e8; e.state.sites = { market: 0, foundry: 3, row: 0, gauge: 3 }; e.upgrade('boiler');
+  assert.match(e.siteBlocker('gauge')!, /Municipal Boiler restored to level 3/); e.upgrade('boiler'); e.upgrade('boiler');
+  assert.match(e.siteBlocker('gauge')!, /Cinder No\. 3: down tools/); e.state.sites.foundry = 4; assert.equal(e.advanceSite('gauge'), true); assert.equal(cityFacts(e.state.sites).lineFree, true);
+  const old = freshSave() as unknown as Record<string, unknown>; old.sites = { market: 2, foundry: 3, row: 2 }; assert.equal(decodeSave(JSON.stringify(old))!.sites.gauge, 0);
 });

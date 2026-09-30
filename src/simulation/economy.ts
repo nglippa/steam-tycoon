@@ -19,7 +19,7 @@ export const STAGES = ['The Lowworks', 'Recovery', 'Industry', 'Commerce', 'Inno
 /** Liberation is a second, place-bound progression. Each site climbs one ladder:
  * 0 occupied, 1-3 covert resistance, 4 liberated, 5 ancient Terra restored. Economic
  * prosperity gates the steps but is never the same thing as control of the street. */
-export type SiteId = 'market' | 'foundry' | 'row';
+export type SiteId = 'market' | 'foundry' | 'row' | 'gauge';
 /** `sites` ties a step to progress elsewhere in the city; a `carried` step is never bought,
  * it completes when something is physically delivered (see Economy.deliver). */
 export interface SiteStep { name: string; kind: 'covert' | 'liberation' | 'restoration'; cost: number; detail: string; done: string; carried?: true; requires: { property?: PropertyId; infra?: InfraId; level?: number; stage?: number; sites?: Partial<Record<SiteId, number>> } }
@@ -45,7 +45,7 @@ export const SITES: SiteDef[] = [
     { name: 'Hide work in the quota', kind: 'covert', cost: 420, detail: 'Legitimate castings leave the yard every hour. Some crates will carry a false bottom.', done: 'Every hundredth crate out of Cinder No. 3 has a false bottom. The overseer counts the crates, not what is in them.', requires: { property: 'foundry', level: 2 } },
     { name: 'Forge the cutters', kind: 'covert', cost: 850, detail: 'Bolt cutters and pressure keys, cast between quota runs. Enough to take a checkpoint apart.', done: 'A rack of cutters and pressure keys waits under the tarp, and a crate of them sits by the cage door. Someone has to carry it to the Copper Finch.', requires: { property: 'foundry', level: 3 } },
     { name: 'Down tools', kind: 'liberation', cost: 2200, detail: 'The whole yard stops at once. Without its workers the furnace is only iron, and the Ordinance knows it.', done: 'Cinder No. 3 downs tools. The overseer’s booth comes apart, the supply cage opens, and the workers post their own shifts.', requires: { stage: 3 } },
-    { name: 'Wake the Armillary', kind: 'restoration', cost: 4200, detail: 'Behind the furnace, welded still, are rings older than any foundry. They want steady pressure, not coal.', done: 'The civic engineers are cutting Cinder No. 3 out of the old wall.', requires: { infra: 'steam', level: 2 } },
+    { name: 'Wake the Armillary', kind: 'restoration', cost: 4200, detail: 'Behind the furnace, welded still, are rings older than any foundry. They want steady pressure, not coal.', done: 'The civic engineers are cutting Cinder No. 3 out of the old wall.', requires: { infra: 'steam', level: 2, sites: { gauge: 3 } } },
   ], spots: {
     board: { from: 0, to: 3, covert: true, before: '', after: 'The shift board belongs to the works council now. Names, not quotas.', closed: s => s.sites.foundry === 0 && s.properties.foundry.level < 1 ? 'No shifts are posted. The yard is cold and nobody will meet your eye.' : null },
     forge: { from: 4, to: 4, before: 'An anvil is strapped to an ivory table that is far too fine for it. Behind the furnace, gold rings are welded into the wall.', after: 'The Armillary turns without a sound. Whatever it is making, the Ordinance never knew how to ask.' },
@@ -62,13 +62,24 @@ export const SITES: SiteDef[] = [
     post: { from: 3, to: 3, before: 'The inspection table. Nobody lingers here.', after: 'The inspection table is a stall now.' },
   }, watched: 'The inspector is looking this way. Wait until he bends over his table.',
   voice: { covert: ['THE EMBERS · CINDER ROW', 'Between the yard and the square, every doorway on the Row has an opinion about the Directorate.', 'Pass the chalk'], liberation: ['THE EMBERS · CINDER ROW', 'The square and the yard are free. The post between them is a table and four sawhorses.', 'Take it down'], restoration: ['ANCIENT TERRA · CINDER ROW', 'An old conduit runs under the Row.', 'Commission the restoration'] } },
+  { id: 'gauge', name: 'The Ration Line', steps: [
+    { name: 'Learn the knock', kind: 'covert', cost: 260, detail: 'The stokers talk to the yard by tapping the pressure main. Learn the knock and they will keep a true count under the Directorate’s gauge.', done: 'Tap, tap-tap. The stokers on the Ration Line answer the yard now, and chalk the true pressure under the Directorate’s gauge.', requires: { property: 'boiler', level: 1, sites: { foundry: 1 } } },
+    { name: 'Carry a pressure key to the valve', kind: 'covert', cost: 0, carried: true, detail: 'The yard forged pressure keys with the cutters. One of them fits a socket in the ration valve the Directorate never uses. Carry it there yourself, past the warden.', done: 'The key fits a socket the Directorate never used. Under the ration valve, something older turns.', requires: { sites: { foundry: 3 } } },
+    { name: 'Open the old main', kind: 'covert', cost: 700, detail: 'At night the stokers can turn the key and send the Boiler’s pressure through the old copper main instead of the Directorate’s pipe.', done: 'The Directorate’s gauge still reads forty per cent. The yard is getting all of it, through a copper main laid long before the Ordinance, and the Armillary behind the furnace has what it needs.', requires: {} },
+    { name: 'Break the ration', kind: 'liberation', cost: 1400, detail: 'With the yard free and the Boiler strong, the ration valve protects nothing. Chain it open in daylight.', done: 'The ration valve is chained open. The valve station belongs to the stokers now, and both yards run at full pressure.', requires: { property: 'boiler', level: 3, sites: { foundry: 4 } } },
+  ], spots: {
+    main: { from: 0, to: 0, covert: true, before: '', after: 'The main answers in knocks now. Under the plates it is copper, banded in gold.' },
+    valve: { from: 2, to: 2, covert: true, before: 'A Directorate ration valve, caged and chained. Its gauge is fixed at forty per cent, and below the wheel there is an older socket.', after: 'The old key stands in the ration valve. The Directorate’s gauge has not moved.' },
+    station: { from: 3, to: 3, before: 'The warden’s logbook: every hour’s pressure, signed.', after: 'The logbook is the stokers’ now. They write the true count.' },
+  }, watched: 'The valve warden is looking this way. Wait until he turns to his logbook.',
+  voice: { covert: ['THE EMBERS · THE RATION LINE', 'The Boiler feeds the yard through a valve the Directorate keeps at forty per cent. The stokers keep their own count.', 'Learn the knock'], liberation: ['THE EMBERS · THE RATION LINE', 'The yard is free and the Boiler is strong. The ration is a chain and a padlock.', 'Break the ration'], restoration: ['ANCIENT TERRA · THE RATION LINE', 'An old main runs under the valve.', 'Commission the restoration'] } },
 ];
 export const SITE_LIBERATED = 4, SITE_RESTORED = 5;
 /** What the city knows about itself: facts that follow from progress at several sites.
  * Districts read these instead of re-deriving rules, so a change in one place shows up
  * wherever it matters (the Directorate's response, the courier, the cutters' journey). */
 export function cityFacts(sites: Record<SiteId, number>) {
-  const { market, foundry, row } = sites;
+  const { market, foundry, row, gauge } = sites;
   return {
     /** The Finch vouches: the Embers have a network in the square. */
     network: market >= 1,
@@ -82,6 +93,14 @@ export function cityFacts(sites: Record<SiteId, number>) {
     cuttersDelivered: row >= 2,
     searchlightCut: row >= 3,
     rowFree: row >= SITE_LIBERATED,
+    /** Pressure goes missing to covert work while stokers bleed it: a valve warden is posted. */
+    pressureWatch: gauge >= 1 && foundry >= 2 && gauge < SITE_LIBERATED,
+    /** A forged pressure key waits at the yard for someone to carry it to the valve. */
+    keyWaiting: foundry >= 3 && gauge === 1,
+    keyDelivered: gauge >= 2,
+    /** The old main carries the Boiler's pressure to the yard: what the Armillary needs. */
+    mainOpen: gauge >= 3,
+    lineFree: gauge >= SITE_LIBERATED,
   };
 }
 export type CityFacts = ReturnType<typeof cityFacts>;
@@ -91,7 +110,7 @@ export interface Save { version: 3; crowns: number; earned: number; properties: 
 export interface StorageAdapter { read(): string | null; write(value: string): void; clear(): void }
 export const SAVE_KEY = 'locke.terra.save';
 export function freshSave(now = Date.now()): Save {
-  return { version: 3, crowns: 35, earned: 0, properties: Object.fromEntries(PROPERTIES.map(p => [p.id, { level: 0, automated: false, stored: 0, progress: 0 }])) as Save['properties'], infrastructure: { lamps: 0, roads: 0, steam: 0, gardens: 0, housing: 0 }, districts: [], research: [], discoveries: [], sites: { market: 0, foundry: 0, row: 0 }, objective: 0, playtime: 0, day: .72, lastSave: now, settings: { master: .55, ambience: .45, sfx: .7, music: 0, sensitivity: 1, reducedMotion: false, quality: 'high' } };
+  return { version: 3, crowns: 35, earned: 0, properties: Object.fromEntries(PROPERTIES.map(p => [p.id, { level: 0, automated: false, stored: 0, progress: 0 }])) as Save['properties'], infrastructure: { lamps: 0, roads: 0, steam: 0, gardens: 0, housing: 0 }, districts: [], research: [], discoveries: [], sites: { market: 0, foundry: 0, row: 0, gauge: 0 }, objective: 0, playtime: 0, day: .72, lastSave: now, settings: { master: .55, ambience: .45, sfx: .7, music: 0, sensitivity: 1, reducedMotion: false, quality: 'high' } };
 }
 const finite = (v: unknown, fallback: number, max = 1e15) => typeof v === 'number' && Number.isFinite(v) ? Math.min(max, Math.max(0, v)) : fallback;
 export function decodeSave(raw: string | null): Save | null {
