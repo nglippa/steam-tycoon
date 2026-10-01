@@ -415,3 +415,10 @@ Milestone levels now cost six times the level before and routine levels 2.6 time
 - Frame rate was not measured (no visible window), and neither was a real phone.
 
 **Rendered review.** `screenshots/review-2026-10-01-phase5/`: `collage-anchors.png`, `collage-backwater-and-interiors.png`, `collage-research.png`, and 10 full-size frames.
+
+## People pass 3 (2026-10-01)
+
+Typecheck, 34 tests and the build pass. Traversal sweep unchanged and passing.
+- **Drape, measured.** The review harness now records, every frame, how far any thigh reaches past its hem for every visible skirted or coated character (`data-poke` on `#life-status`). Over the sweep the worst value is -0.015 m: no leg reaches its hem. Before this pass the hem was rigid and legs came through at every stride.
+- **Faces and motion** were judged from renders, not measured: `screenshots/review-2026-10-01-people/` has before and after face lineups, the walk strip before, and strips of skirted and aproned walkers after.
+- Not checked: every activity's arm pose at close range after the easing was added, and how the eased poses look on a phone.

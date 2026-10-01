@@ -4,7 +4,7 @@ import type { Player } from './player/controller';
 
 /** Explicit developer review only: measured frames and real-controller traversal. */
 export class Review {
-  element = document.createElement('pre'); life=document.createElement('pre');lifeAt=0;seenExpressions=new Set<string>();seenGazes=new Set<string>();blockedActors=new Set<number>();
+  element = document.createElement('pre'); life=document.createElement('pre');lifeAt=0;seenExpressions=new Set<string>();seenGazes=new Set<string>();blockedActors=new Set<number>();poke=-1;
   private city:City;
   start = performance.now(); samples: number[] = []; calls: number[] = []; triangles: number[] = [];
   done = false; checks: Record<string, unknown> = {};
@@ -19,6 +19,9 @@ export class Review {
   }
   frame(now: number, dt: number) {
     this.city.npcs.forEach((n,i)=>{if(n.group.visible){this.seenExpressions.add(n.expression);this.seenGazes.add(n.gaze);if(this.city.blocked(n.group.position.x,n.group.position.z,.18))this.blockedActors.add(i);}});
+    // Drape: no thigh may reach past its hem. The worst overshoot seen (metres; negative is clear) is recorded.
+    for(const n of [...this.city.npcs,...this.city.presentation.workers.map(w=>w.person)]){if(!n.group.visible||!n.skirt.depth)continue;const hem=n.skirt.depth*n.tails.scale.z;for(const leg of n.legs){if(Math.abs(leg.rotation.x)>1.2)continue;this.poke=Math.max(this.poke,Math.abs(Math.tan(Math.min(1.1,Math.abs(leg.rotation.x))))*n.skirt.drop+.085-hem);}}
+    this.life.dataset.poke=this.poke.toFixed(3);
     this.life.dataset.expressions=[...this.seenExpressions].sort().join(',');this.life.dataset.gazes=[...this.seenGazes].sort().join(',');this.life.dataset.blocked=[...this.blockedActors].join(',');
     if(now-this.lifeAt>500){this.lifeAt=now;this.life.textContent=JSON.stringify(this.city.npcs.filter(n=>n.group.visible).slice(0,14).map((n,id)=>({id,role:n.archetype,expression:n.expression,gaze:n.gaze,head:+n.head.rotation.y.toFixed(2),position:n.group.position.toArray()})));}
     if (this.done || document.hidden) return;

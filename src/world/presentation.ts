@@ -3,7 +3,7 @@ import { box,cyl,sphere,torus,beam,gear,barrel,crate,sign,arch,bake,mats,seeded,
 import { V,pipe,cable,crest,gauge,lampHead,railing,canopy,artMats,roof,pressureRing,wingedValve,bench,pressureStation,mailPost,fabricOf,poster,meterBox,labeledCrate,stencilBarrel,stove,workbench,cafeTable,anvil,pipeStack } from './art-kit';
 import { citizen } from './citizens';
 import type { Archetype } from './palette';
-import { animateLife, turnTaking, type Activity } from './citizen-life';
+import { animateLife, turnTaking, eased, type Activity } from './citizen-life';
 import { reducedMotion } from '../motion';
 import type { City } from './city';
 import { PROPERTIES } from '../simulation/economy';
@@ -529,11 +529,12 @@ export class Presentation {
       const on=stage>=w.minStage&&stage<=w.maxStage&&(w.time==='any'||(w.time==='night')===night)&&(w.when?.()??true)&&Math.hypot(person.group.position.x-viewer.x,person.group.position.z-viewer.z)<90;person.group.visible=on;if(!on)return;
       person.worn.visible=stage<3;person.finery.visible=stage>=3;
       let moving=false;const position=person.group.position;
-      if(w.path){const {a,b,speed}=w.path,length=a.distanceTo(b),cycle=(time*speed+i*2.3)%(length*2+4);
-        if(cycle<length){position.lerpVectors(a,b,cycle/length);moving=true;person.group.rotation.y=Math.atan2(b.x-a.x,b.z-a.z);}
-        else if(cycle<length+2)position.copy(b);
-        else if(cycle<length*2+2){position.lerpVectors(b,a,(cycle-length-2)/length);moving=true;person.group.rotation.y=Math.atan2(a.x-b.x,a.z-b.z);}
-        else position.copy(a);}
+      // Out, turn, back, turn: the walk eases in and out of each leg, and the turn is a turn, not a flip.
+      if(w.path){const {a,b,speed}=w.path,length=a.distanceTo(b),pause=2.6,cycle=(time*speed+i*2.3)%(length*2+pause*2),out=Math.atan2(b.x-a.x,b.z-a.z),turn=(u:number)=>T.MathUtils.smoothstep(u,.35,pause-.25)*Math.PI;
+        if(cycle<length){position.lerpVectors(a,b,eased(cycle,length)/length);moving=true;person.group.rotation.y=out;}
+        else if(cycle<length+pause){position.copy(b);person.group.rotation.y=out+turn(cycle-length);}
+        else if(cycle<length*2+pause){position.lerpVectors(b,a,eased(cycle-length-pause,length)/length);moving=true;person.group.rotation.y=out+Math.PI;}
+        else{position.copy(a);person.group.rotation.y=out+Math.PI+turn(cycle-length*2-pause);}}
       const partner=w.partner===undefined?undefined:this.workers[w.partner].person.group.position;
       if(partner)this.city.lifeTarget.set(partner.x,1.7,partner.z);else this.city.lifeTarget.set(position.x+Math.sin(person.group.rotation.y)*2,1.7,position.z+Math.cos(person.group.rotation.y)*2);
       const speaking=w.partner!==undefined&&turnTaking(time,i+100,w.partner+100);

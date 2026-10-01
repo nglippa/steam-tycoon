@@ -227,3 +227,10 @@ Night is a change of palette, not a visibility penalty.
 - **The Keel is ivory and gold with nothing under it.** No iron, no limewash: it belongs to the old city, and the carriers pass overhead.
 - **Salt Row is the one colourful street.** Awnings in wine, ochre, teal and cream under a teal iron arcade; it is meant to be seen through the gate bars before it can be reached.
 - **Each quarter has one high place** and they can see each other: the Weathervane (west), Finch's block roof (centre), the Packet Light (east).
+
+## People pass 3: clean faces, cloth over legs, eased motion (2026-10-01)
+
+Rules are in the `figure-construction` skill (`references/faces.md`, `cloth.md`, `motion.md`), extended in this pass.
+- **Faces.** The atlas no longer paints a shadow wedge by the nose, a contour down each cheek or hatching under the eyes. Eyes are tall, the iris fills them and grades to a lighter tint of its own colour, the upper lid sits over the top of the iris, brows are thin and close, the nose is a small mark. Five of the eight face types carry no marks at all. The head is a soft form with no flattened front plane, so the ink pass draws no creases on it.
+- **Cloth.** Everything below the belt (skirt, dress, coat tails, the apron's skirt) hangs from one waist pivot and opens front and back as the thighs swing, by exactly the thigh's reach at the hem. It opens at once and closes slowly. Long cloth shortens the stride. Seated, it lies along the thighs.
+- **Motion.** Arms, elbows and hands ease to their targets instead of being set, so activities and gestures blend; hammer blows stay fast. The hips sway over the standing leg, roll with the weight and turn toward the forward leg more than before. Workers on paths accelerate and slow, and turn round over a pause.

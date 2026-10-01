@@ -64,7 +64,7 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
   const g=calm?m.gait*.5:m.gait,load=activity==='carry'?1.25:1;
   // Planted feet: stride rate is solved from speed so the stance foot moves backward
   // exactly as fast as the body moves forward. Turning in place still takes steps.
-  const A=turning?.13:Math.min(.42,Math.max(.12,.16+.3*m.speed))*(pr.stride/.44),stepRate=turning?2.4*pr.cad:STANCE*Math.PI*m.speed/(LEG*A);
+  const hobble=n.skirt.drop>.3?.86:1,A=turning?.13:Math.min(.42,Math.max(.12,.16+.3*m.speed))*(pr.stride/.44)*hobble,stepRate=turning?2.4*pr.cad:STANCE*Math.PI*m.speed/(LEG*A);
   m.stride+=dt*Math.max(stepRate,.4)/load;
   const c=m.stride,seated=activity==='sit'||activity==='eat',tired=weariness*(activity==='guard'?.3:1);
   // Idle weight transfer holds on one leg, then shifts: never a metronome.
@@ -73,8 +73,8 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
   // vertical, highest as the body passes over it. Dropping by the leg's own swing keeps the
   // planted foot on the ground while the legs stay attached (a little knee give softens it).
   const swing=A*g,stanceAngle=Math.max(0,...feet.map(f=>f.lift>0?0:Math.abs(swing*f.z))),bob=-LEG*(1-Math.cos(stanceAngle))*.85+pr.bob*load*g*.25*(Math.cos(2*c)*.5+.5);
-  n.body.position.set(shift*.022+g*Math.cos(c)*.012,bodyHeight+bob-(seated?.46:0)+breath*.003*(1-g),0);
-  n.body.rotation.set(g*(pr.lean+tired*.05)+(1-g)*tired*.06-(activity==='lean'?.07:0)-(activity==='carry'?.08:0)+(seated?-.06:0),-g*Math.sin(c)*.09+m.turn*.06,shift*.025+g*Math.sin(c)*.012);
+  n.body.position.set(shift*.022+g*Math.cos(c)*.03,bodyHeight+bob-(seated?.46:0)+breath*.003*(1-g),0);
+  n.body.rotation.set(g*(pr.lean+tired*.05)+(1-g)*tired*.06-(activity==='lean'?.07:0)-(activity==='carry'?.08:0)+(seated?-.06:0),-g*Math.sin(c)*.13+m.turn*.06,shift*.025+g*Math.cos(c)*.035);
   n.legs.forEach((leg,k)=>{const {z,lift,stanceU}=feet[k];leg.position.y=hipHeight-(seated?.46:0);
     if(seated){leg.position.z=0;leg.rotation.set(-1.42,0,(k?-1:1)*.06);n.knees[k].rotation.x=1.4+(activity==='eat'&&k?Math.sin(phase)*.05:0);return;}
     const stance=k===0?Math.max(0,-shift):Math.max(0,shift),amp=A*g;
@@ -129,8 +129,12 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
   if(!calm&&near<1600){
     const tailTarget=-g*.1-clamp01(Math.abs(accel))*Math.sign(accel)*.12+Math.sin(c*2)*.03*g,hairTarget=.08+g*.22-m.turn*.05;
     m.tailV+=((tailTarget-m.tail)*55-m.tailV*8)*dt;m.tail+=m.tailV*dt;m.hairV+=((hairTarget-m.hair)*35-m.hairV*6)*dt;m.hair+=m.hairV*dt;
-    n.tails.rotation.set(m.tail,0,g*Math.sin(c)*.035-m.turn*.03);n.swing.rotation.set(m.hair,0,Math.sin(c)*.08*g-m.turn*.08);n.scarf.rotation.x=m.tail*.8+Math.sin(phase*2.2)*.02;
-  } else {n.tails.rotation.set(0,0,0);n.swing.rotation.set(.05,0,0);n.scarf.rotation.x=0;}
+    n.tails.rotation.set(seated?-1.25:m.tail,0,g*Math.sin(c)*.035-m.turn*.03);n.swing.rotation.set(m.hair,0,Math.sin(c)*.08*g-m.turn*.08);n.scarf.rotation.x=m.tail*.8+Math.sin(phase*2.2)*.02;
+  } else {n.tails.rotation.set(seated?-1.25:0,0,0);n.swing.rotation.set(.05,0,0);n.scarf.rotation.x=0;}
+  // Drape. Cloth never lets a leg through: the hem is carried by whichever thigh reaches furthest, front and
+  // back together, so a skirt, coat or apron opens into an oval over the stride and closes as the legs pass.
+  if(n.skirt.depth){const reach=seated?0:Math.max(...n.legs.map(leg=>Math.abs(Math.tan(Math.min(1.1,Math.abs(leg.rotation.x))))*n.skirt.drop))+.1,want=Math.max(1,reach/n.skirt.depth);
+    m.drape+=(want-m.drape)*Math.min(1,dt*(want>m.drape?30:9));const open=Math.max(m.drape,want);n.tails.scale.set(1-Math.min(.12,(open-1)*.12),1,open);}
   // Brief, staggered glances; turns are led by the head.
   const dx=player.x-pos.x,dz=player.z-pos.z,close=dx*dx+dz*dz<14;
   const glance=close&&(phase%11)<1.35;
@@ -158,10 +162,17 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
   const blend=1-Math.exp(-dt*4);n.head.rotation.y=T.MathUtils.lerp(n.head.rotation.y,T.MathUtils.clamp(headYaw-n.body.rotation.y,-.6,.6),blend);
   n.head.rotation.x=T.MathUtils.lerp(n.head.rotation.x,pitch-n.body.rotation.x*.8+nod+(speaking?Math.sin(phase*2)*.03:0),blend);
   n.head.rotation.z=calm?0:breath*.012+tilt;
+  // Nothing snaps. The logic above says where each joint should be; the body gets there on a short
+  // critically damped ease, so a change of activity, a gesture or a glance blends instead of popping.
+  // Legs are left alone: their timing is what keeps the feet planted.
+  { const want=[n.arms[0].rotation.x,n.arms[0].rotation.z,n.arms[1].rotation.x,n.arms[1].rotation.z,n.elbows[0].rotation.x,n.elbows[1].rotation.x,n.body.rotation.x,n.body.rotation.y,n.body.rotation.z];
+    const p=m.pose??=Float32Array.from(want),ka=1-Math.exp(-dt*(activity==='hammer'?34:11+g*9)),kb=1-Math.exp(-dt*9);
+    for(let i=0;i<9;i++)p[i]+=(want[i]-p[i])*(i<6?ka:kb);
+    n.arms[0].rotation.x=p[0];n.arms[0].rotation.z=p[1];n.arms[1].rotation.x=p[2];n.arms[1].rotation.z=p[3];n.elbows[0].rotation.x=p[4];n.elbows[1].rotation.x=p[5]; }
   if((phase%4.7)<.13)expression='blink';n.setExpression(expression);
 }
 /** Route distance with acceleration and deceleration ramps (meters). */
-function eased(d:number,L:number,a=1.1){const k=L/(L-a);if(d<a)return d*d/(2*a)*k;if(d<L-a)return (d-a/2)*k;return (L-a-(L-d)*(L-d)/(2*a))*k;}
+export function eased(d:number,L:number,a=1.1){const k=L/(L-a);if(d<a)return d*d/(2*a)*k;if(d<L-a)return (d-a/2)*k;return (L-a-(L-d)*(L-d)/(2*a))*k;}
 export function stageCitizen(n:Citizen,index:number,time:number){
   const scene=sceneFor(index);let z=scene.z,yaw=scene.yaw,moving=false;
   if(scene.route){
