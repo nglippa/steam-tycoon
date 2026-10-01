@@ -186,3 +186,11 @@ These rules come from figure-drawing and 3D-topology references (Love Life Drawi
 - **The Directorate's response** is one authored post, not a wanted level: a table, sawhorses in oxblood and bone, a stencil sign, a searchlight mast, a notice in the regime's own words, and a closed lane. The player should think "they noticed", not "the alarm went up".
 - **Resistance stays human and improvised:** chalk on a waymark, a courier with a satchel, a crate carried by hand, a lookout at a corner. No red banners. When the Row is freed, the colours are Terra's own turquoise and ivory, strung as small bunting.
 - **Ancient Terra is the connective tissue:** occupation infrastructure is bolted into it (a searchlight fed from an aether conduit, a Directorate plate over an ivory street name). Resistance acts reveal it a little at a time.
+
+## People pass: faces, arms, hands (2026-09-30)
+
+The rules come from the `figure-construction` skill (`~/.agents/skills/figure-construction`, built from Anime Outline, Disney shape language, Epic's socket docs and animation-principles sources).
+- **Faces:** eight face types per skin tone, varying eyes (shape, tilt, lash weight, iris), brows (weight, arch, set), nose (dash, dot, hook, button), mouth width and marks (freckles, stubble, mole, under-eye bags, scar, laugh lines). The skull varies round, square or triangle independently. Keep one inking hand; variety comes from the features.
+- **Hands:** small relaxed C-curl hands (palm, finger mass, thumb). Never flat paddles.
+- **Held things:** every hand has a grip socket in the palm. Props are authored grip-first, with the handle through the fist. Two-handed loads (crates) sit between both palms against the body.
+- **Arms:** the hanging arms angle away from the body. In a walk, the forearm drags behind the swing and the back swing arcs out past the hips. Raised arms go forward and out, never through the head.

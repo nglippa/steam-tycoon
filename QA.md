@@ -264,3 +264,19 @@ Phase 3 was committed as `9c227f9`. After that, `npm run typecheck`, `npm test` 
 - Traversal and ledgers (`&check=1`) ran in 15 states, including the Line at 1, 2, 3 and 4. All 6 ledgers pass everywhere, no NPC is blocked, and there are no console errors. `foundryLane` fails only while Cinder Row's inspection is active, as in Phase 3.
 - Performance (uncapped headed Chrome, Phase 3 vs Phase 4, mean of 2 rounds): the Line costs +12 to +19 draws where it's in view (the Row cost +17 to +50), and p95 stays at or below 6.9 ms. Existing districts are within ±2 draws. The shared sign sheet saved only a draw or two there, because most plates already shared a stratum with other geometry.
 - Rendered review: `screenshots/review-2026-09-30-pass5/` and `collage.png`.
+
+## People pass: faces, arms, hands (2026-09-30)
+
+Typecheck, 26 tests and the build pass. The traversal and ledger sweep over 15 states is unchanged: all 6 ledgers pass everywhere, there are no console errors, and `foundryLane` fails only while Cinder Row's inspection is active.
+- A hand-position probe (hand vs shoulder and head, per pose) found the resting and walking arms swinging *inward* (a hand 9 cm inside the shoulder, pressing into the hips), repair hands inside the head (0.22–0.25 m from its centre), and the hammer hand grazing it (0.31 m). After the fix: walking hands sit 1–4 cm outside the shoulders, repair hands 0.5 m from the head, hammer 0.44 m.
+- Props moved from guessed forearm offsets to palm grip sockets. The lineup confirms the broom, clipboard, paper, wrench, bun, mug and basket in the fist, and a crate between the courier's palms.
+- Performance: +0 to +2 draws and unchanged FPS against Phase 4, because the crowd batching absorbs the hand geometry.
+- Screenshots: `screenshots/review-2026-09-30-pass6/` (before and after) and `collage.png`.
+
+### Torso–leg junction, round two (2026-09-30)
+
+A junction probe over all 270 characters in three districts (the distance between each leg pivot and the pelvis's own hip point, sampled for 4 s) found 78 characters over 1 cm and 28 over 3 cm:
+- walking or carrying bob lifted the pelvis off the thighs (up to 4.2 cm vertically)
+- pelvis twist or roll slid the side hips off them (up to 4.4 cm, mostly talkers turning to partners and carriers)
+
+The legs now hang from the pelvis transform, so the probe reads 0 for every character in every activity. The walking bob is now the stance leg's own hip drop. Walking feet stay within −0.6 to +1.4 cm of the ground at the 5th–95th percentile, against floating up to 4.4 cm before.

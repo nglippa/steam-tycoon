@@ -416,7 +416,7 @@ export class Presentation {
     const tool=new T.Group();person.grips[0].add(tool);const t=o.tool??kind,inward=.03;
     if(t==='hammer'){cyl(tool,0,0,.1,.021,.36,mats.wood).rotation.x=Math.PI/2;box(tool,0,0,.29,.08,.2,.08,mats.iron);}
     if(t==='sweep'){const broom=new T.Group();broom.rotation.x=1.1;tool.add(broom);cyl(broom,0,0,.36,.02,1.3,mats.wood).rotation.x=Math.PI/2;box(broom,0,0,1.02,.4,.08,.13,mats.wood);box(broom,0,-.08,1.02,.42,.1,.1,mats.cream);}
-    if(t==='read'){const sheet=box(tool,inward+.13,-.03,.02,.26,.2,.012,artMats.paper);sheet.rotation.x=-.25;}
+    if(t==='read'){const sheet=box(tool,inward+.13,-.03,.02,.26,.2,.012,artMats.paper);sheet.rotation.x=.9;}
     if(t==='clipboard'){box(tool,inward+.11,.03,.03,.24,.32,.02,mats.wood);box(tool,inward+.11,.03,.042,.2,.26,.006,artMats.paper);box(tool,inward+.11,.17,.045,.07,.03,.02,mats.brass);}
     if(t==='repair'){box(tool,0,0,.09,.028,.028,.28,mats.iron);torus(tool,0,0,.25,.045,.016,mats.iron);}
     if(t==='eat'){const bun=sphere(tool,inward*.3,0,.05,1,artMats.ochre);bun.scale.set(.05,.045,.07);}
