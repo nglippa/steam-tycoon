@@ -42,3 +42,35 @@ export interface SiteModule {
   anchor: { x: number; z: number; rotation: number }; readonly watching: boolean;
   sync(view: SiteView): void; update(dt: number, time: number, viewer: T.Vector3, calm: boolean): void; setNight(v: number): void;
 }
+
+/** A place outside the four sites that still changes with them: one street, roof or room, authored
+ * once in strata. `phase` comes from economy.spacePhase; `stage` is prosperity, a separate axis.
+ * A layer is drawn when its test passes; baked layers are one draw per material and cost nothing hidden. */
+export type Shown = (phase: number, stage: number) => boolean;
+export const shown = {
+  always: (() => true) as Shown,
+  /** The Ordinance still holds it: occupied, covert, organized or contested. */
+  held: (p => p < 4) as Shown,
+  /** Only while nothing has started: the stripped, shut baseline. */
+  untouched: (p => p === 0) as Shown,
+  covert: (p => p >= 1) as Shown,
+  /** Hidden things that stop being hidden once the place is free. */
+  secret: (p => p >= 1 && p < 4) as Shown,
+  organized: (p => p >= 2) as Shown,
+  contested: (p => p === 3) as Shown,
+  free: (p => p >= 4) as Shown,
+  restored: (p => p === 5) as Shown,
+  dormant: (p => p < 5) as Shown,
+  /** Prosperity, whoever holds the street. */
+  rich: ((_, s) => s >= 3) as Shown, poor: ((_, s) => s < 3) as Shown,
+  all: (...tests: Shown[]): Shown => (p, s) => tests.every(t => t(p, s)),
+};
+export class Staged {
+  layers: { group: T.Group; test: Shown; baked: boolean }[] = []; phase = 0; stage = 0;
+  constructor(public root: T.Object3D) {}
+  layer(test: Shown, baked = true) { const group = new T.Group(); this.root.add(group); this.layers.push({ group, test, baked }); return group; }
+  seal() { for (const l of this.layers) if (l.baked) bake(l.group); }
+  sync(phase: number, stage: number) { this.phase = phase; this.stage = stage; for (const l of this.layers) l.group.visible = l.test(phase, stage); }
+  /** For people and colliders that belong to a layer. */
+  is(test: Shown) { return test(this.phase, this.stage); }
+}

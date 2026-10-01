@@ -64,7 +64,8 @@ export class Review {
     results.chainBridge=(p=>p.x>50&&near(p.y,1.93))(walk(38,34,-W,3.5));
     // The Backwater: its two passages from Salt Row, the gallery end to end, and each flight up from its yard.
     if(city.economy.state.districts.includes('canal'))results.eastAlleys=city.eastAlleys.map(z=>walk(60.5,z-1.6,-W,4).x>73.4);
-    results.backGallery=(p=>p.z< -38&&near(p.y,8.35))(walk(74,45,0,20,8.35));
+    // Until Cinder Row is organised the gallery is barred between the yards; each half is still reached by its own stair.
+    results.backGallery=(p=>near(p.y,8.35)&&(city.economy.state.sites.row>=2?p.z< -38:p.z>2&&p.z<3.2))(walk(74,45,0,20,8.35));results.backGalleryNorth=(p=>p.z< -38&&near(p.y,8.35))(walk(74,1,0,12,8.35));
     results.backStairs=[[75.55,-29.6,S],[75.55,17.6,0],[75.55,45.6,0]].map(([x,z,yaw])=>near(walk(x,z,yaw,4).y,8.35));
     results.pierEnd=(p=>p.z<100&&p.z>98&&near(p.y,1.93))(walk(-67,80,S,6));
     // No roof lets a walker off its edge: push at all four sides of the high places.

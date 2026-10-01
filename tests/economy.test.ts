@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { Economy, freshSave, decodeSave, cityFacts, PROPERTIES, SITES, SITE_LIBERATED, type StorageAdapter } from '../src/simulation/economy.ts';
+import { Economy, freshSave, decodeSave, cityFacts, spacePhase, PHASE, PROPERTIES, SITES, SITE_LIBERATED, type StorageAdapter } from '../src/simulation/economy.ts';
 const memory = (raw: string | null = null): StorageAdapter => ({ read: () => raw, write: s => { raw = s; }, clear: () => { raw = null; } });
 test('first repair affordable; purchase rejects insufficient funds without mutation', () => { const e = new Economy(memory()); assert.equal(e.upgrade('scrap'), true); assert.equal(e.state.crowns, 10); assert.equal(e.upgrade('foundry'), false); assert.equal(e.state.properties.foundry.level, 0); });
 test('manual businesses pay passive dividends and reserve physical collection', () => { const e = new Economy(memory()); const start = e.state.crowns; for (let i = 0; i < 4; i++) e.tick(1); assert.ok(e.state.crowns > start); assert.ok(e.state.properties.scrap.stored > 0); const stored = e.state.properties.scrap.stored; assert.equal(e.collect('scrap'), stored); assert.equal(e.collect('scrap'), 0); });
@@ -185,4 +185,18 @@ test('a trait is worth real Crowns on the work still undone, and less as that wo
 test('milestone levels are the big steps; routine levels are modest ones', () => {
   const e = new Economy(memory()); e.state.crowns = 1e9; const price: number[] = []; for (let l = 0; l < 5; l++) { price.push(e.cost('market')); e.upgrade('market'); }
   const step = price.slice(1).map((p, i) => p / price[i]); assert.ok(step[0] < 3 && step[2] < 3, 'levels 2 and 4'); assert.ok(step[1] > 5 && step[3] > 5, 'levels 3 and 5');
+});
+test('a place reads from who holds its site; the Ordinance only tightens once another site has fallen; prosperity is not an input', () => {
+  const s = () => ({ market: 0, foundry: 0, row: 0, gauge: 0 });
+  assert.equal(spacePhase(s(), 'row'), PHASE.occupied);
+  assert.equal(spacePhase({ ...s(), row: 1 }, 'row'), PHASE.covert);
+  assert.equal(spacePhase({ ...s(), row: 2 }, 'row'), PHASE.organized); assert.equal(spacePhase({ ...s(), row: 3 }, 'row'), PHASE.organized);
+  assert.equal(spacePhase({ ...s(), row: 1, market: 4 }, 'row'), PHASE.covert, 'nothing to notice yet');
+  assert.equal(spacePhase({ ...s(), row: 2, market: 4 }, 'row'), PHASE.contested);
+  assert.equal(spacePhase({ ...s(), row: 4 }, 'row'), PHASE.liberated);
+  assert.equal(spacePhase({ ...s(), row: 4, market: 4 }, 'row', 'market'), PHASE.liberated); assert.equal(spacePhase({ ...s(), row: 4, market: 5 }, 'row', 'market'), PHASE.restored);
+  assert.equal(spacePhase({ ...s(), row: 0, market: 5 }, 'row', 'market'), PHASE.occupied, 'restoration elsewhere does not free a street');
+  // Prosperity and control are separate axes: a rich city can be wholly occupied, a poor one free.
+  const rich = new Economy(memory()); rich.state.crowns = 1e9; for (const p of PROPERTIES) for (let i = 0; i < 5; i++) rich.upgrade(p.id); assert.ok(rich.stage >= 4); assert.equal(spacePhase(rich.state.sites, 'market'), PHASE.occupied);
+  const poor = new Economy(memory()); poor.state.sites.market = 4; assert.equal(poor.stage, 0); assert.equal(spacePhase(poor.state.sites, 'market'), PHASE.liberated);
 });

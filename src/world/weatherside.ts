@@ -3,7 +3,10 @@ import { box, cyl, sphere, torus, beam, sign, bake, mats, barrel, tree, crate } 
 import { V, cable, bench, artMats, labeledCrate, gauge, canopy } from './art-kit';
 import { ancientMats, occupationMats, regimeBanner, civicBanner, emberChalk, tallies, sealPlaque, printedMat, decalMat, lightCone, canvasTarp, flowMaterial, strip } from './factions';
 import { ladder, stair, parapet, examine } from './routes';
-import { SITE_LIBERATED } from '../simulation/economy';
+import { SITE_LIBERATED, spacePhase } from '../simulation/economy';
+import { Staged, shown, type Shown } from './layers';
+import { taperedArch, splitRing, hungRing, channel } from './ancient-kit';
+import { dado, ceilingBeam, hangingLamp, desk, papers, windowSpill } from './interior-kit';
 import type { Presentation } from './presentation';
 import type { City } from './city';
 
@@ -53,7 +56,7 @@ export class Weatherside {
   private freighter = new T.Group(); private searchlight = new T.Group(); private hook = new T.Group(); private vane = new T.Group();
   private city: City;
   /** True while the ward can be seen at all: from behind the row, from a roof, or from the arrival terrace. */
-  private seen = true;
+  private seen = true; private registry!: Staged;
   constructor(private p: Presentation) {
     this.city = p.city; p.root.add(this.root); this.root.add(this.live, this.occupied, this.freed);
     this.root.add(this.shell); this.ground.push(this.shell);
@@ -152,6 +155,37 @@ export class Weatherside {
     p.addWorker(-67.6, 56.8, 2.2, 'watch', { y: 7.1 - G, role: 'courier', when: () => this.seen });
   }
 
+  /** THE REGISTRY OFFICE, read six ways (economy.spacePhase, governed by the Foundry). Occupied it is a room built to make
+   * people wait standing up: bars on the counter, a rope, an order on the wall, nowhere to sit. */
+  private office(p: Presentation) { const city = this.city, O = occupationMats, room = new T.Group(); this.root.add(room); this.details.push({ g: room, x: -67, z: 18 }); const st = this.registry = new Staged(room), F = .14;
+    const a = st.layer(shown.always); for (const z of [15.13, 20.87]) dado(a, -66.3, z, 2, true, mats.wood, F); for (const z of [16, 18, 20]) ceilingBeam(a, -67.5, 5.8, z, 5, true);
+    desk(a, -68.6, F, 17.2, .8, 1.4); hangingLamp(a, -68.6, 5.9, 17.2, 3.4, O.iron); box(a, -68.75, F + .25, 17.2, .4, .5, .4, mats.wood); windowSpill(room, -66.2, F + .03, 18, 2, 1.9);
+    const held = st.layer(shown.held); decal(held, regime, .9, 3.2, -66.3, 3.4, 20.84, Math.PI);
+    for (let z = 15.3; z < 20.8; z += .25) if (Math.abs(z - 18) > .45) box(held, -67.6, 2.1, z, .03, 1.7, .03, O.iron); box(held, -67.6, 2.5, 18, .05, .9, .9, O.iron);
+    for (const [z0, z1] of [[15.5, 17.1], [18.9, 20.5]]) { for (const z of [z0, z1]) { cyl(held, -66.85, F + .5, z, .035, 1, mats.brass); cyl(held, -66.85, F + .03, z, .14, .06, mats.brass); } box(held, -66.85, F + .9, (z0 + z1) / 2, .04, .05, z1 - z0, O.oxblood); }
+    sign(held, 'ALL NAMES TO BE ENTERED', 'NO PAPERS • NO RATION • NO PASSAGE', -66.3, 3.6, 15.17, 1.7, .6, BONE); for (const dz of [0, .22, .44]) box(held, -67.5, 1.36, 19.2 + dz, .1, .16, .1, O.oxblood);
+    const tidy = st.layer(q => q < 2); papers(tidy, -68.6, F + .82, 17.2, 6); papers(tidy, -67.65, 1.28, 16.6, 4);
+    // COVERT: a drawer not quite shut, a mark under the lip of the counter where only someone waiting would look down.
+    const covert = st.layer(shown.secret); box(covert, -69.18, 1.7, 16.5, .5, .46, .8, O.iron); decal(covert, chalk, .34, .34, -67.33, .62, 20.2, EAST); box(covert, -65.55, F + .1, 15.4, .3, .08, .4, mats.cream);
+    // ORGANIZED: files are leaving. Drawers stand open, paper is on the floor behind the counter, a satchel waits by the door.
+    const org = st.layer(q => q >= 2 && q < 4); for (const [z, y] of [[15.5, 1.1], [20.5, 2.3], [17.5, .5]]) box(org, -69.18, y, z, .5, .46, .8, O.iron); papers(org, -68.6, F + .82, 17.2, 7, true); papers(org, -68.5, F + .02, 19.6, 8, true); box(org, -65.6, F + .2, 20.5, .5, .36, .3, mats.wood); box(org, -65.6, F + .4, 20.5, .52, .06, .32, mats.cream); decal(org, chalk, .5, .5, -65.8, 3.6, 15.19); box(org, -66.9, 3.42, 15.19, .5, .22, .01, mats.cream).rotation.z = .3;
+    // CONTESTED: the records are sealed and chained, and a strongbox has come for them.
+    const cont = st.layer(shown.contested); for (const z of [15.5, 17.5, 19.5]) decal(cont, seal, .5, .5, -69.2, 1.6, z, EAST); for (const y of [.9, 2]) box(cont, -69.2, y, 18, .04, .06, 6, O.iron);
+    facing(sign(cont, 'RECORDS UNDER SEAL', 'REMOVAL IS SEDITION', -67.32, 2.2, 16.6, 1.5, .5, BONE), EAST); box(cont, -68.5, F + .35, 19.5, .9, .7, .7, O.iron); for (const dz of [-.2, .2]) box(cont, -68.5, F + .35, 19.5 + dz, .92, .72, .06, mats.brass);
+    // LIBERATED: the bars are off, there is somewhere to sit, the ward's colours hang where the order did, and the files are being read.
+    const free = st.layer(shown.free); decal(free, civic, .9, 3.2, -66.3, 3.4, 20.84, Math.PI); bench(free, -65.65, 16.2, WEST); for (const z of [15.8, 20.2]) { cyl(free, -67.6, 1.38, z, .13, .2, mats.rust); sphere(free, -67.6, 1.64, z, .22, mats.leaf); }
+    for (const [z, y] of [[15.5, 1.7], [16.5, 1.1], [18.5, 2.3], [20.5, 1.1]]) box(free, -69.18, y, z, .5, .46, .8, O.iron); for (const z of [17.2, 17.7, 18.6]) box(free, -67.6, 1.42, z, .34, .28, .26, mats.cream); papers(free, -68.6, F + .82, 17.2, 5);
+    { const line = cable(free, V(-65.4, 4.7, 15.3), V(-67.3, 4.7, 20.7), .35); for (let k = 1; k < 8; k++) { const q = line.getPoint(k / 8); box(free, q.x, q.y - .15, q.z, .02, .28, .24, [mats.teal, mats.cream, artMats.ochre, mats.red][k % 4]); } }
+    // RESTORED: the office was built into an arch of the aqueduct. The plaster is off the door, and the cut channel runs through the floor again.
+    const res = st.layer(shown.restored); channel(res, -66.3, F + .05, 18, 1.9, true, ancientMats.awake, .3); hungRing(res, -66.3, 3.7, 18, .55, 1.4); splitRing(res, -66.3, 3.7, 15.2, .6, 2);
+    { const arch = new T.Group(); arch.position.set(-65.36, F, 18); arch.rotation.y = WEST; res.add(arch); taperedArch(arch, 0, 0, 0, 3, 4.4, .14, .5); }
+    // PROSPERITY, whoever holds the room.
+    const rich = st.layer(shown.rich); box(rich, -66.3, F + .01, 16.4, 1.3, .02, 2, artMats.wine); box(rich, -66.3, F + .01, 19.6, 1.3, .02, 2, artMats.wine); cyl(rich, -67.6, 1.5, 19.9, .05, .44, mats.brass); sphere(rich, -67.6, 1.78, 19.9, .1, mats.glow);
+    const poor = st.layer(shown.poor); cyl(poor, -65.7, F + .16, 20.4, .16, .32, mats.rust); box(poor, -65.33, 4.4, 16, .02, .9, .7, mats.rust);
+    st.seal(); const on = (t: Shown) => () => this.seen && st.is(t);
+    p.addWorker(-68.3, 18.4, EAST, 'clipboard', { role: 'ordinal', when: on(shown.held) }); p.addWorker(-66.2, 16.2, Math.PI, 'guard', { role: 'guard', when: on(shown.contested) });
+    p.addWorker(-68.3, 18.4, EAST, 'clipboard', { role: 'resident', when: on(shown.free) }); p.addWorker(-65.65, 16.2, WEST, 'sit', { role: 'resident', when: on(shown.free) }); p.addWorker(-66.9, 16.9, WEST, 'browse', { role: 'resident', when: on(shown.free) });
+  }
   private heights() { const city = this.city, s = this.section(-70, 0), d = this.section(-72, 0, true), occ = this.occupied, p = this.p;
     // THE REGISTRY. The Ordinance built its paper office against the aqueduct and cut the channel to do it.
     // Solid round a front office the public is let into: a counter, the files, and no chairs on this side.
@@ -162,7 +196,7 @@ export class Weatherside {
     box(s, -69.18, 1.1, 19.5, .5, .46, .8, O.iron); box(s, -68.96, 1.34, 19.5, .1, .02, .5, ancientMats.turquoise);
     box(s, -66.55, 1.85, 15.14, 1.7, 1.4, .04, mats.wood); decal(s, surveySheet, 1.5, 1.12, -66.55, 1.87, 15.17); for (const dx of [-.7, .7]) sphere(s, -66.55 + dx, 2.38, 15.18, .025, mats.brass);
     examine(this.live, city, 'survey', 'A survey sheet', -66.55, 1.85, 15.35, 1.6, 1.3, .4); p.interiors.push({ x: -66.4, y: 3.4, z: 18, color: '#ffd9a0', reach: 7, power: 60 });
-    for (const z of [16.6, 19.4]) { sphere(s, -66.6, 4.9, z, .14, mats.glow); cyl(s, -66.6, 5.4, z, .012, 1, mats.iron); } decal(s, regime, .9, 3.2, -66.3, 3.4, 20.84, Math.PI);
+    for (const z of [16.6, 19.4]) { sphere(s, -66.6, 4.9, z, .14, mats.glow); cyl(s, -66.6, 5.4, z, .012, 1, mats.iron); } this.office(p);
     for (const z of [13.5, 22.5]) for (const y of [2.6, 4.4]) { box(s, -64.96, y, z, .1, 1.1, .7, mats.dark); for (const dz of [-.2, 0, .2]) box(s, -64.9, y, z + dz, .04, 1.1, .04, O.iron); }
     box(s, -64.9, 3.15, 18, .3, .3, 2.2, O.oxblood); for (const dz of [-1, 1]) box(s, -64.9, 1.5, 18 + dz, .3, 3, .25, O.oxblood);
     facing(sign(s, 'WARD REGISTRY', 'PAPERS • PERMITS • NAMES', -64.93, 4.1, 18, 5.2, .9, BONE), EAST); decal(s, seal, .8, .8, -64.92, 5.3, 18, EAST);
@@ -277,7 +311,7 @@ export class Weatherside {
     p.addWorker(-71.3, -47.5, WEST, 'gauge', { role: 'engineer', when: () => this.seen && this.held }); p.addWorker(-73.2, -57.6, WEST + .3, 'warm', { role: 'worker', time: 'night', when: () => this.seen });
   }
 
-  sync() { const held = this.held; this.occupied.visible = held && this.seen; this.freed.visible = !held && this.seen; this.aether.visible = this.city.economy.state.research.includes('aether'); this.anchored.visible = this.city.economy.state.research.includes('anchors'); }
+  sync() { const held = this.held; this.registry.sync(spacePhase(this.city.economy.state.sites, 'foundry'), this.city.economy.stage); this.occupied.visible = held && this.seen; this.freed.visible = !held && this.seen; this.aether.visible = this.city.economy.state.research.includes('aether'); this.anchored.visible = this.city.economy.state.research.includes('anchors'); }
   update(time: number, viewer: T.Vector3, calm: boolean) {
     // Props are only drawn near enough to be seen as props; the massing stays for the skyline.
     // Behind the housing row nothing here shows from the streets: only the Weathervane clears the roofs.

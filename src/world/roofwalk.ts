@@ -1,7 +1,10 @@
 import * as T from 'three';
-import { box, cyl, sphere, torus, beam, bake, mats, crate } from './assets';
+import { box, cyl, sphere, torus, beam, bake, sign, mats, crate, type Material } from './assets';
 import { V, cable, artMats, labeledCrate, canopy } from './art-kit';
-import { emberChalk, decalMat } from './factions';
+import { emberChalk, decalMat, occupationMats, ancientMats, lightCone } from './factions';
+import { Staged, shown, type Shown } from './layers';
+import { hungRing, splitRing, channel } from './ancient-kit';
+import { spacePhase } from '../simulation/economy';
 import { ladder, parapet, examine } from './routes';
 import type { Presentation } from './presentation';
 
@@ -18,8 +21,8 @@ const W = { x0: -24.7, x1: -13.3, z0: 5.3, zN: 10.6, zS: 17.4, z1: 22.6, tower: 
 const chalk = decalMat(emberChalk, .92);
 
 export class Roofwalk {
-  root = new T.Group(); private live = new T.Group(); private governors = new T.Group(); private pennants = new T.Group(); private chartered = false; private spin: T.Group[] = [];
-  constructor(p: Presentation) { const city = p.city, s = new T.Group(), d = new T.Group(); p.root.add(this.root); this.root.add(s, d, this.live, this.governors, this.pennants);
+  root = new T.Group(); private live = new T.Group(); private governors = new T.Group(); private pennants = new T.Group(); private chartered = false; private spin: T.Group[] = []; private roofs!: Staged; private search = new T.Group(); private city!: Presentation['city'];
+  constructor(p: Presentation) { const city = this.city = p.city, s = new T.Group(), d = new T.Group(); p.root.add(this.root); this.root.add(s, d, this.live, this.governors, this.pennants);
     city.roofAt(-19, 14, LAND - .05); for (const x of [-12.6, 12.6]) city.roofAt(x, 5.6, LEADS - .1);
     // The duckboards: timber on iron saddles over the ridge, a rail each side, the chimneys alongside.
     box(s, .7, LEADS - .06, 4.2, 24.6, .12, 2, mats.wood); for (let x = -11; x <= 13; x += 3) { box(s, x, LEADS - .2, 4.2, .12, .16, 2.1, mats.iron); box(s, x, 13.2, 3.4, .1, 1.5, .1, mats.iron); }
@@ -38,19 +41,63 @@ export class Roofwalk {
     ladder(s, this.live, city, 'ladder.finch.yard', 'Finch Mechanical ladder', -22, W.z1, G, TERRACE, 0, 1);
     // North terrace: Finch's pigeons, a telescope trained on the Weathervane, and somebody's washing.
     box(d, -22.6, 15.6, 6.6, 2, 1.5, 1.4, mats.wood); for (const dx of [-.9, .9]) for (const dz of [-.6, .6]) box(d, -22.6 + dx, 14.75, 6.6 + dz, .08, .6, .08, mats.wood); box(d, -22.6, 16.45, 6.6, 2.3, .1, 1.7, mats.rust).rotation.z = .12;
-    for (const dx of [-.6, 0, .6]) box(d, -22.6 + dx, 15.7, 7.31, .3, .36, .03, mats.dark); for (const [dx, dy] of [[-.5, 16.6], [.3, 16.62], [.75, 15.05]]) sphere(d, -22.6 + dx, dy, 6.8, .1, mats.cream).scale.set(1.5, 1, 1);
+    for (const dx of [-.6, 0, .6]) box(d, -22.6 + dx, 15.7, 7.31, .3, .36, .03, mats.dark);
     city.collider(-22.6, 6.6, 2, 1.4, 16.5, undefined, undefined, 14.2);
     for (const [x, z] of [[-20.1, 9.4], [-19.5, 9.4], [-19.8, 8.8]]) beam(d, V(x, 14.45, z), V(-19.8, 15.7, 9.2), .025, mats.brass); cyl(d, -20.05, 15.82, 9.2, .07, .9, mats.brass).rotation.z = 1.35;
     examine(this.live, city, 'studs', 'Finch’s telescope', -19.8, 15.3, 9.2, 1.1, 1.8, 1.1);
-    { const a = V(-20.4, 16.2, 5.6), b = V(-14.2, 16.2, 9.9); for (const q of [a, b]) box(d, q.x, 15.3, q.z, .07, 1.8, .07, mats.wood); const line = cable(d, a, b, .25); [.2, .38, .6, .8].forEach((t, k) => { const q = line.getPoint(t); box(d, q.x, q.y - .34, q.z, .5, .62, .03, [mats.cream, mats.teal, artMats.wine, mats.cream][k]).rotation.y = -.96; }); }
-    { const m = new T.Mesh(new T.PlaneGeometry(.6, .6), chalk); m.position.set(-19, 15.4, W.zN - .02); m.rotation.y = Math.PI; d.add(m); }
     // The block roof: the highest place in the centre that can be stood on. A bench and the works' flag.
     for (const y of [.45, .5]) box(d, -14.4, BLOCK + y, 14, .5, .06, 1.8, mats.wood); for (const dz of [-.7, .7]) box(d, -14.4, BLOCK + .22, 14 + dz, .45, .44, .08, mats.iron);
-    cyl(d, -17.9, BLOCK + 2.4, 11.2, .05, 4.8, mats.brass); box(d, -17.2, BLOCK + 4.3, 11.2, 1.3, .8, .03, mats.teal); sphere(d, -17.9, BLOCK + 4.85, 11.2, .09, mats.brass);
+    cyl(d, -17.9, BLOCK + 2.4, 11.2, .05, 4.8, mats.brass); sphere(d, -17.9, BLOCK + 4.85, 11.2, .09, mats.brass);
     // South terrace: a water tank, spare stock and the way down to the yard.
     cyl(d, -15.6, 15.5, 20.6, 1.1, 1.7, mats.copper); cyl(d, -15.6, 16.4, 20.6, 1.15, .1, mats.iron); for (const a of [0, 1, 2]) box(d, -15.6 + Math.cos(a * 2.1) * .9, 14.85, 20.6 + Math.sin(a * 2.1) * .9, .12, .8, .12, mats.iron); city.collider(-15.6, 20.6, 2.2, 2.2, 16.5, undefined, undefined, 14.2);
     crate(d, -23.6, TERRACE, 18.6, .8); crate(d, -23.5, TERRACE, 19.6, .6);
     bake(s); bake(d);
+    // THE ROOFS, read six ways (economy.spacePhase, governed by Market Square). Occupied they are the Ordinance's
+    // high ground: a watch post, wire on the parapets, the loft boarded, their colours on the works' own mast.
+    { const st = this.roofs = new Staged(this.root), O = occupationMats, GOLD = ancientMats.gold, I = ancientMats.ivory;
+      const wash = (g: T.Object3D, pal: Material[]) => { const a = V(-20.4, 16.2, 5.6), b = V(-14.2, 16.2, 9.9); for (const q of [a, b]) box(g, q.x, 15.3, q.z, .07, 1.8, .07, mats.wood); const line = cable(g, a, b, .25); [.2, .38, .6, .8].forEach((t, k) => { const q = line.getPoint(t); box(g, q.x, q.y - .34, q.z, .5, .62, .03, pal[k % pal.length]).rotation.y = -.96; }); };
+      const planter = (g: T.Object3D, x: number, y: number, z: number, alongX: boolean, bloom?: Material) => { box(g, x, y + .2, z, alongX ? 1.4 : .5, .4, alongX ? .5 : 1.4, mats.wood); for (const o of [-.45, 0, .45]) sphere(g, x + (alongX ? o : 0), y + .52, z + (alongX ? 0 : o), .26, mats.leaf); if (bloom) for (const o of [-.3, .25]) sphere(g, x + (alongX ? o : .1), y + .74, z + (alongX ? .1 : o), .09, bloom); };
+      const held = st.layer(shown.held);
+      box(held, -17.2, BLOCK + 4.3, 11.2, 1.3, .8, .03, O.oxblood);
+      // the watch post on the south terrace: a hooded box on legs with a slit toward the street
+      box(held, -19.5, TERRACE + 1.5, 21.6, 1.5, 1.5, 1.5, O.iron); box(held, -19.5, TERRACE + 2.32, 21.6, 1.8, .12, 1.8, O.iron); for (const dx of [-.65, .65]) for (const dz of [-.65, .65]) box(held, -19.5 + dx, TERRACE + .38, 21.6 + dz, .1, .76, .1, O.iron); box(held, -18.74, TERRACE + 1.7, 21.6, .03, .22, 1.1, mats.dark); city.collider(-19.5, 21.6, 1.5, 1.5, TERRACE + 2.4, undefined, () => st.phase >= 4, TERRACE - .2);
+      // wire along the street-side parapets, and the notice at the head of the yard ladder
+      for (const [z0, z1] of [[7.2, 10.4], [17.6, 22.4]]) { for (let z = z0; z <= z1; z += .8) { box(held, W.x1 - .1, TERRACE + 1.32, z, .04, .44, .04, O.iron); beam(held, V(W.x1 - .1, TERRACE + 1.5, z), V(W.x1 + .12, TERRACE + 1.62, z + .4), .012, O.iron); } for (const y of [1.22, 1.4]) box(held, W.x1 - .1, TERRACE + y, (z0 + z1) / 2, .02, .02, z1 - z0, O.iron); }
+      sign(held, 'ROOFS CLOSED', 'OBSERVATION POST • KEEP OFF', -17.5, TERRACE + 1.5, 21.9, 1.5, .6, '#cbbf9f').rotation.y = Math.PI; box(held, -17.5, TERRACE + .6, 21.95, .08, 1.2, .08, O.iron);
+      box(held, -9, LEADS + 1.5, 3.25, .9, .5, .04, O.oxblood); box(held, 9, LEADS + 1.5, 3.25, .9, .5, .04, O.oxblood);
+      // Until people organise, the loft is boarded and nothing hangs on the roof.
+      const bare = st.layer(p => p < 2); for (const dy of [-.14, .12]) box(bare, -22.6, 15.7 + dy, 7.34, 1.7, .12, .04, mats.rust).rotation.z = dy * .5; box(bare, -22.6, 15.7, 7.36, .1, .7, .04, O.iron);
+      // COVERT: the mark behind the block, one bird back in the loft, a shuttered lantern under the bench.
+      const covert = st.layer(shown.covert); { const m = new T.Mesh(new T.PlaneGeometry(.6, .6), chalk); m.position.set(-19, 15.4, W.zN - .02); m.rotation.y = Math.PI; covert.add(m); } sphere(covert, -21.85, 15.05, 6.8, .1, mats.cream).scale.x *= 1.5;
+      const secret = st.layer(shown.secret); box(secret, -14.4, BLOCK + .14, 14.5, .2, .26, .2, mats.iron); box(secret, -14.3, BLOCK + .14, 14.5, .02, .12, .1, mats.glow); box(secret, -16.4, TERRACE + .2, 18.4, .9, .4, .6, artMats.fadedPaint);
+      // ORGANIZED: the boards come off, the birds fly, washing goes out in plain colours, a mirror on a tripod answers the Weathervane.
+      const org = st.layer(p => p >= 2 && p < 4); wash(org, [mats.cream, artMats.fadedPaint, artMats.plaster, mats.cream]);
+      const lived = st.layer(shown.organized); for (const [dx, dy] of [[-.5, 16.6], [.3, 16.62], [0, 16.6]]) sphere(lived, -22.6 + dx, dy, 6.8, .1, mats.cream).scale.x *= 1.5;
+      planter(lived, -17.4, TERRACE, 5.85, true); planter(lived, -24.1, TERRACE, 20, false);
+      for (const a of [0, 2.1, 4.2]) beam(lived, V(-14.2 + Math.cos(a) * .3, BLOCK, 16.6 + Math.sin(a) * .3), V(-14.2, BLOCK + 1.2, 16.6), .02, mats.wood); box(lived, -14.2, BLOCK + 1.34, 16.6, .34, .34, .03, mats.glow).rotation.set(-.3, .7, 0);
+      // CONTESTED: a searchlight and a horn on the block, a second strand of wire, a man on the walk.
+      const cont = st.layer(shown.contested); box(cont, -17.6, BLOCK + .7, 16.4, .16, 1.4, .16, O.iron); { const h = new T.Mesh(new T.ConeGeometry(.42, .9, 10, 1, true), O.iron); h.position.set(-16.6, BLOCK + 2.6, 11.2); h.rotation.z = -1.57; cont.add(h); } box(cont, -17.3, BLOCK + 2.6, 11.2, 1.2, .06, .06, O.iron);
+      sign(cont, 'SIGNALLING FORBIDDEN', 'MIRRORS AND LAMPS WILL BE SEIZED', -15.5, BLOCK + .75, W.zS - .12, 1.5, .55, '#cbbf9f').rotation.y = Math.PI;
+      { const L = this.search; L.position.set(-17.6, BLOCK + 1.6, 16.4); const aim = new T.Group(); aim.rotation.x = -1.2; L.add(aim); cyl(aim, 0, 0, 0, .3, .5, O.iron); cyl(aim, 0, -.26, 0, .25, .03, mats.glow); lightCone(aim, 2.2, 16).position.y = -.28; }
+      // LIBERATED: the works' own flag, a garden in boxes, a table where the post stood, bunting from the loft to the block.
+      const free = st.layer(shown.free); box(free, -17.2, BLOCK + 4.3, 11.2, 1.3, .8, .03, mats.teal); wash(free, [mats.cream, mats.teal, artMats.wine, artMats.ochre]);
+      for (const [x, z, ax, m] of [[-21.4, 22.1, true, mats.red], [-18.6, 22.1, true, artMats.ochre], [-13.85, 8.7, false, mats.red], [-13.85, 19.2, false, artMats.ochre], [-20.6, 5.85, true, mats.red]] as const) planter(free, x, TERRACE, z, ax, m);
+      box(free, -19.5, TERRACE + .78, 20.4, 1.6, .07, .9, mats.wood); for (const dx of [-.7, .7]) box(free, -19.5 + dx, TERRACE + .39, 20.4, .07, .78, .8, mats.wood); for (const dx of [-.5, .5]) cyl(free, -19.5 + dx, TERRACE + .24, 19.5, .2, .48, mats.wood); for (const dx of [-.3, .2]) cyl(free, -19.5 + dx, TERRACE + .88, 20.4, .05, .1, mats.copper); city.collider(-19.5, 20.4, 1.6, .9, TERRACE + .9, undefined, () => st.phase < 4, TERRACE - .2);
+      { const line = cable(free, V(-22.6, 16.6, 7.2), V(-17.9, BLOCK + 3, 11.2), .5); for (let k = 1; k < 9; k++) { const q = line.getPoint(k / 9); box(free, q.x, q.y - .16, q.z, .26, .3, .02, [mats.red, mats.cream, mats.teal, artMats.ochre][k % 4]).rotation.y = .7; } }
+      for (const x of [-9, -3, 3, 9]) { box(free, x, LEADS + .22, 3.5, 1.2, .36, .36, mats.wood); for (const o of [-.35, 0, .35]) sphere(free, x + o, LEADS + .5, 3.5, .2, mats.leaf); }
+      // RESTORED: the old roof garden. Water in a channel along the terrace, a ring hung over the block, green over the parapet to the street.
+      const res = st.layer(shown.restored); channel(res, -19, TERRACE + .03, 9.9, 9, true, ancientMats.awake, .3); channel(res, -19, TERRACE + .03, 18.1, 9, true, ancientMats.awake, .3);
+      hungRing(res, -15.9, BLOCK + 2.2, 14, 1.3, 2.4); for (const a of [.4, 2.5, 4.6]) box(res, -15.9 + Math.cos(a) * 1.3, BLOCK + 1.1, 14 + Math.sin(a) * 1.3, .1, 2.2, .1, I); cyl(res, -15.9, BLOCK + .12, 14, .9, .24, I); sphere(res, -15.9, BLOCK + .5, 14, .34, ancientMats.awake);
+      for (let z = 7.4; z < 22.4; z += 1.1) { if (z > 10.2 && z < 17.8) continue; for (const dy of [0, .34, .62]) sphere(res, W.x1 + .12, TERRACE + .9 - dy, z, .26 - dy * .18, mats.leaf); }
+      { const ring = splitRing(res, W.x1 + .08, 17.4, 14, .9, 0); ring.rotation.y = Math.PI / 2; }
+      // PROSPERITY, whoever holds the roof: a banded tank and an awning, or a patched one under a tarp.
+      const rich = st.layer(shown.rich); for (const y of [15, 16]) cyl(rich, -15.6, y, 20.6, 1.13, .1, mats.brass); box(rich, -23.4, TERRACE + 2.1, 19.1, 1.9, .05, 2.6, artMats.wine).rotation.z = .16; for (const dz of [-1.2, 1.2]) box(rich, -22.6, TERRACE + 1, 19.1 + dz, .06, 2, .06, mats.brass);
+      const poor = st.layer(shown.poor); box(poor, -15.1, 15.6, 19.7, .5, .6, .04, mats.rust).rotation.y = .5; box(poor, -23.55, TERRACE + .9, 19.1, 1.3, .04, 2.2, artMats.fadedPaint).rotation.z = -.12;
+      st.seal(); cont.add(this.search);
+      const on = (t: Shown) => () => st.is(t);
+      p.addWorker(-18.2, 21.6, Math.PI / 2, 'guard', { y: TERRACE - G, role: 'guard', when: on(shown.held) }); p.addWorker(2, 4.2, Math.PI / 2, 'guard', { y: LEADS - G, path: [9, 4.2, .4], role: 'guard', when: on(shown.contested) });
+      p.addWorker(-20.6, 7.4, Math.PI / 2, 'sweep', { y: TERRACE - G, role: 'worker', when: on(shown.organized) }); p.addWorker(4.6, 3.75, Math.PI, 'lean', { y: LEADS - G, role: 'resident', when: on(shown.organized) });
+      p.addWorker(-19.5, 19.5, 0, 'sit', { y: TERRACE - G, role: 'resident', when: on(shown.free), tool: 'mug' }); p.addWorker(-21.8, 21.2, Math.PI, 'repair', { y: TERRACE - G, role: 'resident', when: on(shown.free) }); p.addWorker(-16.6, 8, -.6, 'watch', { y: TERRACE - G, role: 'resident', scale: .72, when: on(shown.free) }); }
     { const t = new T.Group(); t.position.set(-21.4, TERRACE, 8.2); t.rotation.y = Math.PI / 2; this.live.add(t); city.target(t, 'pigeons', 'discovery', 'Finch’s pigeon loft', 0, 1.45, 0); }
     // RESEARCH, where the street can see it.
     // Precision governors: flyball regulators turning on the Great Main's cabinets.
@@ -64,8 +111,8 @@ export class Roofwalk {
       city.collider(x + side * .7, z, 1.2, 2.4, 1.1, undefined, () => !this.chartered); p.addWorker(x + side * 1.5, z, yaw, 'browse', { role: 'merchant', when: () => this.chartered }); }
     const c1 = p.addWorker(8.1, 9.6, Math.PI / 2 + .4, 'talk', { role: 'resident', when: () => this.chartered }), c2 = p.addWorker(8.3, 11.3, Math.PI / 2 - .5, 'talk', { role: 'courier', when: () => this.chartered }); p.workers[c1].partner = c2; p.workers[c2].partner = c1;
     bake(this.pennants);
-    p.addWorker(4.6, 3.75, Math.PI, 'lean', { y: LEADS - G, role: 'resident' }); p.addWorker(-20.6, 7.4, Math.PI / 2, 'sweep', { y: TERRACE - G, role: 'worker' }); p.addWorker(-14.4, 13.4, -Math.PI / 2, 'sit', { y: BLOCK - G, role: 'courier', time: 'night' });
+    p.addWorker(-14.4, 13.4, -Math.PI / 2, 'sit', { y: BLOCK - G, role: 'courier', time: 'night' });
   }
-  sync(research: readonly string[]) { this.governors.visible = research.includes('governors'); this.pennants.visible = this.chartered = research.includes('charter'); }
-  update(time: number, calm: boolean) { if (this.governors.visible) for (const a of this.spin) a.rotation.y = time * (calm ? 1.2 : 5); }
+  sync(research: readonly string[]) { const e = this.city.economy; this.roofs.sync(spacePhase(e.state.sites, 'market'), e.stage); this.governors.visible = research.includes('governors'); this.pennants.visible = this.chartered = research.includes('charter'); }
+  update(time: number, calm: boolean) { this.search.rotation.y = 1.57 + Math.sin((calm ? time * .3 : time) * .19) * .8; if (this.governors.visible) for (const a of this.spin) a.rotation.y = time * (calm ? 1.2 : 5); }
 }

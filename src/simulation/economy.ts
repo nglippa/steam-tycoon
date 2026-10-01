@@ -105,6 +105,21 @@ export const SITE_LIBERATED = 4, SITE_RESTORED = 5;
 /** What the city knows about itself: facts that follow from progress at several sites.
  * Districts read these instead of re-deriving rules, so a change in one place shows up
  * wherever it matters (the Directorate's response, the courier, the cutters' journey). */
+/** How a place in Terra reads, from who holds the site that governs it. This is a language, not a meter:
+ * the same street is built once and each phase adds, removes or changes what is standing in it.
+ *   0 occupied   suppressed on purpose: shut, watched, stripped
+ *   1 covert     the first signs, easy to miss
+ *   2 organized  people quietly taking the space back
+ *   3 contested  the Ordinance has noticed: it tightens where it still holds, once another site has fallen
+ *   4 liberated  the fixtures go and people use the place openly
+ *   5 restored   the old city under it is uncovered and runs again
+ * Prosperity is deliberately not an input: a rich street can be occupied and a poor one free. */
+export const PHASE = { occupied: 0, covert: 1, organized: 2, contested: 3, liberated: 4, restored: 5 } as const;
+export function spacePhase(sites: Record<SiteId, number>, source: SiteId, restoredBy: SiteId = source): number {
+  const control = sites[source]; if (control >= SITE_LIBERATED) return sites[restoredBy] >= SITE_RESTORED ? PHASE.restored : PHASE.liberated;
+  if (control <= 0) return PHASE.occupied;
+  const fallenElsewhere = SITES.some(s => s.id !== source && sites[s.id] >= SITE_LIBERATED);
+  return control >= 2 ? (fallenElsewhere ? PHASE.contested : PHASE.organized) : PHASE.covert; }
 export function cityFacts(sites: Record<SiteId, number>) {
   const { market, foundry, row, gauge } = sites;
   return {

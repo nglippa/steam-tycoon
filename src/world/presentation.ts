@@ -444,7 +444,7 @@ export class Presentation {
   sync(){
     const e=this.city.economy;const levels=PROPERTIES.map(p=>this.city.properties.get(p.id)!.level);const key=[...levels,...Object.values(e.state.infrastructure),...Object.values(e.state.sites),e.stage,...e.state.research,...e.state.districts].join(':');if(key===this.signature)return;this.signature=key;
     const businesses=Object.fromEntries(PROPERTIES.map((p,i)=>[p.id,levels[i]])) as Record<typeof PROPERTIES[number]['id'],number>;
-    for(const s of this.sites)s.sync({control:e.state.sites[s.id],stage:e.stage,levels:businesses,sites:{...e.state.sites}});this.weatherside.sync();this.roofwalk.sync(e.state.research);this.hangway.sync(e.state.research);
+    for(const s of this.sites)s.sync({control:e.state.sites[s.id],stage:e.stage,levels:businesses,sites:{...e.state.sites}});this.weatherside.sync();this.roofwalk.sync(e.state.research);this.canalWard.sync();this.hangway.sync(e.state.research);
     this.worn.visible=e.state.infrastructure.roads===0;
     this.city.disposeGroup(this.restored);this.city.disposeGroup(this.market);const g=this.restored;const rich=e.stage>=3;const soot=this.soot;const marketLevel=levels[5];
     // Repairs have literal mechanical consequences unique to every property.

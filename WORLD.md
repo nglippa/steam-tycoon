@@ -81,3 +81,30 @@ Nothing here is explained in the game. These are the pieces, and what each one a
 - The Backwater's sawn conduit ("the cut end is warm") is not an Anchor clue; it says the old works are still live under the east side too.
 
 **Deliberately not said:** what an Anchor does, why Terra floats, where the other five are, what "tend" means, and why the fifth is faint.
+
+## Places that change with the city (the progression language)
+
+Three existing places are authored once and read six ways. The phase comes from `spacePhase()` in
+`src/simulation/economy.ts`; the layers are a `Staged` in `src/world/layers.ts`. Prosperity is a
+separate input (`rich` / `poor` layers) and never changes the phase.
+
+| Phase | What it means | What is used to say it |
+| --- | --- | --- |
+| occupied | suppressed on purpose | posted orders, bars, shutters, wire, iron lamps, nowhere to sit, one person passing through |
+| covert | first signs, easy to miss | one chalk mark, one lit window, one pot, one bird, something under a cloth |
+| organized | quietly taken back | bars off, plain washing, planters, open drawers, people who stay |
+| contested | the Ordinance has noticed (only once another site has fallen) | a second order pasted over, barriers, searchlight, seals and chains, a guard |
+| liberated | used openly | fixtures gone, bright cloth, tables and benches, the ward's colours, groups of people |
+| restored | the old city under it | lit conduit, water in channels, the tapered arch, the seven-part ring, green over the walls |
+
+| Place | Type | Governed by | Restored with |
+| --- | --- | --- | --- |
+| The Backwater lane and gallery | street | Cinder Row | Market Square (the Saelspring) |
+| Finch Mechanical's roofs and the Leads | rooftop | Market Square | Market Square |
+| The Ward Registry office | interior | The Foundry | The Foundry |
+
+While the Backwater is occupied or covert its gallery is barred between the yards; each half is still reached by its own stair.
+
+Old Terra's shapes are in `src/world/ancient-kit.ts` (tapered arch, seven-part ring, hung ring, inset channel) and
+room furniture in `src/world/interior-kit.ts`. Same-camera comparisons: `screenshots/review-2026-10-01-alive/`.
+Review views: `backLane`, `backYard`, `finchTerrace`, `roofSouth`, `registryDoor`, with `site=`, `row=`, `foundry=` 0-5.
