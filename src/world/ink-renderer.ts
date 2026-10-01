@@ -43,7 +43,8 @@ export class InkRenderer {
         vec2 p0 = texel * weight;
         float cls = min(min(texture2D(picture, uv + vec2(p0.x, 0.)).a, texture2D(picture, uv - vec2(p0.x, 0.)).a), min(texture2D(picture, uv + vec2(0., p0.y)).a, texture2D(picture, uv - vec2(0., p0.y)).a));
         cls = min(cls, sample0.a);
-        float thin = step(.25, cls) * (1. - step(.75, cls));
+        // Narrow band: MSAA-resolved alpha at a world/thin edge must not read as thin.
+        float thin = step(.35, cls) * (1. - step(.65, cls));
         vec2 o = texel * weight * mix(1., .38, thin);
         float c0 = distanceAt(uv);
         float l = distanceAt(uv - vec2(o.x, 0.)), r = distanceAt(uv + vec2(o.x, 0.));
@@ -51,17 +52,24 @@ export class InkRenderer {
         float a1 = distanceAt(uv + o * vec2(.7, .7)), a2 = distanceAt(uv + o * vec2(-.7, .7));
         float a3 = distanceAt(uv - o * vec2(.7, .7)), a4 = distanceAt(uv - o * vec2(-.7, .7));
         float nearest = min(min(min(c0, l), min(r, u)), min(min(d, a1), min(min(a2, a3), a4)));
-        float farthest = max(max(max(c0, l), max(r, u)), max(max(d, a1), max(max(a2, a3), a4)));
-        float jump = (farthest - nearest) / max(nearest, .5);
-        float crease = max(max(abs(l + r - 2. * c0), abs(u + d - 2. * c0)), max(abs(a1 + a3 - 2. * c0), abs(a2 + a4 - 2. * c0))) / max(c0, 1.);
+        // A flat surface is linear in 1/z at any viewing angle, so the second difference of inverse
+        // distance is ~0 on a plane (even grazing ground) and large only at creases and silhouettes.
+        float ic = 1. / c0;
+        float e = max(max(abs(1. / l + 1. / r - 2. * ic), abs(1. / u + 1. / d - 2. * ic)),
+                      max(abs(1. / a1 + 1. / a3 - 2. * ic), abs(1. / a2 + 1. / a4 - 2. * ic))) * c0;
+        float silhouette = smoothstep(.07, .18, e);
+        float crease = smoothstep(.012, .035, e);
         // Interior lines where color blocks meet (frames, trims, clothing panels) — not on sky.
         float lc = luma(texture2D(picture, uv).rgb);
         float gl = abs(luma(texture2D(picture, uv - vec2(o.x, 0.)).rgb) - luma(texture2D(picture, uv + vec2(o.x, 0.)).rgb))
                  + abs(luma(texture2D(picture, uv - vec2(0., o.y)).rgb) - luma(texture2D(picture, uv + vec2(0., o.y)).rgb));
         float solid = 1. - step(far * .9, nearest);
-        float colorEdge = smoothstep(.16, .3, gl / max(lc, .18)) * solid * (1. - smoothstep(18., 60., nearest));
-        float fade = 1. - smoothstep(90., 320., nearest) * .65;
-        float ink = max(max(smoothstep(.07, .18, jump), smoothstep(.012, .035, crease) * .85 * (1. - text)), colorEdge * .6 * (1. - text)) * fade;
+        // Texture contrast on grazing surfaces (distant ground) is aliasing, not a drawn line.
+        float slope = (abs(l - r) + abs(u - d)) / (c0 * 2. * length(o / texel));
+        float colorEdge = smoothstep(.16, .3, gl / max(lc, .18)) * solid * (1. - smoothstep(14., 42., nearest)) * (1. - smoothstep(0.004, 0.012, slope));
+        // Far lines would break into flickering dashes: take them down early to a light steady line.
+        float fade = 1. - smoothstep(60., 220., nearest) * .75;
+        float ink = max(max(silhouette, crease * .85 * (1. - text)), colorEdge * .6 * (1. - text)) * fade;
         // Ink is a deep, color-aware navy-grey rather than black.
         vec3 inkColor = mix(vec3(.06, .05, .05), color * .25, .2);
         color = mix(color, inkColor, clamp(ink, 0., 1.) * .95);
