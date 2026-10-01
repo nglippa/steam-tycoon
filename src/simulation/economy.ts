@@ -11,7 +11,7 @@ export const INFRA = [
   { id: 'lamps', name: 'Street lighting', cost: 65, detail: 'Replace failing lanterns with brass lamps, then luminous aether glass.', effect: 'More light · +8% city income / level' },
   { id: 'roads', name: 'Roads & transit', cost: 100, detail: 'Repair muddy lanes, lay stone paving, and welcome the municipal tram.', effect: 'New paving and transit · +10% income / level' },
   { id: 'steam', name: 'Steam distribution', cost: 140, detail: 'Repair the overhead mains and replace leaking joints with pressure regulators.', effect: 'Refined pipes · +15% income / level' },
-  { id: 'gardens', name: 'Water & public gardens', cost: 200, detail: 'Restore the drinking fountain, clean the canal, and plant the clock square.', effect: 'Clean water and greenery · +8% income / level' },
+  { id: 'gardens', name: 'Water & public gardens', cost: 200, detail: 'Restore the drinking fountain, clear the sky canal’s moorings, and plant the clock square.', effect: 'Clean water and greenery · +8% income / level' },
   { id: 'housing', name: 'Workers’ homes', cost: 180, detail: 'Replace boarded windows, mend the rooftops, and raise a better home for Terra.', effect: 'Restored housing · +12% income / level' },
 ] as const;
 export type InfraId = typeof INFRA[number]['id'];

@@ -80,6 +80,10 @@ The same pieces carry both routes. `cityFacts()` and `when.fact()` hold the rule
 
 Behind the arrival gate the ward ends at a cliff. An ivory terrace juts past it. From its balustrade you can see a spillway pouring off into nothing, ancient ribs curving under the rim, a lesser isle hung on chains far below, a sister isle on the horizon, swifts on the updraft, and the cloud sea with Locke showing through. The sky, cloud sea and fall follow the day/night key and the weather.
 
+**The sky canal.** The Lowworks "canal" is a cleft through the plate: from the bridge you look straight down past the city's ribs to the cloud sea and Locke's fields. Steam carriers (planked decks on brass lift-pods, turbine fans, a stack trailing steam) shuttle its length, out through the north rim into open sky and back under the bridge. Behind the housing lane the west rim opens to a balustrade over the clouds, and the north end of the cleft frames the sky between the outer ward's buildings.
+
+**The undercroft lift.** A brass cage beside the arrival terrace (the call box reads *Ride down*) drops about a hundred metres down the cliff to a gallery hung on chains beneath the plate. From there you see Terra's underside (hanging rock, ivory ribs, regime pipes, an aether vent) with the chained isle and the cloud sea at eye level.
+
 The industrial ramp in the western alley reaches a six-metre-high overlook. Three discoverable plaques/objects offer original Locke lore, a small reward and persistent output bonuses.
 
 The world has a 12-minute day/night cycle and rotating drizzle, overcast and industrial fog. Original Web Audio synthesis supplies rain/steam ambience, positional machinery, steps, bells, construction and purchase sounds. There is no recorded music track.
@@ -147,6 +151,7 @@ __TERRA__.site(1, 'row')         // Cinder Row: 0 occupied, 1 courier run, 2 cut
 __TERRA__.carry('gauge.key')     // shoulder a waiting consignment ('row.crate' by default)
 __TERRA__.site(2, 'gauge')       // the Ration Line; &gauge=n; views gauge, gaugeValve, gaugeYard
 __TERRA__.view('rowPost')        // also row, rowLane, rowMast, rowSky
+__TERRA__.view('chasm')          // also bridge, bridgeSouth, cleft, westEdge, liftTop, gallery, galleryOut
 ```
 
 Developer saves are isolated from the ordinary game. The starting district is the most detailed area; expansion districts are compact explorable extensions. NPC life is route-based ambient choreography, not a full individual-needs simulation. Prestige, politics, supply-chain logistics and multiplayer are deliberately reserved for future development.

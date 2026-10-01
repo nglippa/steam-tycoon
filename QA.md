@@ -280,3 +280,19 @@ A junction probe over all 270 characters in three districts (the distance betwee
 - pelvis twist or roll slid the side hips off them (up to 4.4 cm, mostly talkers turning to partners and carriers)
 
 The legs now hang from the pelvis transform, so the probe reads 0 for every character in every activity. The walking bob is now the stance leg's own hip drop. Walking feet stay within −0.6 to +1.4 cm of the ground at the 5th–95th percentile, against floating up to 4.4 cm before.
+
+## The floating city: sky canal, west edge, undercroft (2026-09-30)
+
+Typecheck, 26 tests and the build pass. The traversal and ledger sweep over 15 states is unchanged: all 6 ledgers pass everywhere, no NPC is blocked, there are no console errors, and `foundryLane` fails only while Cinder Row's inspection is active.
+- **Open views, confirmed by raycast.**
+  - North along the cleft, rays at 1.5 m and 6 m run out past z −270 without a hit.
+  - From the west balustrade, rays go to the horizon.
+  - Downward rays through the cleft and the notch land on the cloud sea at y −240.
+  - The west notch was first a 64 m parallel slot, so its own rim walls framed the view like a corridor. It now flares out (`WEST_EDGE.flare`), and `skyGap` widens with it.
+- **The lift, driven through `ui.interact`.**
+  - *Ride down* takes 8 s from the terrace (eye 1.93) to the gallery (eye −99.25), and `riding` clears.
+  - On the gallery: `groundHeight` is −101 on the deck, `blocked` is false on the deck and true off its edges and anywhere on the street plan below.
+  - *Ride up* returns to the terrace with the cage reset to the top.
+  - No console errors.
+- **Performance** (uncapped headed Chrome, Phase 3 commit `9c227f9` vs the working tree, which also includes Phase 4 and the people pass, mean of 2 rounds). The arrival, chasm, bridge, cleft, west edge, street and square views run 192–335 FPS with p95 at or below 6.15 ms. Draws rise by +3 to +36 per view; the three carriers, the instanced steam and the baked underside are the new cost.
+- Rendered review: `screenshots/review-2026-09-30-pass7/` and `collage.png`.

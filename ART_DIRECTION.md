@@ -194,3 +194,10 @@ The rules come from the `figure-construction` skill (`~/.agents/skills/figure-co
 - **Hands:** small relaxed C-curl hands (palm, finger mass, thumb). Never flat paddles.
 - **Held things:** every hand has a grip socket in the palm. Props are authored grip-first, with the handle through the fist. Two-handed loads (crates) sit between both palms against the body.
 - **Arms:** the hanging arms angle away from the body. In a walk, the forearm drags behind the swing and the back swing arcs out past the hips. Raised arms go forward and out, never through the head.
+
+## The floating city, made visible (2026-09-30)
+
+- **Openings, not a backdrop.** Terra reads as floating where the plate is open: the sky canal (a cleft through the plate where the canal was), the flared west notch with a balustrade, the north end of the cleft, and the undercroft gallery. `geography.ts` holds these cut-outs, and `skyGap()` keeps backdrop buildings out of them one building at a time, so a cluster may lose a house but never blocks the view.
+- **Look down through something.** Every opening has a near frame (rail, balustrade, bridge girders, cage bars) and a far layer (cloud cards and wisps, ribs at depth, the cloud sea with Locke's fields). Never an empty void.
+- **Steam carriers, not boats.** Freight floats on brass lift-pods with an aether glow beneath. A copper boiler and stack astern and two turbine ducts with spinning fans drive it. Steam is one instanced puff mesh tinted by the light key. Carriers slow to turn at each end and roll gently.
+- **The underside** is rock, not paving. Hanging cones, ivory ribs and copper pipes show the plate is a made thing held up by the old city.

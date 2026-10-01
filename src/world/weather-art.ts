@@ -100,9 +100,6 @@ export class WeatherArt {
         gl_FragColor=vec4(col,1.);
         #include <colorspace_fragment>}`}));
     this.banks.frustumCulled=false;scene.add(this.banks);
-    const water=city.water.material as T.MeshStandardMaterial;
-    water.onBeforeCompile=shader=>{shader.uniforms.waterTime=this.waterTime;shader.vertexShader='uniform float waterTime;varying vec2 waterCoord;\n'+shader.vertexShader;shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nwaterCoord=position.xy;transformed.z+=sin(position.x*3.+waterTime)*.022+sin(position.y*2.+waterTime*1.4)*.018;');shader.fragmentShader='uniform float waterTime;varying vec2 waterCoord;\n'+shader.fragmentShader;shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>','#include <color_fragment>\nfloat crestLine=smoothstep(.88,.97,sin(waterCoord.x*8.+sin(waterCoord.y*2.+waterTime)));diffuseColor.rgb+=vec3(.05,.09,.1)*crestLine;');};
-    water.customProgramCacheKey=()=> 'terra-canal-ripples';
     const r=seeded(400);for(let i=0;i<160;i++){this.splashPositions[i*3]=(r()-.5)*19;this.splashPositions[i*3+1]=.12;this.splashPositions[i*3+2]=r()*130-57;}
     const c=document.createElement('canvas');c.width=c.height=32;const ctx=c.getContext('2d')!;ctx.strokeStyle='#c7d9e2';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(16,16,13,5,0,0,Math.PI*2);ctx.stroke();const texture=new T.CanvasTexture(c);
     const geo=new T.BufferGeometry();geo.setAttribute('position',new T.BufferAttribute(this.splashPositions,3));this.splashes=new T.Points(geo,new T.PointsMaterial({map:texture,color:'#c0cdd2',size:.25,transparent:true,opacity:.3,depthWrite:false}));scene.add(this.splashes);

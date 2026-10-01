@@ -3,6 +3,7 @@ import { palette as P } from './palette';
 import { box,cyl,sphere,beam,torus,windowUnit,windowGlass,sign,bake,mats,seeded } from './assets';
 import { V,pipe,railing,crest,roof,artMats,pressureRing,wingedValve,gauge,facadePaints,aetherDiamond,shopDisplay,canopy,grimeSkirt,sootStreak,paintedWear } from './art-kit';
 import { gear } from './assets';
+import { skyGap } from './geography';
 
 /** Authored structural rhythm; additions stay above the walkable frontage. */
 export function facadeDetail(g:T.Group,w:number,h:number,d:number,type:number) {
@@ -272,7 +273,8 @@ export function buildOuterCity(root:T.Group,walls:T.Material[]){
     const count=3+(c*7)%4,anchor=(c*3)%count,rhythm=.8+.35*Math.sin((px*.9+pz)*.035),wallMat=walls[(c*5)%walls.length],roofMat=roofsBy[(c*2)%3];
     const kinds=Array.from({length:count},(_,k)=>k===anchor?[2,7,4][c%3]:[0,1,5,3,6,0,1][(c+k*3)%7]);
     let total=kinds.reduce((sum,k)=>sum+kindWidth[k],0)+(count-1)*.1,x=-total/2;
-    kinds.forEach((kind,k)=>{const w=kindWidth[kind];archetype(cl,kind,x+w/2,w,(8.5+((c+k)%3)*2.4)*rhythm*(k===anchor?1.4:1),k%2?walls[(c*5+2)%walls.length]:wallMat,roofMat,true);x+=w+.1;});});
+    // A building that would stand where the plate is open to the sky is left out.
+    kinds.forEach((kind,k)=>{const w=kindWidth[kind],at=(lx:number)=>skyGap(px+lx*Math.cos(yaw),pz-lx*Math.sin(yaw));if(at(x)||at(x+w/2)||at(x+w)){x+=w+.1;return;}archetype(cl,kind,x+w/2,w,(8.5+((c+k)%3)*2.4)*rhythm*(k===anchor?1.4:1),k%2?walls[(c*5+2)%walls.length]:wallMat,roofMat,true);x+=w+.1;});});
   bake(g);g.traverse(o=>{if(o instanceof T.Mesh)o.castShadow=false;});return g;
 }
 /** Illustrated aerial perspective: each backdrop plane mixes toward the horizon by a
@@ -289,8 +291,8 @@ export function buildSkyline(root:T.Group) {
   const wall=flat('#a9c8c2',.25),roofs=flat('#88aead',.25),deep=flat('#98bab7',.4),spire=flat('#80a8a8',.42);
   // Far ring: the same archetype grammar in flat, tinted planes.
   const far2=[wall,deep];let t=0;
-  for(let c=0;c<26;c++){const a=c/26*Math.PI*2+.05,r=118+(c%3)*7,rhythm=.75+.35*Math.sin(a*3+.6);if(Math.cos(a)>.5)continue;const grp=new T.Group();grp.position.set(Math.sin(a)*r,0,Math.cos(a)*r);grp.rotation.y=a+Math.PI;near.add(grp);
-    let x=-9;for(let k=0;k<3+c%3;k++){const kind=(c*3+k*5)%8,w=kindWidth[kind];archetype(grp,kind,x+w/2,w,(9+((c+k)%4)*2.2)*rhythm*(k===1?1.35:1),far2[(c+k)%2],roofs,false);x+=w+.2;t++;}}
+  for(let c=0;c<26;c++){const a=c/26*Math.PI*2+.05,r=118+(c%3)*7,rhythm=.75+.35*Math.sin(a*3+.6);if(Math.cos(a)>.5)continue;const grp=new T.Group(),gx=Math.sin(a)*r,gz=Math.cos(a)*r,yaw=a+Math.PI;grp.position.set(gx,0,gz);grp.rotation.y=yaw;near.add(grp);
+    let x=-9;for(let k=0;k<3+c%3;k++){const kind=(c*3+k*5)%8,w=kindWidth[kind],at=(lx:number)=>skyGap(gx+lx*Math.cos(yaw),gz-lx*Math.sin(yaw));if(at(x)||at(x+w/2)||at(x+w)){x+=w+.2;continue;}archetype(grp,kind,x+w/2,w,(9+((c+k)%4)*2.2)*rhythm*(k===1?1.35:1),far2[(c+k)%2],roofs,false);x+=w+.2;t++;}}
   void t;
   // Gasometers and a viaduct give the middle distance an engineered rhythm.
   for(const [x,z] of [[-70,-128],[82,-110],[-120,-40]]){cyl(far,x,11,z,10,22,deep);for(let y=4;y<22;y+=6)torus(far,x,y,z,10.2,.25,spire).rotation.x=Math.PI/2;}

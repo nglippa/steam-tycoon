@@ -12,6 +12,8 @@ import { TERRACE, terraceRise } from './city';
 import { MarketSquare } from './market-square';
 import { FoundryWorks } from './foundry-works';
 import { CinderRow } from './cinder-row';
+import { SkyCanal } from './sky-canal';
+import { WEST_EDGE } from './geography';
 import { RationLine } from './ration-line';
 import type { SiteModule } from './layers';
 import { SITE_RESTORED } from '../simulation/economy';
@@ -25,7 +27,7 @@ export class Presentation {
   marketSquare!:MarketSquare; foundryWorks!:FoundryWorks; cinderRow!:CinderRow; rationLine!:RationLine; sites:SiteModule[]=[];
   /** The Ordinance's coal furnace at Cinder No. 3: its own group, because restoration removes it. */
   foundryFurnace?:T.Group; foundryHoist?:T.Group; furnaceHammer=0;
-  cartPusher=0;shaftMat?:T.MeshBasicMaterial;shafts?:T.Group;poolMat?:T.MeshBasicMaterial;pools?:T.Group;terracePlanters:[number,number][]=[];birds!:T.InstancedMesh;capsules:T.Group[]=[];moths!:T.InstancedMesh;hoistCrate!:T.Group;barge!:T.Group;craneJib!:T.Group;ingotCart!:T.Group;
+  cartPusher=0;shaftMat?:T.MeshBasicMaterial;shafts?:T.Group;poolMat?:T.MeshBasicMaterial;pools?:T.Group;terracePlanters:[number,number][]=[];birds!:T.InstancedMesh;capsules:T.Group[]=[];moths!:T.InstancedMesh;hoistCrate!:T.Group;skyCanal!:SkyCanal;craneJib!:T.Group;ingotCart!:T.Group;
   steamOrigins=[V(32.8,13,40),V(0,17.9,29),V(-9,.25,25),V(31,3,14),V(-29,2,14),V(9,.3,-25)];
   runoff: T.Vector3[]=[]; heat:T.Mesh[]=[]; lanterns:T.Mesh[]=[];
   signature='';
@@ -138,9 +140,9 @@ export class Presentation {
     bake(g);
   }
   boundaries(){const g=this.section();
-    for(const x of [-75.5,76.5])for(let z=-78;z<78;z+=9){box(g,x,1.8,z,.6,3.6,8.8,mats.darkBrick);cyl(g,x,4,z, .2,1,mats.iron);}
+    for(const x of [-75.5,76.5])for(let z=-78;z<78;z+=9){if(x<0&&z>WEST_EDGE.z0-4&&z<WEST_EDGE.z1+4)continue;box(g,x,1.8,z,.6,3.6,8.8,mats.darkBrick);cyl(g,x,4,z, .2,1,mats.iron);}
     // Freight gates give the far north boundary an intentional silhouette.
-    for(const x of [-52,52]){box(g,x,5,-82,20,10,1,mats.darkBrick);sign(g,'EAST LOCKE FREIGHT','RAIL ACCESS • AUTHORIZED CREWS',x,4,-81.4,8,1.2);for(let dx=-4;dx<=4;dx+=.5)cyl(g,x+dx,2,-81.3,.04,4,mats.iron);}
+    for(const x of [-52,60]){box(g,x,5,-82,20,10,1,mats.darkBrick);sign(g,'EAST LOCKE FREIGHT','RAIL ACCESS • AUTHORIZED CREWS',x,4,-81.4,8,1.2);for(let dx=-4;dx<=4;dx+=.5)cyl(g,x+dx,2,-81.3,.04,4,mats.iron);}
     bake(g);
   }
   /** The Great Main as civic infrastructure: regulators, catwalk, branches, crews. */
@@ -222,8 +224,8 @@ export class Presentation {
     cyl(this.craneJib,5,-1.8,0,.02,3.6,mats.iron);crate(this.craneJib,5,-4.4,0,.8);bake(this.craneJib);this.city.collider(38.8,24,1.8,1.8);
     this.addWorker(37.6,25.3,Math.PI/2+.4,'valve',{role:'worker'});
     for(const z of [30,31.2])crate(g,38.3,0,z,.9);for(const z of [-20,-28,4])cyl(g,39.6,.4,z,.18,.8,mats.iron);
-    this.barge=new T.Group();const hull=new T.Shape();hull.moveTo(-.9,-2.6);hull.lineTo(.9,-2.6);hull.lineTo(.95,2);hull.quadraticCurveTo(0,3.2,-.95,2);hull.closePath();
-    const hm=new T.Mesh(new T.ExtrudeGeometry(hull,{depth:.7,bevelEnabled:false}),mats.teal);hm.rotation.x=-Math.PI/2;hm.position.y=-.2;this.barge.add(hm);box(this.barge,0,.62,-.6,1.2,.6,1.4,mats.cream);cyl(this.barge,0,1.3,-.9,.14,1,mats.rust);for(const z of [.6,1.3])crate(this.barge,0,.5,z,.6);bake(this.barge);this.root.add(this.barge);
+    // The sky canal: steam carriers over the cleft where the barge once ran.
+    this.skyCanal=new SkyCanal(this.root);
     // A crate rides the salvage pulley.
     this.hoistCrate=new T.Group();crate(this.hoistCrate,0,0,0,.7);asProp(this.hoistCrate);bake(this.hoistCrate);this.root.add(this.hoistCrate);
     // Housing lane: a stoop chair, a delivery handcart and doorstep plants once homes recover.
@@ -405,7 +407,7 @@ export class Presentation {
     this.capsules.forEach((cap,i)=>{const u=((time+i*3.7)%11)/11,run=Math.min(1,u*1.6);cap.visible=u<.62;cap.position.set(-13.1,6.3,62-run*102);});
     const day=this.city.economy.state.day,night=day<.23||day>.79;this.moths.visible=night;
     if(night){let n=0;for(let z=57;z>=-56;z-=19)for(const lx of [-9.8,9.8])for(let k=0;k<3&&n<36;k++,n++){const a=time*(2.2+k*.7)+n*1.9,r=.35+.15*Math.sin(time*1.3+n);p.set(lx+Math.cos(a)*r,4.95+Math.sin(time*3+n)*.25,z+Math.sin(a)*r);e.set(0,a,Math.sin(time*18+n)*.8);q.setFromEuler(e);sc.setScalar(1);m.compose(p,q,sc);this.moths.setMatrixAt(n,m);}this.moths.instanceMatrix.needsUpdate=true;}
-    const leg=(time*.9)%116,drift=leg<58?leg:116-leg;this.barge.position.set(44.5,.05,3+drift);this.barge.rotation.y=leg<58?0:Math.PI;
+    this.skyCanal.update(dt,time,reducedMotion(this.city.economy.state.settings.reducedMotion));
   }
   addWorker(x:number,z:number,yaw:number,kind:Activity,o:{y?:number;role?:Archetype;minStage?:number;maxStage?:number;time?:'any'|'day'|'night';scale?:number;partner?:number;path?:[number,number,number];tool?:string;when?:()=>boolean}={}) {
     const role=o.role??(kind==='gauge'||kind==='valve'||kind==='clipboard'?'engineer':kind==='browse'||(z<0&&kind==='read')?'merchant':kind==='read'||kind==='watch'||kind==='lean'?'resident':'worker');

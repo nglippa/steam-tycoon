@@ -10,10 +10,10 @@ import { citizen, setCitizenProsperity } from './citizens';
 import { palette as P } from './palette';
 import { housingPaint, setHousingCondition, residentialWindows, type Home } from './housing';
 import { animateLife, sceneFor, stageCitizen, setLifeConditions, turnTaking } from './citizen-life';
-import { TerraEdge, TERRACE as EDGE_TERRACE } from './terra-edge';
+import { TerraEdge, TERRACE as EDGE_TERRACE, CHASM, GALLERY, WEST_EDGE } from './terra-edge';
 import { Economy, PROPERTIES, SITE_LIBERATED, SITE_RESTORED, type PropertyId, type SiteId } from '../simulation/economy';
 export interface Collider { minX: number; maxX: number; minZ: number; maxZ: number; height: number; gate?: string; open?: () => boolean }
-export interface Target { object: T.Object3D; id: string; kind: 'property' | 'ledger' | 'discovery' | 'district' | 'site'; label: string; position: T.Vector3; hint?: string }
+export interface Target { object: T.Object3D; id: string; kind: 'property' | 'ledger' | 'discovery' | 'district' | 'site' | 'lift'; label: string; position: T.Vector3; hint?: string }
 interface PropertyVisual { root: T.Group; additions: T.Group; machine: T.Group; gear: T.Group; piston: T.Mesh; level: number; building: T.Group; sign: T.Mesh }
 /** Clock terrace: concentric 0.2 m steps rising 1.2 m toward the tower. */
 export const TERRACE = { x: 0, z: -49.5, outer: 13.5, inner: 9, rise: 1.2, steps: 6 };
@@ -31,21 +31,22 @@ export class City {
   onEvent: (message: string) => void = () => {};
   hearth?: T.PointLight; edge!: TerraEdge;
   gateMeshes = new Map<string, T.Group>(); flags: T.Mesh[] = []; carts: T.Group[] = []; cartWheels: T.Group[][] = []; airship = new T.Group(); tram = new T.Group();
-  clockMechanism?: T.Group; lantern = new T.MeshStandardMaterial({ color: P.warm.lamp, emissive: P.warm.lamp, emissiveIntensity: .9 }); water!: T.Mesh; clockHands: T.Mesh[] = []; stage = -1; raining = false; finchLift?: T.Group;
+  clockMechanism?: T.Group; lantern = new T.MeshStandardMaterial({ color: P.warm.lamp, emissive: P.warm.lamp, emissiveIntensity: .9 }); clockHands: T.Mesh[] = []; stage = -1; raining = false; finchLift?: T.Group;
   constructor(public scene: T.Scene, public economy: Economy) { scene.add(this.root); this.root.add(this.infrastructure, this.prosperity); this.buildGround(); this.buildBlocks(); this.buildLandmarks(); this.buildSignatureMachinery(); this.buildDetails(); this.buildBackground(); this.edge = new TerraEdge(this); this.createPopulation(); this.presentation = new Presentation(this); this.siteTargets(); for(const x of [-7.9,7.9]) for(const z of (x>0?[-22,-28,-34]:[-26,-32,-38])) this.collider(x,z,2.3,3.6,3.5); this.sync(true); this.crowd = new CrowdBatch([...this.npcs.map(n=>n.group),...this.presentation.workers.map(w=>w.person.group)],this.root); }
   /** Collider from a footprint in a (possibly rotated) building group's local frame. */
   localCollider(g: T.Object3D, x: number, z: number, w: number, d: number, height = 30) { g.updateWorldMatrix(true, false); const p = g.localToWorld(new T.Vector3(x, 0, z)); const turned = Math.abs(Math.sin(g.getWorldQuaternion(new T.Quaternion()).angleTo(new T.Quaternion()))) > .5; this.collider(p.x, p.z, turned ? d : w, turned ? w : d, height); }
   /** `open` lets state-driven props (an Ordinance booth, a furnace) stop blocking once they are gone. */
   collider(x: number, z: number, w: number, d: number, height = 30, gate?: string, open?: () => boolean) { this.colliders.push({ minX: x - w / 2, maxX: x + w / 2, minZ: z - d / 2, maxZ: z + d / 2, height, gate, open }); }
   target(g: T.Group, id: string, kind: Target['kind'], label: string, x: number, y: number, z: number) { const board = box(g, x, y, z, 1.05, .8, .18, mats.brass); const panel = sign(g, kind === 'property' ? 'LEDGER' : label, kind === 'property' ? 'Accounts & improvements' : 'Terra • Locke', x, y, z + .101, .96, .62); box(g, x, y - .85, z, .12, 1.1, .12, mats.iron); board.updateWorldMatrix(true, false); const pos = board.getWorldPosition(new T.Vector3()); this.targets.push({ object: board, id, kind, label, position: pos }); panel.userData.interaction = id; }
-  buildGround() { const g = new T.Group(); this.root.add(g); box(g, 0, -.5, -5.5, 158, 1, 179, mats.dirt); box(g, 0, .018, 9, 12.6, .06, 139, mats.road);
+  buildGround() { const g = new T.Group(); this.root.add(g); // The ground stops at the cleft: the Lowworks canal is a chasm open to the sky beneath.
+    box(g, (-79 + CHASM.x0) / 2, -.5, -5.5, 79 + CHASM.x0, 1, 179, mats.dirt); box(g, (CHASM.x1 + 79) / 2, -.5, -5.5, 79 - CHASM.x1, 1, 179, mats.dirt); box(g, (CHASM.x0 + CHASM.x1) / 2, -.5, (CHASM.z1 + 84) / 2, CHASM.x1 - CHASM.x0, 1, 84 - CHASM.z1, mats.dirt); box(g, 0, .018, 9, 12.6, .06, 139, mats.road);
     for (const x of [-9.2, 9.2]) { box(g, x, .065, 10, 5.6, .13, 139, mats.stone); for (let z = -59; z < 74; z += 3) box(g, x + (x < 0 ? 2.85 : -2.85), .1, z, .17, .2, 2.94, mats.warmStone); }
     for (const z of [27, 1, -31, -57]) box(g, 0, .025, z, 78, .06, 7, mats.road);
     for (const x of [-34, 34]) box(g, x, .02, 6, 7, .06, 125, mats.road);
     box(g, 0, .04, -44, 28, .1, 23, mats.road);
-    for (const x of [40, 49]) { box(g, x, .25, -8, 1, .5, 144, mats.stone); for (let z = -76; z < 64; z += 4) { cyl(g, x, 1, z, .06, 1.4); if (z < -12 || z > 0) box(g, x, 1.5, z + 2, .06, .08, 4); } }
-    box(g, 44.5, -.14, -8, 8, .2, 144, mats.dark); const waterMat = new T.MeshStandardMaterial({ color: P.cool.cyan, metalness: .05, roughness: .86, transparent: true, opacity: .82 }); this.water = new T.Mesh(new T.PlaneGeometry(8,142,12,90),waterMat);this.water.rotation.x=-Math.PI/2;this.water.position.set(44.5,.025,-8);this.root.add(this.water);
-    box(g, 44.5, .22, -6, 11, .45, 8, mats.stone); for (const z of [-10, -2]) { for (let x = 39; x < 51; x += 1.5) box(g, x, .9, z, .12, 1.4, .12, mats.brass); box(g, 44.5, 1.5, z, 11, .12, .12, mats.brass); }
+    for (const x of [40, 49]) { box(g, x, .25, -15.5, 1, .5, 159, mats.stone); for (let z = -92; z < 64; z += 4) { cyl(g, x, 1, z, .06, 1.4); if (z < -12 || z > 0) box(g, x, 1.5, z + 2, .06, .08, 4); } }
+    box(g, 44.5, .25, CHASM.z1, 8, .5, 1, mats.stone);
+    box(g, 44.5, .22, -6, 11, .45, 8, mats.stone); for (const z of [-9.2, -2.8]) { box(g, 44.5, -.3, z, 9, .5, .3, mats.iron); for (const s of [-1, 1]) beam(g, new T.Vector3(44.5 + s * 4.2, -2.2, z), new T.Vector3(44.5 + s * 1, -.5, z), .14, mats.iron); } box(g, 44.5, -.62, -6, 2.4, .24, 6.6, mats.iron); for (const z of [-10, -2]) { for (let x = 39; x < 51; x += 1.5) box(g, x, .9, z, .12, 1.4, .12, mats.brass); box(g, 44.5, 1.5, z, 11, .12, .12, mats.brass); }
     // Side alley and physically traversable industrial ramp up to a high overlook.
     const ramp = box(g, -34, 3.2, -40, 4.6, .3, 23, mats.wood); ramp.rotation.x = Math.atan(6 / 22); box(g, -34, 6.2, -56, 7, .4, 11, mats.wood);
     for (const x of [-36.2, -31.8]) { beam(g, new T.Vector3(x, 1.3, -29), new T.Vector3(x, 7.3, -51), .065, mats.brass); box(g, x, 7.2, -56, .08, .08, 10, mats.iron); for (let z = -30; z > -61; z -= 4) { const h = z < -51 ? 6.2 : (-z - 29) / 22 * 6 + .2; box(g, x, h + .65, z, .1, 1.3, .1); } }
@@ -284,7 +285,11 @@ export class City {
     buildSkyline(this.root); buildOuterCity(this.root, [housingPaint[0], housingPaint[1], housingPaint[2], mats.brick, mats.cream]);
     // Low ward parapets: the boundary holds the player, not the view of the city beyond.
     // The south parapet stops at the arrival terrace, which runs on past the cliff edge.
-    for (const x of [-83, 83]) box(g, x, .7, -3, 2, 1.4, 174, mats.stone); for (const s of [-1, 1]) box(g, s * 54.1, .7, 83, 59.8, 1.4, 2, mats.stone);
+    box(g, 83, .7, -3, 2, 1.4, 174, mats.stone);
+    // On the west edge the parapet opens into a balustrade, so the lane looks down onto the clouds.
+    box(g, -83, .7, (-90 + WEST_EDGE.z0) / 2, 2, 1.4, WEST_EDGE.z0 + 90, mats.stone); box(g, -83, .7, (WEST_EDGE.z1 + 84) / 2, 2, 1.4, 84 - WEST_EDGE.z1, mats.stone);
+    box(g, -83, 1.08, (WEST_EDGE.z0 + WEST_EDGE.z1) / 2, .16, .1, WEST_EDGE.z1 - WEST_EDGE.z0, mats.brass); box(g, -83, .08, (WEST_EDGE.z0 + WEST_EDGE.z1) / 2, .5, .16, WEST_EDGE.z1 - WEST_EDGE.z0, mats.stone);
+    for (let z = WEST_EDGE.z0 + .5; z < WEST_EDGE.z1; z += 1.1) box(g, -83, .58, z, .12, 1, .12, mats.stone); for (const s of [-1, 1]) box(g, s * 54.1, .7, 83, 59.8, 1.4, 2, mats.stone);
     const balloon = sphere(this.airship, 0, 0, 0, 1, mats.cream); balloon.scale.set(10, 3, 3); for (const xx of [-5, 0, 5]) { const ring = torus(this.airship, xx, 0, 0, 2.95, .075, mats.copper); ring.rotation.y = Math.PI / 2; } box(this.airship, 0, -4.1, 0, 7, 1.5, 2.1, mats.wood); for (const xx of [-3, 3]) for (const z of [-.8, .8]) beam(this.airship, new T.Vector3(xx, -2.2, z * 2), new T.Vector3(xx, -3.8, z), .035); box(this.airship, -9, 0, 0, 3, 5, .13, mats.teal); this.root.add(this.airship); bake(this.airship); bake(g);
   }
   createPopulation() { for(let i=0;i<42;i++){
@@ -338,7 +343,7 @@ export class City {
     if (s.steam > 0) for (let x = -24; x <= 24; x += 8) { const band = torus(g, x + 2, 14, 29, .9, .08 + s.steam * .02, s.steam === 3 ? mats.aether : mats.brass); band.rotation.y = Math.PI / 2; }
     if (s.gardens > 0) { for (const x of [-7, 7]) for (const z of [-36, -51, 52]) { const lift = terraceRise(x, z); box(g, x, .3 + lift, z, 2.4, .6, 2.4, mats.stone); tree(g, x, z, .8 + s.gardens * .12).position.y = lift; } }
     for(const home of this.housingFrontages){const windows=new T.Group();windows.position.set(home.x,0,home.z);windows.rotation.y=home.yaw;residentialWindows(windows,home,s.housing);g.add(windows);}
-    (this.water.material as T.MeshStandardMaterial).color.set(s.gardens?P.cool.turquoise:P.cool.cyan); bake(g);
+    bake(g);
   }
   buildProsperity() { this.disposeGroup(this.prosperity); const g = this.prosperity; const stage = this.economy.stage; this.stage = stage;applyWorldPalette(stage);refreshFacades(stage);refreshCanopyColors();setCitizenProsperity(stage);
     // Recovery is visible from the gate: pennants multiply along the spine.
@@ -366,8 +371,8 @@ export class City {
   /** True while occupation eyes (a patrol, an overseer) are on the Steward at this site. */
   watched(id: SiteId) { return this.presentation.sites.find(s => s.id === id)!.watching; }
   sync(initial = false) { if (initial) for (const p of PROPERTIES) this.propertyUpgrade(p.id); this.buildInfrastructure(); this.buildProsperity(); for (const [id, bars] of this.gateMeshes) bars.visible = !this.economy.state.districts.includes(id); this.presentation?.sync(); }
-  groundHeight(x: number, z: number) { const tr = terraceRise(x, z); if (tr > 0) return .18 + tr; if (x > -36.3 && x < -31.7 && z <= -29 && z >= -51) return .2 + (-z - 29) / 22 * 6; if (x > -37.5 && x < -30.5 && z < -51 && z >= -61.5) return 6.4; return .18; }
-  blocked(x: number, z: number, feet: number) { if (x > 40.2 && x < 48.8 && (z < -9.5 || z > -2.5)) return true; if (x < -75 || x > 76 || (z > 78 && !(Math.abs(x) < EDGE_TERRACE.half - .6 && z < EDGE_TERRACE.z)) || z < -83) return true; if (x > 53 && !this.economy.state.districts.includes('canal')) return true; if (z < -69 && !this.economy.state.districts.includes('heights')) return true;
+  groundHeight(x: number, z: number) { if (z > GALLERY.z0 - .4 && z < GALLERY.z1 && x > GALLERY.x0 && x < GALLERY.x1) return GALLERY.floor; const tr = terraceRise(x, z); if (tr > 0) return .18 + tr; if (x > -36.3 && x < -31.7 && z <= -29 && z >= -51) return .2 + (-z - 29) / 22 * 6; if (x > -37.5 && x < -30.5 && z < -51 && z >= -61.5) return 6.4; return .18; }
+  blocked(x: number, z: number, feet: number) { if (feet < -50) return !(x > GALLERY.x0 + .4 && x < GALLERY.x1 - .4 && z > GALLERY.z0 + .4 && z < GALLERY.z1 - .4); if (x > 40.2 && x < 48.8 && (z < -9.5 || z > -2.5)) return true; if ((x < -75 && !(x > -82.2 && z > WEST_EDGE.z0 + .5 && z < WEST_EDGE.z1 - .5)) || x > 76 || (z > 78 && !(Math.abs(x) < EDGE_TERRACE.half - .6 && z < EDGE_TERRACE.z)) || z < -83) return true; if (x > 53 && !this.economy.state.districts.includes('canal')) return true; if (z < -69 && !this.economy.state.districts.includes('heights')) return true;
     return this.colliders.some(c => !(c.gate && this.economy.state.districts.includes(c.gate)) && !c.open?.() && feet < c.height && x > c.minX - .32 && x < c.maxX + .32 && z > c.minZ - .32 && z < c.maxZ + .32); }
   update(dt: number, time: number, viewer?:T.Vector3) { if(viewer)this.viewer.copy(viewer);setLifeConditions(this.economy.stage,this.raining);this.presentation.update(dt,time,this.viewer); if(this.clockMechanism)this.clockMechanism.rotation.z=this.economy.state.infrastructure.steam>0?-time*.1:0; for (const p of PROPERTIES) { const v = this.properties.get(p.id)!; const level = this.economy.state.properties[p.id].level; v.gear.rotation.z -= dt * (.35 + level * .6); v.piston.position.y = .95 + Math.sin(time * (1 + level)) * .22; v.machine.rotation.z = 0; }
     for (const flag of this.flags) {
@@ -392,7 +397,7 @@ export class City {
     this.airship.position.set(Math.sin(time * .007) * 85, 46 + Math.sin(time * .04), -95 + Math.cos(time * .007) * 15); this.airship.rotation.y = -.1; this.tram.position.x = (time * (this.economy.stage>=3?4.5:2.5)) % 240 - 120;
     for (const hand of this.clockHands) hand.parent!.rotation.z = this.economy.state.infrastructure.steam > 0 ? -this.economy.state.day * Math.PI * 48 : -.4;
     if (this.finchLift) { const u = (time * .06) % 2, pp = u < 1 ? u : 2 - u; this.finchLift.position.y = 14.4 + 9 * pp * pp * (3 - 2 * pp); }
-    this.water.position.y = .025 + Math.sin(time * .9) * .012; (this.water.material as T.MeshStandardMaterial).roughness = .23 + Math.sin(time * .4) * .04;
+
     for (let i = this.constructions.length - 1; i >= 0; i--) { const c = this.constructions[i]; c.time += dt; for (const w of c.workers) w.arms[0].rotation.x = -1 + Math.sin(time * 14) * .7; if (c.time >= c.duration) { c.finish(); this.root.remove(c.group); this.constructions.splice(i, 1); } }
   }
 }
