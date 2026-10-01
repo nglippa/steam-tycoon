@@ -58,7 +58,7 @@ export class InkRenderer {
         float e = max(max(abs(1. / l + 1. / r - 2. * ic), abs(1. / u + 1. / d - 2. * ic)),
                       max(abs(1. / a1 + 1. / a3 - 2. * ic), abs(1. / a2 + 1. / a4 - 2. * ic))) * c0;
         float silhouette = smoothstep(.07, .18, e);
-        float crease = smoothstep(.012, .035, e);
+        float crease = smoothstep(.02, .05, e);
         // Interior lines where color blocks meet (frames, trims, clothing panels) — not on sky.
         float lc = luma(texture2D(picture, uv).rgb);
         float gl = abs(luma(texture2D(picture, uv - vec2(o.x, 0.)).rgb) - luma(texture2D(picture, uv + vec2(o.x, 0.)).rgb))
@@ -66,9 +66,9 @@ export class InkRenderer {
         float solid = 1. - step(far * .9, nearest);
         // Texture contrast on grazing surfaces (distant ground) is aliasing, not a drawn line.
         float slope = (abs(l - r) + abs(u - d)) / (c0 * 2. * length(o / texel));
-        float colorEdge = smoothstep(.16, .3, gl / max(lc, .18)) * solid * (1. - smoothstep(14., 42., nearest)) * (1. - smoothstep(0.004, 0.012, slope));
+        float colorEdge = smoothstep(.16, .3, gl / max(lc, .18)) * solid * (1. - smoothstep(14., 42., nearest)) * (1. - smoothstep(.0012, .0025, slope));
         // Far lines would break into flickering dashes: take them down early to a light steady line.
-        float fade = 1. - smoothstep(60., 220., nearest) * .75;
+        float fade = 1. - smoothstep(40., 140., nearest) * .75;
         float ink = max(max(silhouette, crease * .85 * (1. - text)), colorEdge * .6 * (1. - text)) * fade;
         // Ink is a deep, color-aware navy-grey rather than black.
         vec3 inkColor = mix(vec3(.06, .05, .05), color * .25, .2);
