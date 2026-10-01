@@ -9,21 +9,32 @@ export const PROPERTIES = [
 export type PropertyId = typeof PROPERTIES[number]['id'];
 export const INFRA = [
   { id: 'lamps', name: 'Street lighting', cost: 900, detail: 'Replace failing lanterns with brass lamps, then luminous aether glass.', effect: 'More light · +8% city income / level' },
-  { id: 'roads', name: 'Roads & transit', cost: 3000, detail: 'Repair muddy lanes, lay stone paving, and welcome the municipal tram.', effect: 'New paving and transit · +10% income / level' },
-  { id: 'steam', name: 'Steam distribution', cost: 4200, detail: 'Repair the overhead mains and replace leaking joints with pressure regulators.', effect: 'Refined pipes · +15% income / level' },
-  { id: 'gardens', name: 'Water & public gardens', cost: 6000, detail: 'Restore the drinking fountain, clear the sky canal’s moorings, and plant the clock square.', effect: 'Clean water and greenery · +8% income / level' },
-  { id: 'housing', name: 'Workers’ homes', cost: 5400, detail: 'Replace boarded windows, mend the rooftops, and raise a better home for Terra.', effect: 'Restored housing · +12% income / level' },
+  { id: 'roads', name: 'Roads & transit', cost: 3900, detail: 'Repair muddy lanes, lay stone paving, and welcome the municipal tram.', effect: 'New paving and transit · +10% income / level' },
+  { id: 'steam', name: 'Steam distribution', cost: 5500, detail: 'Repair the overhead mains and replace leaking joints with pressure regulators.', effect: 'Refined pipes · +15% income / level' },
+  { id: 'gardens', name: 'Water & public gardens', cost: 7800, detail: 'Restore the drinking fountain, clear the sky canal’s moorings, and plant the clock square.', effect: 'Clean water and greenery · +8% income / level' },
+  { id: 'housing', name: 'Workers’ homes', cost: 7000, detail: 'Replace boarded windows, mend the rooftops, and raise a better home for Terra.', effect: 'Restored housing · +12% income / level' },
 ] as const;
 export type InfraId = typeof INFRA[number]['id'];
 /** Prices that are not per-level curves. The ledger reads these, so a button can never quote a stale figure. */
-export const DISTRICT_PRICES: Record<string, number> = { canal: 11000, heights: 50000 };
-export const RESEARCH_PRICES: Record<string, number> = { governors: 5500, aether: 22000, charter: 55000 };
-/** Each level costs 3.5x the last and yields 1.45x (the level 3 and 5 milestones keep their bonuses), so a
+export const DISTRICT_PRICES: Record<string, number> = { canal: 14300, heights: 65000 };
+export const RESEARCH_PRICES: Record<string, number> = { governors: 7200, aether: 28600, charter: 71500 };
+/** Each level costs 3.8x the last and yields 1.45x (the level 3 and 5 milestones keep their bonuses), so a
  * masterwork takes minutes of income to repay instead of being the cheapest income in the ledger. */
-export const COST_GROWTH = 3.5, OUTPUT_GROWTH = 1.45, FOREMAN_FACTOR = 5;
+export const COST_GROWTH = 3.8, OUTPUT_GROWTH = 1.45, FOREMAN_FACTOR = 5;
 /** Time away pays a tenth of the city's rate for up to four hours: a welcome home, not the main engine.
  * A gap longer than AWAY_AFTER seconds inside one session (a suspended tab) counts as time away too. */
 export const OFFLINE = { hours: 4, share: .1 }, AWAY_AFTER = 300;
+/** What each trade does for the rest of the city, per level it has reached. Every business earns; only one
+ * of them makes iron cheaper, or the resistance cheaper, or the hours away richer. This is what makes the
+ * order of investment a choice instead of cheapest-first. `per` is the fraction gained per level. */
+export const TRAITS: Record<PropertyId, { name: string; per: number; effect: string }> = {
+  scrap: { name: 'Salvage', per: .03, effect: 'off every property commission' },
+  boiler: { name: 'Pressure', per: .04, effect: 'off civic works' },
+  workshop: { name: 'Precision', per: .04, effect: 'off charters and research' },
+  foundry: { name: 'Castings', per: .04, effect: 'off the Embers’ work at every site' },
+  tavern: { name: 'Word of mouth', per: .2, effect: 'more earned while away' },
+  market: { name: 'Exchange', per: .03, effect: 'more city income' },
+};
 export const STAGES = ['The Lowworks', 'Recovery', 'Industry', 'Commerce', 'Innovation', 'Grand Terra'];
 /** Liberation is a second, place-bound progression. Each site climbs one ladder:
  * 0 occupied, 1-3 covert resistance, 4 liberated, 5 ancient Terra restored. Economic
@@ -42,8 +53,8 @@ export const SITES: SiteDef[] = [
     { name: 'Knock at the Copper Finch cellar', kind: 'covert', cost: 400, detail: 'The taproom keeps a second ledger below the kegs. Stand the first round for the Embers.', done: 'A turquoise lamp is lit above the Copper Finch cellar. The Embers have a door in Market Square.', requires: { property: 'tavern', level: 1 } },
     { name: 'Turn the Bellweather stallholders', kind: 'covert', cost: 1000, detail: 'Traders carry more than tea. Fund the couriers who move word between wards.', done: 'Someone has been at the checkpoint hoarding with chalk. Couriers cross the square with crates.', requires: { property: 'market', level: 1 } },
     { name: 'Stock the cellar', kind: 'covert', cost: 2300, detail: 'Bolt cutters, lamp oil and pry bars, delivered with the Finch’s beer.', done: 'A tarp covers new crates by the cellar, and turquoise ribbons are tied to the lamp posts. Nobody at the gate has noticed.', requires: { property: 'tavern', level: 2 } },
-    { name: 'Raise Market Square', kind: 'liberation', cost: 13000, detail: 'On the signal, the square refuses the checkpoint. The foundry’s cutters take the gallery off the gate, and the Ordinance banners come down.', done: 'Market Square rises. The gallery is torn off the old gate, and the square flies Terra’s own colours.', requires: { stage: 2, sites: { row: 2 } } },
-    { name: 'Wake the Saelspring', kind: 'restoration', cost: 21000, detail: 'Under the Ordinance seal sits a machine older than the city’s records. Clean mains may let it run again.', done: 'The civic engineers are cutting the Ordinance seal off the spring.', requires: { infra: 'gardens', level: 1 } },
+    { name: 'Raise Market Square', kind: 'liberation', cost: 16900, detail: 'On the signal, the square refuses the checkpoint. The foundry’s cutters take the gallery off the gate, and the Ordinance banners come down.', done: 'Market Square rises. The gallery is torn off the old gate, and the square flies Terra’s own colours.', requires: { stage: 2, sites: { row: 2 } } },
+    { name: 'Wake the Saelspring', kind: 'restoration', cost: 27300, detail: 'Under the Ordinance seal sits a machine older than the city’s records. Clean mains may let it run again.', done: 'The civic engineers are cutting the Ordinance seal off the spring.', requires: { infra: 'gardens', level: 1 } },
   ], spots: {
     cell: { from: 0, to: 3, covert: true, before: '', after: 'The cellar is a meeting room now. The Embers hold Market Square in the open.', closed: s => s.sites.market === 0 && s.properties.tavern.level < 1 ? 'The cellar door is padlocked and the Copper Finch is shuttered. Nobody answers.' : null },
     spring: { from: 4, to: 4, before: 'An Ordinance seal is welded around something older than the city’s records. Under the soot, the stone is pale and the tiles are turquoise.', after: 'The Saelspring runs. Its light follows the old channels to the Sael Gate.' },
@@ -53,8 +64,8 @@ export const SITES: SiteDef[] = [
     { name: 'Answer the shift board', kind: 'covert', cost: 650, detail: 'The quota tallies hide a second count. Word from the Copper Finch lets you add your own mark to it.', done: 'Chalk tallies under the quota board now keep the Embers’ count. Behind the coal bunker, somebody has set out stools.', requires: { property: 'foundry', level: 1, sites: { market: 1 } } },
     { name: 'Hide work in the quota', kind: 'covert', cost: 1400, detail: 'Legitimate castings leave the yard every hour. Some crates will carry a false bottom.', done: 'Every hundredth crate out of Cinder No. 3 has a false bottom. The overseer counts the crates, not what is in them.', requires: { property: 'foundry', level: 2 } },
     { name: 'Forge the cutters', kind: 'covert', cost: 3000, detail: 'Bolt cutters and pressure keys, cast between quota runs. Enough to take a checkpoint apart.', done: 'A rack of cutters and pressure keys waits under the tarp, and a crate of them sits by the cage door. Someone has to carry it to the Copper Finch.', requires: { property: 'foundry', level: 3 } },
-    { name: 'Down tools', kind: 'liberation', cost: 22000, detail: 'The whole yard stops at once. Without its workers the furnace is only iron, and the Ordinance knows it.', done: 'Cinder No. 3 downs tools. The overseer’s booth comes apart, the supply cage opens, and the workers post their own shifts.', requires: { stage: 3 } },
-    { name: 'Wake the Armillary', kind: 'restoration', cost: 33000, detail: 'Behind the furnace, welded still, are rings older than any foundry. They want steady pressure, not coal.', done: 'The civic engineers are cutting Cinder No. 3 out of the old wall.', requires: { infra: 'steam', level: 2, sites: { gauge: 3 } } },
+    { name: 'Down tools', kind: 'liberation', cost: 28600, detail: 'The whole yard stops at once. Without its workers the furnace is only iron, and the Ordinance knows it.', done: 'Cinder No. 3 downs tools. The overseer’s booth comes apart, the supply cage opens, and the workers post their own shifts.', requires: { stage: 3 } },
+    { name: 'Wake the Armillary', kind: 'restoration', cost: 42900, detail: 'Behind the furnace, welded still, are rings older than any foundry. They want steady pressure, not coal.', done: 'The civic engineers are cutting Cinder No. 3 out of the old wall.', requires: { infra: 'steam', level: 2, sites: { gauge: 3 } } },
   ], spots: {
     board: { from: 0, to: 3, covert: true, before: '', after: 'The shift board belongs to the works council now. Names, not quotas.', closed: s => s.sites.foundry === 0 && s.properties.foundry.level < 1 ? 'No shifts are posted. The yard is cold and nobody will meet your eye.' : null },
     forge: { from: 4, to: 4, before: 'An anvil is strapped to an ivory table that is far too fine for it. Behind the furnace, gold rings are welded into the wall.', after: 'The Armillary turns without a sound. Whatever it is making, the Ordinance never knew how to ask.' },
@@ -64,7 +75,7 @@ export const SITES: SiteDef[] = [
     { name: 'Chalk the courier run', kind: 'covert', cost: 500, detail: 'Mark the old waymark so the Finch’s runners and the yard’s packers know the Row. From then on, things move between them.', done: 'An ember is chalked on the old waymark. A courier now runs Cinder Row between the yard and the Copper Finch.', requires: { sites: { market: 1, foundry: 1 } } },
     { name: 'Run the cutters to the Finch', kind: 'covert', cost: 0, carried: true, detail: 'The cutters are too heavy for a satchel. Carry the crate from Cinder No. 3 to the Copper Finch cellar yourself, past whatever the Directorate has put on the Row.', done: 'The crate is down the Finch’s cellar steps. Market Square has the tools to take the gallery off its gate.', requires: { sites: { foundry: 3 } } },
     { name: 'Cut the searchlight feed', kind: 'covert', cost: 1600, detail: 'The inspection searchlight draws its power from somewhere under the Row. Open the cable trench at the junction box and cut it.', done: 'The searchlight dies. Under the Directorate’s cable the trench is lined with turquoise tile, and something in it is still faintly alight. They were running their lamp off Terra.', requires: {} },
-    { name: 'Take down the inspection post', kind: 'liberation', cost: 12500, detail: 'With the square and the yard both free, the post between them guards nothing. Take it apart in daylight.', done: 'The inspection post comes down. The Row fills with the people who were searched on it, and the old conduit lights from end to end.', requires: { sites: { market: 4, foundry: 4 } } },
+    { name: 'Take down the inspection post', kind: 'liberation', cost: 16200, detail: 'With the square and the yard both free, the post between them guards nothing. Take it apart in daylight.', done: 'The inspection post comes down. The Row fills with the people who were searched on it, and the old conduit lights from end to end.', requires: { sites: { market: 4, foundry: 4 } } },
   ], spots: {
     waymark: { from: 0, to: 0, covert: true, before: '', after: 'An ember in chalk on the old waymark. Under the soot the stone is ivory, and its arrow points to the square.' },
     junction: { from: 2, to: 2, covert: true, before: 'A Directorate junction box, humming. Its cable runs down into an iron-covered trench.', after: 'The cut cable hangs over an open trench of turquoise tile.' },
@@ -75,7 +86,7 @@ export const SITES: SiteDef[] = [
     { name: 'Learn the knock', kind: 'covert', cost: 900, detail: 'The stokers talk to the yard by tapping the pressure main. Learn the knock and they will keep a true count under the Directorate’s gauge.', done: 'Tap, tap-tap. The stokers on the Ration Line answer the yard now, and chalk the true pressure under the Directorate’s gauge.', requires: { property: 'boiler', level: 1, sites: { foundry: 1 } } },
     { name: 'Carry a pressure key to the valve', kind: 'covert', cost: 0, carried: true, detail: 'The yard forged pressure keys with the cutters. One of them fits a socket in the ration valve the Directorate never uses. Carry it there yourself, past the warden.', done: 'The key fits a socket the Directorate never used. Under the ration valve, something older turns.', requires: { sites: { foundry: 3 } } },
     { name: 'Open the old main', kind: 'covert', cost: 2500, detail: 'At night the stokers can turn the key and send the Boiler’s pressure through the old copper main instead of the Directorate’s pipe.', done: 'The Directorate’s gauge still reads forty per cent. The yard is getting all of it, through a copper main laid long before the Ordinance, and the Armillary behind the furnace has what it needs.', requires: {} },
-    { name: 'Break the ration', kind: 'liberation', cost: 19000, detail: 'With the yard free and the Boiler strong, the ration valve protects nothing. Chain it open in daylight.', done: 'The ration valve is chained open. The valve station belongs to the stokers now, and both yards run at full pressure.', requires: { property: 'boiler', level: 3, sites: { foundry: 4 } } },
+    { name: 'Break the ration', kind: 'liberation', cost: 24700, detail: 'With the yard free and the Boiler strong, the ration valve protects nothing. Chain it open in daylight.', done: 'The ration valve is chained open. The valve station belongs to the stokers now, and both yards run at full pressure.', requires: { property: 'boiler', level: 3, sites: { foundry: 4 } } },
   ], spots: {
     main: { from: 0, to: 0, covert: true, before: '', after: 'The main answers in knocks now. Under the plates it is copper, banded in gold.' },
     valve: { from: 2, to: 2, covert: true, before: 'A Directorate ration valve, caged and chained. Its gauge is fixed at forty per cent, and below the wheel there is an older socket.', after: 'The old key stands in the ration valve. The Directorate’s gauge has not moved.' },
@@ -143,25 +154,33 @@ export class Economy {
   constructor(public storage: StorageAdapter, now = Date.now()) {
     this.state = decodeSave(storage.read()) ?? freshSave(now);
     const seconds = Math.max(0, Math.min(OFFLINE.hours * 3600, (now - this.state.lastSave) / 1000));
-    this.offlineAward = this.rate * seconds * OFFLINE.share; this.state.crowns += this.offlineAward; this.state.earned += this.offlineAward; this.state.lastSave = now;
+    this.offlineAward = this.rate * seconds * this.awayShare; this.state.crowns += this.offlineAward; this.state.earned += this.offlineAward; this.state.lastSave = now;
   }
-  get multiplier() { const i = this.state.infrastructure; return (1 + i.lamps * .08 + i.roads * .1 + i.steam * .15 + i.gardens * .08 + i.housing * .12) * (1 + this.state.districts.length * .25) * (1 + this.state.research.length * .25) * (1 + this.state.discoveries.length * .03) * this.liberation; }
+  /** The fraction a trade's trait is worth right now: its per-level share times the level it has reached. */
+  trait(id: PropertyId) { return TRAITS[id].per * this.state.properties[id].level; }
+  get multiplier() { const i = this.state.infrastructure; return (1 + this.trait('market')) * (1 + i.lamps * .08 + i.roads * .1 + i.steam * .15 + i.gardens * .08 + i.housing * .12) * (1 + this.state.districts.length * .25) * (1 + this.state.research.length * .25) * (1 + this.state.discoveries.length * .03) * this.liberation; }
   /** Lifting the occupation levy: +15% per liberated site, +10% more once its ancient works run. */
   get liberation() { return 1 + SITES.reduce((n, s) => { const v = this.state.sites[s.id]; return n + (v >= SITE_LIBERATED ? .15 : 0) + (v >= SITE_RESTORED ? .1 : 0); }, 0); }
   output(id: PropertyId) { const p = PROPERTIES.find(p => p.id === id)!; const level = this.state.properties[id].level; return p.base * (level === 0 ? .25 : Math.pow(OUTPUT_GROWTH, level - 1)) * (level >= 3 ? 1.5 : 1) * (level === 5 ? 2 : 1) * this.multiplier; }
   get rate() { return PROPERTIES.reduce((sum, p) => sum + this.output(p.id) / p.interval * (this.state.properties[p.id].automated ? 1 : .4), 0); }
   get investment() { return Object.values(this.state.properties).reduce((n, p) => n + p.level, 0) + Object.values(this.state.infrastructure).reduce((a, b) => a + b, 0); }
   get stage() { return Math.min(5, Math.floor(this.investment / 7)); }
-  cost(id: PropertyId) { const p = PROPERTIES.find(p => p.id === id)!; return Math.ceil(p.cost * Math.pow(COST_GROWTH, this.state.properties[id].level)); }
-  infraCost(id: InfraId) { return Math.ceil(INFRA.find(i => i.id === id)!.cost * Math.pow(3, this.state.infrastructure[id])); }
+  cost(id: PropertyId) { const p = PROPERTIES.find(p => p.id === id)!; return Math.ceil(p.cost * Math.pow(COST_GROWTH, this.state.properties[id].level) * (1 - this.trait('scrap'))); }
+  infraCost(id: InfraId) { return Math.ceil(INFRA.find(i => i.id === id)!.cost * Math.pow(3, this.state.infrastructure[id]) * (1 - this.trait('boiler'))); }
+  /** Charters and research, less what Finch Mechanical's precision saves on them. */
+  charterCost(id: string) { return Math.ceil((DISTRICT_PRICES[id] ?? RESEARCH_PRICES[id] ?? 0) * (1 - this.trait('workshop'))); }
+  /** The next step at a site, less what the foundry's castings save the Embers. */
+  siteCost(id: SiteId) { const step = this.site(id).steps[this.state.sites[id]]; return step ? Math.ceil(step.cost * (1 - this.trait('foundry'))) : 0; }
+  /** The share of the city's rate paid for time away: the Copper Finch's regulars keep an eye on things. */
+  get awayShare() { return OFFLINE.share * (1 + this.trait('tavern')); }
   spend(amount: number) { if (!Number.isFinite(amount) || amount < 0) return false; if (this.state.crowns + 1e-8 < amount) return false; this.state.crowns -= amount; return true; }
   upgrade(id: PropertyId) { const p = this.state.properties[id]; if (p.level >= 5 || !this.spend(this.cost(id))) return false; p.level++; this.checkObjective(); this.onChange('property', id); this.save(); return true; }
   foremanCost(id: PropertyId) { return PROPERTIES.find(v => v.id === id)!.cost * FOREMAN_FACTOR; }
   automate(id: PropertyId) { const p = this.state.properties[id]; if (!p.level || p.automated || !this.spend(this.foremanCost(id))) return false; p.automated = true; this.collect(id); this.onChange('automation', id); this.save(); return true; }
   collect(id: PropertyId) { const p = this.state.properties[id]; const amount = p.stored; this.state.crowns += amount; this.state.earned += amount; p.stored = 0; if (id === 'scrap' && this.state.objective === 1 && amount > 0) this.state.objective = 2; this.checkObjective(); return amount; }
   upgradeInfra(id: InfraId) { if (this.state.infrastructure[id] >= 3 || !this.spend(this.infraCost(id))) return false; this.state.infrastructure[id]++; this.checkObjective(); this.onChange('infrastructure', id); this.save(); return true; }
-  unlock(id: string) { const price = DISTRICT_PRICES[id]; const stage = id === 'canal' ? 1 : 3; if (!['canal', 'heights'].includes(id) || this.state.districts.includes(id) || this.stage < stage || !this.spend(price)) return false; this.state.districts.push(id); this.onChange('district', id); this.save(); return true; }
-  research(id: string) { const price = RESEARCH_PRICES[id]; if (!price || this.state.research.includes(id) || this.stage < (id === 'governors' ? 1 : 3) || !this.spend(price)) return false; this.state.research.push(id); this.onChange('research', id); this.save(); return true; }
+  unlock(id: string) { const price = this.charterCost(id); const stage = id === 'canal' ? 1 : 3; if (!['canal', 'heights'].includes(id) || this.state.districts.includes(id) || this.stage < stage || !this.spend(price)) return false; this.state.districts.push(id); this.onChange('district', id); this.save(); return true; }
+  research(id: string) { const price = RESEARCH_PRICES[id] && this.charterCost(id); if (!price || this.state.research.includes(id) || this.stage < (id === 'governors' ? 1 : 3) || !this.spend(price)) return false; this.state.research.push(id); this.onChange('research', id); this.save(); return true; }
   discover(id: string) { if (!['map', 'automaton', 'shrine'].includes(id) || this.state.discoveries.includes(id)) return false; this.state.discoveries.push(id); this.state.crowns += 55; this.state.earned += 55; this.save(); return true; }
   site(id: SiteId) { return SITES.find(s => s.id === id)!; }
   /** Why the next step at a site cannot be taken yet; null when only the price stands in the way. */
@@ -175,12 +194,12 @@ export class Economy {
     if (r.stage !== undefined && this.stage < r.stage) return `Requires Terra to reach ${STAGES[r.stage]}`;
     for (const [other, control] of Object.entries(r.sites ?? {}) as [SiteId, number][]) if (this.state.sites[other] < control) return `Requires ${this.site(other).name}: ${this.site(other).steps[control - 1].name.toLowerCase()}`;
     return null; }
-  advanceSite(id: SiteId) { const level = this.state.sites[id], step = this.site(id).steps[level]; if (!step || this.siteBlocker(id) || !this.spend(step.cost)) return false; this.state.sites[id]++; this.onChange('site', id); this.save(); return true; }
+  advanceSite(id: SiteId) { const level = this.state.sites[id], step = this.site(id).steps[level]; if (!step || this.siteBlocker(id) || !this.spend(this.siteCost(id))) return false; this.state.sites[id]++; this.onChange('site', id); this.save(); return true; }
   inspect(id: string) { if (id === 'scrap' && this.state.objective === 0) this.state.objective = 1; }
   checkObjective() { if (this.state.objective === 2 && this.state.properties.scrap.level > 0) this.state.objective = 3; if (this.state.objective === 3 && this.state.properties.boiler.level > 0) this.state.objective = 4; if (this.state.objective === 4 && this.state.infrastructure.lamps > 0) this.state.objective = 5; }
   tick(dt: number) { dt = Number.isFinite(dt) ? Math.max(0, Math.min(dt, OFFLINE.hours * 3600)) : 0;
     // A long gap between frames is a suspended tab, not play: it pays what time away pays.
-    if (dt > AWAY_AFTER) { const award = this.rate * dt * OFFLINE.share; this.state.crowns += award; this.state.earned += award; this.state.day = (this.state.day + dt / 720) % 1; return; }
+    if (dt > AWAY_AFTER) { const award = this.rate * dt * this.awayShare; this.state.crowns += award; this.state.earned += award; this.state.day = (this.state.day + dt / 720) % 1; return; }
     this.state.playtime += dt; this.state.day = (this.state.day + dt / 720) % 1;
     for (const p of PROPERTIES) { const s = this.state.properties[p.id]; const out = this.output(p.id); const passive = out / p.interval * (s.automated ? 1 : .4) * dt; this.state.crowns += passive; this.state.earned += passive; s.progress += dt; const cycles = Math.floor(s.progress / p.interval); s.progress %= p.interval; if (!s.automated) s.stored = Math.min(s.stored + cycles * out * .6, out * 30); }
   }

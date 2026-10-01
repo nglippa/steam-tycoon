@@ -25,7 +25,11 @@ Six physical properties each have five named commissions, production cycles, mil
 
 Unstaffed businesses deposit 40% of their production directly and keep 60% for collection at the property, capped at 30 production cycles. Foremen deposit 100% automatically. Civic improvements, district charters, research and discoveries multiply actual production. Construction uses a six-second scaffold-and-worker sequence before the new architectural details are revealed. Income increases immediately when a commission is funded.
 
-Prices are meant to be felt. Each property level costs 3.5 times the last and yields 1.45 times as much (levels 3 and 5 keep their milestone bonuses), so a masterwork takes minutes of income to repay. Civic works, charters, research and the liberation steps are priced against income, not against the opening minutes. Played well, the first liberation arrives at about half an hour and the current city is finished in about 45 minutes; the first upgrade is still affordable in ten seconds. Levels 3 and 5, charters and research are announced with their own fanfare, every level-5 business raises an aether crown over its roof, and a hired foreman keeps a lit desk beside the ledger.
+Prices are meant to be felt. Each property level costs 3.8 times the last and yields 1.45 times as much (levels 3 and 5 keep their milestone bonuses), so a masterwork takes minutes of income to repay. Civic works, charters, research and the liberation steps are priced against income, not against the opening minutes. Played well, the first liberation arrives at about half an hour and the current city is finished in about 40 minutes; the first upgrade is still affordable in ten seconds. Levels 3 and 5, charters and research are announced with their own fanfare, every level-5 business raises an aether crown over its roof, and a hired foreman keeps a lit desk beside the ledger.
+
+Each trade also does one thing for the rest of the city, growing with its level, which is what makes the order of investment a choice: Rook & Son's **salvage** takes 3% a level off every property commission; the Boiler's **pressure** takes 4% off civic works; Finch Mechanical's **precision** takes 4% off charters and research; Cinder & Iron's **castings** take 4% off the Embers' work at every site; the Copper Finch's **word of mouth** adds a fifth per level to what is earned while away; the Bellweather **Exchange** adds 3% to city income. Each ledger shows its trait and what the next level would make it.
+
+Research shows in the street: precision governors spin on the Great Main's cabinets, the Seven Provinces' colours fly along the Bridge-house walk, and aether induction wakes the old works in the Weatherside and sends a beam from the Weathervane to the eastern isle.
 
 Prosperity advances through **The Lowworks → Recovery → Industry → Commerce → Innovation → Grand Terra**. Individual property improvements add functioning windows, brass detailing, upper floors, copper roofs and aether machinery. Lighting, paving/transit, pressure mains, housing and gardens each have three civic levels. The canal and institute districts unlock through charters. Citizens, carts, banners, pipes, the clock landmark, steam, smoke, elevated railway and a distant airship populate the district.
 
@@ -37,7 +41,13 @@ Three vaulted passages under the west housing row lead out to **the Weatherside*
 - **Weatherside** (middle): the Ordinance's Ward Registry, an old garden with a dry fountain and a forgotten statue, a walled-up archive, and the **Weathervane**, a 31-metre ivory tower that is the high place of the ward.
 - **Old Waterworks** (north): the cistern, a sealed gate in the ward wall, a workers' shrine and an aqueduct whose channel can be walked from the cistern roof to the registry roof.
 
-Below the street, **the Hangway** is a maintenance walk slung inside the cleft. It passes under Cinder Row, where nobody checks papers.
+Below the street, **the Hangway** is a maintenance walk slung inside the cleft, in three lengths at two heights. It passes under Cinder Row, where nobody checks papers. From its lower length a ladder drops through a hatch to **the Keel**, a landing on one of the old ribs 27 metres under the street.
+
+In the centre, **the Leads** join the roofs up: a duckboard walk along the ridge of the Market Bridge-house, over the main street, onto Finch Mechanical's two terraces and the block between them. Ladders at both ends of the Bridge-house and on the workshop's south wall make it a route as well as a view.
+
+East of the cleft, **the Chain Bridge** by the Boiler yard is a second crossing. Inside the Canal Ward (charter required) are **Salt Row**, a market arcade, and **the Packet Light**, a signal tower with two ladders and the east's best view.
+
+The Registry's front office and a bonded bay in the Tether Yard warehouse can be walked into.
 
 Ladders are climbed with **E** (or **USE** on a phone) at either end; a ladder is offered to anyone standing at its foot or head, wherever they are looking.
 

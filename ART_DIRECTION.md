@@ -219,3 +219,11 @@ Night is a change of palette, not a visibility penalty.
 - **Ancient work is revealed, not displayed.** Ivory appears where brick has fallen, where a wall was cut, or where the Ordinance has bolted its own plant onto something older.
 - **The Hangway is followed by its limewash.** The crews' pale band on the wall and a lamp every seven metres carry the eye; the wall above stays dark rock.
 - **Visibility.** Everything behind the housing row except the Weathervane is hidden while the viewer is in the streets and below roof height, and people more than 90 m away are neither posed nor drawn.
+
+## The Leads and the east bank (2026-10-01)
+
+- **The Leads are timber and iron laid on the roofs, not a new roofline.** The Bridge-house keeps its pitched roof and chimneys; the walk sits beside the ridge on saddles.
+- **A change of level is worth more than length.** The Hangway reads as three places because its middle length is two metres lower and reached by open treads.
+- **The Keel is ivory and gold with nothing under it.** No iron, no limewash: it belongs to the old city, and the carriers pass overhead.
+- **Salt Row is the one colourful street.** Awnings in wine, ochre, teal and cream under a teal iron arcade; it is meant to be seen through the gate bars before it can be reached.
+- **Each quarter has one high place** and they can see each other: the Weathervane (west), Finch's block roof (centre), the Packet Light (east).

@@ -36,6 +36,8 @@ export class Weatherside {
   /** Unbaked: interaction targets and anything that moves. */
   private live = new T.Group(); private occupied = new T.Group(); private freed = new T.Group();
   private details: { g: T.Group; x: number; z: number }[] = []; private ground: T.Group[] = [];
+  /** What 'Aether induction' wakes: the old works take the light back, and the Weathervane answers the eastern isle. */
+  private aether = new T.Group(); private ray!: T.Mesh;
   private freighter = new T.Group(); private searchlight = new T.Group(); private hook = new T.Group(); private vane = new T.Group();
   private city: City;
   /** True while the ward can be seen at all: from behind the row, from a roof, or from the arrival terrace. */
@@ -45,7 +47,11 @@ export class Weatherside {
     this.lane(); this.yard(); this.heights(); this.waterworks();
     bake(this.occupied); bake(this.freed);
     // Added after the bake: these move.
-    this.occupied.add(this.searchlight); this.root.add(this.freighter, this.hook, this.vane);
+    this.occupied.add(this.searchlight); this.root.add(this.freighter, this.hook, this.vane, this.aether);
+    { const a = this.aether, lit = ancientMats.awake, lens = V(-71, 32.9, -28), isle = V(210, 118, -1);
+      sphere(a, -73, 3, 0, .27, lit); cyl(a, -71, 32.9, -28, .74, .08, lit).rotation.z = Math.PI / 2; cyl(a, -69, 6.6, -66, 2.02, .05, lit); cyl(a, -74.42, 3.3, -52, .82, .06, lit).rotation.z = Math.PI / 2;
+      const beamMat = new T.MeshBasicMaterial({ color: '#8af0ec', transparent: true, opacity: .3, blending: T.AdditiveBlending, depthWrite: false, fog: false });
+      this.ray = new T.Mesh(new T.CylinderGeometry(1.6, .35, lens.distanceTo(isle), 8, 1, true), beamMat); this.ray.position.copy(lens).lerp(isle, .5); this.ray.quaternion.setFromUnitVectors(UP, isle.clone().sub(lens).normalize()); a.add(this.ray); }
   }
   /** `skyline` sections stand above the roofs and are always drawn; the rest only while the ward is in view. */
   private section(x: number, z: number, detail = false, skyline = false) { const g = new T.Group(); this.root.add(g); if (detail) this.details.push({ g, x, z }); else if (!skyline) this.ground.push(g); return g; }
@@ -60,10 +66,13 @@ export class Weatherside {
   private yard() { const city = this.city, s = this.section(-67, 75), d = this.section(-65, 70, true), occ = this.occupied, p = this.p;
     box(s, -65.5, .05, 70.5, 19, .1, 25, mats.stone); for (const x of [-68.2, -66.8]) box(s, x, .13, 80, .1, .08, 38, mats.iron); city.deck(-75, -56, 78, 82, G);
     // The bonded warehouse: a blind brick shed whose roof is the first step up.
-    box(s, -70.5, 3.5, 50, 9, 7, 16, mats.darkBrick); box(s, -70.5, .6, 50, 9.2, 1.2, 16.2, mats.stone); box(s, -70.5, 7, 50, 9.3, .2, 16.3, mats.stone);
-    for (const z of [50, 55]) { box(s, -65.93, 2.1, z, .14, 4.2, 3.6, O.iron); box(s, -65.9, 4.35, z, .24, .3, 4, mats.stone); for (const dz of [-.9, .9]) box(s, -65.84, 2.1, z + dz, .06, 4, .08, mats.rust); }
+    // Solid on three sides of a bay that can be walked into through the north freight door.
+    for (const [x, z, w, dd] of [[-74, 50, 2, 16], [-69.5, 44.25, 7, 4.5], [-69.5, 55.75, 7, 4.5], [-66.15, 47.35, .3, 1.7], [-66.15, 52.65, .3, 1.7]]) { box(s, x, 3.5, z, w, 7, dd, mats.darkBrick); if (w > 1) box(s, x, .6, z, w + .2, 1.2, dd + .2, mats.stone); city.collider(x, z, w, dd, 7); }
+    box(s, -66.15, 5.6, 50, .3, 2.8, 3.6, mats.darkBrick); box(s, -70.5, 7, 50, 9.3, .2, 16.3, mats.stone); box(s, -69.5, .1, 50, 7, .08, 7, mats.wood);
+    box(s, -65.86, 2.1, 53.4, .14, 4.2, 3.4, O.iron); box(s, -65.84, 4.35, 51.6, .1, .12, 7.2, mats.iron);
+    for (const z of [55]) { box(s, -65.93, 2.1, z, .14, 4.2, 3.6, O.iron); box(s, -65.9, 4.35, z, .24, .3, 4, mats.stone); for (const dz of [-.9, .9]) box(s, -65.84, 2.1, z + dz, .06, 4, .08, mats.rust); }
     facing(sign(s, 'TETHER YARD', 'BONDED FREIGHT • WARD 07', -65.92, 5.6, 52.5, 7, 1.1), EAST);
-    city.collider(-70.5, 50, 9, 16, 7); city.deck(-75, -66, 42, 58, 7.1);
+    city.deck(-75, -66, 42, 58, 7.1);
     parapet(s, city, -75, 42, -66, 42, 7.1, mats.darkBrick); parapet(s, city, -66, 42, -66, 58, 7.1, mats.darkBrick); parapet(s, city, -75, 42, -75, 58, 7.1, mats.darkBrick); parapet(s, city, -72.4, 58, -66, 58, 7.1, mats.darkBrick);
     ladder(s, this.live, city, 'ladder.yard', 'Warehouse ladder', -66, 45, G, 7.1, 1, 0);
     // Roof: a lantern skylight, vents, and somebody's seat with a view of the customs post.
@@ -103,6 +112,12 @@ export class Weatherside {
       for (const x of [-5.5, -1, 3.5]) for (const z of [-1, 1]) beam(f, V(x, -5.4, z), V(x, -4.2, z * 2.4), .05, mats.iron); for (const z of [-1.9, 1.9]) { cyl(f, 5.6, -6.4, z, .5, 1.6, mats.copper).rotation.z = Math.PI / 2; torus(f, 6.5, -6.4, z, .62, .05, mats.iron).rotation.y = Math.PI / 2; }
       sphere(f, -6.6, -6.4, 0, .16, mats.glow); bake(f); }
     cable(d, V(-70.3, .95, 98.6), V(-69.5, 13, 126), 2.4); cable(d, V(-63.7, .95, 98.6), V(-58, 11.4, 126.2), 2);
+    // Inside the bay: held freight behind bars, a hoist, and one crate the Embers have already been into.
+    for (let z = 46.9; z < 53.2; z += .45) box(d, -71.6, 2.2, z, .05, 4.4, .05, O.iron); for (const y of [.3, 2.2, 4.3]) box(d, -71.6, y, 50, .08, .08, 6.6, O.iron); city.collider(-71.6, 50, .3, 7, 5);
+    for (const [x, y, z, sz, text] of [[-72.4, G, 48, 1.1, 'HELD/BY ORDER'], [-72.4, G, 49.3, 1.2, 'HELD/BY ORDER'], [-72.3, 1.38, 48.6, .9, 'ORISON/SALT'], [-72.4, G, 52.4, 1.2, 'VEYR/IRON'], [-67.2, G, 47.3, 1, 'LOCKE/GRAIN'], [-68.4, G, 47.2, .9, 'VEYR/IRON']] as const) labeledCrate(d, x, y, z, sz, text);
+    city.collider(-67.8, 47.2, 2.2, 1.1, 1.3); cyl(d, -69, 5.4, 50.6, .02, 3, mats.iron); box(d, -69, 3.8, 50.6, .22, .3, .22, mats.iron); box(d, -69, 6.85, 50.6, .2, .2, 6.4, mats.iron);
+    box(d, -67, .5, 52.7, 1, .8, .9, mats.wood); box(d, -67.1, .98, 52.4, 1, .06, .9, mats.wood).rotation.set(.5, 0, .1); decal(d, chalk, .4, .4, -67, .5, 52.24); sphere(d, -66.75, 1.02, 52.75, .06, mats.aether); city.collider(-67, 52.7, 1, .9, 1.1);
+    for (const z of [48.6, 51.4]) { sphere(d, -69.5, 6.2, z, .14, mats.glow); cyl(d, -69.5, 6.6, z, .012, .7, mats.iron); }
     // Freight waiting on paper: every crate says where it came from.
     for (const [x, y, z, sz, text, yaw] of [[-58, G, 70, 1.2, 'ORISON/SALT', .2], [-58.2, G, 71.5, 1, 'LOCKE/GRAIN', -.1], [-57.9, 1.38, 70.4, .8, 'VEYR/IRON', .5], [-73.2, G, 62, 1.3, 'VEYR/IRON', 0], [-73, G, 63.6, 1.1, 'HELD/BY ORDER', .15], [-64.6, G, 55.8, 1, 'LOCKE/GRAIN', 0]] as const) labeledCrate(d, x, y, z, sz, text, yaw);
     for (const [x, z] of [[-57, 74], [-56.4, 75], [-72.8, 66]]) barrel(d, x, G, z); box(d, -57.6, .75, 77, 3.2, 1.4, 2, canvasTarp).rotation.y = .1;
@@ -126,11 +141,19 @@ export class Weatherside {
 
   private heights() { const city = this.city, s = this.section(-70, 0), d = this.section(-72, 0, true), occ = this.occupied, p = this.p;
     // THE REGISTRY. The Ordinance built its paper office against the aqueduct and cut the channel to do it.
-    box(s, -70, 3, 18, 10, 6, 14, artMats.fadedPaint); box(s, -70, .7, 18, 10.2, 1.4, 14.2, mats.darkBrick); box(s, -70, 5.6, 18, 10.15, .5, 14.15, O.oxblood); box(s, -70, 6, 18, 10.3, .2, 14.3, mats.stone);
+    // Solid round a front office the public is let into: a counter, the files, and no chairs on this side.
+    for (const [x, z, w, dd] of [[-72.5, 18, 5, 14], [-67.5, 13, 5, 4], [-67.5, 23, 5, 4], [-65.15, 16.05, .3, 2.1], [-65.15, 19.95, .3, 2.1]]) { box(s, x, 3, z, w, 6, dd, artMats.fadedPaint); box(s, x, .7, z, w + .2, 1.4, dd + .2, mats.darkBrick); box(s, x, 5.6, z, w + .15, .5, dd + .15, O.oxblood); city.collider(x, z, w, dd, 6); }
+    box(s, -65.15, 4.6, 18, .3, 2.8, 1.8, artMats.fadedPaint); box(s, -70, 6, 18, 10.3, .2, 14.3, mats.stone); box(s, -67.5, .1, 18, 5, .08, 6, mats.wood);
+    box(s, -67.6, .6, 18, .5, 1.2, 6, mats.wood); box(s, -67.6, 1.24, 18, .7, .08, 6, mats.wood); for (const z of [16.2, 19.8]) { box(s, -67.6, 2.1, z, .06, 1.7, .06, mats.brass); } box(s, -67.6, 2.95, 18, .08, .08, 6, mats.brass); city.collider(-67.6, 18, .6, 6, 1.4);
+    for (const z of [15.5, 16.5, 17.5, 18.5, 19.5, 20.5]) { box(s, -69.6, 1.3, z, .7, 2.6, .9, O.iron); for (const y of [.5, 1.1, 1.7, 2.3]) box(s, -69.22, y, z, .04, .08, .3, mats.brass); }
+    box(s, -69.18, 1.1, 19.5, .5, .46, .8, O.iron); box(s, -68.96, 1.34, 19.5, .1, .02, .5, ancientMats.turquoise);
+    for (const [x, y] of [[-66.2, 2], [-66.75, 2.25], [-66.4, 1.5], [-66.9, 1.6]]) box(s, x, y, 15.16, .36, .46, .02, mats.cream); box(s, -66.55, 1.85, 15.14, 1.5, 1.4, .04, mats.wood);
+    for (const z of [16.6, 19.4]) { sphere(s, -66.6, 4.9, z, .14, mats.glow); cyl(s, -66.6, 5.4, z, .012, 1, mats.iron); } decal(s, regime, .9, 3.2, -66.3, 3.4, 20.84, Math.PI);
     for (const z of [13.5, 22.5]) for (const y of [2.6, 4.4]) { box(s, -64.96, y, z, .1, 1.1, .7, mats.dark); for (const dz of [-.2, 0, .2]) box(s, -64.9, y, z + dz, .04, 1.1, .04, O.iron); }
-    box(s, -64.95, 1.5, 18, .16, 3, 1.7, mats.dark); box(s, -64.9, 3.15, 18, .3, .3, 2.2, O.oxblood); for (const dz of [-1, 1]) box(s, -64.9, 1.5, 18 + dz, .3, 3, .25, O.oxblood);
+    box(s, -64.9, 3.15, 18, .3, .3, 2.2, O.oxblood); for (const dz of [-1, 1]) box(s, -64.9, 1.5, 18 + dz, .3, 3, .25, O.oxblood);
     facing(sign(s, 'WARD REGISTRY', 'PAPERS • PERMITS • NAMES', -64.93, 4.1, 18, 5.2, .9, BONE), EAST); decal(s, seal, .8, .8, -64.92, 5.3, 18, EAST);
-    city.collider(-70, 18, 10, 14, 6); city.deck(-75, -65, 11, 25, ROOF);
+    city.deck(-75, -65, 11, 25, ROOF);
+    { const t = new T.Group(); t.position.set(-66.2, 0, 20.75); t.rotation.y = Math.PI; this.live.add(t); city.target(t, 'registry', 'discovery', 'The names ledger', 0, 1.5, 0); }
     parapet(s, city, -75, 11, AQ - 1.1, 11, ROOF); parapet(s, city, -65, 11, -65, 25, ROOF); parapet(s, city, -75, 25, -65, 25, ROOF); parapet(s, city, -75, 11, -75, 25, ROOF);
     ladder(s, this.live, city, 'ladder.registry', 'Registry ladder', -71, 25, G, ROOF, 0, 1);
     // The broadcast mast, and what the Embers have clipped onto it.
@@ -194,7 +217,7 @@ export class Weatherside {
     { const t = new T.Group(); t.position.set(TX + 1.9, TOP, TZ + 2.5); t.rotation.y = Math.PI; this.live.add(t); city.target(t, 'weathervane', 'discovery', 'The Weathervane relay', 0, 1.45, 0); }
     bake(tw);
     bake(s);
-    p.addWorker(-60.6, 27.4, WEST, 'guard', { role: 'guard', when: () => this.seen && this.held }); p.addWorker(-63.6, 19.6, WEST, 'read', { role: 'ordinal', when: () => this.seen && this.held, tool: 'read' });
+    p.addWorker(-60.6, 27.4, WEST, 'guard', { role: 'guard', when: () => this.seen && this.held }); p.addWorker(-63.6, 19.6, WEST, 'read', { role: 'ordinal', when: () => this.seen && this.held, tool: 'read' }); p.addWorker(-68.6, 17.6, EAST, 'clipboard', { role: 'ordinal', when: () => this.seen && this.held });
     p.addWorker(-76, 4.5, Math.PI, 'sit', { role: 'resident', when: () => this.seen }); const a = p.addWorker(-69.6, -2.2, 2.3, 'talk', { role: 'resident', when: () => this.seen }), b = p.addWorker(-68.9, -3.2, -1.1, 'talk', { role: 'merchant', when: () => this.seen }); p.workers[a].partner = b; p.workers[b].partner = a;
     p.addWorker(-81.5, 3.2, WEST, 'watch', { role: 'resident', scale: .72, when: () => this.seen }); p.addWorker(-68.4, 4.1, Math.PI, 'browse', { role: 'merchant', when: () => this.seen }); p.addWorker(-74.2, 13.2, EAST + .5, 'watch', { y: ROOF - G, role: 'courier', time: 'night', when: () => this.seen });
   }
@@ -205,7 +228,7 @@ export class Weatherside {
     channelWall(city, AQ - 1.1, -41, -25); channelWall(city, AQ + 1.1, -41, -25); channelWall(city, AQ - 1.1, -61.6, -45); channelWall(city, AQ + 1.1, -56.4, -45); channelWall(city, AQ + 1.1, -61.6, -58);
     for (const [dx, r] of [[-.72, .03], [0, -.02], [.72, .04]]) box(s, AQ + dx, 6.03, -43, .68, .09, 4.6, mats.wood).rotation.y = r; city.deck(AQ - 1.1, AQ + 1.1, -45, -41, ROOF);
     // Rope handlines on both sides: the crossing is as safe to walk as the channel, on a thumbstick too.
-    for (const x of [AQ - 1.08, AQ + 1.08]) { for (const z of [-45, -41]) box(s, x, 6.6, z, .08, 1.1, .08, mats.wood); beam(s, V(x, 7.1, -45), V(x, 6.85, -43), .02, mats.cream); beam(s, V(x, 6.85, -43), V(x, 7.1, -41), .02, mats.cream); channelWall(city, x, -45, -41); }
+    for (const x of [AQ - 1.08, AQ + 1.08]) { for (const z of [-45, -41]) box(s, x, 6.6, z, .08, 1.1, .08, mats.wood); beam(s, V(x, 7.1, -45), V(x, 6.85, -43), .02, mats.cream); beam(s, V(x, 6.85, -43), V(x, 7.1, -41), .02, mats.cream); } channelWall(city, AQ - 1.1, -45, -41); channelWall(city, AQ + 1.1, -45, -41);
     for (const [x, z, w, r] of [[AQ - .3, -42.6, 1.5, .4], [AQ + .7, -43.6, 1.1, 1.1], [AQ - 1.2, -44, .8, 2.2], [AQ + .2, -41.9, .7, .2]] as const) box(s, x, G + w * .25, z, w, w * .55, w * .8, I).rotation.set(r * .3, r, r * .2);
     box(s, AQ, 1.6, -43, 1.3, 3.2, 1.3, I).rotation.z = .08; city.collider(AQ, -43, 2.6, 2.6, 3);
     // The stair up to the channel: ancient, worn hollow, and not on the Ordinance survey.
@@ -237,7 +260,7 @@ export class Weatherside {
     p.addWorker(-71.3, -47.5, WEST, 'gauge', { role: 'engineer', when: () => this.seen && this.held }); p.addWorker(-73.2, -57.6, WEST + .3, 'warm', { role: 'worker', time: 'night', when: () => this.seen });
   }
 
-  sync() { const held = this.held; this.occupied.visible = held && this.seen; this.freed.visible = !held && this.seen; }
+  sync() { const held = this.held; this.occupied.visible = held && this.seen; this.freed.visible = !held && this.seen; this.aether.visible = this.city.economy.state.research.includes('aether'); }
   update(time: number, viewer: T.Vector3, calm: boolean) {
     // Props are only drawn near enough to be seen as props; the massing stays for the skyline.
     // Behind the housing row nothing here shows from the streets: only the Weathervane clears the roofs.
@@ -248,5 +271,6 @@ export class Weatherside {
     this.hook.rotation.x = Math.sin(t * .6) * .03; this.hook.rotation.z = Math.sin(t * .47 + 1) * .02;
     this.vane.rotation.y = .6 + Math.sin(t * .11) * .5 + Math.sin(t * 1.3) * .03;
     this.searchlight.rotation.y = 1.9 + Math.sin(t * .19) * .7;
+    (this.ray.material as T.MeshBasicMaterial).opacity = .24 + .08 * Math.sin(t * .8);
   }
 }

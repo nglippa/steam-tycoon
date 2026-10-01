@@ -45,6 +45,8 @@ export class City {
   localCollider(g: T.Object3D, x: number, z: number, w: number, d: number, height = 30) { g.updateWorldMatrix(true, false); const p = g.localToWorld(new T.Vector3(x, 0, z)); const turned = Math.abs(Math.sin(g.getWorldQuaternion(new T.Quaternion()).angleTo(new T.Quaternion()))) > .5; this.collider(p.x, p.z, turned ? d : w, turned ? w : d, height); }
   /** `open` lets state-driven props (an Ordinance booth, a furnace) stop blocking once they are gone. */
   collider(x: number, z: number, w: number, d: number, height = 30, gate?: string, open?: () => boolean, base?: number) { this.colliders.push({ minX: x - w / 2, maxX: x + w / 2, minZ: z - d / 2, maxZ: z + d / 2, height, base, gate, open }); }
+  /** A building whose roof can be stood on stops blocking at its roof: lower the full-height collider over this point. */
+  roofAt(x: number, z: number, height: number) { for (const c of this.colliders) if (c.height >= 30 && x > c.minX && x < c.maxX && z > c.minZ && z < c.maxZ) c.height = height; }
   deck(minX: number, maxX: number, minZ: number, maxZ: number, y: number, y1?: number, axis?: 'x' | 'z') { this.decks.push({ minX, maxX, minZ, maxZ, y, y1, axis }); }
   /** The deck under these feet, if any: the highest one they could be standing on. */
   private deckAt(x: number, z: number, feet: number) { let best = -Infinity; for (const d of this.decks) if (x >= d.minX && x <= d.maxX && z >= d.minZ && z <= d.maxZ) { const h = deckHeight(d, x, z); if (h <= feet + .4 && h > best) best = h; } return best; }
@@ -55,7 +57,8 @@ export class City {
     for (const z of [27, 1, -31, -57]) box(g, 0, .025, z, 78, .06, 7, mats.road);
     for (const x of [-34, 34]) box(g, x, .02, 6, 7, .06, 125, mats.road);
     box(g, 0, .04, -44, 28, .1, 23, mats.road);
-    for (const x of [40, 49]) { box(g, x, .25, -15.5, 1, .5, 159, mats.stone); for (let z = -92; z < 64; z += 4) { cyl(g, x, 1, z, .06, 1.4); if (z < -12 || z > 0) box(g, x, 1.5, z + 2, .06, .08, 4); } }
+    // The cleft's kerb and rail. The rail is left open at z 32..36 for the Chain Bridge.
+    for (const x of [40, 49]) { box(g, x, .25, -15.5, 1, .5, 159, mats.stone); for (let z = -92; z < 64; z += 4) { cyl(g, x, 1, z, .06, 1.4); if ((z < -12 || z > 0) && z !== 32) box(g, x, 1.5, z + 2, .06, .08, 4); } }
     box(g, 44.5, .25, CHASM.z1, 8, .5, 1, mats.stone);
     box(g, 44.5, .22, -6, 11, .45, 8, mats.stone); for (const z of [-9.2, -2.8]) { box(g, 44.5, -.3, z, 9, .5, .3, mats.iron); for (const s of [-1, 1]) beam(g, new T.Vector3(44.5 + s * 4.2, -2.2, z), new T.Vector3(44.5 + s * 1, -.5, z), .14, mats.iron); } box(g, 44.5, -.62, -6, 2.4, .24, 6.6, mats.iron); for (const z of [-10, -2]) { for (let x = 39; x < 51; x += 1.5) box(g, x, .9, z, .12, 1.4, .12, mats.brass); box(g, 44.5, 1.5, z, 11, .12, .12, mats.brass); }
     // Side alley and physically traversable industrial ramp up to a high overlook.

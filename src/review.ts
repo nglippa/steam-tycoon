@@ -55,11 +55,15 @@ export class Review {
     results.hallStair=(p=>near(walk(p.x,p.z,0,1.5,p.y).y,7.85))(walk(-67.5,-10.1,W,3.5));
     results.channelStair=walk(-64.7,-46,0,5).y>7.6;
     results.hangway=(p=>p.z< -56&&near(p.y,-3.75))(walk(41.6,43,0,24,-3.75));
+    // The Leads: along the Bridge-house ridge onto the terrace, and the lower Hangway by its two flights.
+    results.leads=(a=>(b=>(c=>c.x< -14&&near(c.y,16.2))(walk(b.x,b.z,W,2,b.y)))(walk(a.x,a.z,S,.45,a.y)))(walk(12,4.2,W,7,15.75));
+    results.keelHolds=[0,S,W,-W].every(yaw=>near(walk(42.4,-23,yaw,3,-25.25).y,-25.25));
+    results.chainBridge=(p=>p.x>50&&near(p.y,1.93))(walk(38,34,-W,3.5));
     results.pierEnd=(p=>p.z<100&&p.z>98&&near(p.y,1.93))(walk(-67,80,S,6));
     // No roof lets a walker off its edge: push at all four sides of the high places.
-    results.edgesHold=([[-71,-28,32.85],[-71,-23.9,19.85],[-70,-18,7.85],[-70,18,7.85],[-69,-63,7.85],[-70.5,54,8.85],[-68,96.5,10.85]] as const).every(([x,z,eye])=>[0,S,W,-W].every(yaw=>near(walk(x,z,yaw,4,eye).y,eye)));
+    results.edgesHold=([[-71,-28,32.85],[-71,-23.9,19.85],[-70,-18,7.85],[-70,18,7.85],[-69,-63,7.85],[-70.5,54,8.85],[-68,96.5,10.85],[6,4.2,15.75],[-19,8,16.2],[-15.9,14,21.6],[-19,20,16.2],[57.5,-41.5,13.85],[60,-44,25.85]] as const).every(([x,z,eye])=>[0,S,W,-W].every(yaw=>near(walk(x,z,yaw,2.6,eye).y,eye)));
     // Every ladder, up and then down again, ending where a walker can move off.
-    results.ladders=Object.fromEntries(city.ladders.map(l=>{const ride=()=>{player.climb(l);let n=0;while(player.climbing&&n++<1500)player.update(1/60,n/60);return n;};
+    results.ladders=Object.fromEntries(city.ladders.filter(l=>!city.blocked(l.bottom.x,l.bottom.z,l.bottom.y)).map(l=>{const ride=()=>{player.climb(l);let n=0;while(player.climbing&&n++<1500)player.update(1/60,n/60);return n;};
       player.teleport(l.bottom.x,l.bottom.z,0,l.bottom.y+1.75);const up=ride(),top=near(player.position.y-1.75,l.top.y)&&!city.blocked(player.position.x,player.position.z,l.top.y);
       const down=ride(),foot=near(player.position.y-1.75,l.bottom.y)&&!city.blocked(player.position.x,player.position.z,l.bottom.y);
       return [l.id,{top,foot,seconds:+(up/60).toFixed(1),height:+(l.top.y-l.bottom.y).toFixed(1),ok:top&&foot&&up<1500&&down<1500}];}));

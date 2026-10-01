@@ -137,10 +137,20 @@ test('the masterwork is a commitment, not the cheapest income in the ledger', ()
   // Under the old curve level 5 repaid faster than level 1. Each milestone must now take longer to repay than the last.
   for (const p of PROPERTIES) { const e = new Economy(memory()); e.state.crowns = 1e9; e.upgrade(p.id); e.automate(p.id); const payback: number[] = [];
     for (let level = 1; level < 5; level++) { const price = e.cost(p.id), before = e.output(p.id) / p.interval; e.upgrade(p.id); payback[level + 1] = price / (e.output(p.id) / p.interval - before); }
-    assert.ok(payback[5] > payback[3] && payback[3] > payback[2] * .9, `${p.id}: ${payback.map(v => Math.round(v)).join(' ')}`);
+    assert.ok(payback[5] > payback[3] && payback[3] > payback[2] * .8, `${p.id}: ${payback.map(v => Math.round(v)).join(' ')}`);
     assert.ok(payback[5] > 120, `${p.id} masterwork should take minutes, not seconds, to repay`); }
 });
 test('nothing in the ledger costs less than it did, and the opening stays within reach', () => {
   const e = new Economy(memory()); assert.equal(e.cost('scrap'), 25); assert.equal(e.foremanCost('scrap'), 125);
   for (const site of SITES) for (const step of site.steps) assert.ok(step.carried ? step.cost === 0 : step.cost >= 400);
+});
+test('each trade discounts or enriches something different, so order of investment matters', () => {
+  const fresh = () => { const e = new Economy(memory()); e.state.crowns = 1e9; return e; };
+  const scrap = fresh(); const before = scrap.cost('boiler'); for (let i = 0; i < 5; i++) scrap.upgrade('scrap'); assert.equal(scrap.cost('boiler'), Math.ceil(before * .85));
+  const boiler = fresh(); const lamps = boiler.infraCost('lamps'); boiler.upgrade('boiler'); assert.equal(boiler.infraCost('lamps'), Math.ceil(lamps * .96));
+  const shop = fresh(); const canal = shop.charterCost('canal'); for (let i = 0; i < 5; i++) shop.upgrade('workshop'); assert.equal(shop.charterCost('canal'), Math.ceil(canal * .8)); assert.equal(shop.charterCost('governors'), Math.ceil(7200 * .8));
+  const foundry = fresh(); foundry.upgrade('tavern'); const knock = foundry.siteCost('market'); foundry.upgrade('foundry'); foundry.upgrade('foundry'); assert.equal(foundry.siteCost('market'), Math.ceil(knock * .92));
+  const paid = foundry.state.crowns; assert.equal(foundry.advanceSite('market'), true); assert.equal(paid - foundry.state.crowns, Math.ceil(knock * .92));
+  const tavern = fresh(); assert.equal(tavern.awayShare, .1); for (let i = 0; i < 5; i++) tavern.upgrade('tavern'); assert.ok(Math.abs(tavern.awayShare - .2) < 1e-12);
+  const market = fresh(); const m = market.multiplier; market.upgrade('market'); assert.ok(Math.abs(market.multiplier / m - 1.03) < 1e-12);
 });

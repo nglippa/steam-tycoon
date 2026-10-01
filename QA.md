@@ -350,3 +350,18 @@ So the old city is about 6 to 10% slower, inside or near the noise. New areas, m
 | Four hours away, fresh save | 19,467 Crowns | 1,947 Crowns |
 
 Existing saves keep their levels, sites and Crowns; only future prices change, and no save version bump is needed.
+
+## Phase 4b: the Leads, the Keel, the east bank, interiors, research and trade traits (2026-10-01)
+
+Typecheck, 29 tests and the production build pass. All browser work in this pass was headless.
+
+**Traversal (`&check=1`, real controller), the same six states as Phase 4.** Everything from Phase 4 still passes, plus: the Leads from the east ladder onto the terrace; the Chain Bridge; the Keel's three open sides; no walker leaves the Leads, either terrace, the block roof or either Packet Light platform by walking. All 15 ladders pass both ways where their district is open (the two Packet Light ladders are skipped while the Canal Ward is locked). New ladder times: Bridge-house 6.0 s each (14 m), Finch roof ladders 2.7 s, Finch yard ladder 6.1 s (14.3 m), Keel 8.2 s (19.5 m).
+- Found and fixed: the workshop and Bridge-house still had full-height colliders (`City.roofAt` now lowers a building's collider to its roof); a rope handline collider 2 cm proud of the channel wall snagged a walker sliding along it; a trailing `//` comment on a one-line loop swallowed its braces (twice in this project now: comments go on their own line).
+
+**Phone (iPhone 13 emulation with touch).** All 15 ladders are offered on USE while facing away and climb both ways. A diagonal thumb push crosses the aqueduct planks in both directions; the Hangway's stairs walk down under the joystick.
+
+**Rendered review.** `screenshots/review-2026-10-01-phase4b/`: `collage-centre-and-east.png`, `collage-hangway-keel.png`, `collage-conditions.png` (night, rain, fog, and all three researches bought), plus 12 full-size frames.
+
+**Performance (headless, so draw calls and triangles only; frame rate was not measured in this pass).** At 1280×720: street 778 draws / 1.13 M, square 393 / 0.85 M, foundry 927 / 1.35 M, roof overlook 1049 / 1.36 M, overview 1181 / 1.40 M. New places: Leads 665 / 1.09 M, Leads looking north 593 / 1.01 M, block roof 712 / 1.10 M, Keel 361 / 0.81 M, Chain Bridge 256 / 0.74 M, Salt Row 954 / 1.27 M, Packet Light top 597 / 1.00 M, registry office 190 / 0.60 M, bonded bay 127 / 0.53 M. From the Salt Row view, the four new modules together account for about 90 of the draws. People: 162 authored, 64 to 98 posed and drawn in any view.
+
+**Economy.** The six trade traits speed a run up, so prices were raised to hold the pacing: property cost growth 3.8 (was 3.5), and civic works, charters, research and liberation/restoration steps about 30% higher. Same simulation as before, final values: first upgrade 10 s; median gap between purchases 27 s; Market Square liberated at 29.2 min; all content in 41.1 min played well and 59.1 min story-first; median payback 4.6 min, worst 11 min; casual play (15 min a day) 2 days. The simulation's buyer does not plan around traits, so it does not measure how much a good order helps; that is untested.

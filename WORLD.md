@@ -47,3 +47,18 @@ The ward has a back. Behind the west housing row a lane runs the length of the w
 None of the new finds pay Crowns or income. Four can be examined (archive, weathervane, shrine, the door in the rock); the rest are only there to be seen.
 
 **Left open on purpose:** what the sealed gate and the door in the rock open onto; what the Weathervane relay talks to; the seven anchors.
+
+## The Leads, the Keel and the east bank (Phase 4b, 2026-10-01)
+
+- **The Leads.** Duckboards along the Bridge-house ridge, then Finch Mechanical's roof: a north terrace with Finch's pigeon loft (brass tags stamped with ward numbers; a ledger of flights older than the Ordinance), a telescope trained on the Weathervane and an Embers mark; the block roof with the works' flag; a south terrace with the water tank and the ladder down to the yard.
+- **The Hangway's lower length** is two metres below the rest. The door in the rock and the night crew's camp are on it.
+- **The Keel.** An ivory landing on the rib under the Hangway, built for whoever tended the anchor. The anchor is a gold clasp round the rib, stamped ANCHOR III OF VII. "It is holding." This is the first of the seven anchors the archive's lift ledger mentions.
+- **The Ward Registry's office.** A counter, six cabinets of files and a ledger with a column for PERMITTED and a column for WATCHED. One drawer is tied with a turquoise ribbon: the Embers have somebody inside.
+- **The bonded bay.** Held freight behind bars in the Tether Yard warehouse, and one crate the Embers have already opened.
+- **The Chain Bridge.** Foot only. The second crossing of the cleft.
+- **Salt Row.** The Canal Ward's arcade: Orison salt, Amber Coast tea, Veyr iron, Locke grain, a weighbridge. Its traders appear only once the charter is bought.
+- **The Packet Light.** It called the packets in. The signal book's last entry: "Orison packet, on time. Lamp trimmed. Ordinance vessel, unannounced." The lamp still turns.
+- **Research in the world.** Governors on the Great Main; the Seven Provinces' pennants on the Leads; aether induction wakes the garden fountain, the cistern's eye, the sealed gate's medallion and the Weathervane lens, which answers the eastern isle with a beam.
+- **Trades.** Each business has a trait (salvage, pressure, precision, castings, word of mouth, exchange); see README.
+
+**Still open:** the other six anchors; who in the Registry ties the ribbon; what the unannounced Ordinance vessel brought.
