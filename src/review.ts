@@ -43,7 +43,9 @@ export class Review {
       return {id:target.id,reachable:!city.blocked(p.x,p.z,.18),raycast:player.target?.id===target.id};
     });
     const walk=(x:number,z:number,yaw:number,seconds:number,eye?:number)=>{player.teleport(x,z,yaw,eye);player.pitch=0;player.locked=true;player.keys.clear();player.keys.add('KeyW');for(let i=0;i<seconds*60;i++)player.update(1/60,i/60);player.keys.clear();return player.position.clone();};
-    results.mainStreet=walk(0,77,0,17).z<2;
+    // The Great Main is walked down its east lane: the checkpoint's box stands in the middle. By day the opening is passable;
+    // at an enforced curfew the boom is down and the same walk must stop at it.
+    { const gate=city.presentation.checkpoints.gates[0].state,end=walk(4,77,0,17); results.mainStreet=gate==='sealed'?end.z>10.5&&end.z<12:end.z<2; results.mainStreetCentre=walk(0,77,0,17).z>10.5; }
     results.westLane=walk(-5.5,60,0,18).z< -19;
     results.eastLane=walk(5.5,60,0,18).z< -19;
     results.foundryLane=walk(34,60,0,18).z< -19;

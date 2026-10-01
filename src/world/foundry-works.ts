@@ -117,8 +117,8 @@ export class FoundryWorks implements SiteModule {
     // The overseer turns between the quota board and the outgoing stock; the workers time
     // their real work to his back.
     this.overseer = pres.addWorker(OVERSEER.x, OVERSEER.z, -1.4, 'guard', { role: 'ordinal', tool: 'clipboard', when: () => this.view.control < SITE_LIBERATED });
-    const a = pres.addWorker(25.8, 7.4, -2.26, 'clipboard', { role: 'worker' }), b = pres.addWorker(26.75, 8.7, -Math.PI / 2, 'gauge', { role: 'engineer' }); this.pair = [a, b];
-    this.packer = pres.addWorker(30.35, 20.6, Math.PI / 2, 'hammer', { role: 'worker', when: () => this.view.levels.foundry >= 1 });
+    const a = pres.addWorker(25.8, 7.4, -2.26, 'clipboard', { role: 'worker', essential: true }), b = pres.addWorker(26.75, 8.7, -Math.PI / 2, 'gauge', { role: 'engineer', essential: true }); this.pair = [a, b];
+    this.packer = pres.addWorker(30.35, 20.6, Math.PI / 2, 'hammer', { essential: true, role: 'worker', when: () => this.view.levels.foundry >= 1 });
     pres.addWorker(28.55, 12.1, -2.07, 'hammer', { role: 'worker', when: () => this.view.control < SITE_RESTORED });
     pres.workers[pres.furnaceHammer].when = () => this.view.control < SITE_RESTORED;
     const g1 = pres.addWorker(30.3, 5.2, .6, 'talk', { role: 'worker', when: () => this.view.control >= SITE_LIBERATED }), g2 = pres.addWorker(31.2, 6, -2.5, 'talk', { role: 'courier', when: () => this.view.control >= SITE_LIBERATED }); pres.workers[g1].partner = g2; pres.workers[g2].partner = g1;

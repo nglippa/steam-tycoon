@@ -65,7 +65,7 @@ export class RationLine implements SiteModule {
     const covert = this.site.layer(when.covert(1));
     { const t = new T.Mesh(new T.PlaneGeometry(.5, .25), decalMat(tallies, .9)); t.position.set(VALVE.x - .81, 1.72, VALVE.z - .3); t.rotation.y = -Math.PI / 2; covert.add(t);
       const e = new T.Mesh(new T.PlaneGeometry(.42, .42), decalMat(emberChalk, .9)); e.rotation.x = -Math.PI / 2; e.position.set(MAIN_X, .24, 28.2); covert.add(e); }
-    this.stoker = pres.addWorker(STOKER.x, STOKER.z, 2.51, 'gauge', { role: 'worker', tool: 'repair', when: () => !this.facts.lineFree });
+    this.stoker = pres.addWorker(STOKER.x, STOKER.z, 2.51, 'gauge', { essential: true, role: 'worker', tool: 'repair', when: () => !this.facts.lineFree });
     // THE DIRECTORATE NOTICES: pressure goes missing, so a warden signs for every hour.
     const watch = this.site.layer(is('pressureWatch'));
     box(watch, DESK.x, .95, DESK.z, .5, .06, .4, mats.wood); cyl(watch, DESK.x, .47, DESK.z, .05, .94, O.iron); box(watch, DESK.x, 1.0, DESK.z, .34, .04, .26, mats.cream);

@@ -148,3 +148,28 @@ Trade is applied to each property by the district it stands in. People staged by
 **Behaviour.** Each person has a manner (`mannerOf`): seven civilian traits, four Ordinance ones with a standing stance. `conduct()` decides waving, smiling, gesture size and whether talk continues; the Ordinance never waves, smiles or startles, and civilians stop when one is within 7 m or occupation is high. A spoken line sets `citizen.tone`, and `bodyFor()` gives the matching face and bearing.
 
 Review: `mainNorth`, `squareIn`, `home`, `homeNorth`, `hatch`; `heat=0-5`. Screenshots: `screenshots/review-2026-10-01-occupation/`.
+
+## The regime controls space (occupation pass II)
+
+- **Importance.** Every staged person is `essential` (a story actor, a contact, anyone the Ordinance posts: always present), `conditional` (an authored scene with a `when`) or `ambient`. Conditional and ambient people both obey the district's density and curfew; a pair shares one seed, so a conversation leaves together.
+- **Making room.** `City.giveRoom` eases civilians aside from the Ordinance: sideways off a walking patrol's line, a smaller margin round a standing post. `berth()` and `makeRoom()` set how early and how far by manner (nervous early and far, proud barely). Seated and leaning people and story actors do not move.
+- **Posts have jobs.** `Presentation.posts` records each post's role: sentry, patrol (three beats), inspector, pair, checkpoint. Posts ranked above 1 are manned only during a crackdown in their district.
+- **Authority budget.** `AUTHORITY_BUDGET` (3): only the nearest three posts whose job involves watching are ever asked whether they can see the Steward.
+- **Checkpoints** (`src/world/checkpoints.ts`), driven by `gateState(band, curfew)`:
+
+| State | When | What stands there |
+| --- | --- | --- |
+| manned | heavy or lockdown, by day | trestles wall to wall, sentry box, two men, booms up |
+| sealed | any enforced curfew | the same, booms down: impassable |
+| light | controlled, by day | centre trestles and box only, one man |
+| open | low occupation | abandoned: trestles shoved aside, boom on the ground, box dark |
+| gone | liberated | planters and benches on the box's footprint |
+
+  1. The Great Main under the Market Bridge-house (the Lowworks' band). Around it: Finch Mechanical's yard ladder, over the roofs, down the Bridge-house's north ladders; or the west and east lanes.
+  2. The west end of the Chain Bridge (Canal Ward's band, once chartered). Around it: the Canal Ward gate bridge.
+
+  Walking through a manned opening: unknown to the patrols, waved on; at heat 0.75 or more (1.75 at a light gate, 0.25 in a crackdown) it is an incident.
+- **Crackdown.** +12 occupation in that district, civilians and merchants cut by a quarter, and the crackdown-only posts come out.
+- **Phone.** Below 900 px the hour plate carries a compact ward line (`wardLine`): "MARKET · 76% HEAVY".
+
+Review: `gateSouth`, `gateNorth`, `gateHigh`, `chainGate`, `finchYard`; `crack=<district>`. Screenshots: `screenshots/review-2026-10-01-occupation-2/`.

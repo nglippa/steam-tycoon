@@ -10,7 +10,7 @@ import { citizen, setCitizenProsperity } from './citizens';
 import { palette as P } from './palette';
 import { housingPaint, setHousingCondition, residentialWindows, type Home } from './housing';
 import { animateLife, sceneFor, stageCitizen, setLifeConditions, setSocialField, turnTaking } from './citizen-life';
-import { DISTRICTS, BANDS, bandOf, population, admits, districtAt, isOccupier, standingOf, seedOf, type DistrictId, type Band, type Enforcement, type Standing, type Incident } from '../simulation/occupation';
+import { DISTRICTS, BANDS, bandOf, population, admits, districtAt, isOccupier, standingOf, seedOf, gateState, makeRoom, type DistrictId, type Band, type Enforcement, type Standing, type Incident, type Importance, type Gate, type Manner, type Tone } from '../simulation/occupation';
 import { TerraEdge, TERRACE as EDGE_TERRACE, CHASM, GALLERY, WEST_EDGE } from './terra-edge';
 import { Economy, PROPERTIES, SITE_LIBERATED, SITE_RESTORED, type PropertyId, type SiteId } from '../simulation/economy';
 export interface Collider { minX: number; maxX: number; minZ: number; maxZ: number; height: number; base?: number; gate?: string; open?: () => boolean }
@@ -42,16 +42,32 @@ export class City {
   onEvent: (message: string) => void = () => {};
   /** The street's condition by district, refreshed twice a second from the economy: who is admitted, how hard the curfew bites,
    * and where the Ordinance's people are standing (so civilians near them can keep their voices down). */
-  social = new Map<DistrictId, { percent: number; band: Band; enforcement: Enforcement; pressure: number; occupier: number; risk: number }>(); occupiers: T.Vector3[] = []; private socialClock = -9;
-  refreshSocial(time: number) { if (Math.abs(time - this.socialClock) < .5) return; this.socialClock = time;
-    for (const d of DISTRICTS) { const percent = this.economy.occupationOf(d.id), band = bandOf(percent), enforcement = this.economy.curfew(d.id); this.social.set(d.id, { percent, band, enforcement, pressure: enforcement === 'none' ? percent / 100 : 1, occupier: population(band, enforcement).occupier, risk: BANDS[band].risk }); }
-    this.occupiers.length = 0; const note = (c: { group: T.Group; archetype: string }) => { if (c.group.visible && isOccupier(c.archetype)) this.occupiers.push(c.group.position); };
-    for (const n of this.npcs) note(n); for (const w of this.presentation?.workers ?? []) note(w.person); }
+  social = new Map<DistrictId, { percent: number; band: Band; enforcement: Enforcement; pressure: number; occupier: number; risk: number; crackdown: boolean; gate: Gate }>(); occupiers: T.Vector3[] = []; private socialClock = -9; now = 0;
+  /** The Ordinance's people who are out, and whether each is walking a beat: civilians make room for these. */
+  presence: { group: T.Group; moving: boolean }[] = [];
+  refreshSocial(time: number) { this.now = time; if (Math.abs(time - this.socialClock) < .5) return; this.socialClock = time; const c = this.economy.state.crackdown, hard = c && c.until > this.economy.state.playtime ? c.district : null;
+    for (const d of DISTRICTS) { const percent = this.economy.occupationOf(d.id), band = bandOf(percent), enforcement = this.economy.curfew(d.id), crackdown = hard === d.id && band !== 'liberated';
+      this.social.set(d.id, { percent, band, enforcement, pressure: enforcement === 'none' ? Math.min(1, percent / 100 + (crackdown ? .15 : 0)) : 1, occupier: population(band, enforcement, crackdown).occupier, risk: BANDS[band].risk, crackdown, gate: gateState(band, enforcement) }); }
+    this.occupiers.length = this.presence.length = 0; const note = (c: { group: T.Group; archetype: string }, moving: boolean) => { if (c.group.visible && isOccupier(c.archetype)) { this.occupiers.push(c.group.position); this.presence.push({ group: c.group, moving }); } };
+    this.npcs.forEach((n, i) => note(n, !!sceneFor(i).route)); for (const w of this.presentation?.workers ?? []) note(w.person, !!w.path || w.kind === 'walk'); }
   here(x: number, z: number) { return this.social.get(districtAt(x, z))!; }
   /** Is this person out today? High occupation means fewer civilians and more of the Ordinance, never more of everyone. */
-  admits(standing: Standing, seed: number, d: DistrictId) { const s = this.social.get(d)!; return admits(standing, seed, s.band, s.enforcement); }
+  admits(standing: Standing, seed: number, d: DistrictId) { const s = this.social.get(d)!; return admits(standing, seed, s.band, s.enforcement, s.crackdown); }
+  present(importance: Importance, standing: Standing, seed: number, d: DistrictId) { return importance === 'essential' || this.admits(standing, seed, d); }
+  /** People make room for the Ordinance: a step to the side of a walking patrol's line, a margin round a standing inspector.
+   * Call it after the person has been put where their scene says; it eases them aside and back, and never into a wall. */
+  private room = new WeakMap<object, { x: number; z: number }>();
+  giveRoom(c: { group: T.Group; archetype: string; manner: Manner }, dt: number) { const p = c.group.position; let tx = 0, tz = 0;
+    for (const o of this.presence) { const q = o.group.position, dx = p.x - q.x, dz = p.z - q.z, d2 = dx * dx + dz * dz; if (d2 > 25 || d2 < 1e-4 || Math.abs(p.y - q.y) > 2) continue; const d = Math.sqrt(d2), k = makeRoom(c.archetype, c.manner, d, !o.moving); if (!k) continue;
+      if (o.moving) { const yaw = o.group.rotation.y, px = Math.cos(yaw), pz = -Math.sin(yaw), side = Math.sign(dx * px + dz * pz) || 1; tx += px * side * k * .95; tz += pz * side * k * .95; } else { tx += dx / d * k * .7; tz += dz / d * k * .7; } }
+    let r = this.room.get(c); if (!r) { if (!tx && !tz) return; this.room.set(c, r = { x: 0, z: 0 }); }
+    if ((tx || tz) && this.blocked(p.x + tx, p.z + tz, p.y - .18 + .02)) tx = tz = 0;
+    const k = Math.min(1, dt * (tx || tz ? 3.2 : 1.6)); r.x += (tx - r.x) * k; r.z += (tz - r.z) * k; p.x += r.x; p.z += r.z; }
   /** The Ordinance has caught the Steward at something. One place decides what that costs. */
-  incident(kind: Incident, x: number, z: number) { const o = this.economy.caught(kind, districtAt(x, z)); this.socialClock = -9; this.onEvent(o.message); return o; }
+  incident(kind: Incident, x: number, z: number) { const o = this.economy.caught(kind, districtAt(x, z)); this.socialClock = -9; this.onEvent(o.message);
+    // Everyone near enough to see it draws back for a moment. Nobody helps.
+    const flinch = (c: { group: T.Group; archetype: string; tone?: { tone: Tone; until: number } }) => { const q = c.group.position; if (c.group.visible && !isOccupier(c.archetype) && (q.x - x) ** 2 + (q.z - z) ** 2 < 90) c.tone = { tone: 'fearful', until: this.now + 3.5 }; };
+    for (const n of this.npcs) flinch(n); for (const w of this.presentation.workers) flinch(w.person); return o; }
   hearth?: T.PointLight; edge!: TerraEdge;
   gateMeshes = new Map<string, T.Group>(); flags: T.Mesh[] = []; carts: T.Group[] = []; cartWheels: T.Group[][] = []; airship = new T.Group(); tram = new T.Group();
   clockMechanism?: T.Group; lantern = new T.MeshStandardMaterial({ color: P.warm.lamp, emissive: P.warm.lamp, emissiveIntensity: .9 }); clockHands: T.Mesh[] = []; stage = -1; raining = false; finchLift?: T.Group;
@@ -433,7 +449,7 @@ export class City {
     this.npcs.forEach((npc,i)=>{npc.worn.visible=this.economy.stage<3;npc.finery.visible=this.economy.stage>=3;const sc=sceneFor(i);npc.group.visible=i<14+this.economy.stage*5&&this.admits(standingOf(sc.role),seedOf(i),districtAt(sc.x,sc.z));if(npc.group.visible)stageCitizen(npc,i,time);});
     for(const [i,npc] of this.npcs.entries()){
       if(!npc.group.visible)continue;
-      const {scene,moving}=stageCitizen(npc,i,time);npc.group.position.y=this.groundHeight(npc.group.position.x,npc.group.position.z);
+      const {scene,moving}=stageCitizen(npc,i,time);if(scene.activity!=='sit'&&scene.activity!=='eat')this.giveRoom(npc,dt);npc.group.position.y=this.groundHeight(npc.group.position.x,npc.group.position.z);
       // Someone whose companion has been kept off the street stands alone: no conversation with the air.
       const pair=scene.partner===undefined?undefined:this.npcs[scene.partner],partner=pair?.group.visible?pair:undefined,alone=scene.partner!==undefined&&!partner;
       const target=partner?.group.position??(scene.target?this.lifeTarget.set(scene.target[0],1.7,scene.target[1]):undefined);

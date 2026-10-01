@@ -1,5 +1,5 @@
 import { test } from 'node:test';
-import { DISTRICTS, BANDS, GRIP, HEAT, CURFEW, occupation, siteOccupation, bandOf, districtAt, population, admits, seedOf, clock, dayAt, curfewHour, curfewIn, curfewNotice, caught, cooled, mannerOf, conduct, bodyFor, faceAllowed, isOccupier, type Band, type Face } from '../src/simulation/occupation.ts';
+import { DISTRICTS, BANDS, GRIP, HEAT, CURFEW, occupation, siteOccupation, bandOf, districtAt, population, admits, seedOf, clock, dayAt, curfewHour, curfewIn, curfewNotice, caught, cooled, mannerOf, conduct, bodyFor, faceAllowed, isOccupier, present, berth, makeRoom, gateState, gateCrew, scrutiny, canAct, wardLine, AUTHORITY_BUDGET, type Band, type Face, type Manner } from '../src/simulation/occupation.ts';
 import assert from 'node:assert/strict';
 import { Economy, freshSave, decodeSave, cityFacts, spacePhase, PHASE, PROPERTIES, SITES, SITE_LIBERATED, type StorageAdapter } from '../src/simulation/economy.ts';
 const memory = (raw: string | null = null): StorageAdapter => ({ read: () => raw, write: s => { raw = s; }, clear: () => { raw = null; } });
@@ -293,4 +293,44 @@ test('heat, crackdown and the signal survive a save; a save from before this pas
   const old = JSON.parse(JSON.stringify(freshSave())); delete old.heat; delete old.crackdown; delete old.quietUntil; delete old.signalAt; old.sites.market = 2;
   const loaded = decodeSave(JSON.stringify(old))!; assert.equal(loaded.heat, 0); assert.equal(loaded.crackdown, null); assert.equal(loaded.quietUntil, 0); assert.equal(loaded.sites.market, 2);
   assert.equal(decodeSave(JSON.stringify({ ...old, heat: 'x', crackdown: { district: 'nowhere', until: 5 } }))!.crackdown, null);
+});
+
+// ---- the regime controls space
+test('authored scenes obey the district: only essential people are exempt', () => {
+  const out = (imp: 'essential' | 'conditional' | 'ambient', b: Band, e: 'none' | 'strict' = 'none') => Array.from({ length: 200 }, (_, i) => present(imp, 'civilian', seedOf(i), b, e)).filter(Boolean).length;
+  assert.equal(out('essential', 'lockdown', 'strict'), 200, 'a contact is always where the story needs them');
+  for (const imp of ['conditional', 'ambient'] as const) { assert.ok(out(imp, 'heavy') < 110); assert.ok(out(imp, 'lockdown') < out(imp, 'heavy')); assert.ok(out(imp, 'heavy', 'strict') < 20); assert.equal(out(imp, 'liberated'), 200); }
+  assert.equal(out('conditional', 'heavy'), out('ambient', 'heavy'), 'a staged conversation thins exactly as the crowd does');
+});
+test('a crackdown is more of the Ordinance and fewer of everyone else, and mans posts that are otherwise empty', () => {
+  const calm = population('heavy'), hard = population('heavy', 'none', true); assert.ok(hard.civilian < calm.civilian); assert.ok(hard.merchant < calm.merchant); assert.ok(hard.occupier > calm.occupier);
+  assert.ok(hard.occupier > 1, 'ranks above 1 are crackdown-only posts'); assert.ok(population('lockdown').occupier <= 1); assert.equal(population('liberated', 'none', true).occupier, 0);
+  const e = new Economy(memory()); e.state.crowns = 4000; const before = e.occupationOf('market'); e.caught('minor', 'market'); e.caught('minor', 'market'); e.caught('minor', 'market');
+  assert.equal(e.state.crackdown!.district, 'market'); assert.equal(e.occupationOf('market'), before + 12); assert.equal(e.band('market'), 'lockdown'); assert.equal(e.occupationOf('row'), 70, 'the next ward is not punished for it');
+});
+test('civilians give the Ordinance room: the nervous early and far, the proud barely, the Ordinance never', () => {
+  const m = (trait: string) => Array.from({ length: 80 }, (_, i) => mannerOf('resident', seedOf(i))).find(x => x.trait === trait)! as Manner;
+  const nervous = m('nervous'), proud = m('proud'), sociable = m('sociable');
+  assert.ok(berth(nervous) > berth(sociable) && berth(sociable) > berth(proud));
+  assert.equal(makeRoom('resident', sociable, 9), 0, 'nobody reacts to a patrol across the street'); assert.ok(makeRoom('resident', nervous, 4) > 0); assert.equal(makeRoom('resident', proud, 4), 0);
+  assert.ok(makeRoom('resident', nervous, 1) > makeRoom('resident', sociable, 1) && makeRoom('resident', sociable, 1) > makeRoom('resident', proud, 1));
+  assert.ok(makeRoom('resident', sociable, .5) > makeRoom('resident', sociable, 2.5), 'the closer it comes the further they step');
+  assert.ok(makeRoom('resident', sociable, 1, true) < makeRoom('resident', sociable, 1), 'a standing inspector is given less room than a moving patrol');
+  for (const a of ['guard', 'ordinal']) assert.equal(makeRoom(a, mannerOf(a, .3), .5), 0);
+  assert.ok(makeRoom('resident', nervous, .01) <= 1.1);
+});
+test('a checkpoint is the band made physical: manned when held hard, lighter, abandoned, then gone', () => {
+  assert.deepEqual((['lockdown', 'heavy', 'controlled', 'low', 'liberated'] as Band[]).map(b => gateState(b)), ['manned', 'manned', 'light', 'open', 'gone']);
+  assert.deepEqual((['lockdown', 'heavy', 'controlled', 'low', 'liberated'] as Band[]).map(b => gateState(b, curfewIn(dayAt(23), b))), ['sealed', 'sealed', 'sealed', 'open', 'gone'], 'curfew seals what is still enforced');
+  assert.deepEqual(['gone', 'open', 'light', 'manned', 'sealed'].map(g => gateCrew(g as never)), [0, 0, 1, 2, 2]);
+  assert.equal(scrutiny('manned', 0), 'wave'); assert.equal(scrutiny('manned', 1), 'challenge'); assert.equal(scrutiny('light', 1), 'wave'); assert.equal(scrutiny('light', 2), 'challenge');
+  assert.equal(scrutiny('sealed', 0), 'refuse'); assert.equal(scrutiny('open', 5), 'none'); assert.equal(scrutiny('gone', 5), 'none'); assert.equal(scrutiny('manned', .3, true), 'challenge', 'during a crackdown anyone they know at all is stopped');
+  // through the economy: the Great Main's checkpoint follows the Lowworks' band
+  const e = new Economy(memory()); assert.equal(gateState(e.band('lowworks'), e.curfew('lowworks')), 'manned'); e.state.day = dayAt(23); assert.equal(gateState(e.band('lowworks'), e.curfew('lowworks')), 'sealed');
+  e.state.sites = { market: 3, foundry: 3, row: 3, gauge: 3 }; e.state.day = dayAt(12); assert.equal(gateState(e.band('lowworks'), e.curfew('lowworks')), 'open');
+  e.state.sites = { market: 4, foundry: 4, row: 4, gauge: 4 }; e.state.day = dayAt(23); assert.equal(gateState(e.band('lowworks'), e.curfew('lowworks')), 'gone');
+});
+test('authority is budgeted, posts have jobs, and a phone can still read the ward', () => {
+  assert.equal(AUTHORITY_BUDGET, 3); assert.equal(canAct('pair'), false); assert.equal(canAct('observation'), false); assert.equal(canAct('checkpoint'), true); assert.equal(canAct('patrol'), true);
+  assert.equal(wardLine('market', 76, 'heavy'), 'MARKET · 76% HEAVY'); assert.equal(wardLine('lowworks', 15, 'liberated'), 'LOWWORKS · 15% FREE'); for (const d of DISTRICTS) assert.ok(wardLine(d.id, 100, 'controlled').length <= 28);
 });

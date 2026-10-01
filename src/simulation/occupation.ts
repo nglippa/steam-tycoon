@@ -51,8 +51,8 @@ export const BANDS: Record<Band, Effects> = {
   liberated:  { name: 'Civic control',   upTo: 20,  civilians: 1,   personnel: 0,   merchants: 1,   income: 1.1,  risk: 0,   curfew: 'none',   checkpoints: false, notes: ['No patrols', 'No curfew', 'Trade open late'] },
   low:        { name: 'Low occupation',  upTo: 40,  civilians: .85, personnel: .25, merchants: .9,  income: 1.06, risk: .6,  curfew: 'lax',    checkpoints: false, notes: ['Few patrols', 'Curfew loosely kept', 'Commerce recovering'] },
   controlled: { name: 'Controlled',      upTo: 60,  civilians: .65, personnel: .5,  merchants: .75, income: 1.03, risk: .85, curfew: 'normal', checkpoints: true,  notes: ['Regular patrols', 'Curfew enforced', 'Checkpoints manned'] },
-  heavy:      { name: 'Heavy occupation', upTo: 80, civilians: .45, personnel: .75, merchants: .55, income: 1,    risk: 1,   curfew: 'strict', checkpoints: true,  notes: ['More patrols', 'Curfew enforced', 'Commerce suppressed'] },
-  lockdown:   { name: 'Lockdown',        upTo: 100, civilians: .25, personnel: 1,   merchants: .35, income: .95,  risk: 1.3, curfew: 'strict', checkpoints: true,  notes: ['Patrols everywhere', 'Strict curfew', 'Streets emptied'] },
+  heavy:      { name: 'Heavy occupation', upTo: 80, civilians: .38, personnel: .75, merchants: .42, income: 1,    risk: 1,   curfew: 'strict', checkpoints: true,  notes: ['More patrols', 'Curfew enforced', 'Commerce suppressed'] },
+  lockdown:   { name: 'Lockdown',        upTo: 100, civilians: .22, personnel: 1,   merchants: .28, income: .95,  risk: 1.3, curfew: 'strict', checkpoints: true,  notes: ['Patrols everywhere', 'Strict curfew', 'Streets emptied'] },
 };
 export function bandOf(percent: number): Band { for (const [id, b] of Object.entries(BANDS) as [Band, Effects][]) if (percent <= b.upTo) return id; return 'lockdown'; }
 
@@ -77,12 +77,18 @@ export type Standing = 'civilian' | 'merchant' | 'occupier';
 export const isOccupier = (archetype: string) => archetype === 'guard' || archetype === 'ordinal';
 export const standingOf = (archetype: string): Standing => isOccupier(archetype) ? 'occupier' : archetype === 'merchant' ? 'merchant' : 'civilian';
 /** Fractions of each kind present. Curfew empties the street of civilians and puts more of the Ordinance on it. */
-export function population(band: Band, enforcement: Enforcement = 'none') {
-  const b = BANDS[band], night = enforcement === 'strict' ? .1 : enforcement === 'normal' ? .16 : enforcement === 'lax' ? .5 : 1;
-  return { civilian: b.civilians * night, merchant: enforcement === 'none' ? b.merchants : enforcement === 'lax' ? b.merchants * .4 : 0, occupier: b.personnel === 0 ? 0 : Math.min(1, b.personnel + (enforcement === 'none' ? 0 : enforcement === 'lax' ? .1 : .25)) };
+export function population(band: Band, enforcement: Enforcement = 'none', crackdown = false) {
+  const b = BANDS[band], thin = crackdown ? .75 : 1, night = enforcement === 'strict' ? .1 : enforcement === 'normal' ? .16 : enforcement === 'lax' ? .5 : 1;
+  // A crackdown thins the street further and brings out posts that are otherwise never manned (ranks above 1).
+  return { civilian: b.civilians * night * thin, merchant: (enforcement === 'none' ? b.merchants : enforcement === 'lax' ? b.merchants * .4 : 0) * thin, occupier: b.personnel === 0 ? 0 : Math.min(1, b.personnel + (enforcement === 'none' ? 0 : enforcement === 'lax' ? .1 : .25)) + (crackdown ? .3 : 0) };
 }
 /** Whether one person (a stable `seed` in 0..1) is out. The same seed always leaves in the same order, so a street thins, it does not reshuffle. */
-export function admits(standing: Standing, seed: number, band: Band, enforcement: Enforcement = 'none') { return seed < population(band, enforcement)[standing]; }
+export function admits(standing: Standing, seed: number, band: Band, enforcement: Enforcement = 'none', crackdown = false) { return seed < population(band, enforcement, crackdown)[standing]; }
+/** How much a staged person matters to play. ESSENTIAL people (a contact, a story actor, anyone the Ordinance posts) stay
+ * whatever the street is like; CONDITIONAL ones are authored scenes (a conversation, a stall's customers, a work gang) and
+ * AMBIENT ones are population. Both of those obey the district: occupation thins them, curfew sends them indoors. */
+export type Importance = 'essential' | 'conditional' | 'ambient';
+export function present(importance: Importance, standing: Standing, seed: number, band: Band, enforcement: Enforcement = 'none', crackdown = false) { return importance === 'essential' || admits(standing, seed, band, enforcement, crackdown); }
 /** A stable 0..1 number for a person, from their index. */
 export const seedOf = (index: number) => { const v = Math.sin(index * 127.1 + 31.7) * 43758.5453; return v - Math.floor(v); };
 
@@ -160,3 +166,41 @@ export function caught(heat: number, kind: Incident, crowns: number, rate: numbe
 /** Heat fades with time on the right side of the rules. */
 export const cooled = (heat: number, seconds: number) => Math.max(0, heat - seconds / HEAT.cool);
 export const heatName = (heat: number) => heat < .5 ? '' : heat < 1.5 ? 'Noticed' : heat < 2.5 ? 'Known to the patrols' : heat < 3.5 ? 'Watched' : 'Marked';
+
+// ---------------------------------------------------------------- the Ordinance uses the street, and people give it room
+/** How far off someone starts to make room for a walking patrol, in metres. The nervous move early, the proud barely at all. */
+export function berth(manner: Manner) { return manner.trait === 'nervous' ? 4.6 : manner.trait === 'proud' ? 2 : manner.trait === 'reserved' ? 2.6 : manner.trait === 'hurried' ? 3 : 3.4; }
+/** How far a civilian steps aside (metres) for an occupier `distance` away: nothing outside their berth, most when it is on top of them.
+ * `standing` posts (an inspector, a checkpoint) are given a smaller, steadier margin. The Ordinance steps aside for nobody. */
+export function makeRoom(archetype: string, manner: Manner, distance: number, standing = false) {
+  if (isOccupier(archetype)) return 0; const r = berth(manner) * (standing ? .6 : 1); if (distance >= r) return 0;
+  const k = 1 - distance / r; return Math.min(1, k * 1.6) * (manner.trait === 'proud' ? .45 : manner.trait === 'nervous' ? 1.1 : .8) * (standing ? .6 : 1);
+}
+/** What each post is for. Only `patrol`, `checkpoint` and `sentry` posts can be asked to act; the rest are staging. */
+export type PostRole = 'sentry' | 'patrol' | 'inspector' | 'checkpoint' | 'observation' | 'pair';
+export const canAct = (role: PostRole) => role === 'patrol' || role === 'checkpoint' || role === 'sentry' || role === 'inspector';
+/** At most this many of the Ordinance are asked each tick whether they can see the Steward, however many are standing in the street. */
+export const AUTHORITY_BUDGET = 3;
+
+// ---------------------------------------------------------------- checkpoints
+/** A checkpoint is the district's band made into a barrier on an obvious route. */
+export type Gate = 'gone' | 'open' | 'light' | 'manned' | 'sealed';
+export function gateState(band: Band, enforcement: Enforcement = 'none'): Gate {
+  if (band === 'liberated') return 'gone'; if (band === 'low') return 'open';
+  if (enforcement === 'strict' || enforcement === 'normal') return 'sealed';
+  return band === 'controlled' ? 'light' : 'manned';
+}
+/** How many of its two men stand at it. */
+export const gateCrew = (gate: Gate) => gate === 'manned' || gate === 'sealed' ? 2 : gate === 'light' ? 1 : 0;
+/** What walking up to it costs. Unknown to the patrols, the Steward is waved through; once noticed, papers are an incident.
+ * A lighter checkpoint lets more pass; a crackdown stops everyone it knows at all. */
+export type Scrutiny = 'none' | 'wave' | 'challenge' | 'refuse';
+export function scrutiny(gate: Gate, heat: number, crackdown = false): Scrutiny {
+  if (gate === 'gone' || gate === 'open') return 'none'; if (gate === 'sealed') return 'refuse';
+  const limit = crackdown ? .25 : gate === 'light' ? 1.75 : .75; return heat >= limit ? 'challenge' : 'wave';
+}
+/** A ward's name short enough for a phone. */
+export const SHORT: Record<DistrictId, string> = { market: 'MARKET', row: 'CINDER ROW', foundry: 'CINDER 3', gauge: 'RATION LINE', canal: 'CANAL', weatherside: 'WEATHERSIDE', lowworks: 'LOWWORKS' };
+export const bandWord = (band: Band) => ({ liberated: 'FREE', low: 'LOW', controlled: 'HELD', heavy: 'HEAVY', lockdown: 'LOCKDOWN' })[band];
+/** The compact line for a small screen: ward, percentage and band in a dozen characters or so. */
+export const wardLine = (id: DistrictId, percent: number, band: Band) => `${SHORT[id]} · ${percent}% ${bandWord(band)}`;

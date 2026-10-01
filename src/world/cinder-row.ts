@@ -68,11 +68,11 @@ export class CinderRow implements SiteModule {
     const marked = this.site.layer(when.covert(1));
     { const m = new T.Mesh(new T.PlaneGeometry(.3, .3), decalMat(emberChalk, .95)); m.position.set(WAYMARK.x, .42, WAYMARK.z - .14); m.rotation.y = Math.PI; marked.add(m);
       const c = new T.Mesh(new T.PlaneGeometry(.46, .46), decalMat(emberChalk, .85)); c.position.set(10.4, 1.25, -7.02); marked.add(c); }
-    this.chalker = pres.addWorker(CHALKER.x, CHALKER.z, 0, 'repair', { role: 'resident', when: () => this.view.control >= 1 && !this.facts.rowFree });
-    this.lookout = pres.addWorker(LOOKOUT.x, LOOKOUT.z, Math.PI / 2, 'lean', { role: 'courier', when: () => this.view.control >= 1 && !this.facts.rowFree });
+    this.chalker = pres.addWorker(CHALKER.x, CHALKER.z, 0, 'repair', { essential: true, role: 'resident', when: () => this.view.control >= 1 && !this.facts.rowFree });
+    this.lookout = pres.addWorker(LOOKOUT.x, LOOKOUT.z, Math.PI / 2, 'lean', { essential: true, role: 'courier', when: () => this.view.control >= 1 && !this.facts.rowFree });
     // The courier: the network made visible. A worker with the yard's satchel walking the
     // Row to the Finch and back, from the first chalk mark to the end.
-    this.courier = pres.addWorker(ROUTE[0].x, ROUTE[0].y, Math.PI, 'carry', { role: 'courier', tool: 'carry', when: () => this.facts.courierRun });
+    this.courier = pres.addWorker(ROUTE[0].x, ROUTE[0].y, Math.PI, 'carry', { essential: true, role: 'courier', tool: 'carry', when: () => this.facts.courierRun });
     // THE DIRECTORATE NOTICES ------------------------------------------------------------
     // Crates leave the yard light and couriers use the Row: an inspection post appears mid-Row,
     // a notice goes up, the shortcut north is closed, and a searchlight watches at night.

@@ -69,8 +69,16 @@ export class Roofwalk {
       box(h, -4.4, F + .22, 6.62, .9, .44, .5, mats.wood); for (const dx of [-.3, .3]) box(h, -4.4 + dx, F + .22, 6.36, .06, .46, .02, mats.iron);
       shelves(h, -5.95, F + .9, 6.2, 1.2, false, 2, .8); box(h, -.28, F + 1.75, 5.2, .04, .9, .5, artMats.fadedPaint); box(h, -.3, F + 2.2, 5.2, .08, .05, .05, mats.iron); poster(h, -.27, F + 1.7, 6.2, 0, -Math.PI / 2);
       box(h, -3.1, F + .01, 5.75, 2.2, .02, 1.2, artMats.wine);
-      // the hatch: a lidded frame in the duckboards, and the ladder down
-      for (const [x, z, w, d] of [[-5.5, 3.95, 1, .08], [-5.5, 4.85, 1, .08], [-5.96, 4.4, .08, .98], [-5.04, 4.4, .08, .98]]) box(h, x, LEADS + .06, z, w, .14, d, mats.iron); box(h, -6.15, LEADS + .5, 4.4, .06, .9, .9, mats.wood);
+      // THE HATCH. A proper roof scuttle: a timber coaming round a dark well, the lid thrown back on its strap hinges and held by a stay,
+      // the ladder's rails standing up out of it. Below, the same opening is a framed trap in the room's ceiling.
+      { const hx = -5.5, hz = 4.4, W2 = .5; box(h, hx, LEADS + .012, hz, .86, .02, .86, mats.dark);
+        for (const [x, z, w, d] of [[hx, hz - W2, 1.1, .1], [hx, hz + W2, 1.1, .1], [hx - W2, hz, .1, 1.1], [hx + W2, hz, .1, 1.1]]) { box(h, x, LEADS + .15, z, w, .3, d, mats.wood); box(h, x, LEADS + .31, z, w + .04, .03, d + .04, mats.iron); }
+        const lid = new T.Group(); lid.position.set(hx - W2 - .06, LEADS + .32, hz); lid.rotation.z = 1.32; h.add(lid); box(lid, .5, 0, 0, 1.02, .07, 1.06, mats.wood); for (const dz of [-.34, .34]) box(lid, .5, .04, dz, 1.04, .02, .09, mats.iron); box(lid, .92, .08, 0, .05, .06, .3, mats.iron);
+        beam(h, V(hx - W2 - .3, LEADS + 1.02, hz + .45), V(hx - .1, LEADS + .32, hz + W2), .014, mats.iron); for (const dz of [-.3, .3]) box(h, hx - W2 - .05, LEADS + .32, hz + dz, .14, .06, .12, mats.iron);
+        box(h, hx, C - .012, 4.66, .92, .03, .8, mats.dark); for (const [x, z, w, d] of [[hx, 4.24, 1.1, .08], [hx, 5.08, 1.1, .08], [hx - .5, 4.66, .08, .9], [hx + .5, 4.66, .08, .9]]) box(h, x, C - .05, z, w, .1, d, mats.wood); }
+      // Enough to say whose room it is: a mug and the ledger on the table, boots by the bed, a second blanket folded at its foot.
+      cyl(h, -3.42, F + .88, 4.86, .045, .1, mats.copper); box(h, -2.95, F + .84, 4.8, .3, .05, .22, artMats.wine); for (const dx of [0, .16]) { box(h, -2.7 + dx, F + .1, 6.05, .11, .2, .26, mats.dark); box(h, -2.7 + dx, F + .26, 5.96, .11, .16, .1, mats.dark); }
+      box(h, -2.05, F + .53, 6.4, .34, .08, .8, artMats.ochre); box(h, -.3, F + 1.5, 4.7, .03, .4, .3, mats.wood); box(h, -.31, F + 1.5, 4.7, .02, .3, .22, artMats.fadedPaint);
       bake(h); city.deck(X0 - .25, X1 + .25, 4, 7.2, F);
       for (const [x, z, w, d] of [[cx, 3.95, 6.6, .1], [cx, 7.25, 6.6, .1], [X0 - .3, 5.6, .1, 3.4], [X1 + .3, 5.6, .1, 3.4]]) city.collider(x, z, w, d, C + .2, undefined, undefined, F - .25);
       ladder(h, this.live, city, 'ladder.home', 'The hatch to your room', -5.5, 4.32, F, LEADS, 0, 1, mats.iron, [0, .1]);

@@ -7,7 +7,8 @@ import type { Archetype } from './palette';
 import { animateLife, turnTaking, eased, type Activity } from './citizen-life';
 import { reducedMotion } from '../motion';
 import type { City } from './city';
-import { districtAt, standingOf, seedOf, isOccupier, type DistrictId, type Standing } from '../simulation/occupation';
+import { districtAt, standingOf, seedOf, isOccupier, canAct, AUTHORITY_BUDGET, type DistrictId, type Standing, type Importance, type PostRole } from '../simulation/occupation';
+import { Checkpoints } from './checkpoints';
 import { inView } from './patrol';
 import { PROPERTIES } from '../simulation/economy';
 import { businessHeights, businessLift } from './architecture';
@@ -33,7 +34,9 @@ const plaqueAtlas=new Atlas(map=>printed(illustrated(new T.MeshStandardMaterial(
 export class Presentation {
   root=new T.Group(); restored=new T.Group(); worn=new T.Group(); market=new T.Group();
   mechanisms:{object:T.Object3D;axis:'x'|'y'|'z';speed:number}[]=[];
-  workers:{person:ReturnType<typeof citizen>;kind:Activity;tool?:T.Group;minStage:number;maxStage:number;time:'any'|'day'|'night';partner?:number;path?:{a:T.Vector3;b:T.Vector3;speed:number};y:number;when?:()=>boolean;/** Where they belong and how early they leave the street as occupation rises. Story-staged people (`when`) and `keep` are exempt. */district:DistrictId;standing:Standing;seed:number;keep?:boolean}[]=[];
+  workers:{person:ReturnType<typeof citizen>;kind:Activity;tool?:T.Group;minStage:number;maxStage:number;time:'any'|'day'|'night';partner?:number;path?:{a:T.Vector3;b:T.Vector3;speed:number};y:number;when?:()=>boolean;/** Where they belong and how early they leave the street as occupation rises. Story-staged people (`when`) and `keep` are exempt. */district:DistrictId;standing:Standing;seed:number;importance:Importance;base:T.Vector3}[]=[];
+  /** Every Ordinance post and what it is for. */
+  posts:{index:number;role:PostRole;rank:number;district:DistrictId}[]=[];checkpoints!:Checkpoints;
   /** The Ordinance's extra people: decorative, staged by district. Only the nearest few are ever asked whether they can see the Steward. */
   garrisonPosts:number[]=[];private watch={suspicion:0,stage:'none' as 'none'|'noticed'|'challenged',grace:0,unseen:0,by:-1,cooldown:0,scan:0,near:[] as number[]};
   marketSquare!:MarketSquare; foundryWorks!:FoundryWorks; cinderRow!:CinderRow; rationLine!:RationLine; sites:SiteModule[]=[];
@@ -241,7 +244,7 @@ export class Presentation {
     // The sky canal: steam carriers over the cleft where the barge once ran.
     this.skyCanal=new SkyCanal(this.root);
     // The city behind and beneath the showcase streets.
-    this.root.add(this.interiorLight);this.weatherside=new Weatherside(this);this.hangway=new Hangway(this);this.roofwalk=new Roofwalk(this);this.canalWard=new CanalWard(this);this.garrison();this.workers[this.furnaceHammer].keep=this.workers[this.cartPusher].keep=true;
+    this.root.add(this.interiorLight);this.weatherside=new Weatherside(this);this.hangway=new Hangway(this);this.roofwalk=new Roofwalk(this);this.canalWard=new CanalWard(this);this.garrison();this.workers[this.furnaceHammer].importance=this.workers[this.cartPusher].importance='essential';
     // A crate rides the salvage pulley.
     this.hoistCrate=new T.Group();crate(this.hoistCrate,0,0,0,.7);asProp(this.hoistCrate);bake(this.hoistCrate);this.root.add(this.hoistCrate);
     // Housing lane: a stoop chair, a delivery handcart and doorstep plants once homes recover.
@@ -433,20 +436,26 @@ export class Presentation {
    * Each post has a rank: it is manned once the district's Ordinance presence passes it, so a lockdown street fills
    * and a loosening one empties post by post. Curfew raises the presence, so more of them come out at night. */
   garrison(){const N=0,S=Math.PI,E=Math.PI/2,Wt=-Math.PI/2,city=this.city;
-    const post=(x:number,z:number,yaw:number,rank:number,kind:Activity='guard',role:Archetype='guard',path?:[number,number,number])=>{
+    const post=(x:number,z:number,yaw:number,rank:number,job:PostRole='sentry',path?:[number,number,number])=>{
       // Canal Ward is behind its gate until chartered: its posts cannot be checked now and are not manned until it opens.
       const gated=x>48;if(!gated&&(city.blocked(x,z,.2)||(path&&city.blocked(path[0],path[1],.2)))){console.warn('garrison post is not on open ground',x,z);return -1;}const d=districtAt(x,z);
-      const i=this.addWorker(x,z,yaw,kind,{role,path,when:()=>rank<city.social.get(d)!.occupier&&(!gated||city.economy.state.districts.includes('canal'))});this.garrisonPosts.push(i);return i;};
-    const pair=(ax:number,az:number,bx:number,bz:number,rank:number)=>{const a=post(ax,az,Math.atan2(bx-ax,bz-az),rank,'talk'),b=post(bx,bz,Math.atan2(ax-bx,az-bz),rank,'talk');if(a>=0&&b>=0){this.workers[a].partner=b;this.workers[b].partner=a;}};
-    // The Great Main: a pair by the arrival end, sentries along it, a checkpoint under the Bridge-house, an inspector, a beat.
-    pair(4.2,52,5.4,51,.3);post(-4.6,30,E,.5);post(3.7,8.6,S,.4);post(-3.7,8.6,S,.58);post(-5.2,14,E,.82,'clipboard','ordinal');post(5.4,22,S,.68,'walk','guard',[5.4,42,.42]);
-    post(-39.4,30,E,.62);post(-38.6,12,S,.86,'walk','guard',[-38.6,38,.4]);post(35.2,2,Wt,.7);
-    // Market Square: the gate, the stalls, an inspector at the fountain, two men talking under the arcade.
-    post(6.2,-17.5,S,.35);post(-6.4,-19,S,.55);post(2.6,-22.6,N,.88,'clipboard','ordinal');pair(-3.2,-38.2,-2,-37.6,.72);post(8.2,-30,Wt,.94);
+      const i=this.addWorker(x,z,yaw,job==='patrol'?'walk':job==='inspector'?'clipboard':job==='pair'?'talk':'guard',{role:job==='inspector'?'ordinal':'guard',path,when:()=>rank<city.social.get(d)!.occupier&&(!gated||city.economy.state.districts.includes('canal'))});
+      this.garrisonPosts.push(i);this.posts.push({index:i,role:job,rank,district:d});return i;};
+    const pair=(ax:number,az:number,bx:number,bz:number,rank:number)=>{const a=post(ax,az,Math.atan2(bx-ax,bz-az),rank,'pair'),b=post(bx,bz,Math.atan2(ax-bx,az-bz),rank,'pair');if(a>=0&&b>=0){this.workers[a].partner=b;this.workers[b].partner=a;}};
+    // The Great Main: a pair off duty by the arrival end, sentries along it, an inspector at the freight, a beat. (Its checkpoint has its own crew.)
+    pair(4.2,52,5.4,51,.3);post(-4.6,30,E,.5);post(-5.2,14,E,.82,'inspector');post(5.4,22,S,.45,'patrol',[5.4,42,.7]);
+    post(-39.4,30,E,.62);post(-38.6,12,S,.7,'patrol',[-38.6,38,.65]);post(35.2,2,Wt,.7);
+    // Market Square: sentries at the gate and the stalls, an inspector at the fountain, two men talking under the arcade, a beat across the square.
+    post(6.2,-17.5,S,.35);post(-6.4,-19,S,.55);post(2.6,-22.6,N,.88,'inspector');pair(-3.2,-38.2,-2,-37.6,.72);post(8.2,-30,Wt,.94);post(-4.3,-14,S,.42,'patrol',[-4.3,-30,.7]);
     // Cinder Row, the yard and the Ration Line.
-    post(12,-3.2,E,.45);post(20.5,-1.4,Wt,.7);post(35.2,11,Wt,.5);post(35.4,19,Wt,.8);post(34.8,33,Wt,.5);post(34,40.5,Wt,.84,'clipboard','ordinal');
+    post(12,-3.2,E,.45);post(20.5,-1.4,Wt,.7);post(35.2,11,Wt,.5);post(35.4,19,Wt,.8);post(34.8,33,Wt,.5);post(34,40.5,Wt,.84,'inspector');
     // The Weatherside and Canal Ward.
     post(-60.6,30.5,E,.5);post(-58.4,44,S,.78);post(57.2,18,Wt,.5);post(57.2,-12,Wt,.8);
+    // CRACKDOWN. Ranks above 1 are never manned in the ordinary way: these come out only where the Ordinance is answering an arrest.
+    post(-4.4,46,E,1.05);post(4.8,34,Wt,1.12);post(-4.8,19,S,1.2,'patrol',[-4.8,36,.5]);
+    post(-9.2,-15.5,E,1.05);post(9.4,-25,Wt,1.12);pair(-5.6,-31.5,-4.4,-31,1.2);
+    post(14.5,-1.2,E,1.05);post(26,-3.4,Wt,1.15);post(35.6,15,Wt,1.05);post(34.6,8,Wt,1.15);post(35.2,28,Wt,1.05);post(34.4,37,Wt,1.15);
+    this.checkpoints=new Checkpoints(this);
   }
   /** CURFEW. Decorative guards do not perceive anything; this asks only the three nearest whether they can see the Steward,
    * and only while a curfew is being enforced where the Steward stands. Notice, challenge, order home, then a grace to get
@@ -454,7 +463,7 @@ export class Presentation {
   watchCurfew(dt:number,time:number,viewer:T.Vector3){const w=this.watch,city=this.city,here=city.here(viewer.x,viewer.z);w.cooldown=Math.max(0,w.cooldown-dt);
     const enforced=here.enforcement!=='none'&&viewer.y<4.6&&w.cooldown<=0;
     if(!enforced){w.suspicion=Math.max(0,w.suspicion-dt*.5);if(w.stage!=='none'&&here.enforcement==='none'){w.stage='none';}if(w.stage==='challenged'&&viewer.y>=4.6){w.unseen+=dt;if(w.unseen>4){w.stage='none';w.suspicion=0;city.onEvent('The street below loses sight of you.');}}return;}
-    w.scan-=dt;if(w.scan<=0){w.scan=.25;w.near=this.garrisonPosts.concat(this.ordinance).filter(i=>this.workers[i].person.group.visible).map(i=>[i,this.workers[i].person.group.position.distanceToSquared(viewer)] as const).filter(([,d])=>d<256).sort((a,b)=>a[1]-b[1]).slice(0,3).map(([i])=>i);}
+    w.scan-=dt;if(w.scan<=0){w.scan=.25;w.near=this.authority.filter(i=>this.workers[i].person.group.visible).map(i=>[i,this.workers[i].person.group.position.distanceToSquared(viewer)] as const).filter(([,d])=>d<256).sort((a,b)=>a[1]-b[1]).slice(0,AUTHORITY_BUDGET).map(([i])=>i);}
     let seenBy=-1;for(const i of w.near){const g=this.workers[i].person.group;if(inView(city,g,viewer,13,.9)){seenBy=i;break;}}
     const rate=here.enforcement==='strict'?.8:here.enforcement==='normal'?.5:.25;
     if(seenBy>=0){const g=this.workers[seenBy],d=g.person.group.position.distanceTo(viewer);w.suspicion=Math.min(1.2,w.suspicion+dt*rate*(d<6?1.7:1));w.by=seenBy;w.unseen=0;
@@ -465,8 +474,10 @@ export class Presentation {
     if(w.stage==='challenged'){w.grace-=dt;if(w.grace<=0&&seenBy>=0){this.workers[seenBy].person.tone={tone:'hostile',until:time+6};city.incident('curfew',viewer.x,viewer.z);w.stage='none';w.suspicion=0;w.cooldown=25;}}
   }
   /** Occupiers staged elsewhere who also keep the curfew (the terrace sentry and the like). */
+  /** Those who can be asked to act: posts with a job that involves watching, and the Ordinance's story people who stand still. */
+  get authority(){return this.actors??=this.posts.filter(q=>canAct(q.role)).map(q=>q.index).concat(this.ordinance);}private actors?:number[];
   get ordinance(){return this.staticOrdinance??=this.workers.map((w,i)=>isOccupier(w.person.archetype)&&!this.garrisonPosts.includes(i)&&!w.path?i:-1).filter(i=>i>=0);}private staticOrdinance?:number[];
-  addWorker(x:number,z:number,yaw:number,kind:Activity,o:{y?:number;role?:Archetype;minStage?:number;maxStage?:number;time?:'any'|'day'|'night';scale?:number;partner?:number;path?:[number,number,number];tool?:string;when?:()=>boolean;keep?:boolean}={}) {
+  addWorker(x:number,z:number,yaw:number,kind:Activity,o:{y?:number;role?:Archetype;minStage?:number;maxStage?:number;time?:'any'|'day'|'night';scale?:number;partner?:number;path?:[number,number,number];tool?:string;when?:()=>boolean;essential?:boolean}={}) {
     const role=o.role??(kind==='gauge'||kind==='valve'||kind==='clipboard'?'engineer':kind==='browse'||(z<0&&kind==='read')?'merchant':kind==='read'||kind==='watch'||kind==='lean'?'resident':'worker');
     const person=citizen(mats.rust,this.workers.length+43,role);const y=o.y!==undefined?o.y+.18:this.city.groundHeight(x,z);person.group.position.set(x,y,z);person.group.rotation.y=yaw;if(o.scale)person.group.scale.multiplyScalar(o.scale);this.root.add(person.group);
     // Held things sit in the right hand's grip socket, authored grip-first: the handle runs through
@@ -483,7 +494,9 @@ export class Presentation {
     if(t==='basket'){torus(tool,0,-.02,0,.1,.011,mats.wood).rotation.y=Math.PI/2;cyl(tool,0,-.2,0,.13,.16,mats.wood);sphere(tool,0,-.12,0,.07,mats.red);}
     if(t==='carry'){const cargo=new T.Group();cargo.position.set(0,1.05,.31);person.body.add(cargo);box(cargo,0,0,0,.43,.32,.33,mats.wood);for(const y of [-.11,.11])box(cargo,0,y,.175,.45,.035,.02,mats.cream);asProp(cargo);bake(cargo);}
     asProp(tool);bake(tool);const path=o.path?{a:V(x,y,z),b:V(o.path[0],y,o.path[1]),speed:o.path[2]}:undefined;
-    this.workers.push({person,kind,tool,minStage:o.minStage??0,maxStage:o.maxStage??5,time:o.time??'any',partner:o.partner,path,y,when:o.when,district:districtAt(x,z),standing:standingOf(role),seed:seedOf(this.workers.length+43),keep:o.keep});return this.workers.length-1;
+    this.workers.push({person,kind,tool,minStage:o.minStage??0,maxStage:o.maxStage??5,time:o.time??'any',partner:o.partner,path,y,when:o.when,district:districtAt(x,z),standing:standingOf(role),seed:seedOf(this.workers.length+43),base:person.group.position.clone(),
+      // A contact, a story actor or anyone the Ordinance posts stays put. Authored scenes are conditional, the rest is population: both obey the district.
+      importance:o.essential||(isOccupier(role)&&o.when)?'essential':o.when?'conditional':'ambient'});return this.workers.length-1;
   }
   sync(){
     const e=this.city.economy;const levels=PROPERTIES.map(p=>this.city.properties.get(p.id)!.level);const key=[...levels,...Object.values(e.state.infrastructure),...Object.values(e.state.sites),e.stage,...e.state.research,...e.state.districts].join(':');if(key===this.signature)return;this.signature=key;
@@ -570,7 +583,7 @@ export class Presentation {
       const L=this.interiorLight;if(best){L.position.set(best.x,best.y,best.z);L.color.lerp(this.interiorColor.set(best.color),.2);}L.intensity+=((best?best.power??34:0)-L.intensity)*Math.min(1,dt*5); }this.canalWard.update(time,viewer,calm);
     this.workers.forEach((w,i)=>{const {person,kind}=w;
       // People further off than a long street are a few pixels: they are neither posed nor drawn.
-      const on=stage>=w.minStage&&stage<=w.maxStage&&(w.time==='any'||(w.time==='night')===night)&&(w.when?.()??true)&&(w.when!==undefined||w.keep||this.city.admits(w.standing,w.seed,w.district))&&Math.hypot(person.group.position.x-viewer.x,person.group.position.z-viewer.z)<90;person.group.visible=on;if(!on)return;
+      const on=stage>=w.minStage&&stage<=w.maxStage&&(w.time==='any'||(w.time==='night')===night)&&(w.when?.()??true)&&this.city.present(w.importance,w.standing,w.partner===undefined?w.seed:this.workers[Math.min(i,w.partner)].seed,w.district)&&Math.hypot(person.group.position.x-viewer.x,person.group.position.z-viewer.z)<90;person.group.visible=on;if(!on)return;
       person.worn.visible=stage<3;person.finery.visible=stage>=3;
       let moving=false;const position=person.group.position;
       // Out, turn, back, turn: the walk eases in and out of each leg, and the turn is a turn, not a flip.
@@ -579,11 +592,13 @@ export class Presentation {
         else if(cycle<length+pause){position.copy(b);person.group.rotation.y=out+turn(cycle-length);}
         else if(cycle<length*2+pause){position.lerpVectors(b,a,eased(cycle-length-pause,length)/length);moving=true;person.group.rotation.y=out+Math.PI;}
         else{position.copy(a);person.group.rotation.y=out+Math.PI+turn(cycle-length*2-pause);}}
-      const partner=w.partner===undefined?undefined:this.workers[w.partner].person.group.position;
+      // Static people stand where they were put, then make room for the Ordinance like anyone else. Story actors are moved by their own modules.
+      const settled=kind==='sit'||kind==='eat'||kind==='lean';if(w.importance!=='essential'&&!settled&&w.standing!=='occupier'){if(!w.path){position.x=w.base.x;position.z=w.base.z;}this.city.giveRoom(person,dt);}
+      const pair=w.partner===undefined?undefined:this.workers[w.partner].person.group,partner=pair?.visible?pair.position:undefined,alone=w.partner!==undefined&&!partner;
       if(partner)this.city.lifeTarget.set(partner.x,1.7,partner.z);else this.city.lifeTarget.set(position.x+Math.sin(person.group.rotation.y)*2,1.7,position.z+Math.cos(person.group.rotation.y)*2);
-      const speaking=w.partner!==undefined&&turnTaking(time,i+100,w.partner+100);
-      animateLife(person,kind,dt,time,calm,viewer,this.city.lifeTarget,speaking,moving);
+      const speaking=!alone&&w.partner!==undefined&&turnTaking(time,i+100,w.partner+100);
+      animateLife(person,alone&&kind==='talk'?(w.standing==='occupier'?'guard':'walk'):kind,dt,time,calm,viewer,this.city.lifeTarget,speaking,moving);
     });
-    this.animateSet(dt,time,calm);this.watchCurfew(dt,time,viewer);
+    this.animateSet(dt,time,calm);this.watchCurfew(dt,time,viewer);this.checkpoints.update(dt,time,viewer);
   }
 }

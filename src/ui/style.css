@@ -105,3 +105,7 @@ html,body{overscroll-behavior:none;-webkit-user-select:none;user-select:none}
 body:not(.started) .hour{display:none}
 @media (max-width:900px){.hour{transform:translateX(-50%)}}
 body.touch .hour{transform:translateX(-50%) scale(.85);transform-origin:top center}
+/* Small screens lose the bearing plate, so the hour plate carries the ward: time, curfew, then one compact line. */
+#ward-mini{display:none;font-weight:800;letter-spacing:.1em;white-space:nowrap;min-height:0}
+@media (max-width:900px){#ward-mini{display:block}.hour{padding:4px 10px}.hour small:empty{display:none}}
+body.touch #ward-mini{display:block}
