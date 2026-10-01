@@ -118,7 +118,7 @@ export class RationLine implements SiteModule {
     this.desk.layers.set(f.pressureWatch ? 0 : 1);
     if (f.pressureWatch) { this.attention.update(dt, time, this.eyes);
       crew[this.warden].kind = this.attention.facing(-1.51) ? 'clipboard' : this.attention.facing(.79) ? 'gauge' : 'guard';
-      if (this.key.carrying && time - this.caught > 3 && inView(city, this.eyes, viewer, this.range, .75)) { this.caught = time; this.key.drop();
+      if (this.key.carrying && time - this.caught > 3 && inView(city, this.eyes, viewer, this.range, .75)) { this.caught = time; this.key.drop(); city.incident('contraband', viewer.x, viewer.z);
         this.onAlarm('Valve warden: “That is a pressure key. Where did you get it?” You leave it on the kerb and keep walking. A packer takes it back to the yard.'); } }
     // The stoker reads the gauge under the ration; once the knock is learned he taps the main,
     // and stops, turned away, while the warden could see him.

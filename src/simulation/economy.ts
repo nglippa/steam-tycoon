@@ -147,12 +147,18 @@ export function cityFacts(sites: Record<SiteId, number>) {
 }
 export type CityFacts = ReturnType<typeof cityFacts>;
 export interface PropertyState { level: number; automated: boolean; stored: number; progress: number }
+import { occupation, bandOf, BANDS, curfewIn, curfewHour, caught, cooled, clock, dayAt, districtAt, DISTRICTS, HEAT, type DistrictId, type Band, type Effects, type Enforcement, type Incident, type Outcome } from './occupation';
+/** One day in Terra, in seconds of play. */
+export const DAY_SECONDS = 720;
 export interface Settings { master: number; ambience: number; sfx: number; music: number; sensitivity: number; reducedMotion: boolean; quality: 'high' | 'low' }
-export interface Save { version: 3; crowns: number; earned: number; properties: Record<PropertyId, PropertyState>; infrastructure: Record<InfraId, number>; districts: string[]; research: string[]; knowledge: string[]; discoveries: string[]; sites: Record<SiteId, number>; objective: number; playtime: number; day: number; lastSave: number; settings: Settings }
+export interface Save { version: 3; crowns: number; earned: number; properties: Record<PropertyId, PropertyState>; infrastructure: Record<InfraId, number>; districts: string[]; research: string[]; knowledge: string[]; discoveries: string[]; sites: Record<SiteId, number>; objective: number; playtime: number; day: number; lastSave: number; settings: Settings;
+  /** How often the Ordinance has had to deal with the Steward lately (0 to 5, cools with time), the district it is leaning on because of it,
+   * until when the Embers keep their doors shut, and when the rooftop signal was last answered. Times are in seconds of play. */
+  heat: number; crackdown: { district: DistrictId; until: number } | null; quietUntil: number; signalAt: number }
 export interface StorageAdapter { read(): string | null; write(value: string): void; clear(): void }
 export const SAVE_KEY = 'locke.terra.save';
 export function freshSave(now = Date.now()): Save {
-  return { version: 3, crowns: 35, earned: 0, properties: Object.fromEntries(PROPERTIES.map(p => [p.id, { level: 0, automated: false, stored: 0, progress: 0 }])) as Save['properties'], infrastructure: { lamps: 0, roads: 0, steam: 0, gardens: 0, housing: 0 }, districts: [], research: [], knowledge: [], discoveries: [], sites: { market: 0, foundry: 0, row: 0, gauge: 0 }, objective: 0, playtime: 0, day: .72, lastSave: now, settings: { master: .55, ambience: .45, sfx: .7, music: 0, sensitivity: 1, reducedMotion: false, quality: 'high' } };
+  return { version: 3, crowns: 35, earned: 0, properties: Object.fromEntries(PROPERTIES.map(p => [p.id, { level: 0, automated: false, stored: 0, progress: 0 }])) as Save['properties'], infrastructure: { lamps: 0, roads: 0, steam: 0, gardens: 0, housing: 0 }, districts: [], research: [], knowledge: [], discoveries: [], sites: { market: 0, foundry: 0, row: 0, gauge: 0 }, objective: 0, playtime: 0, day: .72, lastSave: now, settings: { master: .55, ambience: .45, sfx: .7, music: 0, sensitivity: 1, reducedMotion: false, quality: 'high' }, heat: 0, crackdown: null, quietUntil: 0, signalAt: -1e9 };
 }
 const finite = (v: unknown, fallback: number, max = 1e15) => typeof v === 'number' && Number.isFinite(v) ? Math.min(max, Math.max(0, v)) : fallback;
 export function decodeSave(raw: string | null): Save | null {
@@ -169,6 +175,8 @@ export function decodeSave(raw: string | null): Save | null {
     for (const site of SITES) s.sites[site.id] = Math.floor(finite(data.sites?.[site.id], 0, SITE_RESTORED));
     s.objective = Math.floor(finite(data.objective, 0, 5)); s.playtime = finite(data.playtime, 0); s.day = finite(data.day, .72, 1); s.lastSave = finite(data.lastSave, Date.now());
     for (const key of ['master', 'ambience', 'sfx', 'music', 'sensitivity'] as const) s.settings[key] = finite(data.settings?.[key], s.settings[key], key === 'sensitivity' ? 2 : 1);
+    s.heat = finite(data.heat, 0, HEAT.max); s.quietUntil = finite(data.quietUntil, 0); s.signalAt = typeof data.signalAt === 'number' && Number.isFinite(data.signalAt) ? data.signalAt : -1e9;
+    s.crackdown = data.crackdown && DISTRICTS.some(d => d.id === data.crackdown.district) && Number.isFinite(data.crackdown.until) ? { district: data.crackdown.district, until: data.crackdown.until } : null;
     s.settings.reducedMotion = Boolean(data.settings?.reducedMotion); s.settings.quality = data.settings?.quality === 'low' ? 'low' : 'high'; return s;
   } catch { return null; }
 }
@@ -193,7 +201,25 @@ export class Economy {
   get multiplier() { const i = this.state.infrastructure; return (1 + this.trait('market')) * (1 + i.lamps * .08 + i.roads * .1 + i.steam * .15 + i.gardens * .08 + i.housing * .12) * (1 + this.state.districts.length * .25) * (1 + this.state.research.length * .25) * (1 + this.state.discoveries.length * .03) * this.liberation; }
   /** Lifting the occupation levy: +15% per liberated site, +10% more once its ancient works run. */
   get liberation() { return 1 + SITES.reduce((n, s) => { const v = this.state.sites[s.id]; return n + (v >= SITE_LIBERATED ? .15 : 0) + (v >= SITE_RESTORED ? .1 : 0); }, 0); }
-  output(id: PropertyId) { const p = PROPERTIES.find(p => p.id === id)!; const level = this.state.properties[id].level; return p.base * (level === 0 ? .25 : Math.pow(OUTPUT_GROWTH, level - 1)) * (level >= 3 ? 1.5 : 1) * (level === 5 ? 2 : 1) * this.multiplier; }
+  /** Occupation where it is felt: a district's percentage, the band that puts it in, and what that band does. */
+  occupationOf(id: DistrictId) { const c = this.state.crackdown; return occupation(this.state.sites, id, c && c.until > this.state.playtime ? c.district : null); }
+  band(id: DistrictId): Band { return bandOf(this.occupationOf(id)); }
+  effects(id: DistrictId): Effects { return BANDS[this.band(id)]; }
+  /** How the curfew is being kept in a district at this moment. */
+  curfew(id: DistrictId): Enforcement { return curfewIn(this.state.day, this.band(id)); }
+  /** Being caught. The Ordinance remembers: the same offence costs more each time, up to a night in the cells.
+   * Nothing bought or built is ever taken; the cost is Crowns, time, and how the street treats you for a while. */
+  caught(kind: Incident, where: DistrictId): Outcome { const s = this.state, o = caught(s.heat, kind, s.crowns, this.rate);
+    s.crowns -= o.fine; s.heat = o.heat; if (o.crackdown) s.crackdown = { district: where, until: s.playtime + HEAT.crackdown }; if (o.quiet) s.quietUntil = s.playtime + HEAT.quiet;
+    if (o.detained) { s.day = dayAt(6); s.heat = 3; } this.onChange('caught', String(o.tier)); this.save(); return o; }
+  /** A night at home. Time passes to six in the morning, the trades pay what they pay unattended, and the patrols forget a little. */
+  canSleep() { const h = clock(this.state.day).hour; return h >= 18 || h < 5; }
+  sleep() { if (!this.canSleep()) return null; const s = this.state, span = ((dayAt(6) - s.day) % 1 + 1) % 1, award = this.rate * span * DAY_SECONDS * this.awayShare;
+    s.day = dayAt(6); s.crowns += award; s.earned += award; s.heat = Math.max(0, s.heat - HEAT.sleep); this.onChange('sleep', ''); this.save(); return { award, hours: Math.round(span * 24) }; }
+  /** Curfew is when the Ordinance expects nobody on the roofs. Answering the Weathervane's lamp moves one consignment a night. */
+  canSignal() { return curfewHour(this.state.day) && this.state.sites.market >= 1 && this.state.sites.market < SITE_LIBERATED && this.state.playtime - this.state.signalAt > DAY_SECONDS / 2; }
+  signal() { if (!this.canSignal()) return 0; const s = this.state, award = Math.max(60, Math.round(this.rate * 60)); s.signalAt = s.playtime; s.crowns += award; s.earned += award; s.heat = Math.max(0, s.heat - .5); this.onChange('signal', ''); this.save(); return award; }
+  output(id: PropertyId) { const p = PROPERTIES.find(p => p.id === id)!; const level = this.state.properties[id].level; return this.effects(districtAt(p.x, p.z)).income * p.base * (level === 0 ? .25 : Math.pow(OUTPUT_GROWTH, level - 1)) * (level >= 3 ? 1.5 : 1) * (level === 5 ? 2 : 1) * this.multiplier; }
   get rate() { return PROPERTIES.reduce((sum, p) => sum + this.output(p.id) / p.interval * (this.state.properties[p.id].automated ? 1 : .4), 0); }
   get investment() { return Object.values(this.state.properties).reduce((n, p) => n + p.level, 0) + Object.values(this.state.infrastructure).reduce((a, b) => a + b, 0); }
   get stage() { return Math.min(5, Math.floor(this.investment / 7)); }
@@ -229,22 +255,23 @@ export class Economy {
   site(id: SiteId) { return SITES.find(s => s.id === id)!; }
   /** Why the next step at a site cannot be taken yet; null when only the price stands in the way. */
   siteBlocker(id: SiteId): string | null { const step = this.site(id).steps[this.state.sites[id]]; if (!step) return 'Complete';
+    if (step.kind === 'covert' && this.state.quietUntil > this.state.playtime) return 'The Embers have gone quiet after your arrest. Give it a few minutes';
     return this.requirement(step) ?? (step.carried ? 'Carried by hand, not bought' : null); }
   /** A carried step completes, free, when its goods arrive and everything else it needs is in place. */
-  deliver(id: SiteId) { const step = this.site(id).steps[this.state.sites[id]]; if (!step?.carried || this.requirement(step)) return false; this.state.sites[id]++; this.onChange('site', id); this.save(); return true; }
+  deliver(id: SiteId) { const step = this.site(id).steps[this.state.sites[id]]; if (!step?.carried || this.requirement(step)) return false; this.state.sites[id]++; if (this.state.sites[id] === SITE_LIBERATED) this.state.heat = Math.max(0, this.state.heat - HEAT.liberation); this.onChange('site', id); this.save(); return true; }
   private requirement(step: SiteStep): string | null { const r = step.requires;
     if (r.property && this.state.properties[r.property].level < (r.level ?? 1)) return `Requires ${PROPERTIES.find(p => p.id === r.property)!.name} restored to level ${r.level ?? 1}`;
     if (r.infra && this.state.infrastructure[r.infra] < (r.level ?? 1)) return `Requires ${INFRA.find(i => i.id === r.infra)!.name.toLowerCase()} level ${r.level ?? 1}`;
     if (r.stage !== undefined && this.stage < r.stage) return `Requires Terra to reach ${STAGES[r.stage]}`;
     for (const [other, control] of Object.entries(r.sites ?? {}) as [SiteId, number][]) if (this.state.sites[other] < control) return `Requires ${this.site(other).name}: ${this.site(other).steps[control - 1].name.toLowerCase()}`;
     return null; }
-  advanceSite(id: SiteId) { const level = this.state.sites[id], step = this.site(id).steps[level]; if (!step || this.siteBlocker(id) || !this.spend(this.siteCost(id))) return false; this.state.sites[id]++; this.onChange('site', id); this.save(); return true; }
+  advanceSite(id: SiteId) { const level = this.state.sites[id], step = this.site(id).steps[level]; if (!step || this.siteBlocker(id) || !this.spend(this.siteCost(id))) return false; this.state.sites[id]++; if (this.state.sites[id] === SITE_LIBERATED) this.state.heat = Math.max(0, this.state.heat - HEAT.liberation); this.onChange('site', id); this.save(); return true; }
   inspect(id: string) { if (id === 'scrap' && this.state.objective === 0) this.state.objective = 1; }
   checkObjective() { if (this.state.objective === 2 && this.state.properties.scrap.level > 0) this.state.objective = 3; if (this.state.objective === 3 && this.state.properties.boiler.level > 0) this.state.objective = 4; if (this.state.objective === 4 && this.state.infrastructure.lamps > 0) this.state.objective = 5; }
   tick(dt: number) { dt = Number.isFinite(dt) ? Math.max(0, Math.min(dt, OFFLINE.hours * 3600)) : 0;
     // A long gap between frames is a suspended tab, not play: it pays what time away pays.
-    if (dt > AWAY_AFTER) { const award = this.rate * dt * this.awayShare; this.state.crowns += award; this.state.earned += award; this.state.day = (this.state.day + dt / 720) % 1; return; }
-    this.state.playtime += dt; this.state.day = (this.state.day + dt / 720) % 1;
+    if (dt > AWAY_AFTER) { const award = this.rate * dt * this.awayShare; this.state.crowns += award; this.state.earned += award; this.state.day = (this.state.day + dt / DAY_SECONDS) % 1; this.state.heat = cooled(this.state.heat, dt); return; }
+    this.state.playtime += dt; this.state.day = (this.state.day + dt / DAY_SECONDS) % 1; this.state.heat = cooled(this.state.heat, dt); if (this.state.crackdown && this.state.crackdown.until <= this.state.playtime) { this.state.crackdown = null; this.onChange('occupation', ''); }
     for (const p of PROPERTIES) { const s = this.state.properties[p.id]; const out = this.output(p.id); const passive = out / p.interval * (s.automated ? 1 : .4) * dt; this.state.crowns += passive; this.state.earned += passive; s.progress += dt; const cycles = Math.floor(s.progress / p.interval); s.progress %= p.interval; if (!s.automated) s.stored = Math.min(s.stored + cycles * out * .6, out * 30); }
   }
   save(now = Date.now()) { this.state.lastSave = now; try { this.storage.write(JSON.stringify(this.state)); } catch { this.onChange('save-error', ''); } }

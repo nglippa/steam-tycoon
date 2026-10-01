@@ -9,7 +9,8 @@ import { roof, pipe, crest, railing, canopy, bunting, fabricOf, shopDisplay, gri
 import { citizen, setCitizenProsperity } from './citizens';
 import { palette as P } from './palette';
 import { housingPaint, setHousingCondition, residentialWindows, type Home } from './housing';
-import { animateLife, sceneFor, stageCitizen, setLifeConditions, turnTaking } from './citizen-life';
+import { animateLife, sceneFor, stageCitizen, setLifeConditions, setSocialField, turnTaking } from './citizen-life';
+import { DISTRICTS, BANDS, bandOf, population, admits, districtAt, isOccupier, standingOf, seedOf, type DistrictId, type Band, type Enforcement, type Standing, type Incident } from '../simulation/occupation';
 import { TerraEdge, TERRACE as EDGE_TERRACE, CHASM, GALLERY, WEST_EDGE } from './terra-edge';
 import { Economy, PROPERTIES, SITE_LIBERATED, SITE_RESTORED, type PropertyId, type SiteId } from '../simulation/economy';
 export interface Collider { minX: number; maxX: number; minZ: number; maxZ: number; height: number; base?: number; gate?: string; open?: () => boolean }
@@ -19,7 +20,7 @@ export interface Deck { minX: number; maxX: number; minZ: number; maxZ: number; 
 /** An authored ladder: where the Steward stands at each end, and the line the rungs follow. */
 export interface Ladder { id: string; x: number; z: number; bottom: T.Vector3; top: T.Vector3 }
 const deckHeight = (d: Deck, x: number, z: number) => d.y1 === undefined ? d.y : d.y + (d.y1 - d.y) * T.MathUtils.clamp(d.axis === 'x' ? (x - d.minX) / (d.maxX - d.minX) : (z - d.minZ) / (d.maxZ - d.minZ), 0, 1);
-export interface Target { object: T.Object3D; id: string; kind: 'property' | 'ledger' | 'discovery' | 'district' | 'site' | 'lift' | 'ladder'; label: string; position: T.Vector3; hint?: string; /** Not offered while this is false (a thing behind a door that is still shut). */ when?: () => boolean }
+export interface Target { object: T.Object3D; id: string; kind: 'property' | 'ledger' | 'discovery' | 'district' | 'site' | 'lift' | 'ladder' | 'home' | 'signal'; label: string; position: T.Vector3; hint?: string; /** Not offered while this is false (a thing behind a door that is still shut). */ when?: () => boolean }
 interface PropertyVisual { root: T.Group; additions: T.Group; machine: T.Group; gear: T.Group; piston: T.Mesh; level: number; building: T.Group; sign: T.Mesh }
 /** Clock terrace: concentric 0.2 m steps rising 1.2 m toward the tower. */
 export const TERRACE = { x: 0, z: -49.5, outer: 13.5, inner: 9, rise: 1.2, steps: 6 };
@@ -39,10 +40,23 @@ export class City {
   npcs: ReturnType<typeof citizen>[] = []; constructions: { group: T.Group; time: number; duration: number; finish: () => void; workers: ReturnType<typeof citizen>[]; site?: string }[] = [];
   /** World-originated messages (a patrol's warning, an ancient machine waking) for the UI to voice. */
   onEvent: (message: string) => void = () => {};
+  /** The street's condition by district, refreshed twice a second from the economy: who is admitted, how hard the curfew bites,
+   * and where the Ordinance's people are standing (so civilians near them can keep their voices down). */
+  social = new Map<DistrictId, { percent: number; band: Band; enforcement: Enforcement; pressure: number; occupier: number; risk: number }>(); occupiers: T.Vector3[] = []; private socialClock = -9;
+  refreshSocial(time: number) { if (Math.abs(time - this.socialClock) < .5) return; this.socialClock = time;
+    for (const d of DISTRICTS) { const percent = this.economy.occupationOf(d.id), band = bandOf(percent), enforcement = this.economy.curfew(d.id); this.social.set(d.id, { percent, band, enforcement, pressure: enforcement === 'none' ? percent / 100 : 1, occupier: population(band, enforcement).occupier, risk: BANDS[band].risk }); }
+    this.occupiers.length = 0; const note = (c: { group: T.Group; archetype: string }) => { if (c.group.visible && isOccupier(c.archetype)) this.occupiers.push(c.group.position); };
+    for (const n of this.npcs) note(n); for (const w of this.presentation?.workers ?? []) note(w.person); }
+  here(x: number, z: number) { return this.social.get(districtAt(x, z))!; }
+  /** Is this person out today? High occupation means fewer civilians and more of the Ordinance, never more of everyone. */
+  admits(standing: Standing, seed: number, d: DistrictId) { const s = this.social.get(d)!; return admits(standing, seed, s.band, s.enforcement); }
+  /** The Ordinance has caught the Steward at something. One place decides what that costs. */
+  incident(kind: Incident, x: number, z: number) { const o = this.economy.caught(kind, districtAt(x, z)); this.socialClock = -9; this.onEvent(o.message); return o; }
   hearth?: T.PointLight; edge!: TerraEdge;
   gateMeshes = new Map<string, T.Group>(); flags: T.Mesh[] = []; carts: T.Group[] = []; cartWheels: T.Group[][] = []; airship = new T.Group(); tram = new T.Group();
   clockMechanism?: T.Group; lantern = new T.MeshStandardMaterial({ color: P.warm.lamp, emissive: P.warm.lamp, emissiveIntensity: .9 }); clockHands: T.Mesh[] = []; stage = -1; raining = false; finchLift?: T.Group;
-  constructor(public scene: T.Scene, public economy: Economy) { scene.add(this.root); this.root.add(this.infrastructure, this.prosperity); this.buildGround(); this.buildBlocks(); this.buildLandmarks(); this.buildSignatureMachinery(); this.buildDetails(); this.buildBackground(); this.edge = new TerraEdge(this); this.createPopulation(); this.presentation = new Presentation(this); this.siteTargets(); for(const x of [-7.9,7.9]) for(const z of (x>0?[-22,-28,-34]:[-26,-32,-38])) this.collider(x,z,2.3,3.6,3.5); this.sync(true); this.crowd = new CrowdBatch([...this.npcs.map(n=>n.group),...this.presentation.workers.map(w=>w.person.group)],this.root); }
+  constructor(public scene: T.Scene, public economy: Economy) { scene.add(this.root); this.root.add(this.infrastructure, this.prosperity); this.buildGround(); this.buildBlocks(); this.buildLandmarks(); this.buildSignatureMachinery(); this.buildDetails(); this.buildBackground(); this.edge = new TerraEdge(this); this.createPopulation(); this.refreshSocial(0); this.presentation = new Presentation(this);
+    setSocialField((x, z, self) => { const s = this.here(x, z); let watched = false; if (!isOccupier(self.archetype)) for (const o of this.occupiers) if ((o.x - x) ** 2 + (o.z - z) ** 2 < 49) { watched = true; break; } return { pressure: s.pressure, watched }; }); this.siteTargets(); for(const x of [-7.9,7.9]) for(const z of (x>0?[-22,-28,-34]:[-26,-32,-38])) this.collider(x,z,2.3,3.6,3.5); this.sync(true); this.crowd = new CrowdBatch([...this.npcs.map(n=>n.group),...this.presentation.workers.map(w=>w.person.group)],this.root); }
   /** Collider from a footprint in a (possibly rotated) building group's local frame. */
   localCollider(g: T.Object3D, x: number, z: number, w: number, d: number, height = 30) { g.updateWorldMatrix(true, false); const p = g.localToWorld(new T.Vector3(x, 0, z)); const turned = Math.abs(Math.sin(g.getWorldQuaternion(new T.Quaternion()).angleTo(new T.Quaternion()))) > .5; this.collider(p.x, p.z, turned ? d : w, turned ? w : d, height); }
   /** `open` lets state-driven props (an Ordinance booth, a furnace) stop blocking once they are gone. */
@@ -407,7 +421,7 @@ export class City {
     const deck = this.deckAt(x, z, feet), onDeck = deck > feet - 1.2; if (feet < -1 && !onDeck) return true;
     if (!onDeck) { if (x > 40.2 && x < 48.8 && (z < -9.5 || z > -2.5)) return true; if ((x < -75 && !(x > -82.2 && z > WEST_EDGE.z0 + .5 && z < WEST_EDGE.z1 - .5)) || x > 76 || (z > 78 && !(Math.abs(x) < EDGE_TERRACE.half - .6 && z < EDGE_TERRACE.z)) || z < -83) return true; if (x > 53 && !this.economy.state.districts.includes('canal')) return true; if (z < -69 && !this.economy.state.districts.includes('heights')) return true; }
     return this.colliders.some(c => !(c.gate && this.economy.state.districts.includes(c.gate)) && !c.open?.() && feet < c.height && feet + 1.7 > (c.base ?? -1) && x > c.minX - .32 && x < c.maxX + .32 && z > c.minZ - .32 && z < c.maxZ + .32); }
-  update(dt: number, time: number, viewer?:T.Vector3) { if(viewer)this.viewer.copy(viewer);setLifeConditions(this.economy.stage,this.raining);this.presentation.update(dt,time,this.viewer); if(this.clockMechanism)this.clockMechanism.rotation.z=this.economy.state.infrastructure.steam>0?-time*.1:0; for (const p of PROPERTIES) { const v = this.properties.get(p.id)!; const level = this.economy.state.properties[p.id].level; v.gear.rotation.z -= dt * (.35 + level * .6) * (this.economy.state.research.includes('governors') ? 1.8 : 1); v.piston.position.y = .95 + Math.sin(time * (1 + level)) * .22; v.machine.rotation.z = 0; }
+  update(dt: number, time: number, viewer?:T.Vector3) { if(viewer)this.viewer.copy(viewer);this.refreshSocial(time);setLifeConditions(this.economy.stage,this.raining);this.presentation.update(dt,time,this.viewer); if(this.clockMechanism)this.clockMechanism.rotation.z=this.economy.state.infrastructure.steam>0?-time*.1:0; for (const p of PROPERTIES) { const v = this.properties.get(p.id)!; const level = this.economy.state.properties[p.id].level; v.gear.rotation.z -= dt * (.35 + level * .6) * (this.economy.state.research.includes('governors') ? 1.8 : 1); v.piston.position.y = .95 + Math.sin(time * (1 + level)) * .22; v.machine.rotation.z = 0; }
     for (const flag of this.flags) {
       const pos = flag.geometry.attributes.position; const rest = flag.userData.rest as Float32Array;
       for (let j = 0; j < pos.count; j++) { const drop = -rest[j * 3 + 1] / flag.userData.height;
@@ -416,14 +430,15 @@ export class City {
       pos.needsUpdate = true; flag.geometry.computeVertexNormals();
     }
     const calm=reducedMotion(this.economy.state.settings.reducedMotion); this.edge.update(time, calm);
-    this.npcs.forEach((npc,i)=>{npc.worn.visible=this.economy.stage<3;npc.finery.visible=this.economy.stage>=3;npc.group.visible=i<14+this.economy.stage*5;if(npc.group.visible)stageCitizen(npc,i,time);});
+    this.npcs.forEach((npc,i)=>{npc.worn.visible=this.economy.stage<3;npc.finery.visible=this.economy.stage>=3;const sc=sceneFor(i);npc.group.visible=i<14+this.economy.stage*5&&this.admits(standingOf(sc.role),seedOf(i),districtAt(sc.x,sc.z));if(npc.group.visible)stageCitizen(npc,i,time);});
     for(const [i,npc] of this.npcs.entries()){
       if(!npc.group.visible)continue;
       const {scene,moving}=stageCitizen(npc,i,time);npc.group.position.y=this.groundHeight(npc.group.position.x,npc.group.position.z);
-      const partner=scene.partner===undefined?undefined:this.npcs[scene.partner];
+      // Someone whose companion has been kept off the street stands alone: no conversation with the air.
+      const pair=scene.partner===undefined?undefined:this.npcs[scene.partner],partner=pair?.group.visible?pair:undefined,alone=scene.partner!==undefined&&!partner;
       const target=partner?.group.position??(scene.target?this.lifeTarget.set(scene.target[0],1.7,scene.target[1]):undefined);
-      const speaking=scene.partner!==undefined?turnTaking(time,i,scene.partner):(time+npc.phase)%8<3;
-      animateLife(npc,scene.activity,dt,time,calm,this.viewer,target,speaking,moving);
+      const speaking=alone?false:scene.partner!==undefined?turnTaking(time,i,scene.partner):(time+npc.phase)%8<3;
+      animateLife(npc,alone?(isOccupier(npc.archetype)?'guard':'walk'):scene.activity,dt,time,calm,this.viewer,target,speaking,moving);
     }
     this.crowd.update();
     this.carts.forEach((cart, i) => { cart.visible = i <= this.economy.stage; const speed = 1.1 + this.economy.state.infrastructure.roads * .3; cart.position.set(i % 2 ? -2.8 : 2.8, .18, 60 - (time * speed + i * 38) % 118); for (const wheel of this.cartWheels[i]) wheel.rotation.x = -time * speed / .43; });

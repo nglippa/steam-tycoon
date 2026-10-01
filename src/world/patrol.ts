@@ -3,7 +3,8 @@ import type { City } from './city';
 import type { Activity } from './citizen-life';
 
 export type Alert = 'patrol' | 'notice' | 'investigate' | 'search' | 'return';
-interface Actor { person: { group: T.Group }; kind: Activity }
+interface Actor { person: { group: T.Group; tone?: { tone: Tone; until: number } }; kind: Activity }
+import type { Tone } from '../simulation/occupation';
 const wrap = (a: number) => Math.atan2(Math.sin(a), Math.cos(a));
 /** Line of sight on the ground plan: tall colliders (stalls, piers, houses) block it. */
 export function lineOfSight(city: City, ax: number, az: number, bx: number, bz: number) {
@@ -29,6 +30,8 @@ function mark(text: string, color: string) { const c = document.createElement('c
  * then returns to its beat. Covert work is refused while it is watching. */
 export class Patrol {
   state: Alert = 'patrol'; suspicion = 0; seen = false; distance = 99;
+  /** How readily it suspects: the district's band sets this (lockdown notices faster, a loosening ward slower). */
+  risk = 1;
   hot: { x: number; z: number; r: number }[] = [];
   onConfront: () => void = () => {};
   private s = 0; private dir = 1; private pause = 0; private timer = 0; private yaw = Math.PI; private warned = -99;
@@ -59,7 +62,7 @@ export class Patrol {
     const bearing = Math.atan2(dx, dz), inCone = Math.abs(wrap(bearing - this.yaw)) < 1.05 || this.distance < 2.2;
     this.seen = this.distance < 14 && inCone && player.y < 4 && this.clear(g.x, g.z, player.x, player.z);
     if (this.seen) { const hot = this.hot.some(h => Math.hypot(player.x - h.x, player.z - h.z) < h.r);
-      this.suspicion = Math.min(1.2, this.suspicion + dt * (.08 + (this.distance < 5 ? .3 : 0) + (speed > 5.5 && speed < 20 ? .35 : 0) + (hot ? .6 : 0))); this.last.copy(player); }
+      this.suspicion = Math.min(1.2, this.suspicion + dt * this.risk * (.08 + (this.distance < 5 ? .3 : 0) + (speed > 5.5 && speed < 20 ? .35 : 0) + (hot ? .6 : 0))); this.last.copy(player); }
     else this.suspicion = Math.max(0, this.suspicion - dt * .16);
     let moving = false; this.timer += dt;
     if (this.state === 'patrol') {

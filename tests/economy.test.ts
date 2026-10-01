@@ -1,4 +1,5 @@
 import { test } from 'node:test';
+import { DISTRICTS, BANDS, GRIP, HEAT, CURFEW, occupation, siteOccupation, bandOf, districtAt, population, admits, seedOf, clock, dayAt, curfewHour, curfewIn, curfewNotice, caught, cooled, mannerOf, conduct, bodyFor, faceAllowed, isOccupier, type Band, type Face } from '../src/simulation/occupation.ts';
 import assert from 'node:assert/strict';
 import { Economy, freshSave, decodeSave, cityFacts, spacePhase, PHASE, PROPERTIES, SITES, SITE_LIBERATED, type StorageAdapter } from '../src/simulation/economy.ts';
 const memory = (raw: string | null = null): StorageAdapter => ({ read: () => raw, write: s => { raw = s; }, clear: () => { raw = null; } });
@@ -40,8 +41,8 @@ test('liberation raises income without changing prosperity stage; restoration ad
   const e = new Economy(memory()); e.state.crowns = 1e8; for (const p of PROPERTIES) { e.upgrade(p.id); e.upgrade(p.id); } e.upgradeInfra('lamps'); e.upgradeInfra('gardens');
   for (let i = 0; i < 3; i++) assert.equal(e.advanceSite('market'), true); e.state.sites.row = 2;
   const stage = e.stage, occupied = e.rate; assert.equal(e.advanceSite('market'), true); assert.equal(e.state.sites.market, SITE_LIBERATED);
-  assert.equal(e.stage, stage); assert.ok(Math.abs(e.rate / occupied - 1.15) < 1e-9);
-  assert.equal(e.advanceSite('market'), true); assert.ok(Math.abs(e.rate / occupied - 1.25) < 1e-9);
+  assert.equal(e.stage, stage); assert.ok(e.rate / occupied >= 1.15 && e.rate / occupied < 1.3, 'the levy lifts, and local trade recovers with it');
+  const freed = e.rate; assert.equal(e.advanceSite('market'), true); assert.ok(e.rate > freed * 1.05);
   assert.equal(e.advanceSite('market'), false); assert.equal(e.state.sites.market, SITES[0].steps.length);
 });
 test('liberation waits for prosperity and restoration waits for clean water', () => {
@@ -67,7 +68,7 @@ test('a profitable foundry stays occupied until its own workers down tools', () 
   const e = new Economy(memory()); e.state.crowns = 1e9; for (let i = 0; i < 5; i++) for (const p of PROPERTIES) e.upgrade(p.id);
   assert.equal(e.state.properties.foundry.level, 5); assert.equal(e.state.sites.foundry, 0);
   e.state.sites.market = 1; for (let i = 0; i < 3; i++) assert.equal(e.advanceSite('foundry'), true);
-  const before = e.rate; assert.equal(e.advanceSite('foundry'), true); assert.equal(e.state.sites.foundry, SITE_LIBERATED); assert.ok(Math.abs(e.rate / before - 1.15) < 1e-9);
+  const before = e.rate; assert.equal(e.advanceSite('foundry'), true); assert.equal(e.state.sites.foundry, SITE_LIBERATED); assert.ok(e.rate / before >= 1.15 && e.rate / before < 1.3);
   assert.match(e.siteBlocker('foundry')!, /steam distribution level 2/); e.upgradeInfra('steam'); e.upgradeInfra('steam');
   assert.match(e.siteBlocker('foundry')!, /The Ration Line: open the old main/); e.state.sites.gauge = 3; assert.equal(e.advanceSite('foundry'), true);
   assert.equal(e.state.sites.market, 1);
@@ -199,4 +200,97 @@ test('a place reads from who holds its site; the Ordinance only tightens once an
   // Prosperity and control are separate axes: a rich city can be wholly occupied, a poor one free.
   const rich = new Economy(memory()); rich.state.crowns = 1e9; for (const p of PROPERTIES) for (let i = 0; i < 5; i++) rich.upgrade(p.id); assert.ok(rich.stage >= 4); assert.equal(spacePhase(rich.state.sites, 'market'), PHASE.occupied);
   const poor = new Economy(memory()); poor.state.sites.market = 4; assert.equal(poor.stage, 0); assert.equal(spacePhase(poor.state.sites, 'market'), PHASE.liberated);
+});
+
+// ---- occupation, people, curfew and heat: rules, not animation frames
+const none = () => ({ market: 0, foundry: 0, row: 0, gauge: 0 });
+test('occupation is per district, summarises the sites that govern it, and falls only when something is done there', () => {
+  assert.equal(siteOccupation(none(), 'market'), GRIP.market); assert.equal(occupation(none(), 'foundry'), 88); assert.equal(occupation(none(), 'canal'), GRIP.row);
+  assert.equal(occupation(none(), 'lowworks'), Math.round((76 + 70 + 88 + 84) / 4));
+  let last = 101; for (let step = 0; step <= 5; step++) { const v = occupation({ ...none(), market: step }, 'market'); assert.ok(v < last, `step ${step} lowers it`); last = v; }
+  assert.equal(occupation({ ...none(), market: 5 }, 'market'), 0); assert.equal(occupation({ ...none(), market: 5 }, 'foundry'), 88, 'freeing the square does not free the yard');
+  assert.equal(bandOf(occupation({ ...none(), market: 4 }, 'market')), 'liberated');
+  // the Ordinance tightens where it still holds once another site has fallen, and where it is answering an incident
+  assert.equal(occupation({ ...none(), row: 2, market: 4 }, 'row'), occupation({ ...none(), row: 2 }, 'row') + 8);
+  assert.equal(occupation(none(), 'row', 'row'), GRIP.row + 12); assert.equal(occupation({ ...none(), market: 5 }, 'market', 'market'), 0, 'a free district cannot be cracked down on');
+  assert.equal(districtAt(0, -30), 'market'); assert.equal(districtAt(27, 14), 'foundry'); assert.equal(districtAt(30, 30), 'gauge'); assert.equal(districtAt(16, -3), 'row'); assert.equal(districtAt(74, 0), 'canal'); assert.equal(districtAt(-66, 18), 'weatherside'); assert.equal(districtAt(0, 30), 'lowworks');
+  assert.equal(DISTRICTS.length, 7);
+});
+test('bands: every step toward lockdown means fewer civilians, more of the Ordinance, less trade and more risk', () => {
+  assert.deepEqual([0, 20, 21, 40, 41, 60, 61, 80, 81, 100].map(bandOf), ['liberated', 'liberated', 'low', 'low', 'controlled', 'controlled', 'heavy', 'heavy', 'lockdown', 'lockdown']);
+  const order: Band[] = ['liberated', 'low', 'controlled', 'heavy', 'lockdown'];
+  for (let i = 1; i < order.length; i++) { const a = BANDS[order[i - 1]], b = BANDS[order[i]];
+    assert.ok(b.civilians < a.civilians); assert.ok(b.personnel > a.personnel); assert.ok(b.merchants < a.merchants); assert.ok(b.income < a.income); assert.ok(b.risk > a.risk); }
+  assert.equal(BANDS.liberated.personnel, 0); assert.equal(BANDS.liberated.curfew, 'none'); assert.equal(BANDS.liberated.checkpoints, false); assert.equal(BANDS.lockdown.curfew, 'strict');
+  // high occupation is not "more everyone": the people on the street fall while the Ordinance's share rises
+  const count = (b: Band, who: 'civilian' | 'occupier') => Array.from({ length: 200 }, (_, i) => admits(who, seedOf(i), b)).filter(Boolean).length;
+  assert.ok(count('lockdown', 'civilian') < count('controlled', 'civilian') && count('controlled', 'civilian') < count('liberated', 'civilian'));
+  assert.ok(count('lockdown', 'occupier') > count('controlled', 'occupier') && count('liberated', 'occupier') === 0);
+  // a street thins, it does not reshuffle: whoever is out under lockdown is also out in every freer band
+  for (let i = 0; i < 200; i++) if (admits('civilian', seedOf(i), 'lockdown')) assert.ok(admits('civilian', seedOf(i), 'heavy') && admits('civilian', seedOf(i), 'low'));
+});
+test('district occupation changes what a trade earns there, and resistance at the site is what changes it', () => {
+  const e = new Economy(memory()); e.state.crowns = 1e9; for (const p of PROPERTIES) e.upgrade(p.id);
+  assert.equal(e.band('foundry'), 'lockdown'); assert.equal(e.band('market'), 'heavy'); assert.equal(e.effects('foundry').income, .95);
+  const yard = e.output('foundry'), stall = e.output('market'); e.state.sites.foundry = 3; assert.equal(e.band('foundry'), 'controlled');
+  assert.ok(e.output('foundry') > yard); assert.equal(e.output('market'), stall, 'the square is not the yard');
+  const pct = e.occupationOf('market'); e.state.sites.market = 1; assert.ok(e.occupationOf('market') < pct);
+});
+test('one clock: the hour, the curfew and its notice all come from the same day fraction', () => {
+  assert.equal(clock(0).text, '00:00'); assert.equal(clock(.5).text, '12:00'); assert.equal(clock(dayAt(21, 37)).text, '21:37'); assert.equal(clock(.99999).text, '23:59');
+  assert.equal(curfewHour(dayAt(21, 59)), false); assert.equal(curfewHour(dayAt(22)), true); assert.equal(curfewHour(dayAt(4, 59)), true); assert.equal(curfewHour(dayAt(5)), false); assert.equal(CURFEW.from, 22);
+  assert.equal(curfewIn(dayAt(23), 'heavy'), 'strict'); assert.equal(curfewIn(dayAt(23), 'controlled'), 'normal'); assert.equal(curfewIn(dayAt(23), 'low'), 'lax'); assert.equal(curfewIn(dayAt(12), 'lockdown'), 'none');
+  assert.equal(curfewIn(dayAt(23), 'liberated'), 'none', 'a liberated district keeps no curfew'); assert.equal(curfewNotice(dayAt(23), 'liberated'), '');
+  assert.equal(curfewNotice(dayAt(21, 10), 'heavy'), 'CURFEW AT 22:00'); assert.equal(curfewNotice(dayAt(22, 1), 'heavy'), 'CURFEW'); assert.equal(curfewNotice(dayAt(15), 'heavy'), '');
+  const e = new Economy(memory()); e.state.day = dayAt(23); assert.equal(e.curfew('market'), 'strict'); e.state.sites.market = 4; assert.equal(e.curfew('market'), 'none'); assert.equal(e.curfew('foundry'), 'strict');
+});
+test('curfew empties an occupied street of civilians and fills it with the Ordinance; a free street stays alive', () => {
+  const day = population('heavy'), night = population('heavy', 'strict'); assert.ok(night.civilian < day.civilian * .25); assert.ok(night.occupier > day.occupier); assert.equal(night.merchant, 0);
+  const free = population('liberated', curfewIn(dayAt(23), 'liberated')); assert.equal(free.civilian, 1); assert.equal(free.merchant, 1); assert.equal(free.occupier, 0);
+  assert.ok(population('low', 'lax').civilian > population('heavy', 'strict').civilian * 3);
+});
+test('being caught escalates, costs Crowns and time but never property, and cools if the Steward behaves', () => {
+  const tiers = [0, 1, 2, 3, 4].map(h => caught(h, 'minor', 10000, 20)); assert.deepEqual(tiers.map(t => t.tier), [0, 1, 2, 3, 4]);
+  assert.equal(tiers[0].fine, 0); for (let i = 2; i < 5; i++) assert.ok(tiers[i].fine > tiers[i - 1].fine);
+  assert.deepEqual(tiers.map(t => t.crackdown), [false, false, true, true, true]); assert.deepEqual(tiers.map(t => t.quiet), [false, false, false, true, true]); assert.deepEqual(tiers.map(t => t.detained), [false, false, false, false, true]);
+  assert.equal(caught(0, 'curfew', 10000, 20).tier, 1, 'breaking curfew starts a rung higher'); assert.equal(caught(3, 'curfew', 10000, 20).detained, true);
+  assert.ok(caught(4, 'minor', 1e9, 20).fine <= 20 * 300, 'a fine is capped by a few minutes of income'); assert.equal(caught(4, 'minor', 0, 0).fine, 0);
+  assert.equal(cooled(2, HEAT.cool), 1); assert.equal(cooled(.5, 9999), 0);
+  const e = new Economy(memory()); e.state.crowns = 5000; for (const p of PROPERTIES) e.upgrade(p.id); const levels = JSON.stringify(e.state.properties), crowns = e.state.crowns;
+  assert.equal(e.caught('minor', 'market').tier, 0); assert.equal(e.state.crowns, crowns); assert.equal(e.caught('minor', 'market').tier, 1); assert.ok(e.state.crowns < crowns);
+  assert.equal(e.caught('minor', 'market').tier, 2); assert.equal(e.state.crackdown!.district, 'market'); assert.equal(e.occupationOf('market'), GRIP.market + 12);
+  assert.equal(e.caught('minor', 'market').tier, 3); e.state.properties.tavern.level = 1; assert.match(e.siteBlocker('market')!, /gone quiet/);
+  e.state.day = dayAt(23); const o = e.caught('curfew', 'market'); assert.equal(o.detained, true); assert.equal(clock(e.state.day).text, '06:00'); assert.equal(e.state.heat, 3);
+  assert.equal(JSON.stringify(e.state.properties), levels, 'nothing built is ever taken'); assert.ok(e.state.crowns >= 0);
+  // it cools: time on the right side of the rules, a night at home, and a liberated site each take heat off
+  const hot = e.state.heat; e.tick(HEAT.cool); assert.ok(Math.abs(e.state.heat - (hot - 1)) < 1e-6);
+  e.tick(200); e.tick(200); assert.equal(e.state.crackdown, null); assert.equal(e.occupationOf('market'), GRIP.market);
+  e.state.heat = 2; e.state.day = dayAt(23); const slept = e.sleep()!; assert.equal(slept.hours, 7); assert.equal(clock(e.state.day).text, '06:00'); assert.equal(e.state.heat, .5); assert.equal(e.sleep(), null, 'nobody sleeps at six in the morning');
+});
+test('the rooftop signal is a curfew-only opportunity, once a night, and only while the square is held', () => {
+  const e = new Economy(memory()); e.state.sites.market = 1; e.state.day = dayAt(14); assert.equal(e.signal(), 0);
+  e.state.day = dayAt(23); const got = e.signal(); assert.ok(got >= 60); assert.equal(e.signal(), 0); e.state.playtime += 400; assert.ok(e.signal() > 0);
+  e.state.playtime += 400; e.state.sites.market = 4; assert.equal(e.signal(), 0, 'nothing to smuggle past once the square is free');
+});
+test('the Ordinance never smiles, waves or startles; civilians stop doing so under pressure or when watched', () => {
+  for (const a of ['guard', 'ordinal']) { assert.equal(isOccupier(a), true); for (let i = 0; i < 40; i++) { const m = mannerOf(a, seedOf(i)), c = conduct(a, m, 0, false);
+      assert.equal(c.wave, false); assert.equal(c.smile, false); assert.equal(c.startle, false); assert.ok(m.gesture <= .4); assert.notEqual(m.stance, 'ease'); assert.equal(m.acknowledges, false); }
+    for (const f of ['happy', 'surprised'] as Face[]) assert.equal(faceAllowed(a, f), false); assert.equal(faceAllowed(a, 'annoyed'), true);
+    assert.equal(bodyFor(a, 'friendly').face, 'neutral', 'no friendly register'); assert.equal(bodyFor(a, 'authoritative').bearing, 'point'); assert.equal(bodyFor(a, 'hostile').face, 'annoyed'); assert.equal(bodyFor(a, 'suspicious').bearing, 'watch'); }
+  assert.equal(bodyFor('resident', 'friendly').face, 'happy'); assert.equal(bodyFor('resident', 'fearful').bearing, 'withdraw'); assert.equal(bodyFor('courier', 'secretive').bearing, 'close');
+  const friendly = mannerOf('resident', 0); assert.equal(friendly.trait, 'sociable');
+  assert.equal(conduct('resident', friendly, .1, false).wave, true); assert.equal(conduct('resident', friendly, .9, false).wave, false); assert.equal(conduct('resident', friendly, .1, true).wave, false);
+  assert.equal(conduct('resident', friendly, .9, false).smile, false); assert.equal(conduct('resident', friendly, .5, true).talks, false);
+  assert.ok(conduct('resident', friendly, .9, false).gesture < conduct('resident', friendly, .1, false).gesture);
+  // people differ: a crowd draws on every civilian manner, and the Ordinance on none of them
+  const traits = new Set(Array.from({ length: 60 }, (_, i) => mannerOf('resident', seedOf(i)).trait)); assert.ok(traits.size >= 6);
+  const glances = new Set(Array.from({ length: 60 }, (_, i) => mannerOf('resident', seedOf(i)).glance)); assert.ok(glances.size >= 5);
+  assert.ok(mannerOf('merchant', 0).gesture > mannerOf('worker', 0).gesture);
+});
+test('heat, crackdown and the signal survive a save; a save from before this pass loads clean', () => {
+  const store = memory(); const e = new Economy(store); e.state.crowns = 900; e.caught('minor', 'row'); e.caught('minor', 'row'); e.caught('minor', 'row'); e.state.day = dayAt(23); e.state.sites.market = 1; e.signal(); e.save();
+  const again = new Economy(store, e.state.lastSave); assert.equal(again.state.heat, e.state.heat); assert.deepEqual(again.state.crackdown, e.state.crackdown); assert.equal(again.state.signalAt, e.state.signalAt); assert.equal(again.band('row'), e.band('row'));
+  const old = JSON.parse(JSON.stringify(freshSave())); delete old.heat; delete old.crackdown; delete old.quietUntil; delete old.signalAt; old.sites.market = 2;
+  const loaded = decodeSave(JSON.stringify(old))!; assert.equal(loaded.heat, 0); assert.equal(loaded.crackdown, null); assert.equal(loaded.quietUntil, 0); assert.equal(loaded.sites.market, 2);
+  assert.equal(decodeSave(JSON.stringify({ ...old, heat: 'x', crackdown: { district: 'nowhere', until: 5 } }))!.crackdown, null);
 });

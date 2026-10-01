@@ -20,6 +20,7 @@ const archY = (t: number, rise: number, k = .22) => rise * Math.sqrt(Math.max(0,
 const archCurve = (half: number, rise: number, from: number, to: number, n = 28) => Array.from({ length: n + 1 }, (_, i) => { const t = from + (to - from) * i / n; return new T.Vector2(t * half, SPRING_Y + archY(t, rise)); });
 
 export class MarketSquare implements SiteModule {
+  private spoke = 0;
   id = 'market' as const; targets: SiteModule['targets'] = []; anchor = { x: 0, z: -37, rotation: 0 };
   site: LayeredSite; patrol: Patrol; view: SiteView = { control: 0, stage: 0, levels: {} as SiteView['levels'], sites: {} as SiteView['sites'] };
   wake = 0; night = 0; private shown = -1; private waking = false;
@@ -105,7 +106,7 @@ export class MarketSquare implements SiteModule {
     const beat = pres.addWorker(-1.25, -13.8, Math.PI, 'walk', { role: 'ordinal', when: () => this.view.control < SITE_LIBERATED });
     this.patrol = new Patrol(city, pres.workers[beat], [[-1.25, -13.8], [-1.25, -26.9], [-3.45, -29.3], [-3.45, -32.9], [-1.6, -34.6]].map(([x, z]) => new T.Vector2(x, z)), pres.root);
     this.patrol.hot.push({ x: CELLAR.x, z: CELLAR.z, r: 3.4 });
-    this.patrol.onConfront = () => city.onEvent('Ordinance patrol: “Papers, Steward. Your business is trade, not loitering. Move along.”');
+    this.patrol.onConfront = () => { const actor = pres.workers[beat].person, o = city.incident('minor', actor.group.position.x, actor.group.position.z); actor.tone = { tone: o.tier >= 2 ? 'hostile' : 'authoritative', until: performance.now() / 1000 + 1e9 }; this.spoke = 5; };
     // THE EMBERS ----------------------------------------------------------------------
     // Invitation: once the Finch reopens, someone chalks an ember on its cellar door.
     const invite = this.site.layer(v => v.control >= 1 || v.levels.tavern >= 1);
@@ -172,6 +173,6 @@ export class MarketSquare implements SiteModule {
     for (const p of this.petals) p.rotation.x = T.MathUtils.lerp(-.12, .78, open);
     this.core.material = lit ? ancientMats.awake : ancientMats.dormant; this.discFace.material = this.wake > .88 ? ancientMats.awake : ancientMats.dormant;
     if (lit) { this.halo.rotation.y += dt * (calm ? .2 : .7); this.halo.rotation.x = .35; this.disc.rotation.y = Math.sin(time * .3) * (calm ? .1 : .35); this.core.position.y = 2.72 + Math.sin(time * 1.3) * .04; }
-    if (this.view.control < SITE_LIBERATED) { this.yoke.rotation.y = Math.sin(time * .21) * 1.05; beamMat.opacity = this.night * .2; this.patrol.update(dt, time, viewer); }
+    if (this.view.control < SITE_LIBERATED) { this.yoke.rotation.y = Math.sin(time * .21) * 1.05; beamMat.opacity = this.night * .2; { const here = this.patrol.city.social.get('market')!; this.patrol.risk = Math.max(.4, here.risk * (here.enforcement === 'none' ? 1 : 1.6)); } this.patrol.update(dt, time, viewer); if (this.spoke > 0) { this.spoke -= dt; if (this.spoke <= 0) this.patrol.actor.person.tone = undefined; } }
   }
 }

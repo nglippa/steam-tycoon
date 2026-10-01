@@ -1,9 +1,10 @@
 import * as T from 'three';
 import { box, cyl, sphere, torus, beam, bake, sign, mats, crate, type Material } from './assets';
-import { V, cable, artMats, labeledCrate, canopy } from './art-kit';
+import { V, cable, artMats, labeledCrate, canopy, poster } from './art-kit';
 import { emberChalk, decalMat, occupationMats, ancientMats, lightCone } from './factions';
 import { Staged, shown, type Shown } from './layers';
 import { hungRing, splitRing, channel } from './ancient-kit';
+import { dado, ceilingBeam, desk, papers, shelves } from './interior-kit';
 import { spacePhase } from '../simulation/economy';
 import { ladder, parapet, examine } from './routes';
 import type { Presentation } from './presentation';
@@ -18,7 +19,9 @@ import type { Presentation } from './presentation';
 const LEADS = 14, LAND = 14.22, TERRACE = 14.45, BLOCK = 19.85, G = .18;
 /** Finch Mechanical's roof, measured: terraces either side of a raised block; a tower fills the block's west half. */
 const W = { x0: -24.7, x1: -13.3, z0: 5.3, zN: 10.6, zS: 17.4, z1: 22.6, tower: -18.49 };
-const chalk = decalMat(emberChalk, .92);
+const chalk = decalMat(emberChalk, .92), unseenMat = new T.MeshBasicMaterial({ visible: false });
+/** Where the Steward lives: the room's floor, and where they stand when they wake or are walked home. */
+export const HOME = { floor: 8.45, x: -3.2, z: 5.6, yaw: Math.PI };
 
 export class Roofwalk {
   root = new T.Group(); private live = new T.Group(); private governors = new T.Group(); private pennants = new T.Group(); private chartered = false; private spin: T.Group[] = []; private roofs!: Staged; private search = new T.Group(); private city!: Presentation['city'];
@@ -52,6 +55,30 @@ export class Roofwalk {
     cyl(d, -15.6, 15.5, 20.6, 1.1, 1.7, mats.copper); cyl(d, -15.6, 16.4, 20.6, 1.15, .1, mats.iron); for (const a of [0, 1, 2]) box(d, -15.6 + Math.cos(a * 2.1) * .9, 14.85, 20.6 + Math.sin(a * 2.1) * .9, .12, .8, .12, mats.iron); city.collider(-15.6, 20.6, 2.2, 2.2, 16.5, undefined, undefined, 14.2);
     crate(d, -23.6, TERRACE, 18.6, .8); crate(d, -23.5, TERRACE, 19.6, .6);
     bake(s); bake(d);
+    // HOME. A rented room over the street in the Market Bridge-house, reached by a hatch in the Leads. Two windows:
+    // north to the clock and the square, south down the Great Main. Nobody watches a Steward at home.
+    { const h = new T.Group(); this.root.add(h); const F = HOME.floor, C = 11.4, X0 = -6.2, X1 = -.2, cx = (X0 + X1) / 2, P2 = mats.cream, mid = (F + C) / 2;
+      box(h, cx, F - .05, 5.6, 6.2, .1, 3.1, mats.wood); box(h, cx, C + .05, 5.6, 6.2, .1, 3.1, P2); for (const x of [X0 - .05, X1 + .05]) box(h, x, mid, 5.6, .1, C - F, 3.1, P2);
+      for (const [z, dz] of [[4.15, 1], [7.05, -1]] as const) { box(h, cx, (F + 8.85) / 2, z, 6.2, 8.85 - F, .1, P2); box(h, cx, (10.55 + C) / 2, z, 6.2, C - 10.55, .1, P2);
+        for (const [a, b] of [[X0, -5.1], [-3.9, -2.1], [-.9, X1]]) box(h, (a + b) / 2, 9.7, z, b - a, 1.7, .1, P2); for (const x of [-4.5, -1.5]) box(h, x, 8.83, z + dz * .12, 1.3, .06, .3, mats.wood); }
+      for (const z of [4.3, 6.9]) dado(h, cx, z, 6, true, mats.wood, F, .8); ceilingBeam(h, cx, C - .1, 5.6, 2.9, false); ceilingBeam(h, -4.9, C - .1, 5.6, 2.9, false);
+      // a bed under the south window, a table and lamp under the north one, a trunk, a shelf, a coat on a hook, a map of the ward
+      box(h, -1.35, F + .22, 6.4, 1.95, .28, .9, mats.wood); box(h, -1.35, F + .42, 6.4, 1.85, .14, .82, mats.cream); box(h, -1.7, F + .5, 6.4, 1.15, .06, .86, artMats.wine); box(h, -.62, F + .52, 6.4, .4, .1, .6, mats.cream); box(h, -.36, F + .5, 6.4, .06, .9, .9, mats.wood);
+      city.collider(-1.35, 6.5, 1.95, .7, F + .6, undefined, undefined, F - .2);
+      desk(h, -3, F, 4.72, 1.1, .56); papers(h, -3.25, F + .82, 4.72, 3); cyl(h, -2.62, F + .93, 4.6, .05, .22, mats.brass); sphere(h, -2.62, F + 1.1, 4.6, .09, mats.glow); box(h, -3, F + .24, 5.3, .4, .46, .4, mats.wood);
+      box(h, -4.4, F + .22, 6.62, .9, .44, .5, mats.wood); for (const dx of [-.3, .3]) box(h, -4.4 + dx, F + .22, 6.36, .06, .46, .02, mats.iron);
+      shelves(h, -5.95, F + .9, 6.2, 1.2, false, 2, .8); box(h, -.28, F + 1.75, 5.2, .04, .9, .5, artMats.fadedPaint); box(h, -.3, F + 2.2, 5.2, .08, .05, .05, mats.iron); poster(h, -.27, F + 1.7, 6.2, 0, -Math.PI / 2);
+      box(h, -3.1, F + .01, 5.75, 2.2, .02, 1.2, artMats.wine);
+      // the hatch: a lidded frame in the duckboards, and the ladder down
+      for (const [x, z, w, d] of [[-5.5, 3.95, 1, .08], [-5.5, 4.85, 1, .08], [-5.96, 4.4, .08, .98], [-5.04, 4.4, .08, .98]]) box(h, x, LEADS + .06, z, w, .14, d, mats.iron); box(h, -6.15, LEADS + .5, 4.4, .06, .9, .9, mats.wood);
+      bake(h); city.deck(X0 - .25, X1 + .25, 4, 7.2, F);
+      for (const [x, z, w, d] of [[cx, 3.95, 6.6, .1], [cx, 7.25, 6.6, .1], [X0 - .3, 5.6, .1, 3.4], [X1 + .3, 5.6, .1, 3.4]]) city.collider(x, z, w, d, C + .2, undefined, undefined, F - .25);
+      ladder(h, this.live, city, 'ladder.home', 'The hatch to your room', -5.5, 4.32, F, LEADS, 0, 1, mats.iron, [0, .1]);
+      p.interiors.push({ x: -3.2, y: F + 2.2, z: 5.6, color: '#ffd9a0', reach: 4.4, power: 26 });
+      const spot = (id: string, kind: 'home' | 'signal', label: string, hint: string, x: number, y: number, z: number, w: number, hh: number, d: number, when?: () => boolean) => { const hit = new T.Mesh(new T.BoxGeometry(1, 1, 1), unseenMat); hit.position.set(x, y, z); hit.scale.set(w, hh, d); this.live.add(hit); hit.updateWorldMatrix(true, false); city.targets.push({ object: hit, id, kind, label, hint, position: hit.getWorldPosition(new T.Vector3()), when }); };
+      spot('home.bed', 'home', 'Your bed', 'SLEEP', -1.35, F + .5, 6.4, 1.9, .7, .9);
+      // Curfew is when nobody is expected on the roofs: a lamp in the north window answers the Weathervane.
+      spot('home.lamp', 'signal', 'The window lamp', 'ANSWER THE WEATHERVANE', -4.5, 9.6, 4.35, 1.1, 1.5, .4, () => city.economy.canSignal()); }
     // THE ROOFS, read six ways (economy.spacePhase, governed by Market Square). Occupied they are the Ordinance's
     // high ground: a watch post, wire on the parapets, the loft boarded, their colours on the works' own mast.
     { const st = this.roofs = new Staged(this.root), O = occupationMats, GOLD = ancientMats.gold, I = ancientMats.ivory;

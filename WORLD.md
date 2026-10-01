@@ -108,3 +108,43 @@ While the Backwater is occupied or covert its gallery is barred between the yard
 Old Terra's shapes are in `src/world/ancient-kit.ts` (tapered arch, seven-part ring, hung ring, inset channel) and
 room furniture in `src/world/interior-kit.ts`. Same-camera comparisons: `screenshots/review-2026-10-01-alive/`.
 Review views: `backLane`, `backYard`, `finchTerrace`, `roofSouth`, `registryDoor`, with `site=`, `row=`, `foundry=` 0-5.
+
+## Occupation, people, curfew and heat
+
+Rules live in `src/simulation/occupation.ts` (pure, tested); `Economy` holds the state; the city reads them twice a second (`City.refreshSocial`).
+
+**Districts and starting occupation.** Occupation is derived from the resistance sites that govern a district; nothing else moves it.
+
+| District | Governed by | At the start |
+| --- | --- | --- |
+| Market Square | Market Square | 76% heavy |
+| Cinder Row | Cinder Row | 70% heavy |
+| Cinder No. 3 | the Foundry | 88% lockdown |
+| The Ration Line | the Ration Line | 84% lockdown |
+| Canal Ward | Cinder Row | 70% heavy |
+| The Weatherside | Market Square and the Foundry | 82% lockdown |
+| The Lowworks (the Great Main and lanes) | all four | 80% heavy |
+
+A site keeps 100 / 90 / 75 / 50 / 18 / 0 percent of its starting grip at control 0 to 5. A held site gains 8 once another has fallen, and 12 while the Ordinance is cracking down there after an arrest.
+
+**Bands.**
+
+| Band | Up to | Civilians | Ordinance | Merchants | Trade | Suspicion | Curfew |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Civic control | 20% | 100% | none | 100% | +10% | none | none |
+| Low occupation | 40% | 85% | 25% | 90% | +6% | x0.6 | loosely kept |
+| Controlled | 60% | 65% | 50% | 75% | +3% | x0.85 | enforced |
+| Heavy occupation | 80% | 45% | 75% | 55% | par | x1 | strict |
+| Lockdown | 100% | 25% | 100% | 35% | -5% | x1.3 | strict |
+
+Trade is applied to each property by the district it stands in. People staged by a site's own story (`when`) are exempt from the density rule; everyone else leaves in a fixed order, so a street thins rather than reshuffles.
+
+**Clock and curfew.** `state.day` is the only clock (0 = midnight, 720 s a day). Curfew is 22:00 to 05:00 wherever the band enforces one: civilians fall to about a tenth, merchants close, the Ordinance adds a quarter. Guards are decorative; only the three nearest are asked whether they can see the Steward, and only during an enforced curfew at street level. Notice, challenge, ten seconds to get out of sight, then an incident. Roofs and rooms are out of sight.
+
+**Heat.** `Economy.caught(kind, district)`: warning, fine, fine and crackdown, the Embers go quiet, detention (walked home, 06:00). Curfew and contraband start a rung higher. Fines are a share of the treasury capped by a few minutes of income; nothing built is taken. Heat cools one rung per four minutes, 1.5 for a night's sleep, 1 for a liberation.
+
+**Home.** A room in the Market Bridge-house over the Great Main, reached by the hatch in the Leads (`ladder.home`). Bed: sleep to 06:00 from 18:00 onward. Window lamp: during curfew, while the square is held, answer the Weathervane once a night.
+
+**Behaviour.** Each person has a manner (`mannerOf`): seven civilian traits, four Ordinance ones with a standing stance. `conduct()` decides waving, smiling, gesture size and whether talk continues; the Ordinance never waves, smiles or startles, and civilians stop when one is within 7 m or occupation is high. A spoken line sets `citizen.tone`, and `bodyFor()` gives the matching face and bearing.
+
+Review: `mainNorth`, `squareIn`, `home`, `homeNorth`, `hatch`; `heat=0-5`. Screenshots: `screenshots/review-2026-10-01-occupation/`.

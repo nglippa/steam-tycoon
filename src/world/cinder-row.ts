@@ -169,7 +169,7 @@ export class CinderRow implements SiteModule {
       crew[this.inspector].kind = this.attention.facing(Math.PI) ? 'clipboard' : 'guard';
       if (!f.searchlightCut) { this.lamp.rotation.y = -.93 + Math.sin(time * .23) * .38; beamMat.opacity = this.night * .2; }
       // They notice the crate: a whistle, and it goes back to the yard.
-      if (this.cutters.carrying && time - this.caught > 3 && inView(city, this.eyes, viewer, this.range, .75)) { this.caught = time; this.cutters.drop();
+      if (this.cutters.carrying && time - this.caught > 3 && inView(city, this.eyes, viewer, this.range, .75)) { this.caught = time; this.cutters.drop(); city.incident('contraband', viewer.x, viewer.z);
         this.onAlarm('Inspector: “You. That crate. Open it.” You set it down and walk on. By nightfall a packer has it back at Cinder No. 3.'); } }
     // The courier walks the run, and waits out the inspector's eyes before crossing his post.
     if (f.courierRun) { const c = crew[this.courier], g = c.person.group;

@@ -96,3 +96,12 @@ html,body{overscroll-behavior:none;-webkit-user-select:none;user-select:none}
 
 /* A commission the treasury cannot meet yet fills as the Crowns come in: saving is something you can watch. */
 .purchase[data-cost]:disabled:not([data-locked]){background-image:linear-gradient(90deg,#edd08a var(--saved,0%),#edd08a55 var(--saved,0%));background-color:transparent}
+
+/* The hour, and the ward the Steward stands in: the same plate language as the bearing. */
+.hour{position:absolute;left:50%;top:0;transform:translateX(calc(-50% - 178px));display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--terra-paper);border:1px solid var(--terra-ink);padding:6px 14px;gap:2px;box-shadow:2px 3px 0 var(--terra-ink);color:var(--terra-ink);min-height:44px}
+.hour>span{font:bold 17px "Avenir Next",sans-serif;font-variant-numeric:tabular-nums;letter-spacing:.06em}.hour small{font-size:9px;letter-spacing:.16em;color:#526c64;min-height:11px}.hour small.on{color:var(--terra-burgundy);font-weight:800}
+.bearing small.ward{font-weight:700;letter-spacing:.12em;border-top:1px solid #526c6440;padding-top:3px;margin-top:1px;white-space:nowrap}
+.ward[data-band=liberated]{color:#2f6f6a}.ward[data-band=low]{color:#55733f}.ward[data-band=controlled]{color:#7a5f1e}.ward[data-band=heavy]{color:#8c4424}.ward[data-band=lockdown]{color:var(--terra-burgundy)}
+body:not(.started) .hour{display:none}
+@media (max-width:900px){.hour{transform:translateX(-50%)}}
+body.touch .hour{transform:translateX(-50%) scale(.85);transform-origin:top center}
