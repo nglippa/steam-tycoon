@@ -304,3 +304,49 @@ Typecheck, 26 tests and the build pass. The traversal and ledger sweep over 15 s
 - Daytime is unchanged (`compare-day.png`). At full daylight the sun intensity, hemisphere and keys are identical to before.
 - Performance: no lights, meshes, shadow casters or post passes were added. Only light values and colours changed.
 - Screenshots: `screenshots/review-2026-09-30-night/`.
+
+## Phase 4: the Weatherside, the Hangway, ladders and the economy rebalance (2026-10-01)
+
+Typecheck, 28 tests and the production build pass.
+
+**Traversal (`&check=1`, real controller).** Six states: level 0; level 3 site 3 in rain; level 3 at night; level 4 with the square and yard liberated in fog; level 5 with everything restored; level 2 overcast. In every one: all 6 ledgers reachable and raycast; main street, both lanes, foundry and housing lanes, ramp and wall collision pass; the three alleys, the yard roof to crane walk, the full aqueduct, both stairs, the Hangway end to end and the pier end pass; no roof lets a walker off any of its four edges; all 7 ladders climb up and down and set the walker down where they can move off; no NPC stands in a collider; no console errors.
+- Ladder times: warehouse 3.3 s (6.9 m), crane 4.1 s (8.9 m), registry 2.9 s, Weathervane 5.3 s (12 m), belfry 5.6 s (13 m), Hangway 2.8 s each.
+- Found and fixed while testing: a stair's own collider stopped the walker one step short of its top (colliders now stop short of the treads by the collision margin); the hall stair needed a landing; Hangway props left under 0.9 m of walk; the top carrier flew through the Hangway at head height (moved 1.1 m east); the Weathervane at 20 m did not clear the housing roofs (now 31 m with a gallery).
+
+**Phone (iPhone 13 emulation with touch, headless).** Every ladder is offered on the USE button while standing at its foot and facing away from it, and climbs both ways from a tap. The joystick walks the Hangway and sprints an alley. A sideways push on the aqueduct's plank crossing used to drop the walker to the lane; the crossing is now full width with rope handlines.
+
+**Rendered review.** `screenshots/review-2026-10-01-phase4/`: `collage-districts.png`, `collage-hangway.png`, `collage-conditions.png` (night, rain, fog, overcast, liberated and restored), `collage-mobile.png`, plus 18 full-size frames. Market Square, the Foundry, the chasm and the south edge were captured in the same run as regression views and were unchanged.
+
+**Performance.** Frame rate, old against new in one session, uncapped headed Chrome at 1280×720 and 1.5× (one pass each; run-to-run noise on this machine was around ±10%):
+
+| View | Before FPS / p95 ms / draws | After FPS / p95 ms / draws |
+|---|---|---|
+| street | 221.7 / 5.2 / 735 | 207.3 / 5.7 / 755 |
+| square | 274.2 / 4.3 / 392 | 250.3 / 4.9 / 394 |
+| foundry | 205.2 / 5.5 / 858 | 190.5 / 6.1 / 905 |
+| chasm | 247.3 / 4.9 / 584 | 222.8 / 5.3 / 616 |
+| westEdge | 348.6 / 3.6 / 110 | 318.9 / 3.8 / 124 |
+| roof | 203.0 / 5.8 / 924 | 184.4 / 6.2 / 1022 |
+| overview | 193.1 / 6.0 / 1021 | 173.4 / 6.6 / 1145 |
+| edge | 340.1 / 3.6 / 160 | 316.8 / 3.9 / 167 |
+
+So the old city is about 6 to 10% slower, inside or near the noise. New areas, measured before the last visibility gating was added: ground-level places (yard, pier, gantry, registry, garden, waterworks, cistern) ran 254 to 290 FPS at 90 to 246 draws; the high overlooks, which see the whole city, ran 154 to 172 FPS (p95 7.5 ms). The worst new view is the crane platform: 1183 draws, 1.28 M triangles.
+- Final draw calls and triangles (headless, deterministic): alley 196 / 0.65 M, Tether Yard 183 / 0.63 M, pier 102 / 0.15 M, registry 251 / 0.69 M, garden 178 / 0.63 M, hall roof 868 / 1.15 M, aqueduct 209 / 0.63 M, Weathervane top 1101 / 1.34 M, cistern 87 / 0.26 M, Hangway 762 / 1.12 M, Hangway north 179 / 0.61 M.
+- People: 151 authored (42 citizens and 109 placed workers, 19 of them new). 49 to 84 are posed and drawn in any one view; before this pass all 132 were posed every frame.
+- Not measured: frame rate after the final gating change, and frame rate on a real phone.
+
+**Economy.** Audited by an independent sub-agent with a simulation that drives the real `Economy` class (scripts in the session scratchpad, not in the repo). Its findings on the old economy: the median purchase cost 1 second of income; level 5 repaid faster than level 1; four hours away from a fresh save returned a third of the price of everything; a well-played run finished all content in 23.5 minutes with a median 3 seconds between purchases. Its proposed fix finished in 64 minutes with the first liberation at 41; a moderated version was adopted instead. Same simulation, same assumptions (a real player is likely 1.5 to 2 times slower):
+
+| | Before | After |
+|---|---|---|
+| First upgrade | 10 s | 10 s |
+| Median gap between purchases | 3 s | 31 s |
+| Prosperity stages 1 to 5 | 1.8 / 6.2 / 7.5 / 8.8 / 9.2 min | 2.4 / 9.1 / 22.4 / 27.5 / 34.5 min |
+| Market Square liberated | 18.7 min | 29.3 min |
+| All content, played well | 23.5 min | 42.7 min |
+| All content, story first | 23.8 min | 63 min |
+| Payback, median / worst | 18 s / 63 s | 5 min / 13.4 min |
+| Casual, 15 min a day | 2 sessions | 2 days |
+| Four hours away, fresh save | 19,467 Crowns | 1,947 Crowns |
+
+Existing saves keep their levels, sites and Crowns; only future prices change, and no save version bump is needed.

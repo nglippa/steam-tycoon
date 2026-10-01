@@ -13,6 +13,8 @@ import { MarketSquare } from './market-square';
 import { FoundryWorks } from './foundry-works';
 import { CinderRow } from './cinder-row';
 import { SkyCanal } from './sky-canal';
+import { Weatherside } from './weatherside';
+import { Hangway } from './hangway';
 import { WEST_EDGE } from './geography';
 import { RationLine } from './ration-line';
 import type { SiteModule } from './layers';
@@ -27,7 +29,7 @@ export class Presentation {
   marketSquare!:MarketSquare; foundryWorks!:FoundryWorks; cinderRow!:CinderRow; rationLine!:RationLine; sites:SiteModule[]=[];
   /** The Ordinance's coal furnace at Cinder No. 3: its own group, because restoration removes it. */
   foundryFurnace?:T.Group; foundryHoist?:T.Group; furnaceHammer=0;
-  cartPusher=0;shaftMat?:T.MeshBasicMaterial;shafts?:T.Group;poolMat?:T.MeshBasicMaterial;pools?:T.Group;terracePlanters:[number,number][]=[];birds!:T.InstancedMesh;capsules:T.Group[]=[];moths!:T.InstancedMesh;hoistCrate!:T.Group;skyCanal!:SkyCanal;craneJib!:T.Group;ingotCart!:T.Group;
+  cartPusher=0;shaftMat?:T.MeshBasicMaterial;shafts?:T.Group;poolMat?:T.MeshBasicMaterial;pools?:T.Group;terracePlanters:[number,number][]=[];birds!:T.InstancedMesh;capsules:T.Group[]=[];moths!:T.InstancedMesh;hoistCrate!:T.Group;skyCanal!:SkyCanal;weatherside!:Weatherside;hangway!:Hangway;craneJib!:T.Group;ingotCart!:T.Group;
   steamOrigins=[V(32.8,13,40),V(0,17.9,29),V(-9,.25,25),V(31,3,14),V(-29,2,14),V(9,.3,-25)];
   runoff: T.Vector3[]=[]; heat:T.Mesh[]=[]; lanterns:T.Mesh[]=[];
   signature='';
@@ -226,6 +228,8 @@ export class Presentation {
     for(const z of [30,31.2])crate(g,38.3,0,z,.9);for(const z of [-20,-28,4])cyl(g,39.6,.4,z,.18,.8,mats.iron);
     // The sky canal: steam carriers over the cleft where the barge once ran.
     this.skyCanal=new SkyCanal(this.root);
+    // The city behind and beneath the showcase streets.
+    this.weatherside=new Weatherside(this);this.hangway=new Hangway(this);
     // A crate rides the salvage pulley.
     this.hoistCrate=new T.Group();crate(this.hoistCrate,0,0,0,.7);asProp(this.hoistCrate);bake(this.hoistCrate);this.root.add(this.hoistCrate);
     // Housing lane: a stoop chair, a delivery handcart and doorstep plants once homes recover.
@@ -431,7 +435,7 @@ export class Presentation {
   sync(){
     const e=this.city.economy;const levels=PROPERTIES.map(p=>this.city.properties.get(p.id)!.level);const key=[...levels,...Object.values(e.state.infrastructure),...Object.values(e.state.sites),e.stage].join(':');if(key===this.signature)return;this.signature=key;
     const businesses=Object.fromEntries(PROPERTIES.map((p,i)=>[p.id,levels[i]])) as Record<typeof PROPERTIES[number]['id'],number>;
-    for(const s of this.sites)s.sync({control:e.state.sites[s.id],stage:e.stage,levels:businesses,sites:{...e.state.sites}});
+    for(const s of this.sites)s.sync({control:e.state.sites[s.id],stage:e.stage,levels:businesses,sites:{...e.state.sites}});this.weatherside.sync();
     this.worn.visible=e.state.infrastructure.roads===0;
     this.city.disposeGroup(this.restored);this.city.disposeGroup(this.market);const g=this.restored;const rich=e.stage>=3;const soot=this.soot;const marketLevel=levels[5];
     // Repairs have literal mechanical consequences unique to every property.
@@ -507,9 +511,10 @@ export class Presentation {
     for(const m of this.mechanisms)m.object.rotation[m.axis]=Math.sin(time*m.speed)*.12+(m.axis==='z'&&Math.abs(m.speed)>.2?time*m.speed:0);
     const calm=reducedMotion(this.city.economy.state.settings.reducedMotion);
     const stage=this.city.economy.stage,day=this.city.economy.state.day,night=day<.24||day>.78;
-    for(const s of this.sites)s.update(dt,time,viewer,calm);
+    for(const s of this.sites)s.update(dt,time,viewer,calm);this.weatherside.update(time,viewer,calm);this.hangway.update(viewer);
     this.workers.forEach((w,i)=>{const {person,kind}=w;
-      const on=stage>=w.minStage&&stage<=w.maxStage&&(w.time==='any'||(w.time==='night')===night)&&(w.when?.()??true);person.group.visible=on;if(!on)return;
+      // People further off than a long street are a few pixels: they are neither posed nor drawn.
+      const on=stage>=w.minStage&&stage<=w.maxStage&&(w.time==='any'||(w.time==='night')===night)&&(w.when?.()??true)&&Math.hypot(person.group.position.x-viewer.x,person.group.position.z-viewer.z)<90;person.group.visible=on;if(!on)return;
       person.worn.visible=stage<3;person.finery.visible=stage>=3;
       let moving=false;const position=person.group.position;
       if(w.path){const {a,b,speed}=w.path,length=a.distanceTo(b),cycle=(time*speed+i*2.3)%(length*2+4);

@@ -39,7 +39,7 @@ export class Review {
       player.teleport(p.x,p.z,Math.atan2(normal.x,normal.z)); player.pitch=Math.atan2(target.position.y-player.position.y,2.5); player.update(0,0);
       return {id:target.id,reachable:!city.blocked(p.x,p.z,.18),raycast:player.target?.id===target.id};
     });
-    const walk=(x:number,z:number,yaw:number,seconds:number)=>{player.teleport(x,z,yaw);player.pitch=0;player.locked=true;player.keys.clear();player.keys.add('KeyW');for(let i=0;i<seconds*60;i++)player.update(1/60,i/60);player.keys.clear();return player.position.clone();};
+    const walk=(x:number,z:number,yaw:number,seconds:number,eye?:number)=>{player.teleport(x,z,yaw,eye);player.pitch=0;player.locked=true;player.keys.clear();player.keys.add('KeyW');for(let i=0;i<seconds*60;i++)player.update(1/60,i/60);player.keys.clear();return player.position.clone();};
     results.mainStreet=walk(0,77,0,17).z<2;
     results.westLane=walk(-5.5,60,0,18).z< -19;
     results.eastLane=walk(5.5,60,0,18).z< -19;
@@ -47,6 +47,22 @@ export class Review {
     results.housingLane=walk(-34,60,0,18).z< -19;
     results.ramp=walk(-34,-27,0,6.5).y>8;
     results.wallCollision=walk(0,40,-Math.PI/2,5).x<13.1;
+    // Phase 4 routes, walked with the real controller. Yaw 0 walks north, PI south, PI/2 west.
+    const S=Math.PI,W=Math.PI/2,near=(v:number,to:number)=>Math.abs(v-to)<.2;
+    results.alleys=city.alleys.map(z=>walk(-39.5,z-1.6,W,4.5).x< -55);
+    results.yardGantry=(p=>p.z>94&&near(p.y,10.85))(walk(-73.4,57,S,10,8.85));
+    results.aqueduct=(p=>p.z>20&&near(p.y,7.85))(walk(-66.5,-60.5,S,20,7.85));
+    results.hallStair=(p=>near(walk(p.x,p.z,0,1.5,p.y).y,7.85))(walk(-67.5,-10.1,W,3.5));
+    results.channelStair=walk(-64.7,-46,0,5).y>7.6;
+    results.hangway=(p=>p.z< -56&&near(p.y,-3.75))(walk(41.6,43,0,24,-3.75));
+    results.pierEnd=(p=>p.z<100&&p.z>98&&near(p.y,1.93))(walk(-67,80,S,6));
+    // No roof lets a walker off its edge: push at all four sides of the high places.
+    results.edgesHold=([[-71,-28,32.85],[-71,-23.9,19.85],[-70,-18,7.85],[-70,18,7.85],[-69,-63,7.85],[-70.5,54,8.85],[-68,96.5,10.85]] as const).every(([x,z,eye])=>[0,S,W,-W].every(yaw=>near(walk(x,z,yaw,4,eye).y,eye)));
+    // Every ladder, up and then down again, ending where a walker can move off.
+    results.ladders=Object.fromEntries(city.ladders.map(l=>{const ride=()=>{player.climb(l);let n=0;while(player.climbing&&n++<1500)player.update(1/60,n/60);return n;};
+      player.teleport(l.bottom.x,l.bottom.z,0,l.bottom.y+1.75);const up=ride(),top=near(player.position.y-1.75,l.top.y)&&!city.blocked(player.position.x,player.position.z,l.top.y);
+      const down=ride(),foot=near(player.position.y-1.75,l.bottom.y)&&!city.blocked(player.position.x,player.position.z,l.bottom.y);
+      return [l.id,{top,foot,seconds:+(up/60).toFixed(1),height:+(l.top.y-l.bottom.y).toFixed(1),ok:top&&foot&&up<1500&&down<1500}];}));
     player.teleport(saved.position.x,saved.position.z,saved.yaw,saved.position.y);player.pitch=saved.pitch;player.locked=saved.locked;player.paused=saved.paused;player.keys.clear();player.desired.set(0,0,0);player.update(0,0);
     return results;
   }

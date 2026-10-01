@@ -25,7 +25,21 @@ Six physical properties each have five named commissions, production cycles, mil
 
 Unstaffed businesses deposit 40% of their production directly and keep 60% for collection at the property, capped at 30 production cycles. Foremen deposit 100% automatically. Civic improvements, district charters, research and discoveries multiply actual production. Construction uses a six-second scaffold-and-worker sequence before the new architectural details are revealed. Income increases immediately when a commission is funded.
 
+Prices are meant to be felt. Each property level costs 3.5 times the last and yields 1.45 times as much (levels 3 and 5 keep their milestone bonuses), so a masterwork takes minutes of income to repay. Civic works, charters, research and the liberation steps are priced against income, not against the opening minutes. Played well, the first liberation arrives at about half an hour and the current city is finished in about 45 minutes; the first upgrade is still affordable in ten seconds. Levels 3 and 5, charters and research are announced with their own fanfare, every level-5 business raises an aether crown over its roof, and a hired foreman keeps a lit desk beside the ledger.
+
 Prosperity advances through **The Lowworks → Recovery → Industry → Commerce → Innovation → Grand Terra**. Individual property improvements add functioning windows, brass detailing, upper floors, copper roofs and aether machinery. Lighting, paving/transit, pressure mains, housing and gardens each have three civic levels. The canal and institute districts unlock through charters. Citizens, carts, banners, pipes, the clock landmark, steam, smoke, elevated railway and a distant airship populate the district.
+
+## Beyond the showcase streets (Phase 4)
+
+Three vaulted passages under the west housing row lead out to **the Weatherside**, a back lane between the yards and the ward wall, where Terra's edge is closest:
+
+- **Tether Yard** (south): a bonded warehouse, a freight pier that runs out past the rim, a crane over the void and an Ordinance freighter moored at the pier head.
+- **Weatherside** (middle): the Ordinance's Ward Registry, an old garden with a dry fountain and a forgotten statue, a walled-up archive, and the **Weathervane**, a 31-metre ivory tower that is the high place of the ward.
+- **Old Waterworks** (north): the cistern, a sealed gate in the ward wall, a workers' shrine and an aqueduct whose channel can be walked from the cistern roof to the registry roof.
+
+Below the street, **the Hangway** is a maintenance walk slung inside the cleft. It passes under Cinder Row, where nobody checks papers.
+
+Ladders are climbed with **E** (or **USE** on a phone) at either end; a ladder is offered to anyone standing at its foot or head, wherever they are looking.
 
 ## Liberation (Phase 1: Market Square)
 
@@ -90,7 +104,7 @@ The world has a 12-minute day/night cycle and rotating drizzle, overcast and ind
 
 ## Saves
 
-Versioned localStorage saves persist treasury, businesses, civic works, districts, discoveries, research, site liberation, settings and city time. Records autosave every ten seconds and on commissions. Opening the game credits up to **four hours** of automatic dividends since the last save. Invalid saves recover to a fresh city. v1 and v2 data migrate to v3, with every site starting occupied. Settings contains manual save and a confirmed new-game/reset flow. Saves are browser- and origin-specific. Browser storage must be enabled.
+Versioned localStorage saves persist treasury, businesses, civic works, districts, discoveries, research, site liberation, settings and city time. Records autosave every ten seconds and on commissions. Opening the game credits **a tenth of the city's income for up to four hours** away: a welcome home, not the main engine. A browser tab left suspended for more than five minutes is paid the same way. Invalid saves recover to a fresh city. v1 and v2 data migrate to v3, with every site starting occupied. Settings contains manual save and a confirmed new-game/reset flow. Saves are browser- and origin-specific. Browser storage must be enabled.
 
 ## Verification
 

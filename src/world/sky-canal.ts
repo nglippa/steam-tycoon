@@ -58,7 +58,8 @@ export class SkyCanal {
     // Each carrier shuttles the cleft's length on a smooth back-and-forth: it slows to turn at
     // the ends, out past the rim in open sky and back under the bridge.
     for (const c of this.carriers) { const a = t * c.speed + c.phase, z = MID + HALF * Math.cos(a), heading = -Math.sin(a) < 0 ? Math.PI : 0;
-      c.g.position.set(CX + Math.sin(t * .13 + c.phase * 5) * .6, c.y + Math.sin(t * .9 + c.phase * 7) * .18, z);
+      // The top carrier keeps to the east of the cleft, clear of the Hangway slung from the west wall.
+      c.g.position.set(CX + (c.y > -6 ? 1.1 : 0) + Math.sin(t * .13 + c.phase * 5) * .6, c.y + Math.sin(t * .9 + c.phase * 7) * .18, z);
       c.g.rotation.y += Math.atan2(Math.sin(heading - c.g.rotation.y), Math.cos(heading - c.g.rotation.y)) * Math.min(1, dt * .9);
       c.g.rotation.z = Math.sin(t * .7 + c.phase) * .04; c.g.rotation.x = Math.sin(t * .5 + c.phase * 3) * .02;
       for (const f of c.fans) f.rotation.z += dt * (calm ? 3 : 9); }

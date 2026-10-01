@@ -30,3 +30,20 @@ Terra is a floating city above Locke. The dark industrial Lowworks is real. It i
 - **The Directorate of Labour**: the Ordinance department that runs Terra's works, its shift quotas and its inspection posts. Its plates read *Work papers shown on demand*.
 - **Cinder Row / the Lantern Way**: the street between the Foundry and the square. The Directorate named it for the soot. The ivory plate underneath calls it the Lantern Way, and an aether conduit still runs under its north kerb. The Directorate bolted its searchlight into that conduit without knowing what it was.
 - **The Ration Line / the Breathing Main**: the Directorate meters the Boiler's pressure into the Foundry at forty per cent. Under its valve is a socket it never used, and a copper main that was carrying pressure between the old works long before the Ordinance. Stokers call to the yard by knocking on it.
+
+## The Weatherside and the Hangway (Phase 4, 2026-10-01)
+
+The ward has a back. Behind the west housing row a lane runs the length of the wall; three vaulted passages under the houses reach it (`City.alleys`).
+
+- **Tether Yard.** The Ordinance bonds all freight here. A warehouse, a customs booth and bar across the lane, a pier past the rim on the south-west bastion, a crane, and a hauler moored at the pier head. The customs post, bar and banners belong to the occupation layer and go when Market Square is liberated; the dockers chalk their own mark on the same wall.
+- **The Ward Registry** ("PAPERS · PERMITS · NAMES"). Built against the aqueduct, cutting its channel. A broadcast mast on the roof; the Embers have clipped a tap onto it.
+- **The old garden.** Ivory paving with turquoise edging, a fountain that has not run, and the Weather Keeper: a statue on no Ordinance map, holding the ring the storms passed through.
+- **The old hall.** Brick outside. One bay has fallen, and behind it is an ivory room: the walled-up archive, with record cylinders and a dark map table. One label is legible: "Lift ledger — all seven anchors holding."
+- **The Weathervane.** Older than the ward. The Ordinance bricked up its door and never found the way up: a ladder from the hall roof to a gallery, and another to the belfry, where a dormant relay lens is sighted on the eastern isle. The Embers keep a lookout on the gallery.
+- **The aqueduct.** Its trough runs from the cistern roof, over a break bridged with planks and rope, across the hall, over the garden on three piers and onto the registry roof. It is dry. When the Saelspring is restored (Market Square step 5) it carries water again, which falls from the break.
+- **The Old Waterworks.** A cistern drum with a sealed eye in its roof, a sealed gate in the ward wall chained by Ordinance engineers, the old main with a pump bolted to it ("DO NOT OPERATE"), a workers' shrine out of sight of the lane, and a post the Ordinance gave up on.
+- **The Hangway.** A crew walk 5.5 m under the street on the west wall of the cleft, reached by a ladder at each end. On it: the mains junction, a drain older than the Ordinance spilling into nothing, a dead drop under Cinder Row, a door in the rock with no handle on this side ("warm to the touch"), and the night crew's camp. The top carrier keeps to the east side of the cleft to clear it.
+
+None of the new finds pay Crowns or income. Four can be examined (archive, weathervane, shrine, the door in the rock); the rest are only there to be seen.
+
+**Left open on purpose:** what the sealed gate and the door in the rock open onto; what the Weathervane relay talks to; the seven anchors.

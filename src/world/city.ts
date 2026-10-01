@@ -12,8 +12,14 @@ import { housingPaint, setHousingCondition, residentialWindows, type Home } from
 import { animateLife, sceneFor, stageCitizen, setLifeConditions, turnTaking } from './citizen-life';
 import { TerraEdge, TERRACE as EDGE_TERRACE, CHASM, GALLERY, WEST_EDGE } from './terra-edge';
 import { Economy, PROPERTIES, SITE_LIBERATED, SITE_RESTORED, type PropertyId, type SiteId } from '../simulation/economy';
-export interface Collider { minX: number; maxX: number; minZ: number; maxZ: number; height: number; gate?: string; open?: () => boolean }
-export interface Target { object: T.Object3D; id: string; kind: 'property' | 'ledger' | 'discovery' | 'district' | 'site' | 'lift'; label: string; position: T.Vector3; hint?: string }
+export interface Collider { minX: number; maxX: number; minZ: number; maxZ: number; height: number; base?: number; gate?: string; open?: () => boolean }
+/** A walkable surface above or below the street: a roof, a catwalk, a pier past the rim.
+ * `y1` makes it a stair or ramp, rising from `y` at the low end of `axis` to `y1` at the high end. */
+export interface Deck { minX: number; maxX: number; minZ: number; maxZ: number; y: number; y1?: number; axis?: 'x' | 'z' }
+/** An authored ladder: where the Steward stands at each end, and the line the rungs follow. */
+export interface Ladder { id: string; x: number; z: number; bottom: T.Vector3; top: T.Vector3 }
+const deckHeight = (d: Deck, x: number, z: number) => d.y1 === undefined ? d.y : d.y + (d.y1 - d.y) * T.MathUtils.clamp(d.axis === 'x' ? (x - d.minX) / (d.maxX - d.minX) : (z - d.minZ) / (d.maxZ - d.minZ), 0, 1);
+export interface Target { object: T.Object3D; id: string; kind: 'property' | 'ledger' | 'discovery' | 'district' | 'site' | 'lift' | 'ladder'; label: string; position: T.Vector3; hint?: string }
 interface PropertyVisual { root: T.Group; additions: T.Group; machine: T.Group; gear: T.Group; piston: T.Mesh; level: number; building: T.Group; sign: T.Mesh }
 /** Clock terrace: concentric 0.2 m steps rising 1.2 m toward the tower. */
 export const TERRACE = { x: 0, z: -49.5, outer: 13.5, inner: 9, rise: 1.2, steps: 6 };
@@ -21,10 +27,12 @@ export function terraceRise(x: number, z: number) { const r = Math.hypot(x - TER
 const pitchOf = (width: number, type: number) => width * (.36 + (type % 3) * .06);
 export class City {
   houseVariant = 0;
+  /** Where the vaulted passages cut through the west housing row (z of each). */
+  alleys: number[] = [];
   housingFrontages:Home[]=[]; viewer=new T.Vector3(); lifeTarget=new T.Vector3();
   crowd!: CrowdBatch;
   presentation!: Presentation;
-  root = new T.Group(); colliders: Collider[] = []; targets: Target[] = []; properties = new Map<PropertyId, PropertyVisual>();
+  root = new T.Group(); colliders: Collider[] = []; decks: Deck[] = []; ladders: Ladder[] = []; targets: Target[] = []; properties = new Map<PropertyId, PropertyVisual>();
   infrastructure = new T.Group(); prosperity = new T.Group(); gears: T.Group[] = []; smokeOrigins: T.Vector3[] = []; lamps: T.PointLight[] = [];
   npcs: ReturnType<typeof citizen>[] = []; constructions: { group: T.Group; time: number; duration: number; finish: () => void; workers: ReturnType<typeof citizen>[]; site?: string }[] = [];
   /** World-originated messages (a patrol's warning, an ancient machine waking) for the UI to voice. */
@@ -36,7 +44,10 @@ export class City {
   /** Collider from a footprint in a (possibly rotated) building group's local frame. */
   localCollider(g: T.Object3D, x: number, z: number, w: number, d: number, height = 30) { g.updateWorldMatrix(true, false); const p = g.localToWorld(new T.Vector3(x, 0, z)); const turned = Math.abs(Math.sin(g.getWorldQuaternion(new T.Quaternion()).angleTo(new T.Quaternion()))) > .5; this.collider(p.x, p.z, turned ? d : w, turned ? w : d, height); }
   /** `open` lets state-driven props (an Ordinance booth, a furnace) stop blocking once they are gone. */
-  collider(x: number, z: number, w: number, d: number, height = 30, gate?: string, open?: () => boolean) { this.colliders.push({ minX: x - w / 2, maxX: x + w / 2, minZ: z - d / 2, maxZ: z + d / 2, height, gate, open }); }
+  collider(x: number, z: number, w: number, d: number, height = 30, gate?: string, open?: () => boolean, base?: number) { this.colliders.push({ minX: x - w / 2, maxX: x + w / 2, minZ: z - d / 2, maxZ: z + d / 2, height, base, gate, open }); }
+  deck(minX: number, maxX: number, minZ: number, maxZ: number, y: number, y1?: number, axis?: 'x' | 'z') { this.decks.push({ minX, maxX, minZ, maxZ, y, y1, axis }); }
+  /** The deck under these feet, if any: the highest one they could be standing on. */
+  private deckAt(x: number, z: number, feet: number) { let best = -Infinity; for (const d of this.decks) if (x >= d.minX && x <= d.maxX && z >= d.minZ && z <= d.maxZ) { const h = deckHeight(d, x, z); if (h <= feet + .4 && h > best) best = h; } return best; }
   target(g: T.Group, id: string, kind: Target['kind'], label: string, x: number, y: number, z: number) { const board = box(g, x, y, z, 1.05, .8, .18, mats.brass); const panel = sign(g, kind === 'property' ? 'LEDGER' : label, kind === 'property' ? 'Accounts & improvements' : 'Terra • Locke', x, y, z + .101, .96, .62); box(g, x, y - .85, z, .12, 1.1, .12, mats.iron); board.updateWorldMatrix(true, false); const pos = board.getWorldPosition(new T.Vector3()); this.targets.push({ object: board, id, kind, label, position: pos }); panel.userData.interaction = id; }
   buildGround() { const g = new T.Group(); this.root.add(g); // The ground stops at the cleft: the Lowworks canal is a chasm open to the sky beneath.
     box(g, (-79 + CHASM.x0) / 2, -.5, -5.5, 79 + CHASM.x0, 1, 179, mats.dirt); box(g, (CHASM.x1 + 79) / 2, -.5, -5.5, 79 - CHASM.x1, 1, 179, mats.dirt); box(g, (CHASM.x0 + CHASM.x1) / 2, -.5, (CHASM.z1 + 84) / 2, CHASM.x1 - CHASM.x0, 1, 84 - CHASM.z1, mats.dirt); box(g, 0, .018, 9, 12.6, .06, 139, mats.road);
@@ -158,14 +169,18 @@ export class City {
       for (let i = 0; i < row.length - 1; i++) { const a = row[i], b = row[i + 1], z1 = a.z - a.width / 2, z2 = b.z + b.width / 2, gap = z1 - z2; if (gap < 3) continue;
         const fill = new T.Group(); fill.position.set(side < 0 ? -47.5 : 67.5, 0, (z1 + z2) / 2); fill.rotation.y = side < 0 ? Math.PI / 2 : -Math.PI / 2; g.add(fill);
         const w = gap + .1, h = 9 + (i % 3) * 2.2, d = 9, f = d / 2, paint = housingPaint[(i + 2) % 3];
+        // Every other west passage runs right through, under the house, to the Weatherside behind the row.
+        const through = side < 0 && i % 2 === 0; if (through) this.alleys.push((z1 + z2) / 2);
         box(fill, 0, (4.2 + h) / 2, 0, w, h - 4.2, d, paint); for (const x of [-w / 2 + .5, w / 2 - .5]) box(fill, x, 2.1, 0, 1, 4.2, d, mats.stone);
         box(fill, 0, 4.1, 0, w + .1, .3, d + .1, mats.warmStone);
         const face = new T.Shape(); face.moveTo(-w / 2 + 1, 0); face.lineTo(w / 2 - 1, 0); face.lineTo(w / 2 - 1, 4.2); face.lineTo(-w / 2 + 1, 4.2); face.closePath();
         const open = new T.Path(); open.moveTo(-w / 2 + 1.05, 0); open.lineTo(-w / 2 + 1.05, 2.7); open.quadraticCurveTo(0, 4.5, w / 2 - 1.05, 2.7); open.lineTo(w / 2 - 1.05, 0); open.closePath(); face.holes.push(open);
         const spandrel = new T.Mesh(new T.ExtrudeGeometry(face, { depth: 2.6, bevelEnabled: false, curveSegments: 8 }), mats.stone); spandrel.position.z = f - 2.6; fill.add(spandrel);
-        box(fill, 0, 2.1, -1.6, w - 2, 4.2, .2, mats.warmStone); box(fill, 0, 1.1, -1.45, 1.1, 2.2, .1, mats.wood); sphere(fill, 0, 2.7, -1.3, .12, mats.glow);
+        if (through) { box(fill, 0, 3.75, -f + .2, w - 2, .9, .4, mats.stone); box(fill, 0, .03, 0, w - 2, .06, d + 3, mats.road); for (const z of [-2.4, 1.2]) box(fill, 0, 4.05, z, w - 2, .3, .5, mats.wood); sphere(fill, 0, 3.7, -.6, .13, mats.glow); }
+        else { box(fill, 0, 2.1, -1.6, w - 2, 4.2, .2, mats.warmStone); box(fill, 0, 1.1, -1.45, 1.1, 2.2, .1, mats.wood); sphere(fill, 0, 2.7, -1.3, .12, mats.glow); }
         box(fill, 0, h + .5, 0, w + .2, 1, d + .2, mats.stone); for (let y = 5; y < h - 1.5; y += 3.2) for (const x of w > 6 ? [-w * .22, w * .22] : [0]) windowUnit(fill, x, y, f + .02, (i + y) % 3 !== 0, 1.1, 2, 'rect');
         if (i % 2 === 0) { box(fill, -w * .15, h + 2, -1, w * .5, 2.4, 3.5, mats.wood); roof(fill, -w * .15, h + 3.2, -1, w * .5 + .4, 1.6, 3.9, mats.rust); }
+        if (through) { for (const x of [-w / 2 + .5, w / 2 - .5]) this.localCollider(fill, x, 0, 1, d); continue; }
         barrel(fill, w * .2, 0, -.8); this.localCollider(fill, 0, -1.3, w, d - 2.4); this.localCollider(fill, -w / 2 + .5, f - 1.2, 1, 2.4); this.localCollider(fill, w / 2 - .5, f - 1.2, 1, 2.4); } }
     // Gate rows: two short terraces on skewed plots. The west row recedes and the east
     // row steps forward, so the street jogs ~3 m between the gate and the first works.
@@ -289,7 +304,9 @@ export class City {
     // On the west edge the parapet opens into a balustrade, so the lane looks down onto the clouds.
     box(g, -83, .7, (-90 + WEST_EDGE.z0) / 2, 2, 1.4, WEST_EDGE.z0 + 90, mats.stone); box(g, -83, .7, (WEST_EDGE.z1 + 84) / 2, 2, 1.4, 84 - WEST_EDGE.z1, mats.stone);
     box(g, -83, 1.08, (WEST_EDGE.z0 + WEST_EDGE.z1) / 2, .16, .1, WEST_EDGE.z1 - WEST_EDGE.z0, mats.brass); box(g, -83, .08, (WEST_EDGE.z0 + WEST_EDGE.z1) / 2, .5, .16, WEST_EDGE.z1 - WEST_EDGE.z0, mats.stone);
-    for (let z = WEST_EDGE.z0 + .5; z < WEST_EDGE.z1; z += 1.1) box(g, -83, .58, z, .12, 1, .12, mats.stone); for (const s of [-1, 1]) box(g, s * 54.1, .7, 83, 59.8, 1.4, 2, mats.stone);
+    for (let z = WEST_EDGE.z0 + .5; z < WEST_EDGE.z1; z += 1.1) box(g, -83, .58, z, .12, 1, .12, mats.stone); box(g, 54.1, .7, 83, 59.8, 1.4, 2, mats.stone);
+    // The south-west parapet opens for the Tether Yard pier.
+    box(g, -43.6, .7, 83, 38.8, 1.4, 2, mats.stone); box(g, -77.5, .7, 83, 13, 1.4, 2, mats.stone);
     const balloon = sphere(this.airship, 0, 0, 0, 1, mats.cream); balloon.scale.set(10, 3, 3); for (const xx of [-5, 0, 5]) { const ring = torus(this.airship, xx, 0, 0, 2.95, .075, mats.copper); ring.rotation.y = Math.PI / 2; } box(this.airship, 0, -4.1, 0, 7, 1.5, 2.1, mats.wood); for (const xx of [-3, 3]) for (const z of [-.8, .8]) beam(this.airship, new T.Vector3(xx, -2.2, z * 2), new T.Vector3(xx, -3.8, z), .035); box(this.airship, -9, 0, 0, 3, 5, .13, mats.teal); this.root.add(this.airship); bake(this.airship); bake(g);
   }
   createPopulation() { for(let i=0;i<42;i++){
@@ -333,7 +350,12 @@ export class City {
       }
     }
     if(level>=4){for(const x of [-6.5,6.5]){box(g,x,8.1+L,front+.06,.85,2.4,.02,id==='foundry'?mats.rust:mats.teal);box(g,x,9.4+L,front+.07,1.1,.08,.04,mats.brass);}if(id==='market'||id==='tavern')for(const x of [-6,6])tree(g,x,7,.55);}
-    if(level>=5&&(id==='workshop'||id==='boiler')){const [x,y,z]=id==='workshop'?[0,32.6+L,-2.4]:[-7.6,21.4+L,3.9];cyl(g,x,y-1,z,.1,2,mats.brass);sphere(g,x,y,z,.35,mats.aether);}
+    // Masterwork: every trade earns the aether crown the ledger promises. A lit mast over the roof,
+    // aether lamps at the door and a brass plate, so the best house on the street looks like it.
+    if(level>=5){const [x,y,z]=id==='workshop'?[0,32.6+L,-2.4]:id==='boiler'?[-7.6,21.4+L,3.9]:[0,businessHeights[index]+L+3.4,-1];cyl(g,x,y-1.6,z,.1,3.2,mats.brass);sphere(g,x,y,z,.42,mats.aether);for(const r of [.75,1.05]){const ring=torus(g,x,y,z,r,.035,mats.brass);ring.rotation.x=Math.PI/2+(r>1?.5:-.35);}
+      for(const dx of [-6.5,6.5])sphere(g,dx,4,6,.27,mats.aether);sign(g,'MASTERWORK',PROPERTIES[index].kind+' • FIRST IN TERRA',0,L?4.45+L+.2:7.15,front,3.4,.6,'#d8aa48');}
+    // A foreman keeps a desk by the ledger: a lamp, a bell and his name on the post.
+    if(this.economy.state.properties[id].automated){box(g,5.2,.62,7.5,.62,1.05,.46,mats.wood);box(g,5.2,1.2,7.5,.76,.07,.6,mats.wood).rotation.x=.18;cyl(g,5.52,1.9,7.3,.03,2.6,mats.iron);sphere(g,5.52,3.25,7.3,.16,mats.glow);sphere(g,4.98,1.34,7.5,.07,mats.brass);sign(g,'FOREMAN','ON DUTY',5.2,.72,7.74,.56,.3);}
     bake(g);
   }
   disposeGroup(g: T.Group) { g.traverse(o => { if (o instanceof T.Mesh) o.geometry.dispose(); }); g.clear(); }
@@ -360,7 +382,7 @@ export class City {
     bake(g);
   }
   /** Covert and liberation steps land at once, unannounced; only restoring the ancient works brings the civic engineers. */
-  construct(kind: string, id: string) { if (kind === 'site' && this.economy.state.sites[id as SiteId] < SITE_RESTORED) { this.sync(); return; } if (!['property', 'infrastructure', 'district', 'research', 'site'].includes(kind)) return; const g = new T.Group(); this.root.add(g); const p = kind === 'site' ? undefined : PROPERTIES.find(p => p.id === id); const anchor = kind === 'site' ? this.presentation.sites.find(s => s.id === id)!.anchor : undefined; const x = p ? p.x : anchor ? anchor.x : kind === 'district' && id === 'canal' ? 54 : 0; const z = p ? p.z : anchor ? anchor.z : -40; g.position.set(x, 0, z); if (p) g.rotation.y = p.rotation; if (anchor) g.rotation.y = anchor.rotation;
+  construct(kind: string, id: string) { if (kind === 'automation') { this.propertyUpgrade(id as PropertyId); return; } if (kind === 'site' && this.economy.state.sites[id as SiteId] < SITE_RESTORED) { this.sync(); return; } if (!['property', 'infrastructure', 'district', 'research', 'site'].includes(kind)) return; const g = new T.Group(); this.root.add(g); const p = kind === 'site' ? undefined : PROPERTIES.find(p => p.id === id); const anchor = kind === 'site' ? this.presentation.sites.find(s => s.id === id)!.anchor : undefined; const x = p ? p.x : anchor ? anchor.x : kind === 'district' && id === 'canal' ? 54 : 0; const z = p ? p.z : anchor ? anchor.z : -40; g.position.set(x, 0, z); if (p) g.rotation.y = p.rotation; if (anchor) g.rotation.y = anchor.rotation;
     for (const xx of [-8, 8]) for (const zz of [5.9, 8.2]) { cyl(g, xx, 5, zz, .055, 10, mats.brass); for (const y of [2.7, 5.7, 8.7]) beam(g, new T.Vector3(-8, y, zz), new T.Vector3(8, y, zz), .055, mats.brass); } for (const y of [2.7, 5.7, 8.7]) box(g, 0, y, 7.1, 16, .09, 2.3, mats.wood); for (let xx = -8; xx < 8; xx += 4) beam(g, new T.Vector3(xx, 0, 8.2), new T.Vector3(xx + 4, 5.7, 8.2), .05, mats.iron);
     const workers = [citizen(mats.cream), citizen(mats.rust)]; workers.forEach((w, i) => { w.group.position.set(i ? 7 : -6.5, 0, 9.2); w.group.rotation.y = Math.PI; g.add(w.group); }); sign(g, 'TERRA IS REBUILDING', 'Guild of civic engineers', 0, 1.7, 9.2, 5, .8);
     this.constructions.push({ group: g, time: 0, duration: 6, workers, site: kind === 'site' ? id : undefined, finish: () => { if (p) this.propertyUpgrade(p.id); this.sync(); } });
@@ -371,9 +393,15 @@ export class City {
   /** True while occupation eyes (a patrol, an overseer) are on the Steward at this site. */
   watched(id: SiteId) { return this.presentation.sites.find(s => s.id === id)!.watching; }
   sync(initial = false) { if (initial) for (const p of PROPERTIES) this.propertyUpgrade(p.id); this.buildInfrastructure(); this.buildProsperity(); for (const [id, bars] of this.gateMeshes) bars.visible = !this.economy.state.districts.includes(id); this.presentation?.sync(); }
-  groundHeight(x: number, z: number) { if (z > GALLERY.z0 - .4 && z < GALLERY.z1 && x > GALLERY.x0 && x < GALLERY.x1) return GALLERY.floor; const tr = terraceRise(x, z); if (tr > 0) return .18 + tr; if (x > -36.3 && x < -31.7 && z <= -29 && z >= -51) return .2 + (-z - 29) / 22 * 6; if (x > -37.5 && x < -30.5 && z < -51 && z >= -61.5) return 6.4; return .18; }
-  blocked(x: number, z: number, feet: number) { if (feet < -50) return !(x > GALLERY.x0 + .4 && x < GALLERY.x1 - .4 && z > GALLERY.z0 + .4 && z < GALLERY.z1 - .4); if (x > 40.2 && x < 48.8 && (z < -9.5 || z > -2.5)) return true; if ((x < -75 && !(x > -82.2 && z > WEST_EDGE.z0 + .5 && z < WEST_EDGE.z1 - .5)) || x > 76 || (z > 78 && !(Math.abs(x) < EDGE_TERRACE.half - .6 && z < EDGE_TERRACE.z)) || z < -83) return true; if (x > 53 && !this.economy.state.districts.includes('canal')) return true; if (z < -69 && !this.economy.state.districts.includes('heights')) return true;
-    return this.colliders.some(c => !(c.gate && this.economy.state.districts.includes(c.gate)) && !c.open?.() && feet < c.height && x > c.minX - .32 && x < c.maxX + .32 && z > c.minZ - .32 && z < c.maxZ + .32); }
+  /** With `feet`, the surface those feet would land on (roofs, catwalks, the hangway under the
+   * street); without, the street itself, which is all the townsfolk ever walk. */
+  groundHeight(x: number, z: number, feet?: number): number { if (feet !== undefined && feet > GALLERY.floor + 40) { const deck = this.deckAt(x, z, feet); if (feet < -1) return deck; return Math.max(deck, this.groundHeight(x, z)); }
+    if (z > GALLERY.z0 - .4 && z < GALLERY.z1 && x > GALLERY.x0 && x < GALLERY.x1) return GALLERY.floor; const tr = terraceRise(x, z); if (tr > 0) return .18 + tr; if (x > -36.3 && x < -31.7 && z <= -29 && z >= -51) return .2 + (-z - 29) / 22 * 6; if (x > -37.5 && x < -30.5 && z < -51 && z >= -61.5) return 6.4; return .18; }
+  blocked(x: number, z: number, feet: number) { if (feet < -50) return !(x > GALLERY.x0 + .4 && x < GALLERY.x1 - .4 && z > GALLERY.z0 + .4 && z < GALLERY.z1 - .4); // Below the street there is only what was built to stand on; a deck also carries the
+    // Steward past the ward's edges (a pier over the rim, a stair down into the cleft).
+    const deck = this.deckAt(x, z, feet), onDeck = deck > feet - 1.2; if (feet < -1 && !onDeck) return true;
+    if (!onDeck) { if (x > 40.2 && x < 48.8 && (z < -9.5 || z > -2.5)) return true; if ((x < -75 && !(x > -82.2 && z > WEST_EDGE.z0 + .5 && z < WEST_EDGE.z1 - .5)) || x > 76 || (z > 78 && !(Math.abs(x) < EDGE_TERRACE.half - .6 && z < EDGE_TERRACE.z)) || z < -83) return true; if (x > 53 && !this.economy.state.districts.includes('canal')) return true; if (z < -69 && !this.economy.state.districts.includes('heights')) return true; }
+    return this.colliders.some(c => !(c.gate && this.economy.state.districts.includes(c.gate)) && !c.open?.() && feet < c.height && feet + 1.7 > (c.base ?? -1) && x > c.minX - .32 && x < c.maxX + .32 && z > c.minZ - .32 && z < c.maxZ + .32); }
   update(dt: number, time: number, viewer?:T.Vector3) { if(viewer)this.viewer.copy(viewer);setLifeConditions(this.economy.stage,this.raining);this.presentation.update(dt,time,this.viewer); if(this.clockMechanism)this.clockMechanism.rotation.z=this.economy.state.infrastructure.steam>0?-time*.1:0; for (const p of PROPERTIES) { const v = this.properties.get(p.id)!; const level = this.economy.state.properties[p.id].level; v.gear.rotation.z -= dt * (.35 + level * .6); v.piston.position.y = .95 + Math.sin(time * (1 + level)) * .22; v.machine.rotation.z = 0; }
     for (const flag of this.flags) {
       const pos = flag.geometry.attributes.position; const rest = flag.userData.rest as Float32Array;

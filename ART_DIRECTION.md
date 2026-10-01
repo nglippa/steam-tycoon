@@ -211,3 +211,11 @@ Night is a change of palette, not a visibility penalty.
 - **Sky and fog.** The night sky is deep blue (`#1b2756`), the horizon blue-grey (`#3d4a74`), and the clouds are moonlit. Fog takes the horizon colour, so distance gets softer and bluer instead of disappearing. Fog nights add a lighter mist and a denser falloff, while the near street stays crisp.
 - **Windows.** Lit rooms glow warm amber (0.9). Cool glass only reflects the night sky (0.32), instead of shining blue-white.
 - Painted materials have no specular, so dry stone, plaster and wood can't look glossy. Rain puddles are the only reflective surface, which is intended.
+
+## The Weatherside and the Hangway (2026-10-01)
+
+- **Three identities on one lane.** Tether Yard is iron, rust, timber and stencilled crates. Weatherside is ivory, turquoise and gold showing through brick, with the Registry as the one cold, clean Ordinance block. The Waterworks is ivory left to itself. Each has one landmark (the crane and freighter, the Weathervane, the cistern) and only the Weathervane rises above the housing roofs.
+- **Roofs are places.** A walkable roof has a parapet or rail on every edge that is not an entrance, and something on it worth the climb: a seat, a mast, a lens, a view.
+- **Ancient work is revealed, not displayed.** Ivory appears where brick has fallen, where a wall was cut, or where the Ordinance has bolted its own plant onto something older.
+- **The Hangway is followed by its limewash.** The crews' pale band on the wall and a lamp every seven metres carry the eye; the wall above stays dark rock.
+- **Visibility.** Everything behind the housing row except the Weathervane is hidden while the viewer is in the streets and below roof height, and people more than 90 m away are neither posed nor drawn.

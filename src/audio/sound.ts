@@ -17,6 +17,8 @@ export class Soundscape {
   apply() { if (!this.context) return; const s = this.settings(); this.master!.gain.value = s.master; this.ambient!.gain.value = s.ambience; this.sfx!.gain.value = s.sfx; this.music!.gain.value = s.music; }
   tone(freq: number, duration: number, volume = .1, type: OscillatorType = 'sine', delay = 0) { if (!this.context) return; const c = this.context; const t = c.currentTime + delay; const o = c.createOscillator(); const g = c.createGain(); o.type = type; o.frequency.setValueAtTime(freq, t); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(volume, t + .008); g.gain.exponentialRampToValueAtTime(.0001, t + duration); o.connect(g); g.connect(this.sfx!); o.start(t); o.stop(t + duration + .02); }
   purchase() { [261.63, 329.63, 392, 523.25].forEach((f, i) => this.tone(f, .55, .09, 'triangle', i * .07)); }
+  /** A milestone is heard as well as seen: a brass rise that holds, not the ledger's chime. */
+  milestone() { [196, 261.63, 329.63, 392, 523.25, 659.25].forEach((f, i) => this.tone(f, 1.5 - i * .1, .075, i < 3 ? 'sawtooth' : 'triangle', i * .11)); this.tone(98, 2, .05, 'sine'); }
   collect() { this.tone(880, .2, .04); this.tone(1320, .3, .025, 'sine', .08); }
   step() { this.tone(65 + Math.random() * 35, .07, .05, 'triangle'); }
   hammer() { this.tone(180 + Math.random() * 70, .06, .045, 'square'); }
