@@ -201,3 +201,13 @@ The rules come from the `figure-construction` skill (`~/.agents/skills/figure-co
 - **Look down through something.** Every opening has a near frame (rail, balustrade, bridge girders, cage bars) and a far layer (cloud cards and wisps, ribs at depth, the cloud sea with Locke's fields). Never an empty void.
 - **Steam carriers, not boats.** Freight floats on brass lift-pods with an aether glow beneath. A copper boiler and stack astern and two turbine ducts with spinning fans drive it. Steam is one instanced puff mesh tinted by the light key. Carriers slow to turn at each end and roll gently.
 - **The underside** is rock, not paving. Hanging cones, ivory ribs and copper pipes show the plate is a made thing held up by the old city.
+
+## Moonlit Terra (2026-09-30)
+
+Night is a change of palette, not a visibility penalty.
+- **Moon is the key light.** By night the sun's directional light becomes a high moon from the north-east (`MOON` in `atmosphere.ts`), with strength set per weather: clear 0.75, overcast 0.45, fog 0.4, rain 0.42. Façades, roofs and figures keep a lit side and a shadow side, and the single shadow map is reused.
+- **Per-weather night keys** (`nightKeys`). Clear is the crispest blue-cyan. Overcast and fog are softer and closer in value. Rain is cooler and darker. Shadows sit in blue-grey, never navy-black; black is left to ink lines and deep occlusion.
+- **Moon below the lamp threshold.** `tone.ts` adds a warm pool where light is well above ambient. The moon/hemisphere ratio is kept under that threshold, so warm islands only form under real lamps, and the pool now ramps in instead of stepping.
+- **Sky and fog.** The night sky is deep blue (`#1b2756`), the horizon blue-grey (`#3d4a74`), and the clouds are moonlit. Fog takes the horizon colour, so distance gets softer and bluer instead of disappearing. Fog nights add a lighter mist and a denser falloff, while the near street stays crisp.
+- **Windows.** Lit rooms glow warm amber (0.9). Cool glass only reflects the night sky (0.32), instead of shining blue-white.
+- Painted materials have no specular, so dry stone, plaster and wood can't look glossy. Rain puddles are the only reflective surface, which is intended.

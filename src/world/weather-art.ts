@@ -113,8 +113,8 @@ export class WeatherArt {
     const top=weather==='clear'?c.clear:rain?c.rain:c.overcast,horizon=weather==='clear'?c.horizon:c.lavender;
     this.uniforms.skyTop.value.copy(c.night).lerp(top,daylight).lerp(c.rose,dusk*.55).lerp(c.smog,smog*.3*daylight);
     this.uniforms.skyHorizon.value.copy(c.haze).lerp(horizon,daylight).lerp(c.dusk,dusk*.85).lerp(c.smog,smog*.5*daylight);
-    this.uniforms.cloudTint.value.set('#1e2640').lerp(rain?rainCloud:weather==='clear'?c.cloud:greyCloud,daylight).lerp(c.dusk,dusk*.8).lerp(c.smog,smog*.25*daylight);
-    this.uniforms.cloudShade.value.set('#0c1020').lerp(weather==='clear'?c.cloudShade:c.overcast,daylight).lerp(duskShade,dusk*.8);
+    this.uniforms.cloudTint.value.set('#5d6994').lerp(rain?rainCloud:weather==='clear'?c.cloud:greyCloud,daylight).lerp(c.dusk,dusk*.8).lerp(c.smog,smog*.25*daylight);
+    this.uniforms.cloudShade.value.set('#2c3658').lerp(weather==='clear'?c.cloudShade:c.overcast,daylight).lerp(duskShade,dusk*.8);
     this.uniforms.cover.value=weather==='clear'?0:rain?1:.6;
     this.uniforms.sunset.value=dusk;this.uniforms.daylight.value=daylight;this.uniforms.time.value=time;
     this.splashes.visible=this.runoff.visible=rain;

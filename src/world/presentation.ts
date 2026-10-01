@@ -396,7 +396,7 @@ export class Presentation {
       const halo=new T.Mesh(new T.PlaneGeometry(3.4,3.4),this.poolMat);halo.position.set(1.8,2.9,.1);f.add(halo);
       const floor=new T.Mesh(new T.PlaneGeometry(6,6),this.poolMat);floor.rotation.x=-Math.PI/2;floor.position.set(1.8,.2,1.8);f.add(floor);}
   }
-  setNight(v:number){for(const s of this.sites)s.setNight(v);const n=Math.max(0,Math.min(1,(v-.35)/.4));if(this.poolMat)this.poolMat.opacity=n*.85;if(this.pools)this.pools.visible=n>0;}
+  setNight(v:number){for(const s of this.sites)s.setNight(v);const n=Math.max(0,Math.min(1,(v-.35)/.4));if(this.poolMat)this.poolMat.opacity=n;if(this.pools)this.pools.visible=n>0;}
   animateSet(dt:number,time:number,calm:boolean){void dt;
     const m=new T.Matrix4(),q=new T.Quaternion(),e=new T.Euler(),p=new T.Vector3(),sc=new T.Vector3(1,1,1);
     for(let i=0;i<14;i++){const a=time*(.22+(i%3)*.03)+i*.45,r=9+(i%4)*2.2;p.set(Math.sin(a)*r,36+Math.sin(time*.7+i)*2.5+(i%5),-46+Math.cos(a)*r);e.set(0,a+Math.PI/2,calm?0:Math.sin(time*9+i)*.5);q.setFromEuler(e);sc.setScalar(1.4);m.compose(p,q,sc);this.birds.setMatrixAt(i,m);}

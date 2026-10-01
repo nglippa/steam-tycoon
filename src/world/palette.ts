@@ -7,7 +7,7 @@ export const palette = {
   aether: { cyan:'#70e7e1', white:'#d1f3f1', glow:'#79dce6' },
   skin: ['#d8b094','#b08470','#86625a'],
   hair: ['#262a4a','#7c4331','#cf9450','#5a3a5e'],
-  sky: { clear:'#8aa6b6', horizon:'#efe0c4', overcast:'#86908f', rain:'#5a6366', lavender:'#9c9d95', night:'#070a18', haze:'#131729', cloud:'#f6ead3', cloudShade:'#b9aa98', dusk:'#f2a67f', rose:'#5d6c9e', smog:'#b7b8ae' },
+  sky: { clear:'#8aa6b6', horizon:'#efe0c4', overcast:'#86908f', rain:'#5a6366', lavender:'#9c9d95', night:'#1b2756', haze:'#3d4a74', cloud:'#f6ead3', cloudShade:'#b9aa98', dusk:'#f2a67f', rose:'#5d6c9e', smog:'#b7b8ae' },
 } as const;
 const p=palette;
 // Karnaca/Thief key: sandstone, umber, soot and slate, weathered but warm. Values drift

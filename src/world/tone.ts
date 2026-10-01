@@ -16,7 +16,7 @@ const chunk = `
   float inkForm = clamp(inkValue / (toneAmbient * 2.2), .0, 1.25);
   vec3 inkTone = mix(toneShade * (.9 + .12 * inkForm), toneLit * (.92 + .1 * inkForm), inkLit);
   // Bright local light (lamps, furnaces) pushes past the sunlit tone into a warm pool.
-  inkTone += toneRim * smoothstep(toneAmbient * 3.2, toneAmbient * 5.5, inkValue) * .28;
+  inkTone += toneRim * smoothstep(toneAmbient * 3.2, toneAmbient * 7.5, inkValue) * .34;
   outgoingLight = diffuseColor.rgb * inkTone + totalEmissiveRadiance;
 `;
 

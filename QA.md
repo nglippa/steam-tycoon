@@ -296,3 +296,11 @@ Typecheck, 26 tests and the build pass. The traversal and ledger sweep over 15 s
   - No console errors.
 - **Performance** (uncapped headed Chrome, Phase 3 commit `9c227f9` vs the working tree, which also includes Phase 4 and the people pass, mean of 2 rounds). The arrival, chasm, bridge, cleft, west edge, street and square views run 192–335 FPS with p95 at or below 6.15 ms. Draws rise by +3 to +36 per view; the three carriers, the instanced steam and the baked underside are the new cost.
 - Rendered review: `screenshots/review-2026-09-30-pass7/` and `collage.png`.
+
+## Moonlit Terra: night lighting pass (2026-09-30)
+
+Typecheck, 26 tests and the build pass. The traversal and ledger sweep over 15 states is unchanged: all 6 ledgers pass everywhere, no NPC is blocked, there are no console errors, and `foundryLane` fails only while Cinder Row's inspection is active.
+- Same camera, phone viewport (390×844 @3x), before and after, for clear day and clear, overcast, rain and fog night (`compare-weather.png`). Also Market Square, the Foundry, a housing frontage and the terrace vista (`compare-places.png`).
+- Daytime is unchanged (`compare-day.png`). At full daylight the sun intensity, hemisphere and keys are identical to before.
+- Performance: no lights, meshes, shadow casters or post passes were added. Only light values and colours changed.
+- Screenshots: `screenshots/review-2026-09-30-night/`.
