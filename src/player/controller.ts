@@ -36,9 +36,10 @@ export class Player {
       const moving = Math.hypot(this.velocity.x, this.velocity.z); this.moved += moving * dt; if (this.grounded && moving > .3) { this.step += moving * dt; if (this.step > 2.1) { this.step = 0; this.onStep(); } }
     }
     this.camera.position.copy(this.position); if (this.locked && !reducedMotion(this.city.economy.state.settings.reducedMotion) && this.grounded) this.camera.position.y += Math.sin(time * 9) * Math.min(.025, this.desired.length() * .006); this.camera.rotation.set(this.pitch, this.yaw, 0, 'YXZ'); this.camera.updateMatrixWorld();
-    this.ray.setFromCamera(new T.Vector2(0, 0), this.camera); const hits = this.ray.intersectObjects(this.city.targets.map(t => t.object), false); this.target = hits[0] && hits[0].distance < 4.6 ? this.city.targets.find(t => t.object === hits[0].object)! : null;
+    this.ray.setFromCamera(new T.Vector2(0, 0), this.camera); const hits = this.ray.intersectObjects(this.city.targets.filter(t => t.when?.() ?? true).map(t => t.object), false); const reach = hits[0]?.distance ?? Infinity; this.target = reach < 4.6 ? this.city.targets.find(t => t.object === hits[0].object)! : null;
     // A ladder is offered to anyone standing at either end of it, wherever they are looking: no aiming on a phone.
-    if (!this.target && !this.riding) { const feet = this.position.y - 1.75, near = this.city.ladders.find(l => [l.bottom, l.top].some(e => Math.abs(e.y - feet) < .6 && Math.hypot(e.x - this.position.x, e.z - this.position.z) < 1.5)); if (near) this.target = this.city.targets.find(t => t.id === near.id) ?? null; }
+    // It wins over anything else in view that is further off than arm's length.
+    if ((!this.target || (this.target.kind !== 'ladder' && reach > 2.2)) && !this.riding) { const feet = this.position.y - 1.75, near = this.city.ladders.find(l => [l.bottom, l.top].some(e => Math.abs(e.y - feet) < .6 && Math.hypot(e.x - this.position.x, e.z - this.position.z) < 1.5)); if (near) this.target = this.city.targets.find(t => t.id === near.id) ?? this.target; }
     if (this.riding) this.target = null;
   }
 }

@@ -62,3 +62,22 @@ None of the new finds pay Crowns or income. Four can be examined (archive, weath
 - **Trades.** Each business has a trait (salvage, pressure, precision, castings, word of mouth, exchange); see README.
 
 **Still open:** the other six anchors; who in the Registry ties the ribbon; what the unannounced Ordinance vessel brought.
+
+## The Seven Anchors: what can be found, and what it says (Phase 5, 2026-10-01)
+
+Nothing here is explained in the game. These are the pieces, and what each one alone establishes.
+
+| Where | What is there | What it tells an observant player |
+|---|---|---|
+| The Keel, under the Hangway | A gold clasp round the rib. "III is stamped beneath a seven-point seal. It is holding." | There are seven. They are old. They hold something. |
+| The Ward Registry, on the office wall | Ordinance Survey 14: seven marks along Terra's keel labelled FOUNDATION STABILISER, three ringed, stamped DO NOT LOAD | The occupation knows of them, has found three, does not know what they are, and is afraid of them |
+| Finch's telescope, on the Leads | "Seven studs round the Weathervane's cap. The third is turquoise." | The old city displays their state, in the open, above the roofs |
+| The sealed gate, Old Waterworks | Cut into the lintel: ANCHOR V. TEND FROM BELOW. | Another one, numbered, and it is under the Waterworks. They were tended. |
+| The Foundry yard, by the cleft | A casting pattern for a seven-lugged collar, "REPLACEMENT, TO THE OLD GAUGE", and three cracked castings | The Ordinance is trying to copy a part and cannot |
+| The Packet Light, lamp room | Two sighting rings: one on the Weathervane, one tilted down at cloud below the rim | The old signal station watched the tower, and something beneath Terra |
+
+- **The Anchor survey** (research) wakes Anchor III: the clasp's core lights, the Keel's lanterns light, the third stud on the Weathervane lights, and the door in the rock opens.
+- **The Tending Room** behind that door: ivory, tile and gold, water still running in a runnel, and a table with seven lenses in a ring. "The third burns steady. The fifth is faint. The rest are dark."
+- The Backwater's sawn conduit ("the cut end is warm") is not an Anchor clue; it says the old works are still live under the east side too.
+
+**Deliberately not said:** what an Anchor does, why Terra floats, where the other five are, what "tend" means, and why the fifth is faint.

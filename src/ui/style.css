@@ -93,3 +93,6 @@ body.touch #interaction kbd{display:none}
 html,body{overscroll-behavior:none;-webkit-user-select:none;user-select:none}
 #panel,#panel *{-webkit-user-select:text;user-select:text}
 @media (max-height:520px){body.touch .identity{transform:scale(.7);transform-origin:top left}body.touch .treasury{transform:scale(.7);transform-origin:top right}body.touch #hud-bottom{transform:scale(.7);transform-origin:top left;top:62px}body.touch .touch-btn{transform:scale(.88)}}
+
+/* A commission the treasury cannot meet yet fills as the Crowns come in: saving is something you can watch. */
+.purchase[data-cost]:disabled:not([data-locked]){background-image:linear-gradient(90deg,#edd08a var(--saved,0%),#edd08a55 var(--saved,0%));background-color:transparent}

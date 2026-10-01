@@ -19,7 +19,7 @@ export interface Deck { minX: number; maxX: number; minZ: number; maxZ: number; 
 /** An authored ladder: where the Steward stands at each end, and the line the rungs follow. */
 export interface Ladder { id: string; x: number; z: number; bottom: T.Vector3; top: T.Vector3 }
 const deckHeight = (d: Deck, x: number, z: number) => d.y1 === undefined ? d.y : d.y + (d.y1 - d.y) * T.MathUtils.clamp(d.axis === 'x' ? (x - d.minX) / (d.maxX - d.minX) : (z - d.minZ) / (d.maxZ - d.minZ), 0, 1);
-export interface Target { object: T.Object3D; id: string; kind: 'property' | 'ledger' | 'discovery' | 'district' | 'site' | 'lift' | 'ladder'; label: string; position: T.Vector3; hint?: string }
+export interface Target { object: T.Object3D; id: string; kind: 'property' | 'ledger' | 'discovery' | 'district' | 'site' | 'lift' | 'ladder'; label: string; position: T.Vector3; hint?: string; /** Not offered while this is false (a thing behind a door that is still shut). */ when?: () => boolean }
 interface PropertyVisual { root: T.Group; additions: T.Group; machine: T.Group; gear: T.Group; piston: T.Mesh; level: number; building: T.Group; sign: T.Mesh }
 /** Clock terrace: concentric 0.2 m steps rising 1.2 m toward the tower. */
 export const TERRACE = { x: 0, z: -49.5, outer: 13.5, inner: 9, rise: 1.2, steps: 6 };
@@ -29,6 +29,8 @@ export class City {
   houseVariant = 0;
   /** Where the vaulted passages cut through the west housing row (z of each). */
   alleys: number[] = [];
+  /** The same on the east row: passages from Salt Row through to the Backwater behind the houses. */
+  eastAlleys: number[] = [];
   housingFrontages:Home[]=[]; viewer=new T.Vector3(); lifeTarget=new T.Vector3();
   crowd!: CrowdBatch;
   presentation!: Presentation;
@@ -172,8 +174,8 @@ export class City {
       for (let i = 0; i < row.length - 1; i++) { const a = row[i], b = row[i + 1], z1 = a.z - a.width / 2, z2 = b.z + b.width / 2, gap = z1 - z2; if (gap < 3) continue;
         const fill = new T.Group(); fill.position.set(side < 0 ? -47.5 : 67.5, 0, (z1 + z2) / 2); fill.rotation.y = side < 0 ? Math.PI / 2 : -Math.PI / 2; g.add(fill);
         const w = gap + .1, h = 9 + (i % 3) * 2.2, d = 9, f = d / 2, paint = housingPaint[(i + 2) % 3];
-        // Every other west passage runs right through, under the house, to the Weatherside behind the row.
-        const through = side < 0 && i % 2 === 0; if (through) this.alleys.push((z1 + z2) / 2);
+        // Every other passage runs right through, under the house: to the Weatherside in the west, to the Backwater in the east.
+        const through = side < 0 ? i % 2 === 0 : i % 2 === 1; if (through) (side < 0 ? this.alleys : this.eastAlleys).push((z1 + z2) / 2);
         box(fill, 0, (4.2 + h) / 2, 0, w, h - 4.2, d, paint); for (const x of [-w / 2 + .5, w / 2 - .5]) box(fill, x, 2.1, 0, 1, 4.2, d, mats.stone);
         box(fill, 0, 4.1, 0, w + .1, .3, d + .1, mats.warmStone);
         const face = new T.Shape(); face.moveTo(-w / 2 + 1, 0); face.lineTo(w / 2 - 1, 0); face.lineTo(w / 2 - 1, 4.2); face.lineTo(-w / 2 + 1, 4.2); face.closePath();
@@ -388,7 +390,7 @@ export class City {
   construct(kind: string, id: string) { if (kind === 'automation') { this.propertyUpgrade(id as PropertyId); return; } if (kind === 'site' && this.economy.state.sites[id as SiteId] < SITE_RESTORED) { this.sync(); return; } if (!['property', 'infrastructure', 'district', 'research', 'site'].includes(kind)) return; const g = new T.Group(); this.root.add(g); const p = kind === 'site' ? undefined : PROPERTIES.find(p => p.id === id); const anchor = kind === 'site' ? this.presentation.sites.find(s => s.id === id)!.anchor : undefined; const x = p ? p.x : anchor ? anchor.x : kind === 'district' && id === 'canal' ? 54 : 0; const z = p ? p.z : anchor ? anchor.z : -40; g.position.set(x, 0, z); if (p) g.rotation.y = p.rotation; if (anchor) g.rotation.y = anchor.rotation;
     for (const xx of [-8, 8]) for (const zz of [5.9, 8.2]) { cyl(g, xx, 5, zz, .055, 10, mats.brass); for (const y of [2.7, 5.7, 8.7]) beam(g, new T.Vector3(-8, y, zz), new T.Vector3(8, y, zz), .055, mats.brass); } for (const y of [2.7, 5.7, 8.7]) box(g, 0, y, 7.1, 16, .09, 2.3, mats.wood); for (let xx = -8; xx < 8; xx += 4) beam(g, new T.Vector3(xx, 0, 8.2), new T.Vector3(xx + 4, 5.7, 8.2), .05, mats.iron);
     const workers = [citizen(mats.cream), citizen(mats.rust)]; workers.forEach((w, i) => { w.group.position.set(i ? 7 : -6.5, 0, 9.2); w.group.rotation.y = Math.PI; g.add(w.group); }); sign(g, 'TERRA IS REBUILDING', 'Guild of civic engineers', 0, 1.7, 9.2, 5, .8);
-    this.constructions.push({ group: g, time: 0, duration: 6, workers, site: kind === 'site' ? id : undefined, finish: () => { if (p) this.propertyUpgrade(p.id); this.sync(); } });
+    this.constructions.push({ group: g, time: 0, duration: this.economy.buildSeconds(p ? this.economy.state.properties[p.id].level : undefined), workers, site: kind === 'site' ? id : undefined, finish: () => { if (p) this.propertyUpgrade(p.id); this.sync(); } });
   }
   /** Every layered district's physical spots become ordinary interaction targets. */
   siteTargets() { for (const site of this.presentation.sites) for (const t of site.targets) { t.object.updateWorldMatrix(true, false); this.targets.push({ object: t.object, id: `${site.id}.${t.spot}`, kind: 'site', label: t.label, hint: t.hint, position: t.object.getWorldPosition(new T.Vector3()) }); } }
@@ -405,7 +407,7 @@ export class City {
     const deck = this.deckAt(x, z, feet), onDeck = deck > feet - 1.2; if (feet < -1 && !onDeck) return true;
     if (!onDeck) { if (x > 40.2 && x < 48.8 && (z < -9.5 || z > -2.5)) return true; if ((x < -75 && !(x > -82.2 && z > WEST_EDGE.z0 + .5 && z < WEST_EDGE.z1 - .5)) || x > 76 || (z > 78 && !(Math.abs(x) < EDGE_TERRACE.half - .6 && z < EDGE_TERRACE.z)) || z < -83) return true; if (x > 53 && !this.economy.state.districts.includes('canal')) return true; if (z < -69 && !this.economy.state.districts.includes('heights')) return true; }
     return this.colliders.some(c => !(c.gate && this.economy.state.districts.includes(c.gate)) && !c.open?.() && feet < c.height && feet + 1.7 > (c.base ?? -1) && x > c.minX - .32 && x < c.maxX + .32 && z > c.minZ - .32 && z < c.maxZ + .32); }
-  update(dt: number, time: number, viewer?:T.Vector3) { if(viewer)this.viewer.copy(viewer);setLifeConditions(this.economy.stage,this.raining);this.presentation.update(dt,time,this.viewer); if(this.clockMechanism)this.clockMechanism.rotation.z=this.economy.state.infrastructure.steam>0?-time*.1:0; for (const p of PROPERTIES) { const v = this.properties.get(p.id)!; const level = this.economy.state.properties[p.id].level; v.gear.rotation.z -= dt * (.35 + level * .6); v.piston.position.y = .95 + Math.sin(time * (1 + level)) * .22; v.machine.rotation.z = 0; }
+  update(dt: number, time: number, viewer?:T.Vector3) { if(viewer)this.viewer.copy(viewer);setLifeConditions(this.economy.stage,this.raining);this.presentation.update(dt,time,this.viewer); if(this.clockMechanism)this.clockMechanism.rotation.z=this.economy.state.infrastructure.steam>0?-time*.1:0; for (const p of PROPERTIES) { const v = this.properties.get(p.id)!; const level = this.economy.state.properties[p.id].level; v.gear.rotation.z -= dt * (.35 + level * .6) * (this.economy.state.research.includes('governors') ? 1.8 : 1); v.piston.position.y = .95 + Math.sin(time * (1 + level)) * .22; v.machine.rotation.z = 0; }
     for (const flag of this.flags) {
       const pos = flag.geometry.attributes.position; const rest = flag.userData.rest as Float32Array;
       for (let j = 0; j < pos.count; j++) { const drop = -rest[j * 3 + 1] / flag.userData.height;

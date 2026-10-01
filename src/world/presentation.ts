@@ -22,6 +22,8 @@ import { RationLine } from './ration-line';
 import type { SiteModule } from './layers';
 import { SITE_RESTORED } from '../simulation/economy';
 
+/** Merge a group of static, shadowless overlays (light shafts, lamp pools) into one mesh per material. */
+const unlit=(g:T.Group)=>{bake(g);for(const m of g.children)m.castShadow=m.receiveShadow=false;};
 /** World-only presentation. Reads completed visual levels; never changes the economy. */
 const w2=(w:number)=>w*.18;
 export class Presentation {
@@ -35,6 +37,8 @@ export class Presentation {
   steamOrigins=[V(32.8,13,40),V(0,17.9,29),V(-9,.25,25),V(31,3,14),V(-29,2,14),V(9,.3,-25)];
   runoff: T.Vector3[]=[]; heat:T.Mesh[]=[]; lanterns:T.Mesh[]=[];
   signature='';
+  /** Rooms that are lit from inside. One light serves them all: it sits in whichever room the Steward is nearest. */
+  interiors:{x:number;y:number;z:number;color:string;reach:number;power?:number}[]=[];interiorLight=new T.PointLight('#ffd9a0',0,11,1.4);private interiorColor=new T.Color();
   verges:[number,number][]=[[-7.3,42],[-7.3,16],[-7.3,-13],[7.3,38],[7.3,13],[7.3,-17]];
   tarp=illustrated(new T.MeshStandardMaterial({color:'#8f9d97',side:T.DoubleSide}));
   soot=new T.MeshBasicMaterial({color:'#2a2a36',transparent:true,opacity:.28,depthWrite:false});
@@ -231,7 +235,7 @@ export class Presentation {
     // The sky canal: steam carriers over the cleft where the barge once ran.
     this.skyCanal=new SkyCanal(this.root);
     // The city behind and beneath the showcase streets.
-    this.weatherside=new Weatherside(this);this.hangway=new Hangway(this);this.roofwalk=new Roofwalk(this);this.canalWard=new CanalWard(this);
+    this.root.add(this.interiorLight);this.weatherside=new Weatherside(this);this.hangway=new Hangway(this);this.roofwalk=new Roofwalk(this);this.canalWard=new CanalWard(this);
     // A crate rides the salvage pulley.
     this.hoistCrate=new T.Group();crate(this.hoistCrate,0,0,0,.7);asProp(this.hoistCrate);bake(this.hoistCrate);this.root.add(this.hoistCrate);
     // Housing lane: a stoop chair, a delivery handcart and doorstep plants once homes recover.
@@ -317,6 +321,8 @@ export class Presentation {
     const toSun=V(-34,29,-46).normalize(),q=new T.Quaternion().setFromUnitVectors(V(0,1,0),toSun);
     for(const [sx,sz] of [[5,50],[6.5,30],[4,6],[7,-12],[-30.5,34],[-30,6],[37,30]])for(let k=0;k<3;k++)for(const twist of [0,Math.PI/2]){const m=new T.Mesh(new T.PlaneGeometry(2.6+k*1.3,34),this.shaftMat);
       m.quaternion.copy(q).multiply(new T.Quaternion().setFromAxisAngle(V(0,1,0),twist+k*.4));m.position.set(sx+k*1.7,0,sz+k*1.3).addScaledVector(toSun,15);shafts.add(m);}
+    // One material, never moved: one draw instead of forty-two planes drawn twice each.
+    this.shaftMat.forceSinglePass=true;unlit(shafts);
     bake(g);
   }
   /** Arkane-level detail density: eave dentils and gutters, iron hanging signs, a web of
@@ -401,6 +407,7 @@ export class Presentation {
       const sc=box(f,1.8,2.9,.25,.26,.4,.26,mats.glow);void sc;box(f,1.8,3.18,.25,.34,.08,.34,mats.iron);
       const halo=new T.Mesh(new T.PlaneGeometry(3.4,3.4),this.poolMat);halo.position.set(1.8,2.9,.1);f.add(halo);
       const floor=new T.Mesh(new T.PlaneGeometry(6,6),this.poolMat);floor.rotation.x=-Math.PI/2;floor.position.set(1.8,.2,1.8);f.add(floor);}
+    this.poolMat!.forceSinglePass=true;unlit(pools);
   }
   setNight(v:number){for(const s of this.sites)s.setNight(v);const n=Math.max(0,Math.min(1,(v-.35)/.4));if(this.poolMat)this.poolMat.opacity=n;if(this.pools)this.pools.visible=n>0;}
   animateSet(dt:number,time:number,calm:boolean){void dt;
@@ -437,7 +444,7 @@ export class Presentation {
   sync(){
     const e=this.city.economy;const levels=PROPERTIES.map(p=>this.city.properties.get(p.id)!.level);const key=[...levels,...Object.values(e.state.infrastructure),...Object.values(e.state.sites),e.stage,...e.state.research,...e.state.districts].join(':');if(key===this.signature)return;this.signature=key;
     const businesses=Object.fromEntries(PROPERTIES.map((p,i)=>[p.id,levels[i]])) as Record<typeof PROPERTIES[number]['id'],number>;
-    for(const s of this.sites)s.sync({control:e.state.sites[s.id],stage:e.stage,levels:businesses,sites:{...e.state.sites}});this.weatherside.sync();this.roofwalk.sync(e.state.research);
+    for(const s of this.sites)s.sync({control:e.state.sites[s.id],stage:e.stage,levels:businesses,sites:{...e.state.sites}});this.weatherside.sync();this.roofwalk.sync(e.state.research);this.hangway.sync(e.state.research);
     this.worn.visible=e.state.infrastructure.roads===0;
     this.city.disposeGroup(this.restored);this.city.disposeGroup(this.market);const g=this.restored;const rich=e.stage>=3;const soot=this.soot;const marketLevel=levels[5];
     // Repairs have literal mechanical consequences unique to every property.
@@ -513,7 +520,10 @@ export class Presentation {
     for(const m of this.mechanisms)m.object.rotation[m.axis]=Math.sin(time*m.speed)*.12+(m.axis==='z'&&Math.abs(m.speed)>.2?time*m.speed:0);
     const calm=reducedMotion(this.city.economy.state.settings.reducedMotion);
     const stage=this.city.economy.stage,day=this.city.economy.state.day,night=day<.24||day>.78;
-    for(const s of this.sites)s.update(dt,time,viewer,calm);this.weatherside.update(time,viewer,calm);this.hangway.update(viewer);this.roofwalk.update(time,calm);this.canalWard.update(time,viewer,calm);
+    for(const s of this.sites)s.update(dt,time,viewer,calm);this.weatherside.update(time,viewer,calm);this.hangway.update(viewer);this.roofwalk.update(time,calm);
+    // Authored light, not more ambient: the lamp follows the Steward from room to room and is dark in the street.
+    { let best:typeof this.interiors[number]|undefined,bd=1e9;for(const r of this.interiors){const d=Math.hypot(viewer.x-r.x,viewer.y-r.y,viewer.z-r.z);if(d<r.reach&&d<bd){bd=d;best=r;}}
+      const L=this.interiorLight;if(best){L.position.set(best.x,best.y,best.z);L.color.lerp(this.interiorColor.set(best.color),.2);}L.intensity+=((best?best.power??34:0)-L.intensity)*Math.min(1,dt*5); }this.canalWard.update(time,viewer,calm);
     this.workers.forEach((w,i)=>{const {person,kind}=w;
       // People further off than a long street are a few pixels: they are neither posed nor drawn.
       const on=stage>=w.minStage&&stage<=w.maxStage&&(w.time==='any'||(w.time==='night')===night)&&(w.when?.()??true)&&Math.hypot(person.group.position.x-viewer.x,person.group.position.z-viewer.z)<90;person.group.visible=on;if(!on)return;

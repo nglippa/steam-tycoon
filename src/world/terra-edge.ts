@@ -6,7 +6,7 @@ import { ancientMats } from './factions';
 import type { City } from './city';
 import type { Player } from '../player/controller';
 import { tone } from './tone';
-import { CHASM, WEST_EDGE, GALLERY } from './geography';
+import { CHASM, WEST_EDGE, GALLERY, TENDING } from './geography';
 export { CHASM, WEST_EDGE, GALLERY, skyGap } from './geography';
 
 /** The south edge of Terra, behind the arrival gate. The ward ends at a cliff; an old
@@ -25,7 +25,7 @@ export function cloudMaterial() {
   return clouds = new T.MeshBasicMaterial({ map, transparent: true, depthWrite: false, side: T.DoubleSide, color: '#f3efe6' });
 }
 const cloudBase = new T.Color('#f3efe6');
-const rock = illustrated(new T.MeshStandardMaterial({ color: '#817a70', map: surface('stone') }));
+export const rock = illustrated(new T.MeshStandardMaterial({ color: '#817a70', map: surface('stone') }));
 
 export class TerraEdge {
   /** The lift between the terrace and the gallery: who rides, where to, how far along. */
@@ -35,7 +35,7 @@ export class TerraEdge {
     city.root.add(this.root); const g = new T.Group(); this.root.add(g); const I = ancientMats.ivory, G = ancientMats.gold;
     // The plate Terra stands on: the ward and the far ring sit on it, with bastions and the
     // terrace promontory breaking the rim. Ninety metres of cliff; the haze takes the rest.
-    const rim: [number, number][] = [[-150, -150], [CHASM.x0, -150], [CHASM.x0, CHASM.z1], [CHASM.x1, CHASM.z1], [CHASM.x1, -150], [150, -150], [150, EDGE_Z], [78, EDGE_Z], [78, 90], [62, 90], [62, EDGE_Z], [TERRACE.half, EDGE_Z], [TERRACE.half, TERRACE.z], [-TERRACE.half, TERRACE.z], [-TERRACE.half, EDGE_Z], [-62, EDGE_Z], [-62, 90], [-78, 90], [-78, EDGE_Z], [-150, EDGE_Z], [-150, WEST_EDGE.z1 + (WEST_EDGE.x + 150) * WEST_EDGE.flare], [WEST_EDGE.x, WEST_EDGE.z1], [WEST_EDGE.x, WEST_EDGE.z0], [-150, WEST_EDGE.z0 - (WEST_EDGE.x + 150) * WEST_EDGE.flare]];
+    const rim: [number, number][] = [[-150, -150], [CHASM.x0, -150], [CHASM.x0, TENDING.z0], [TENDING.x0, TENDING.z0], [TENDING.x0, TENDING.z1], [CHASM.x0, TENDING.z1], [CHASM.x0, CHASM.z1], [CHASM.x1, CHASM.z1], [CHASM.x1, -150], [150, -150], [150, EDGE_Z], [78, EDGE_Z], [78, 90], [62, 90], [62, EDGE_Z], [TERRACE.half, EDGE_Z], [TERRACE.half, TERRACE.z], [-TERRACE.half, TERRACE.z], [-TERRACE.half, EDGE_Z], [-62, EDGE_Z], [-62, 90], [-78, 90], [-78, EDGE_Z], [-150, EDGE_Z], [-150, WEST_EDGE.z1 + (WEST_EDGE.x + 150) * WEST_EDGE.flare], [WEST_EDGE.x, WEST_EDGE.z1], [WEST_EDGE.x, WEST_EDGE.z0], [-150, WEST_EDGE.z0 - (WEST_EDGE.x + 150) * WEST_EDGE.flare]];
     const depth = 90, slab = new T.ExtrudeGeometry(new T.Shape(rim.map(([x, z]) => new T.Vector2(x, -z))), { depth, bevelEnabled: false });
     const uv = slab.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * .08, uv.getY(i) * .08);
     const plate = new T.Mesh(slab, [mats.dirt, rock]); plate.rotation.x = -Math.PI / 2; plate.position.y = -depth - .02; plate.receiveShadow = true; this.root.add(plate);

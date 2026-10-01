@@ -365,3 +365,53 @@ Typecheck, 29 tests and the production build pass. All browser work in this pass
 **Performance (headless, so draw calls and triangles only; frame rate was not measured in this pass).** At 1280×720: street 778 draws / 1.13 M, square 393 / 0.85 M, foundry 927 / 1.35 M, roof overlook 1049 / 1.36 M, overview 1181 / 1.40 M. New places: Leads 665 / 1.09 M, Leads looking north 593 / 1.01 M, block roof 712 / 1.10 M, Keel 361 / 0.81 M, Chain Bridge 256 / 0.74 M, Salt Row 954 / 1.27 M, Packet Light top 597 / 1.00 M, registry office 190 / 0.60 M, bonded bay 127 / 0.53 M. From the Salt Row view, the four new modules together account for about 90 of the draws. People: 162 authored, 64 to 98 posed and drawn in any view.
 
 **Economy.** The six trade traits speed a run up, so prices were raised to hold the pacing: property cost growth 3.8 (was 3.5), and civic works, charters, research and liberation/restoration steps about 30% higher. Same simulation as before, final values: first upgrade 10 s; median gap between purchases 27 s; Market Square liberated at 29.2 min; all content in 41.1 min played well and 59.1 min story-first; median payback 4.6 min, worst 11 min; casual play (15 min a day) 2 days. The simulation's buyer does not plan around traits, so it does not measure how much a good order helps; that is untested.
+
+## Phase 5: discovery has meaning (2026-10-01)
+
+Typecheck, 34 tests and the production build pass. All browser work was headless.
+
+**Scripted play-through, real UI and controller (`qa.mjs` in the session scratchpad).** From a cleared save: open Rook & Son's ledger, see its trait line, buy level 1, see the next commission's button fill to 20%. The Research tab shows no Anchor row. Each of the six clues is examined through the real raycast; the blocker reads "The Institute will not fund a rumour" until the clasp is seen, when the sixth becomes "That is a case." The chart behind the shut door is not offered. With Industry reached, the survey row reads "3 OF 3 OBSERVATIONS", is funded from the ledger at the reduced price, and the door opens: the controller walks through it and the chart can be read. After a reload the 7 observations, the research and the open door are all still there. No console errors.
+- Not done by a person. Whether the clues are found unprompted, and in what order, is untested.
+
+**Traversal (`&check=1`).** Six states as before, all passing, with the Backwater added: both passages from Salt Row (when the Canal Ward is open), the gallery end to end, and each of the three flights up from its yard.
+
+**Phone emulation.** All 15 ladders are offered on USE and climb both ways. Found and fixed: an examinable thing within reach of a ladder's foot took the USE button; a ladder underfoot now wins over anything further than arm's length.
+
+**Interior lighting.** One point light serves every lit room, sitting in whichever the Steward is nearest and dark otherwise, so the street's lighting is unchanged. The archive, registry office, bonded bay and Tending Room are readable by day and at night (`collage-backwater-and-interiors.png`). The registry is the darkest of them; its walls are painted dark.
+
+**Research audit** (cheapest-first buyer; "minutes of income" is price over the rate at the moment of purchase):
+
+| Project | Price | Needs | Number | What changes in the world | Bought at | Minutes of income |
+|---|---|---|---|---|---|---|
+| Precision governors | 7,200 | Recovery | +25% | governors spin on the Great Main; machinery 1.8x faster; all building in half the time | 26 min | 0.8 |
+| The Anchor survey | 24,000 (16,000 with the Ordinance sheet) | the clasp, two more traces, Industry | +25% | Anchor III wakes; the rock door opens onto the Tending Room; a stud lights on the Weathervane | 32 min | 0.8 |
+| Aether induction | 28,600 | Commerce | +25% | fountain, cistern, gate and lens light; a line of light along the whole aqueduct; the beam to the eastern isle | 36 min | 0.7 |
+| Seven Provinces charter | 71,500 | Commerce | +25% | pennants over the main street; three trading pitches with merchants and customers | 42 min | 0.4 |
+
+Prices in the table are list prices; Finch Mechanical's trait takes up to 20% off. The charter is the largest number but the cheapest in income-time, because it comes last.
+
+**Pacing ("feel") measurements.** A buyer who looks at the ledgers every 15 s and buys the cheapest thing on offer (`feel.mts`, scratchpad):
+
+| | Before Phase 4 | Now |
+|---|---|---|
+| Purchases made in sprees of three or more | 91% | 8% |
+| Could afford something else straight after buying | 71% | 10% |
+| Things affordable at a look, minutes 5 to 15 | 9.9 of 12 | 0.9 of 16 |
+| Looks at which nothing was affordable, minutes 5 to 15 | 0% | 66% |
+| Median gap between purchases | 4 s | 34 s |
+| Median gap between meaningful purchases | 6 s | 48 s |
+| Typical meaningful purchase, in income | 3 s | 43 s |
+
+Milestone levels now cost six times the level before and routine levels 2.6 times, where every level used to cost 3.8 times. Liberation and restoration steps are 25% dearer. The simulated totals did not move: 42 minutes played well, first liberation at 30.
+- A meaningful purchase still costs under a minute of income for this buyer. Longer saving comes only from wanting something before it is the cheapest thing on offer (the story-first simulation waits up to 22 minutes). I did not push prices further without a person to judge it.
+
+**Trade traits, tested.** Scripted strategies that favour one trade never beat cheapest-first (42 to 43 minutes against 44 to 139), so the traits do not create exclusive strategies. They do carry real sequencing value: taking the Boiler to level 5 costs about 13.6k and takes about 65k off the civic works at list price. The ledger now states that figure for each trade, for the current level and the next.
+
+**Draw-call audit** (overview, the busiest view; direct render, no shadow or ink pass). 1,180 draws from 1,258 visible meshes using 298 materials, 216 of them used by exactly one mesh (signs, stencilled crates, glass states).
+- The six business buildings account for about 250; each has 21 to 27 distinct materials, so that is variety, not unmerged geometry.
+- Fixed: 42 sun-shaft planes sharing one material were 84 draws and are now 1; the night lamp pools likewise; the Weatherside's four ground sections are one.
+- Result: 1,180 to 1,082 before Phase 5's additions, 1,098 with them. Street 711, square 382, foundry 844, roof overlook 956, Salt Row 915 (all lower than Phase 4b).
+- The remaining lever is a shared atlas for signs and stencils, which would remove most of the 216 single-use materials. Not done here.
+- Frame rate was not measured (no visible window), and neither was a real phone.
+
+**Rendered review.** `screenshots/review-2026-10-01-phase5/`: `collage-anchors.png`, `collage-backwater-and-interiors.png`, `collage-research.png`, and 10 full-size frames.

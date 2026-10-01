@@ -154,3 +154,35 @@ test('each trade discounts or enriches something different, so order of investme
   const tavern = fresh(); assert.equal(tavern.awayShare, .1); for (let i = 0; i < 5; i++) tavern.upgrade('tavern'); assert.ok(Math.abs(tavern.awayShare - .2) < 1e-12);
   const market = fresh(); const m = market.multiplier; market.upgrade('market'); assert.ok(Math.abs(market.multiplier / m - 1.03) < 1e-12);
 });
+test('what the Steward has seen is kept, pays nothing, and survives a reload; old saves load with none', () => {
+  const m = memory(); const e = new Economy(m, 1000); const crowns = e.state.crowns, rate = e.rate;
+  assert.equal(e.learn('anchor'), true); assert.equal(e.learn('anchor'), false); assert.equal(e.learn('invented'), false);
+  assert.equal(e.state.crowns, crowns); assert.equal(e.rate, rate); e.save(1000);
+  assert.deepEqual(new Economy(m, 1000).state.knowledge, ['anchor']);
+  const old = freshSave(); delete (old as Partial<typeof old>).knowledge; assert.deepEqual(decodeSave(JSON.stringify(old))!.knowledge, []);
+  assert.deepEqual(decodeSave(JSON.stringify({ ...freshSave(), knowledge: ['anchor', 'anchor', 'nonsense', 7] }))!.knowledge, ['anchor']);
+});
+test('the Anchor survey needs the clasp and a case, not just money; the Ordinance sheet makes it cheaper', () => {
+  const e = new Economy(memory()); e.state.crowns = 1e9; for (const p of PROPERTIES) { e.upgrade(p.id); e.upgrade(p.id); e.upgrade(p.id); } assert.ok(e.stage >= 2);
+  assert.equal(e.research('anchors'), false); assert.match(e.researchBlocker('anchors')!, /rumour/);
+  e.learn('studs'); e.learn('gate'); e.learn('collar'); assert.equal(e.research('anchors'), false, 'three traces without the clasp are not a case');
+  e.learn('anchor'); assert.equal(e.researchBlocker('anchors'), null);
+  const full = e.charterCost('anchors'); e.learn('survey'); assert.equal(e.charterCost('anchors'), Math.ceil(full * 2 / 3));
+  const rate = e.rate; assert.equal(e.research('anchors'), true); assert.ok(Math.abs(e.rate / rate - 1.25) < 1e-9); assert.equal(e.research('anchors'), false);
+  const again = new Economy(memory(JSON.stringify(e.state))); assert.ok(again.state.research.includes('anchors'));
+});
+test('precision governors halve every job, and milestone levels are bigger jobs', () => {
+  const e = new Economy(memory()); e.state.crowns = 1e9; assert.deepEqual([e.buildSeconds(1), e.buildSeconds(3), e.buildSeconds(5), e.buildSeconds()], [6, 10, 14, 6]);
+  for (const p of PROPERTIES) e.upgrade(p.id); e.upgradeInfra('lamps'); assert.equal(e.research('governors'), true); assert.deepEqual([e.buildSeconds(1), e.buildSeconds(5)], [3, 7]);
+});
+test('a trait is worth real Crowns on the work still undone, and less as that work gets done', () => {
+  const e = new Economy(memory()); e.state.crowns = 1e9; assert.deepEqual(e.traitWorth('boiler').now, 0);
+  const next = e.traitWorth('boiler').next; assert.ok(next > 10000, 'one Boiler level should be worth thousands on the civic works');
+  e.upgrade('boiler'); assert.equal(e.traitWorth('boiler').now, next); assert.ok(e.traitWorth('boiler').now > e.cost('boiler'), 'raising the Boiler before the civic works pays for itself');
+  for (let i = 0; i < 3; i++) e.upgradeInfra('housing'); assert.ok(e.traitWorth('boiler').next < next);
+  assert.deepEqual(e.traitWorth('tavern'), { now: 0, next: 0 });
+});
+test('milestone levels are the big steps; routine levels are modest ones', () => {
+  const e = new Economy(memory()); e.state.crowns = 1e9; const price: number[] = []; for (let l = 0; l < 5; l++) { price.push(e.cost('market')); e.upgrade('market'); }
+  const step = price.slice(1).map((p, i) => p / price[i]); assert.ok(step[0] < 3 && step[2] < 3, 'levels 2 and 4'); assert.ok(step[1] > 5 && step[3] > 5, 'levels 3 and 5');
+});

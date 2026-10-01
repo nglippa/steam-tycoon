@@ -59,6 +59,10 @@ export class Review {
     results.leads=(a=>(b=>(c=>c.x< -14&&near(c.y,16.2))(walk(b.x,b.z,W,2,b.y)))(walk(a.x,a.z,S,.45,a.y)))(walk(12,4.2,W,7,15.75));
     results.keelHolds=[0,S,W,-W].every(yaw=>near(walk(42.4,-23,yaw,3,-25.25).y,-25.25));
     results.chainBridge=(p=>p.x>50&&near(p.y,1.93))(walk(38,34,-W,3.5));
+    // The Backwater: its two passages from Salt Row, the gallery end to end, and each flight up from its yard.
+    if(city.economy.state.districts.includes('canal'))results.eastAlleys=city.eastAlleys.map(z=>walk(60.5,z-1.6,-W,4).x>73.4);
+    results.backGallery=(p=>p.z< -38&&near(p.y,8.35))(walk(74,45,0,20,8.35));
+    results.backStairs=[[75.55,-29.6,S],[75.55,17.6,0],[75.55,45.6,0]].map(([x,z,yaw])=>near(walk(x,z,yaw,4).y,8.35));
     results.pierEnd=(p=>p.z<100&&p.z>98&&near(p.y,1.93))(walk(-67,80,S,6));
     // No roof lets a walker off its edge: push at all four sides of the high places.
     results.edgesHold=([[-71,-28,32.85],[-71,-23.9,19.85],[-70,-18,7.85],[-70,18,7.85],[-69,-63,7.85],[-70.5,54,8.85],[-68,96.5,10.85],[6,4.2,15.75],[-19,8,16.2],[-15.9,14,21.6],[-19,20,16.2],[57.5,-41.5,13.85],[60,-44,25.85]] as const).every(([x,z,eye])=>[0,S,W,-W].every(yaw=>near(walk(x,z,yaw,2.6,eye).y,eye)));

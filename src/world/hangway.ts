@@ -2,8 +2,9 @@ import * as T from 'three';
 import { box, cyl, sphere, torus, beam, sign, bake, mats, crate } from './assets';
 import { V, gauge, artMats } from './art-kit';
 import { ancientMats, occupationMats, emberChalk, tallies, decalMat, canvasTarp } from './factions';
-import { ladder, stair, parapet } from './routes';
-import { CHASM } from './geography';
+import { ladder, stair, parapet, examine } from './routes';
+import { CHASM, TENDING } from './geography';
+import { rock } from './terra-edge';
 import { tone } from './tone';
 import type { Presentation } from './presentation';
 
@@ -20,8 +21,10 @@ const I = ancientMats.ivory, GOLD = ancientMats.gold;
 const chalk = decalMat(emberChalk, .92), tally = decalMat(tallies, .9);
 
 export class Hangway {
+  /** The door in the rock while it is shut, and what lies behind it once the Anchor survey opens it. */
+  private sealed = new T.Group(); private room = new T.Group(); private woken = new T.Group(); private surveyed = false;
   root = new T.Group(); private live = new T.Group(); private water = new T.MeshBasicMaterial({ color: '#dff5f2', transparent: true, opacity: .5, depthWrite: false, side: T.DoubleSide }); private waterBase = new T.Color('#dff5f2');
-  constructor(p: Presentation) { const city = p.city, s = new T.Group(), xm = (X0 + X1) / 2; p.root.add(this.root); this.root.add(s, this.live);
+  constructor(p: Presentation) { const city = p.city, s = new T.Group(), xm = (X0 + X1) / 2; p.root.add(this.root); this.root.add(s, this.live, this.sealed, this.room, this.woken);
     const prop = (x: number, z: number, w: number, d: number, y: number, h: number) => city.collider(x, z, w, d, y + h, undefined, undefined, y - .2);
     const decal = (m: T.Material, w: number, h: number, y: number, z: number) => { const q = new T.Mesh(new T.PlaneGeometry(w, h), m); q.position.set(X0 + .01, y, z); q.rotation.y = EAST; s.add(q); };
     // Each length: planks on an iron frame hung from brackets in the wall, a rail on the open side, and
@@ -52,8 +55,24 @@ export class Hangway {
     crate(s, X0 + .3, YA, -5, .5); box(s, X0 + .45, YA + .12, -7, .7, .16, 1.8, canvasTarp); sphere(s, X0 + .25, YA + 1.7, -6, .08, mats.aether); box(s, X0 + .14, YA + 1.7, -6, .28, .06, .06, mats.iron);
     decal(chalk, .8, .8, YA + 1.5, -4.2); decal(tally, .9, .45, YA + 1.2, -7.4); prop(X0 + .3, -5, .5, .5, YA, .6);
     // THE LOWER LENGTH. Set in the rock, older than the cleft's ironwork: a door with no handle on this side.
-    box(s, X0 + .1, YB + 2.3, -20, .5, 4.6, 3.6, I); box(s, X0 + .3, YB + 2, -20, .2, 4, 2.6, ancientMats.ivoryDark); for (const y of [.9, 2, 3.1]) box(s, X0 + .42, YB + y, -20, .08, .16, 2.6, GOLD);
-    torus(s, X0 + .46, YB + 2.2, -20, .6, .06, GOLD).rotation.y = EAST; cyl(s, X0 + .44, YB + 2.2, -20, .5, .04, ancientMats.dormant).rotation.z = Math.PI / 2; box(s, X0 + .7, YB + .02, -20, 1.2, .04, 2.8, ancientMats.tile); prop(X0 + .2, -20, .5, 3.6, YB, 4.6);
+    for (const z of [-21.55, -18.45]) { box(s, X0 + .1, YB + 2.3, z, .5, 4.6, .5, I); prop(X0 + .1, z, .5, .5, YB, 4.6); } box(s, X0 + .1, YB + 4.3, -20, .5, .6, 3.6, I); box(s, X0 + .36, YB + 4.3, -20, .06, .3, 2.6, GOLD); box(s, X0 + .7, YB + .02, -20, 1.2, .04, 2.8, ancientMats.tile);
+    { const d = this.sealed; box(d, X0 + .3, YB + 2, -20, .2, 4, 2.6, ancientMats.ivoryDark); for (const y of [.9, 2, 3.1]) box(d, X0 + .42, YB + y, -20, .08, .16, 2.6, GOLD); torus(d, X0 + .46, YB + 2.2, -20, .6, .06, GOLD).rotation.y = EAST; cyl(d, X0 + .44, YB + 2.2, -20, .5, .04, ancientMats.dormant).rotation.z = Math.PI / 2; bake(d); }
+    city.collider(X0 + .2, -20, .5, 2.6, YB + 4.6, undefined, () => this.surveyed, YB - .2);
+    // The plate is notched behind the door. Rock closes the notch above and below the room, in the wall's own grain.
+    { const face = (y0: number, y1: number, z0: number, z1: number) => { const g = new T.PlaneGeometry(z1 - z0, y1 - y0), uv = g.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, (z0 + uv.getX(i) * (z1 - z0)) * .08, (y0 + uv.getY(i) * (y1 - y0)) * .08); const m = new T.Mesh(g, rock); m.rotation.y = EAST; m.position.set(CHASM.x0 - .01, (y0 + y1) / 2, (z0 + z1) / 2); this.root.add(m); };
+      face(YB + 4.6, -.02, TENDING.z0, TENDING.z1); face(-90, YB - .3, TENDING.z0, TENDING.z1); for (const [z0, z1] of [[TENDING.z0, -21.8], [-18.2, TENDING.z1]]) box(s, X0 - .05, YB + 2.15, (z0 + z1) / 2, .3, 4.9, z1 - z0, I); }
+    // THE TENDING ROOM. Ivory, tile and gold, kept as it was left: a ring of seven lenses, and water still running in the wall.
+    { const r = this.room, xa = TENDING.x0, xm = (xa + CHASM.x0) / 2, w = CHASM.x0 - xa, zm = (TENDING.z0 + TENDING.z1) / 2, dd = TENDING.z1 - TENDING.z0, DX = 37.5;
+      box(r, xm, YB - .15, zm, w, .3, dd, ancientMats.tile); box(r, xm, YB + 4.45, zm, w, .3, dd, I); box(r, xa + .06, YB + 2.15, zm, .12, 4.3, dd, I); for (const z of [TENDING.z0 + .06, TENDING.z1 - .06]) box(r, xm, YB + 2.15, z, w, 4.3, .12, I);
+      for (const y of [.5, 3.6]) { box(r, xa + .14, YB + y, zm, .06, .1, dd, GOLD); for (const z of [TENDING.z0 + .14, TENDING.z1 - .14]) box(r, xm, YB + y, z, w, .1, .06, GOLD); }
+      torus(r, DX, YB + .03, zm, 2.1, .04, GOLD).rotation.x = Math.PI / 2; cyl(r, DX, YB + .45, zm, 1.5, .9, I); cyl(r, DX, YB + .93, zm, 1.42, .06, GOLD); cyl(r, DX, YB + .98, zm, .5, .08, ancientMats.ivoryDark);
+      // Seven lenses. The third is lit; the fifth is trying.
+      for (let k = 0; k < 7; k++) { const a = k / 7 * Math.PI * 2 - Math.PI / 2, lx = DX + Math.cos(a) * 1.02, lz = zm + Math.sin(a) * 1.02; torus(r, lx, YB + 1, lz, .19, .03, GOLD).rotation.x = Math.PI / 2; cyl(r, lx, YB + 1, lz, .17, .05, k === 2 ? ancientMats.awake : ancientMats.dormant); if (k === 4) sphere(r, lx, YB + 1.03, lz, .05, ancientMats.awake); }
+      // Water in a tiled runnel at the back wall, and the old light coming down onto the table.
+      box(r, xa + .5, YB + .12, zm, .5, .12, dd - .6, ancientMats.turquoise); box(r, xa + .5, YB + .2, zm, .34, .03, dd - .7, mats.aether); cyl(r, DX, YB + 4.28, zm, .7, .06, ancientMats.awake);
+      bake(r); const shaft = new T.Mesh(new T.ConeGeometry(1.5, 3.3, 20, 1, true), new T.MeshBasicMaterial({ color: '#8af0ec', transparent: true, opacity: .16, blending: T.AdditiveBlending, depthWrite: false, side: T.DoubleSide, fog: false })); shaft.position.set(DX, YB + 2.6, zm); r.add(shaft);
+      city.deck(xa, X0, TENDING.z0, TENDING.z1, YB); city.collider(DX, zm, 3, 3, YB + 1.1, undefined, undefined, YB - .2); examine(this.live, city, 'chart', 'The seven lenses', DX, YB + 1.2, zm, 3.1, 1.2, 3.1, () => this.surveyed);
+      p.interiors.push({ x: DX, y: YB + 3.2, z: zm, color: '#9aeee6', reach: 9 }); }
     { const t = new T.Group(); t.position.set(X0 + .5, YB - .18, -22.4); t.rotation.y = EAST; this.live.add(t); city.target(t, 'undergate', 'discovery', 'The door in the rock', 0, 1.45, 0); }
     // Where the night crew sleeps: a tarp, a brazier and two hammocks, a long way from any inspector.
     { const low = new T.Group(); low.position.y = YB; s.add(low); cyl(low, X0 + .32, .35, -31.2, .26, .7, mats.iron); cyl(low, X0 + .32, .72, -31.2, .3, .06, mats.iron); cyl(low, X0 + .32, .77, -31.2, .2, .05, mats.glow); cyl(low, X0 + .32, 1.9, -31.2, .06, 2.2, mats.iron);
@@ -72,11 +91,19 @@ export class Hangway {
     { const a = new T.Group(); a.position.set(42.73, -28.1, -26); a.quaternion.setFromUnitVectors(V(0, 0, 1), V(1, -1, 0).normalize()); s.add(a); torus(a, 0, 0, 0, 1.25, .2, GOLD); torus(a, 0, 0, .45, 1.05, .1, GOLD); torus(a, 0, 0, -.45, 1.05, .1, GOLD);
       for (let k = 0; k < 6; k++) { const q = k * Math.PI / 3; box(a, Math.cos(q) * 1.25, Math.sin(q) * 1.25, 0, .36, .36, .6, I).rotation.z = q; } torus(a, 0, 0, 0, .7, .14, ancientMats.dormant); }
     { const t = new T.Group(); t.position.set(kx0 + 1.9, KEEL, kz0 + .5); this.live.add(t); city.target(t, 'anchor', 'discovery', 'The anchor', 0, 1.45, 0); }
+    // What the survey wakes on the Keel: the clasp's core, and the lanterns that were waiting for it.
+    { const a = new T.Group(); a.position.set(42.73, -28.1, -26); a.quaternion.setFromUnitVectors(V(0, 0, 1), V(1, -1, 0).normalize()); this.woken.add(a); torus(a, 0, 0, 0, .7, .16, ancientMats.awake); torus(a, 0, 0, 0, 1.25, .05, ancientMats.awake); for (const z of [kz0 + .3, kz1 - .3]) sphere(this.woken, kx1 - .1, KEEL + 2.3, z, .18, ancientMats.awake); }
+    // Up on the street by the yard: the Ordinance has the Foundry casting copies of something, and they keep cracking.
+    { const g = new T.Group(); g.position.set(38.9, 0, 20.6); g.rotation.y = .12; s.add(g); const ring = torus(g, 0, 1.55, 0, 1.25, .13, mats.wood); ring.rotation.y = EAST; for (let k = 0; k < 7; k++) { const a = k / 7 * Math.PI * 2; box(g, 0, 1.55 + Math.cos(a) * 1.25, Math.sin(a) * 1.25, .3, .34, .34, mats.wood).rotation.x = -a; }
+      for (const z of [-1, 1]) { box(g, .25, .9, z, .1, 1.8, .1, mats.wood).rotation.z = -.14; } box(g, .2, 1.5, 0, .04, .34, .26, mats.cream);
+      for (const [x, z, r] of [[-1.3, 1.6, .4], [-1.5, -1.2, 1.9]]) { const half = new T.Mesh(new T.TorusGeometry(1.2, .12, 6, 12, Math.PI * .8), mats.rust); half.rotation.set(Math.PI / 2, 0, r); half.position.set(x, .3, z); g.add(half); } }
+    city.collider(39, 20.6, .7, 2.9, 3); examine(this.live, city, 'collar', 'A casting pattern', 38.8, 1.5, 20.6, .9, 2.9, 2.9);
     // At the north end the cleft opens to sky. A bench, for whoever walked this far.
     for (const y of [.45, .5]) box(s, X0 + .4, YA + y, -56.8, .5, .06, 1.6, mats.wood); for (const dz of [-.6, .6]) box(s, X0 + .4, YA + .22, -56.8 + dz, .45, .44, .08, mats.iron);
     bake(s);
     const seen = () => this.root.visible;
     p.addWorker(X0 + 1.1, 12, -EAST, 'valve', { y: YA - .18, role: 'engineer', when: seen }); p.addWorker(X0 + 1.2, -32.4, -EAST, 'warm', { y: YB - .18, role: 'worker', when: seen }); p.addWorker(X0 + 1.3, -52, EAST, 'lean', { y: YA - .18, role: 'worker', time: 'day', when: seen });
   }
+  sync(research: readonly string[]) { this.surveyed = research.includes('anchors'); this.sealed.visible = !this.surveyed; this.room.visible = this.woken.visible = this.surveyed; }
   update(viewer: T.Vector3) { this.root.visible = Math.abs(viewer.x - (CHASM.x0 + CHASM.x1) / 2) < 24; this.water.color.copy(this.waterBase).multiply(tone.lit.value); }
 }

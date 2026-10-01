@@ -24,6 +24,13 @@ export function ladder(g: T.Object3D, live: T.Object3D, city: City, id: string, 
   city.ladders.push({ id, x: x + nx * .5, z: z + nz * .5, bottom: new T.Vector3(x + nx * .95, y0, z + nz * .95), top: top ? new T.Vector3(x + top[0], y1, z + top[1]) : new T.Vector3(x - nx * 1.2, y1, z - nz * 1.2) });
 }
 
+/** Make a thing examinable as itself, with no plaque: an unseen box round it is the target.
+ * Used for what the Steward should notice by looking, not by reading a sign. */
+export function examine(live: T.Object3D, city: City, id: string, label: string, x: number, y: number, z: number, w: number, h: number, d: number, when?: () => boolean) {
+  const hit = new T.Mesh(new T.BoxGeometry(1, 1, 1), unseen); hit.position.set(x, y, z); hit.scale.set(w, h, d); live.add(hit); hit.updateWorldMatrix(true, false);
+  city.targets.push({ object: hit, id, kind: 'discovery', label, hint: 'LOOK CLOSER', position: hit.getWorldPosition(new T.Vector3()), when });
+}
+
 /** A straight stair. It rises along `axis` toward the `high` end, is solid underneath, and
  * cannot be walked into from the side: the body below each run of treads is a collider. */
 export function stair(g: T.Object3D, city: City, x0: number, x1: number, z0: number, z1: number, yLow: number, yHigh: number, axis: 'x' | 'z', high: 'min' | 'max', m: Material = mats.stone, solid = true) {
