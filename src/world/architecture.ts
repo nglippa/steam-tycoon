@@ -310,16 +310,6 @@ export function buildSkyline(root:T.Group) {
     const crown=sphere(far,x,h*.95,z,2.4,spire);crown.scale.y=1.6;
   }
   bake(near);bake(far);
-  // Veyr's snow ridge: one jagged strip plus a snow band only above the snowline.
-  const ridge=(z:number,seed:number,base:number,amp:number,color:string,snowLine:number)=>{
-    const r=seeded(seed),top:number[]=[];for(let i=0;i<=64;i++){const x=i/64*2-1;top.push(base+amp*(.55+.45*Math.sin(x*7.3+seed))*(.6+r()*.5)*(1-Math.abs(x)*.25));}
-    const rock:number[]=[],snow:number[]=[];
-    for(let i=0;i<64;i++){const x0=-520+i*1040/64,x1=x0+1040/64,h0=top[i],h1=top[i+1];
-      rock.push(x0,-20,z,x1,-20,z,x1,h1,z,x0,-20,z,x1,h1,z,x0,h0,z);
-      const s0=Math.max(h0-(h0-snowLine)*.55,Math.min(h0,snowLine)),s1=Math.max(h1-(h1-snowLine)*.55,Math.min(h1,snowLine));
-      if(h0>snowLine||h1>snowLine)snow.push(x0,Math.min(s0,h0),z+.5,x1,Math.min(s1,h1),z+.5,x1,h1,z+.5,x0,Math.min(s0,h0),z+.5,x1,h1,z+.5,x0,h0,z+.5);}
-    for(const [data,mat] of [[rock,flat(color,z<-300?.52:.44)],[snow,flat('#f4f4fa',.3)]] as const){const geo=new T.BufferGeometry();geo.setAttribute('position',new T.Float32BufferAttribute(data,3));const mesh=new T.Mesh(geo,mat);mat.side=T.DoubleSide;root.add(mesh);}
-  };
-  ridge(-330,3,40,80,'#94bcb4',95);ridge(-270,11,18,40,'#86b1a8',999);
+  // No mountains behind it: Terra hangs in open sky, and the horizon is cloud.
   for(const g of [near,far])g.traverse(o=>{if(o instanceof T.Mesh)o.castShadow=o.receiveShadow=false;});
 }

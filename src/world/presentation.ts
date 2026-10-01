@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { Atlas, place, type Placed } from './sign-atlas';
 import { box,cyl,sphere,torus,beam,gear,barrel,crate,sign,arch,bake,mats,seeded,illustrated,tree,bareTree,blossom,windowUnit,printed,windowGlass,asProp } from './assets';
 import { V,pipe,cable,crest,gauge,lampHead,railing,canopy,artMats,roof,pressureRing,wingedValve,bench,pressureStation,mailPost,fabricOf,poster,meterBox,labeledCrate,stencilBarrel,stove,workbench,cafeTable,anvil,pipeStack } from './art-kit';
 import { citizen } from './citizens';
@@ -26,6 +27,7 @@ import { SITE_RESTORED } from '../simulation/economy';
 const unlit=(g:T.Group)=>{bake(g);for(const m of g.children)m.castShadow=m.receiveShadow=false;};
 /** World-only presentation. Reads completed visual levels; never changes the economy. */
 const w2=(w:number)=>w*.18;
+const plaqueAtlas=new Atlas(map=>printed(illustrated(new T.MeshStandardMaterial({map}))),2048);
 export class Presentation {
   root=new T.Group(); restored=new T.Group(); worn=new T.Group(); market=new T.Group();
   mechanisms:{object:T.Object3D;axis:'x'|'y'|'z';speed:number}[]=[];
@@ -291,13 +293,14 @@ export class Presentation {
   }
   /** Dishonored density: wrought iron, painted slogans, clutter pockets, sun shafts. */
   density(){const g=this.section();
-    const slogan=(text:string,color:string,w:number,h:number)=>{const c=document.createElement('canvas');c.width=512;c.height=Math.round(512*h/w);const x=c.getContext('2d')!;x.fillStyle=color;x.textAlign='center';x.textBaseline='middle';
+    const sloganAtlas=new Atlas(map=>new T.MeshBasicMaterial({map,transparent:true,opacity:.85,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-3}),2048),painted=new Map<string,Placed<T.MeshBasicMaterial>>();
+    const slogan=(text:string,color:string,w:number,h:number)=>{const done=painted.get(text);if(done)return done;const c=document.createElement('canvas');c.width=512;c.height=Math.round(512*h/w);const x=c.getContext('2d')!;x.fillStyle=color;x.textAlign='center';x.textBaseline='middle';
       const lines=text.split('/');const fs=Math.min(c.height/lines.length*.78,120);x.font=`900 ${fs}px "Marker Felt","Chalkduster",fantasy`;lines.forEach((l,i)=>{x.save();x.translate(256,(i+.5)*c.height/lines.length);x.rotate(-.04+i*.03);x.fillText(l,0,0,480);x.restore();});
       for(let i=0;i<8;i++){x.fillRect(80+Math.random()*350,c.height*.55+Math.random()*c.height*.4,3,10+Math.random()*30);}
-      const t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;t.anisotropy=8;return new T.MeshBasicMaterial({map:t,transparent:true,opacity:.85,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-3});};
+      const placed=sloganAtlas.add(c);painted.set(text,placed);return placed;};
     const slogans=[['WHO OWNS/THE STEAM?','#e9e1cf'],['NO EMBER IS/TOO SMALL','#d8b86a'],['KEEP THE/LAMPS BURNING','#e9e1cf'],['PAY WHAT/YOU OWE','#c25a45'],['FINCH/LIES','#e9e1cf']];
     this.city.housingFrontages.forEach((h,i)=>{const f=new T.Group();f.position.set(h.x,0,h.z);f.rotation.y=h.yaw;g.add(f);const w=h.width;
-      {const [t,c]=slogans[i%slogans.length];const m=new T.Mesh(new T.PlaneGeometry(4.2,1.35),slogan(t,c,4.2,1.35));m.position.set((i%3-1)*1.2,7.35,.32);f.add(m);}
+      {const [t,c]=slogans[i%slogans.length];const sl=slogan(t,c,4.2,1.35),m=new T.Mesh(place(new T.PlaneGeometry(4.2,1.35),sl.rect),sl.material);m.position.set((i%3-1)*1.2,7.35,.32);f.add(m);}
       // Wrought-iron balconies on corbels: scroll balusters and a curled bracket either side.
       for(const [bx,by] of (i%2?[[-w*.29,7.6]]:[[w*.29,7.6],[-w*.29,11.1]]) as [number,number][]){if(by>h.height-2.5)continue;box(f,bx,by,.55,2.3,.1,1,mats.stone);
         for(let k=0;k<=8;k++){const px=bx-1.1+k*.275;box(f,px,by+.5,1.02,.03,.9,.03,mats.iron);if(k%2){const s=torus(f,px+.13,by+.72,1.02,.11,.018,mats.iron);s.rotation.y=0;}}
@@ -369,7 +372,7 @@ export class Presentation {
       // Engraved datestone: unique text per building.
       const c=document.createElement('canvas');c.width=512;c.height=160;const x=c.getContext('2d')!;x.fillStyle='#d6c29c';x.fillRect(0,0,512,160);x.strokeStyle='#5a4a38';x.lineWidth=6;x.strokeRect(10,10,492,140);
       x.font='700 44px Georgia';x.textAlign='center';x.textBaseline='middle';x.fillStyle='#fff6df';x.fillText(names[i%names.length],258,82,470);x.fillStyle='#4a3a2a';x.fillText(names[i%names.length],256,80,470);
-      const t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;t.anisotropy=8;const plaque=new T.Mesh(new T.PlaneGeometry(2.4,.75),printed(illustrated(new T.MeshStandardMaterial({map:t}))));plaque.position.set(0,dt+(doorKind===0?1.2:.6),.36);f.add(plaque);});
+      const pl=plaqueAtlas.add(c),plaque=new T.Mesh(place(new T.PlaneGeometry(2.4,.75),pl.rect),pl.material);plaque.position.set(0,dt+(doorKind===0?1.2:.6),.36);f.add(plaque);});
     bake(g);
   }
   /** Hand-built vignettes: each trade spills its own goods onto the pavement. */

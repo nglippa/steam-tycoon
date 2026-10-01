@@ -12,7 +12,8 @@ export class WeatherArt {
   splashPositions=new Float32Array(160*3);dripPositions=new Float32Array(120*6);sparkPositions=new Float32Array(65*3);
   constructor(public scene:T.Scene,public city:City){
     this.sky=new T.Mesh(new T.SphereGeometry(420,24,16),new T.ShaderMaterial({side:T.BackSide,depthWrite:false,uniforms:this.uniforms,
-      vertexShader:'varying vec3 vSky; void main(){vSky=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
+      // Pinned to the far plane, so anything drawn before it wins, however far away it is (the sister isle is beyond the dome).
+      vertexShader:'varying vec3 vSky; void main(){vSky=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);gl_Position.z=gl_Position.w;}',
       fragmentShader:`varying vec3 vSky;uniform float daylight,time,sunset,cover;uniform vec3 skyTop,skyHorizon,cloudTint,cloudShade;
       float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
       float vn(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x),f.y);}
@@ -34,11 +35,12 @@ export class WeatherArt {
         col=mix(col,mix(col,cloudTint,.5),wisp);
         gl_FragColor=vec4(col,1.);
         #include <colorspace_fragment>}`
-    }));this.sky.renderOrder=-10;this.sky.frustumCulled=false;scene.add(this.sky);
+    }));// After the city, before the sea and its skirt: the cloud noise only runs where sky actually shows.
+    this.sky.renderOrder=.5;this.sky.frustumCulled=false;scene.add(this.sky);
     // Drawn after the city (renderOrder > 0) so the depth test skips every pixel the city covers:
     // the noise shaders only run where Terra actually ends.
     // Below Terra: a painted cloud sea far down, Locke's fields in its gaps, and a skirt of
-    // distant cloud banks and hazy ridges carrying it to the horizon. Both share the sky's
+    // distant cloud banks carrying it to the horizon. Both share the sky's
     // uniforms, so weather, dusk and night reach them without extra bookkeeping.
     const noise=`float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
       float vn(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x),f.y);}
@@ -66,11 +68,9 @@ export class WeatherArt {
       vertexShader:'varying vec2 vSk; varying vec3 vDir; void main(){vSk=uv;vDir=normalize(position);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
       fragmentShader:`varying vec2 vSk;varying vec3 vDir;uniform float daylight,time,cover;uniform vec3 skyHorizon,cloudTint,cloudShade;${noise}
       void main(){vec2 a=vDir.xz*3.;float v=vSk.y;
-        float ridge=.5+.22*fbm(a*1.6+2.)-.1*fbm(a*6.);
         float bank=.3+.2*fbm(a*2.4+time*.002)+.06*sin(atan(vDir.z,vDir.x)*9.);
         vec3 col=skyHorizon;
         vec3 bounce=vec3(.5,.63,.72)*(.3+.7*daylight);
-        col=mix(col,mix(skyHorizon,bounce*.85,.45),step(v,ridge)*step(.18,v));
         float cl=step(v,bank),top=smoothstep(bank-.06,bank-.01,v);
         col=mix(col,mix(mix(cloudShade,bounce,.5),cloudTint,top),cl*.78);
         col=mix(col,skyHorizon,smoothstep(.2,0.,v)*.55);

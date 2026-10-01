@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { Atlas, place, type Placed } from './sign-atlas';
 import { palette as P } from './palette';
 import { box, cyl, sphere, beam, torus, sign, mats, illustrated, displayGlass, printed, surface, thinLine, asProp, type Material } from './assets';
 export const plasterMap=surface('plaster');plasterMap.repeat.set(.37,.37);
@@ -192,14 +193,15 @@ export function poster(g:T.Object3D,x:number,y:number,z:number,i:number,yaw=0,ti
 export function meterBox(g:T.Object3D,x:number,y:number,z:number){box(g,x,y,z,.55,.7,.28,mats.teal);box(g,x,y+.4,z+.02,.62,.08,.34,mats.stone);const d=cyl(g,x,y+.08,z+.15,.13,.03,mats.cream);d.rotation.x=Math.PI/2;torus(g,x,y+.08,z+.16,.13,.02,mats.brass);cyl(g,x-.12,y/2-.2,z,.035,y-.3,mats.copper);}
 
 /** Stencilled cargo labels on painted crate wood: every crate says where it came from. */
-const stencilCache=new Map<string,T.Material>();
+const stencilAtlas=new Atlas(map=>thinLine(printed(illustrated(new T.MeshStandardMaterial({map})))),2048);
+const stencilCache=new Map<string,Placed<T.MeshStandardMaterial>>();
 function stencil(text:string,wood:string){const key=text+wood;let m=stencilCache.get(key);if(m)return m;const c=document.createElement('canvas');c.width=c.height=256;const x=c.getContext('2d')!;
   x.fillStyle=wood;x.fillRect(0,0,256,256);for(let i=0;i<5;i++){x.strokeStyle='rgba(40,28,20,.55)';x.lineWidth=3;x.beginPath();x.moveTo(0,i*51+2);x.lineTo(256,i*51+2);x.stroke();}
   x.strokeStyle='rgba(40,28,20,.7)';x.lineWidth=10;x.strokeRect(5,5,246,246);x.beginPath();x.moveTo(10,10);x.lineTo(246,246);x.stroke();
   x.fillStyle='rgba(30,26,24,.82)';x.font='900 40px "Courier New",monospace';x.textAlign='center';x.textBaseline='middle';text.split('/').forEach((l,i,a)=>x.fillText(l,128,128+(i-(a.length-1)/2)*42,220));
-  const t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;t.anisotropy=8;m=thinLine(printed(illustrated(new T.MeshStandardMaterial({map:t}))));stencilCache.set(key,m);return m;}
-export function labeledCrate(g:T.Object3D,x:number,y:number,z:number,s:number,text:string,yaw=0,wood='#b08a5c'){const m=new T.Mesh(new T.BoxGeometry(s,s,s),stencil(text,wood));m.position.set(x,y+s/2,z);m.rotation.y=yaw;g.add(m);return m;}
-export function stencilBarrel(g0:T.Object3D,x:number,z:number,text:string,y=0){const g=new T.Group();g0.add(g);const m=new T.Mesh(new T.CylinderGeometry(.4,.4,1.05,14),stencil(text,'#6f5a44'));m.position.set(x,y+.53,z);g.add(m);for(const yy of [.12,.5,.9])cyl(g,x,y+yy,z,.43,.07,mats.iron);cyl(g,x,y+1.07,z,.37,.02,mats.wood);asProp(g);}
+  m=stencilAtlas.add(c);stencilCache.set(key,m);return m;}
+export function labeledCrate(g:T.Object3D,x:number,y:number,z:number,s:number,text:string,yaw=0,wood='#b08a5c'){const st=stencil(text,wood),m=new T.Mesh(place(new T.BoxGeometry(s,s,s),st.rect),st.material);m.position.set(x,y+s/2,z);m.rotation.y=yaw;g.add(m);return m;}
+export function stencilBarrel(g0:T.Object3D,x:number,z:number,text:string,y=0){const g=new T.Group();g0.add(g);const st=stencil(text,'#6f5a44'),m=new T.Mesh(place(new T.CylinderGeometry(.4,.4,1.05,14),st.rect),st.material);m.position.set(x,y+.53,z);g.add(m);for(const yy of [.12,.5,.9])cyl(g,x,y+yy,z,.43,.07,mats.iron);cyl(g,x,y+1.07,z,.37,.02,mats.wood);asProp(g);}
 export function stove(g:T.Object3D,x:number,z:number,yaw=0){const s=new T.Group();s.position.set(x,0,z);s.rotation.y=yaw;g.add(s);box(s,0,.55,0,.9,.8,.7,mats.iron);for(const dx of [-.38,.38])for(const dz of [-.28,.28])box(s,dx,.08,dz,.1,.16,.1,mats.iron);
   box(s,0,.98,0,1,.08,.8,mats.iron);box(s,0,.5,.36,.5,.4,.02,artMats.ember);for(let k=0;k<4;k++)box(s,-.2+k*.13,.5,.38,.04,.4,.03,mats.iron);cyl(s,.25,1.9,-.2,.09,1.8,mats.iron);box(s,.25,2.8,-.2,.35,.08,.35,mats.iron);cyl(s,-.2,1.1,.1,.14,.2,mats.copper);asProp(s);}
 export function workbench(g:T.Object3D,x:number,z:number,yaw=0){const b=new T.Group();b.position.set(x,0,z);b.rotation.y=yaw;g.add(b);box(b,0,.9,0,2,.12,.8,mats.wood);for(const dx of [-.9,.9])for(const dz of [-.32,.32])box(b,dx,.45,dz,.1,.9,.1,mats.wood);box(b,0,.3,0,1.9,.06,.7,mats.wood);

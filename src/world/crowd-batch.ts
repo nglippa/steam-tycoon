@@ -1,7 +1,9 @@
 import * as T from 'three';
 
+const IDENTITY=new T.Matrix4();
 /** Keep the existing articulated models, but submit shared materials together. */
 export class CrowdBatch {
+  holder=new T.Group();
   entries:{source:T.Mesh;batch:T.BatchedMesh;id:number;actor:T.Object3D;expression?:number;hidden?:boolean}[]=[];
   constructor(public actors:T.Group[],root:T.Group){
     const buckets=new Map<T.Material,T.Mesh[]>(),owner=new Map<T.Mesh,T.Object3D>();
@@ -11,13 +13,17 @@ export class CrowdBatch {
     });
     for(const [material,sources] of buckets){
       const geometryMap=new Map<T.BufferGeometry,T.BufferGeometry>();
-      for(const source of sources)if(!geometryMap.has(source.geometry))geometryMap.set(source.geometry,source.geometry.index?source.geometry.toNonIndexed():source.geometry.clone());
-      let vertices=0;for(const geo of geometryMap.values())vertices+=geo.attributes.position.count;
-      const batch=new T.BatchedMesh(sources.length,vertices,0,material);batch.castShadow=false;batch.receiveShadow=true;batch.frustumCulled=false;root.add(batch);
+      for(const source of sources)if(!geometryMap.has(source.geometry)){const geo=source.geometry.clone();if(!geo.index){const n=geo.attributes.position.count,index=new Array<number>(n);for(let i=0;i<n;i++)index[i]=i;geo.setIndex(index);}geometryMap.set(source.geometry,geo);}
+      let vertices=0,indices=0;for(const geo of geometryMap.values()){vertices+=geo.attributes.position.count;indices+=geo.index!.count;}
+      const batch=new T.BatchedMesh(sources.length,vertices,indices,material);batch.castShadow=false;batch.receiveShadow=true;batch.frustumCulled=false;batch.sortObjects=false;root.add(batch);
       const ids=new Map<T.BufferGeometry,number>();
       for(const [original,geo] of geometryMap){ids.set(original,batch.addGeometry(geo));geo.dispose();}
       for(const source of sources){const id=batch.addInstance(ids.get(source.geometry)!);source.updateMatrix();source.matrixAutoUpdate=false;source.visible=false;if(material.userData.faceAtlas)batch.setColorAt(id,new T.Color(1,1,1));this.entries.push({source,batch,id,actor:owner.get(source)!});}
     }
+    // An articulated person is ~40 nodes and none of them draws any more: the batches do. Left in the scene,
+    // 192 people are 7,800 nodes the renderer walks twice a frame (matrices, then visibility) for nothing.
+    // Hold them outside the scene instead; update() below is the only thing that needs their matrices.
+    for(const actor of actors){const parent=actor.parent;if(!parent)continue;parent.updateWorldMatrix(true,false);if(parent.matrixWorld.equals(IDENTITY))this.holder.add(actor);}
     this.update();
   }
   update(){

@@ -2,6 +2,7 @@ import * as T from 'three';
 import { palette as P, worldColors } from './palette';
 import { painted } from './tone';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { Atlas, place, type Placed } from './sign-atlas';
 export const seeded = (seed: number) => { let a = seed; return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; };
 export const random = seeded(7281);
 /** Borderlands-style hand-painted surfaces: light tint-able base, inked construction
@@ -127,12 +128,13 @@ export function printed<M extends T.Material>(m: M): M {
   m.onBeforeCompile = (shader, r) => { previous(shader, r); shader.fragmentShader = shader.fragmentShader.replace('#include <opaque_fragment>', '#include <opaque_fragment>\ngl_FragColor.a = 0.0;'); };
   const key = m.customProgramCacheKey.bind(m); m.customProgramCacheKey = () => key() + '|printed'; return m;
 }
-const signCache = new Map<string, T.MeshStandardMaterial>();
+const signAtlas = new Atlas(map => printed(new T.MeshStandardMaterial({ map, roughness: .7, emissive: '#ffffff', emissiveMap: map, emissiveIntensity: .3 })));
+const signCache = new Map<string, Placed<T.MeshStandardMaterial>>();
 /** Enamel sign. The canvas matches the board's real proportions at ~190 px/m, so
  * lettering is never stretched; the title is fitted to the board, not squeezed. */
 export function sign(g: T.Object3D, text: string, sub: string, x: number, y: number, z: number, width = 6, height = 1.2, theme = '#bfa16b') {
-  const key = [text, sub, width, height, theme].join('|'); let material = signCache.get(key);
-  if (!material) {
+  const key = [text, sub, width, height, theme].join('|'); let placed = signCache.get(key);
+  if (!placed) {
     let W = Math.round(Math.min(2048, Math.max(256, width * 190))), H = Math.round(W * height / width); if (H > 1024) { H = 1024; W = Math.round(H * width / height); }
     const c = document.createElement('canvas'); c.width = W; c.height = H; const ctx = c.getContext('2d')!; const m = Math.min(W, H);
     ctx.fillStyle = '#1b2d2e'; ctx.fillRect(0, 0, W, H); ctx.strokeStyle = theme; ctx.lineWidth = Math.max(2, m * .035);
@@ -146,10 +148,9 @@ export function sign(g: T.Object3D, text: string, sub: string, x: number, y: num
     if (hasSub) { let ss = H * .13; ctx.font = `600 ${ss}px "Avenir Next", "Helvetica Neue", sans-serif`; (ctx as CanvasRenderingContext2D & { letterSpacing: string }).letterSpacing = `${ss * .35}px`;
       const sw = ctx.measureText(sub.toUpperCase()).width; if (sw > maxW) { ss *= maxW / sw; ctx.font = `600 ${ss}px "Avenir Next", "Helvetica Neue", sans-serif`; (ctx as CanvasRenderingContext2D & { letterSpacing: string }).letterSpacing = `${ss * .35}px`; }
       ctx.fillText(sub.toUpperCase(), W / 2, H * .72); }
-    const tex = new T.CanvasTexture(c); tex.colorSpace = T.SRGBColorSpace; tex.anisotropy = 16; tex.minFilter = T.LinearMipmapLinearFilter;
-    material = printed(new T.MeshStandardMaterial({ map: tex, roughness: .7, emissive: '#ffffff', emissiveMap: tex, emissiveIntensity: .3 })); signCache.set(key, material);
+    placed = signAtlas.add(c); signCache.set(key, placed);
   }
-  const mesh = new T.Mesh(new T.PlaneGeometry(width, height), material); mesh.position.set(x, y, z); g.add(mesh); return mesh;
+  const mesh = new T.Mesh(place(new T.PlaneGeometry(width, height), placed.rect), placed.material); mesh.position.set(x, y, z); g.add(mesh); return mesh;
 }
 export function arch(g: T.Object3D, x: number, y: number, z: number, w: number, h: number, mat: Material) { const s = new T.Shape(); s.moveTo(-w / 2, 0); s.lineTo(w / 2, 0); s.lineTo(w / 2, h - w / 2); s.absarc(0, h - w / 2, w / 2, 0, Math.PI, false); s.lineTo(-w / 2, 0); const geo = new T.ShapeGeometry(s, 8); const uv = geo.attributes.uv; for(let i=0;i<uv.count;i++) uv.setXY(i,(uv.getX(i)+w/2)/w,uv.getY(i)/h); const m = new T.Mesh(geo, mat); m.position.set(x, y, z); g.add(m); return m; }
 export type WindowFamily = 'arch' | 'civic' | 'grid' | 'rect';
@@ -206,9 +207,12 @@ export function bareTree(g: T.Object3D, x: number, z: number, scale = 1) { const
   for (const [a, b, c] of [[.1, 1.6, .7], [.1, 2.0, -.8], [.1, 2.4, .2]]) { beam(t, new T.Vector3(a, b, 0), new T.Vector3(a + c, b + 1.1, c * .4), .05, mats.wood); beam(t, new T.Vector3(a + c * .6, b + .7, c * .25), new T.Vector3(a + c * 1.3, b + 1.3, -c * .3), .03, mats.wood); }
   g.add(t); return t; }
 /** Bake procedural architectural detail into one draw call per shared material. */
+const sequence = (n: number) => { const a = new Array<number>(n); for (let i = 0; i < n; i++) a[i] = i; return a; };
+/** Merge a finished group into one mesh per material. Geometry stays indexed: a merged box is 24 vertices, not 36,
+ * and a cylinder a fifth of its unrolled size, which is most of the vertex work in a city of primitives. */
 export function bake(group: T.Group) {
   group.updateMatrixWorld(true); const inverse = group.matrixWorld.clone().invert(); const buckets = new Map<Material, T.BufferGeometry[]>();
-  group.traverse(o => { if (o instanceof T.Mesh && !Array.isArray(o.material)) { let geos = buckets.get(o.material); if (!geos) { geos = []; buckets.set(o.material, geos); } let geo = o.geometry.clone().applyMatrix4(inverse.clone().multiply(o.matrixWorld)); if (geo.index) geo = geo.toNonIndexed(); if (!geo.attributes.uv) geo.setAttribute('uv', new T.Float32BufferAttribute(new Float32Array(geo.attributes.position.count * 2), 2)); geos.push(geo); } });
+  group.traverse(o => { if (o instanceof T.Mesh && !Array.isArray(o.material)) { let geos = buckets.get(o.material); if (!geos) { geos = []; buckets.set(o.material, geos); } let geo = o.geometry.clone().applyMatrix4(inverse.clone().multiply(o.matrixWorld)); if (!geo.index) geo.setIndex(sequence(geo.attributes.position.count)); if (!geo.attributes.uv) geo.setAttribute('uv', new T.Float32BufferAttribute(new Float32Array(geo.attributes.position.count * 2), 2)); geos.push(geo); } });
   group.clear(); for (const [mat, geos] of buckets) { const merged = mergeGeometries(geos, false); if (!merged) continue; // Slightly imperfect silhouettes, like assembled painted miniatures.
     // The deterministic field keeps coincident vertices together.
     const mesh = new T.Mesh(merged, mat); mesh.castShadow = mat!==mats.stone&&mat!==mats.brass&&!windowGlass.includes(mat as T.MeshStandardMaterial);mesh.receiveShadow=true; group.add(mesh); geos.forEach(g => g.dispose()); } return group;

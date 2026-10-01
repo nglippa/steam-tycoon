@@ -13,8 +13,9 @@ import { palette } from './world/palette';
 import { Consignment } from './world/logistics';
 for(const [key,color] of Object.entries({ink:palette.neutral.ink,paper:palette.neutral.paper,parchment:palette.neutral.ivory,slate:palette.neutral.slate,brass:palette.metal.brass,civic:palette.cool.teal,burgundy:palette.warm.burgundy}))document.documentElement.style.setProperty('--terra-'+key,color);
 import { reducedMotion as prefersReducedMotion } from './motion';
+import { DetailCull } from './world/detail-cull';
 const canvas = document.querySelector<HTMLCanvasElement>('#world')!;
-const renderer = new T.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+const renderer = new T.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' }); // the scene is drawn to the ink pass's own multisampled target; the canvas only receives one full-screen quad
 renderer.setSize(innerWidth, innerHeight); renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5)); renderer.shadowMap.enabled = true; renderer.shadowMap.type = T.PCFSoftShadowMap; renderer.shadowMap.autoUpdate = false; renderer.shadowMap.needsUpdate = true; renderer.toneMapping = T.NoToneMapping; renderer.toneMappingExposure = 1.2; renderer.outputColorSpace = T.SRGBColorSpace;
 const inkRenderer = new InkRenderer(renderer);
 const scene = new T.Scene(); const camera = new T.PerspectiveCamera(68, innerWidth / innerHeight, .08, 500);
@@ -22,12 +23,17 @@ const saveKey = SAVE_KEY + (new URLSearchParams(location.search).has('dev') ? '.
 const reviewMode = new URLSearchParams(location.search).has('dev') && new URLSearchParams(location.search).has('review');
 const economy = new Economy(reviewMode ? { read: () => null, write: () => {}, clear: () => {} } : { read: () => { try { return localStorage.getItem(saveKey); } catch { return null; } }, write: s => localStorage.setItem(saveKey, s), clear: () => localStorage.removeItem(saveKey) });
 const city = new City(scene, economy); const atmosphere = new Atmosphere(scene, city); const player = new Player(camera, canvas, city); const sound = new Soundscape(() => economy.state.settings); const ui = new Interface(economy, player, city, sound);
+const detailCull = new DetailCull(scene);
 let review: Review | undefined;
 let arrival = 1; const titlePosition = new T.Vector3(); const titleRotation = new T.Quaternion();
 const reducedMotion = () => prefersReducedMotion(economy.state.settings.reducedMotion);
 let time = economy.state.playtime; let last = performance.now(); let autosave = 0; let hud = 0; let hammer = 0; let fps = 60; let debug = false; let previousConstructionCount = 0; let shadowElapsed = 0;
 const query = new URLSearchParams(location.search); const dev = query.has('dev');
-function quality() { const high = economy.state.settings.quality === 'high'; inkRenderer.setQuality(high); renderer.setPixelRatio(Math.min(devicePixelRatio, touch ? (high ? 1.25 : 1) : high ? 1.5 : 1)); renderer.shadowMap.enabled = high; renderer.shadowMap.needsUpdate = true; atmosphere.rain.geometry.setDrawRange(0, high ? 3000 : 1100); }
+// Resolution is a pixel budget, not a fixed ratio: a laptop panel gets the full 1.5x, a 4K or 5K window is capped
+// at the same number of pixels instead of four times the fill. `strain` steps the budget down when frames run slow.
+let strain = 1, slow = 0;
+function pixelRatio() { const high = economy.state.settings.quality === 'high', budget = Math.sqrt((high ? 4.4e6 : 2.4e6) * strain / (innerWidth * innerHeight)); return Math.max(.6, Math.min(devicePixelRatio, touch ? (high ? 1.25 : 1) : high ? 1.5 : 1, budget)); }
+function quality() { const high = economy.state.settings.quality === 'high'; inkRenderer.setQuality(high); strain = 1; renderer.setPixelRatio(pixelRatio()); renderer.shadowMap.enabled = high; renderer.shadowMap.needsUpdate = true; atmosphere.rain.geometry.setDrawRange(0, high ? 3000 : 1100); }
 // Phones and tablets: touch controls, no pointer lock, the lighter renderer on a fresh game.
 const touch = isTouch(); let touchControls: TouchControls | undefined;
 if (touch) { document.body.classList.add('touch'); player.touch = true; if (economy.state.playtime < 1) economy.state.settings.quality = 'low';
@@ -48,10 +54,12 @@ economy.onChange = (kind, id) => { if (kind === 'save-error') { ui.toast('City r
   else if (kind === 'district') { sound.milestone(); ui.toast('The charter is sealed and the ward gate is opening. Go and see what is behind it.', 8000); }
   else if (kind === 'infrastructure') ui.toast('Commission approved. The civic engineers are on their way.'); };
 player.onStep = () => sound.step(); ui.onStart = () => { arrival = reducedMotion() ? 1 : 0; titlePosition.copy(camera.position); titleRotation.copy(camera.quaternion); if (economy.state.playtime < 1) time = 0; }; ui.onReset = () => { for (const c of city.constructions) city.root.remove(c.group); city.constructions = []; city.sync(true); player.teleport(0, 77); player.pitch = -.025; ui.tracked = 'scrap'; time = 0; sound.apply(); quality(); };
-window.addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
+window.addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setPixelRatio(pixelRatio()); renderer.setSize(innerWidth, innerHeight); });
 window.addEventListener('pagehide', () => economy.save()); document.addEventListener('visibilitychange', () => { if (document.hidden) economy.save(); });
 document.addEventListener('keydown', e => { if (e.code === 'F3') { e.preventDefault(); debug = !debug; } });
 function frame(now: number) { requestAnimationFrame(frame); if ((document.hidden || !ui.started) && now-last < (document.hidden ? 250 : 1000/24)) return; const raw = (now - last) / 1000; const dt = Math.min(.05, raw); last = now; fps = T.MathUtils.lerp(fps, 1 / Math.max(.001, raw), .035); time += dt;
+  // Sustained slow frames (under ~50 a second for a couple of seconds, not one hitch): give up a fifth of the pixels.
+  if (ui.started && !document.hidden && !reviewMode) { slow = raw > 1 / 50 && raw < .25 ? slow + raw : Math.max(0, slow - raw * 2); if (slow > 2 && strain > .4) { strain *= .8; slow = 0; renderer.setPixelRatio(pixelRatio()); } }
   if (ui.started) { economy.tick(raw); autosave += dt; if (autosave >= 10) { autosave = 0; economy.save(); } }
   player.update(dt, time); city.update(dt, time, player.position); atmosphere.update(dt, time, camera, !ui.started); sound.update(player.position.x, player.position.z, player.yaw, atmosphere.weather === 'rain', time); if (city.constructions.length) { hammer += dt; if (hammer > .35) { hammer = 0; sound.hammer(); } }
   hud += dt; if (hud > .1) { hud = 0; ui.update(atmosphere.weather, fps, debug); touchControls?.update(); } if (previousConstructionCount > city.constructions.length && ui.panel) ui.render();
@@ -69,7 +77,7 @@ function frame(now: number) { requestAnimationFrame(frame); if ((document.hidden
     camera.quaternion.slerpQuaternions(titleRotation, new T.Quaternion().setFromEuler(new T.Euler(player.pitch, player.yaw, 0, 'YXZ')), ease);
     camera.updateMatrixWorld();
   }
-  inkRenderer.setRecovery(economy.stage); inkRenderer.render(scene, camera);
+  detailCull.update(raw, camera.position); inkRenderer.setRecovery(economy.stage); inkRenderer.render(scene, camera);
   review?.frame(now, raw);
 }
 requestAnimationFrame(frame);
