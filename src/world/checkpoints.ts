@@ -137,8 +137,9 @@ export class Checkpoints {
       const watching = time < g.watchUntil;
       if (time < g.watchUntil + 4) g.crew.forEach((i, k) => { const q = this.p.workers[i].person.group; if (!q.visible) return; const want = watching && i === g.watcher ? Math.atan2(viewer.x - q.position.x, viewer.z - q.position.z) : g.yaw[k]; q.rotation.y += wrap(want - q.rotation.y) * Math.min(1, dt * 3); });
       const dx = viewer.x - s.x, dz = viewer.z - s.z, lx = s.quarter ? -dz : dx, lz = s.quarter ? dx : dz;
-      const far = viewer.y > 4 || Math.abs(lz) > APPROACH.reach + APPROACH.leave + 1 || lx < s.span[0] - APPROACH.leave - 2 || lx > s.span[1] + APPROACH.leave + 2;
-      if (!HELD.includes(g.state) || (far && g.approach.stage === 'idle')) { if (g.approach.stage !== 'idle') g.approach = { ...approachState(), lastIncident: g.approach.lastIncident }; g.seenBy = -1; g.scan = 0; continue; }
+      // Up on the roofs is the other way through, and nobody watches it: a challenge does not follow him up the ladder.
+      const up = viewer.y > 4, far = Math.abs(lz) > APPROACH.reach + APPROACH.leave + 1 || lx < s.span[0] - APPROACH.leave - 2 || lx > s.span[1] + APPROACH.leave + 2;
+      if (!HELD.includes(g.state) || up || (far && g.approach.stage === 'idle')) { if (g.approach.stage !== 'idle') g.approach = { ...approachState(), lastIncident: g.approach.lastIncident }; g.seenBy = -1; g.scan = 0; continue; }
       const what = scrutiny(g.state, city.economy.state.heat, city.social.get(s.district)!.crackdown);
       if (what === 'refuse') { stepApproach(g.approach, { lx, lz, span: s.span, seen: false, scrutiny: what, dt, time });
         if (Math.abs(lz) < 3.2 && lx > s.span[0] - 1 && lx < s.span[1] + 1 && time - g.refused > 20) { g.refused = time; this.speak(g, 'all', 'authoritative', 4, time); city.onEvent(`“Closed. Curfew. Turn around, Steward.” The boom is down; ${s.around} are not watched.`); }
