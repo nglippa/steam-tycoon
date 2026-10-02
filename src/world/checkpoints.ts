@@ -41,6 +41,8 @@ export class Checkpoints {
       const held = new T.Group(), full = new T.Group(), lit = new T.Group(), sealed = new T.Group(), abandoned = new T.Group(), civic = new T.Group(); root.add(held, full, lit, sealed, abandoned, civic);
       const gate: GateRecord = { site, state: 'manned', held, full, lit, sealed, abandoned, civic, booms: [], root, crew: [], yaw: [], waved: -99, refused: -99, approach: approachState(), scan: 0, seenBy: -1, watcher: -1, watchUntil: -99 }; this.gates.push(gate);
       const available = () => !site.chartered || city.economy.state.districts.includes(site.chartered);
+      // What is left lying about an abandoned gate is solid only while it lies there (and too low to hide anyone).
+      const litter = (lx: number, lz: number, w: number, d: number, h: number) => { const [x, z] = world(lx, lz); city.collider(x, z, site.quarter ? d : w, site.quarter ? w : d, h, undefined, () => !available() || gate.state !== 'open'); };
       // The closed parts of the line: everything in the span that is not an opening.
       const cuts = [...site.openings].sort((a, b) => a[0] - b[0]), closed: [number, number][] = []; let at = site.span[0]; for (const [a, b] of cuts) { if (a > at) closed.push([at, a]); at = b; } if (at < site.span[1]) closed.push([at, site.span[1]]);
       const trestle = (g: T.Object3D, a: number, b: number) => { const len = b - a, mid = (a + b) / 2; box(g, mid, .95, 0, len, .13, .1, O.oxblood); box(g, mid, .5, 0, len, .07, .06, O.iron);
@@ -48,9 +50,9 @@ export class Checkpoints {
       for (const [a, b] of closed) { const centre = a < 0 && b > 0; trestle(centre ? held : full, a, b);
         const [cx, cz] = world((a + b) / 2, 0), w = b - a; city.collider(cx, cz, site.quarter ? .3 : w, site.quarter ? w : .3, 1.2, undefined, () => !available() || !(centre ? HELD.includes(gate.state) : gate.state === 'manned' || gate.state === 'sealed'));
         // Abandoned: the same trestle dragged against the wall and left.
-        if (!centre) { const t = new T.Group(), end = Math.abs(a) > Math.abs(b) ? a : b, dir = Math.sign(end); t.position.set(end - dir * .7, 0, dir * .2); t.rotation.set(0, dir * 1.25, dir * .09); abandoned.add(t); trestle(t, -Math.min(2.2, w / 2), Math.min(2.2, w / 2)); }
+        if (!centre) { const t = new T.Group(), end = Math.abs(a) > Math.abs(b) ? a : b, dir = Math.sign(end); t.position.set(end - dir * .7, 0, dir * .2); t.rotation.set(0, dir * 1.25, dir * .09); abandoned.add(t); const half = Math.min(2.2, w / 2); trestle(t, -half, half); if (w > 2) litter(end - dir * .7, dir * .2, half * .6 + .4, half * 1.9, 1.2); }
         // Abandoned: the centre trestle tipped onto its side by the box, a tarp thrown over half of it.
-        else if (site.hut) { const t = new T.Group(); t.position.set(-.3, .42, 1.55); t.rotation.set(1.45, .18, 0); abandoned.add(t); trestle(t, -1.5, 1.5); const tarp = box(abandoned, -.9, .5, 1.62, 1.5, .9, .7, canvasTarp); tarp.rotation.set(.12, .18, .1); } }
+        else if (site.hut) { const t = new T.Group(); t.position.set(-.3, .42, 1.55); t.rotation.set(1.45, .18, 0); abandoned.add(t); trestle(t, -1.5, 1.5); const tarp = box(abandoned, -.9, .5, 1.62, 1.5, .9, .7, canvasTarp); tarp.rotation.set(.12, .18, .1); litter(-.3, 1.55, 3.1, .9, 1); } }
       if (site.hut) {
         // The sentry box: a place for one man out of the rain, a lamp, the order above the door.
         box(held, 0, 1.2, 0, 1.3, 2.4, 1.3, O.iron); box(held, 0, 2.46, 0, 1.6, .12, 1.6, O.green); for (const s of [-1, 1]) box(held, 0, 1.55, s * .66, .5, .28, .02, mats.dark);
@@ -63,7 +65,7 @@ export class Checkpoints {
         box(abandoned, .58, 1.25, .05, .04, 2.3, 1.36, canvasTarp).rotation.z = -.06;
         box(abandoned, -1.05, .7, -.35, 1.6, .1, 1.6, O.green).rotation.set(.1, .3, 1.15);
         { const b2 = sign(abandoned, 'CHECKPOINT', 'PAPERS TO BE SHOWN ON DEMAND', 1.1, .2, -1.25, 3, .7, '#cbbf9f'); b2.rotation.set(-1.42, .5, 0); }
-        { const drum = cyl(abandoned, 1.35, .3, 1.15, .3, .86, O.rust); drum.rotation.set(0, .7, Math.PI / 2); }
+        { const drum = cyl(abandoned, 1.35, .3, 1.15, .3, .86, O.rust); drum.rotation.set(0, .7, Math.PI / 2); litter(1.35, 1.15, .8, .8, .6); litter(-1.15, -.35, .8, 1.7, 1.4); }
         box(abandoned, .9, .06, .9, 1.6, .05, .5, O.iron).rotation.y = .5;
         city.collider(...world(0, 0), 1.5, 1.5, 2.4, undefined, () => !available() || gate.state === 'gone');
         // Reclaimed: a planter where the box stood, its civic plate, benches facing the street, and bunting across it.
@@ -111,7 +113,8 @@ export class Checkpoints {
     else if (ev === 'refuse') { watch(5); this.speak(g, 'all', 'hostile', 4, time); city.onEvent('“One more step and it is an incident.”'); this.onAlarm?.('refuse'); }
     else if (ev === 'turnedAway') { watch(3.5); this.speak(g, by, 'suspicious', 3.5, time); }
     else if (ev === 'incident') { watch(4); this.speak(g, 'all', 'hostile', 6, time); city.incident('minor', viewer.x, viewer.z); this.onAlarm?.('incident'); }
-    else if (ev === 'excused') { watch(2); this.speak(g, by, 'hostile', 2.5, time); }
+    else if (ev === 'excused') { watch(2); this.speak(g, by, 'hostile', 2.5, time); city.onEvent('“Next time you stop when you are told, Steward.”'); }
+    else if (ev === 'released') { watch(2); this.speak(g, by, 'neutral', 3, time); city.onEvent('A word from the box. “…Never mind. Go on, Steward.”'); }
     else if (ev === 'cleared' && what === 'wave' && time - g.waved > 45) { g.waved = time; watch(2); this.speak(g, by, 'neutral', 3, time); city.onEvent('“Papers.” A look, a nod. “Go on, Steward.”'); }
   }
   /** One gate is ever near enough to matter. Walking up to an opening is what the checkpoint is for: a stranger is watched and
@@ -125,13 +128,13 @@ export class Checkpoints {
       const watching = time < g.watchUntil;
       if (time < g.watchUntil + 4) g.crew.forEach((i, k) => { const q = this.p.workers[i].person.group; if (!q.visible) return; const want = watching && i === g.watcher ? Math.atan2(viewer.x - q.position.x, viewer.z - q.position.z) : g.yaw[k]; q.rotation.y += wrap(want - q.rotation.y) * Math.min(1, dt * 3); });
       const dx = viewer.x - s.x, dz = viewer.z - s.z, lx = s.quarter ? -dz : dx, lz = s.quarter ? dx : dz;
-      const far = viewer.y > 4 || Math.abs(lz) > APPROACH.outer + APPROACH.leave + 1 || lx < s.span[0] - APPROACH.leave - 2 || lx > s.span[1] + APPROACH.leave + 2;
+      const far = viewer.y > 4 || Math.abs(lz) > APPROACH.reach + APPROACH.leave + 1 || lx < s.span[0] - APPROACH.leave - 2 || lx > s.span[1] + APPROACH.leave + 2;
       if (!HELD.includes(g.state) || (far && g.approach.stage === 'idle')) { if (g.approach.stage !== 'idle') g.approach = { ...approachState(), lastIncident: g.approach.lastIncident }; g.seenBy = -1; g.scan = 0; continue; }
       const what = scrutiny(g.state, city.economy.state.heat, city.social.get(s.district)!.crackdown);
       if (what === 'refuse') { stepApproach(g.approach, { lx, lz, span: s.span, seen: false, scrutiny: what, dt, time });
         if (Math.abs(lz) < 3.2 && lx > s.span[0] - 1 && lx < s.span[1] + 1 && time - g.refused > 20) { g.refused = time; this.speak(g, 'all', 'authoritative', 4, time); city.onEvent(`“Closed. Curfew. Turn around, Steward.” The boom is down; ${s.around} are not watched.`); }
         continue; }
-      g.scan -= dt; if (g.scan <= 0) { g.scan = .25; g.seenBy = g.crew.find(i => { const q = this.p.workers[i].person.group; return q.visible && inView(city, q, viewer, 14, .95); }) ?? -1; if (g.seenBy >= 0 && g.approach.stage !== 'idle' && g.watcher < 0) g.watcher = g.seenBy; }
+      g.scan -= dt; if (g.scan <= 0) { g.scan = .25; g.seenBy = g.crew.find(i => { const q = this.p.workers[i].person.group; return q.visible && inView(city, q, viewer, APPROACH.reach, .95); }) ?? -1; if (g.seenBy >= 0 && g.approach.stage !== 'idle' && g.watcher < 0) g.watcher = g.seenBy; }
       const ev = stepApproach(g.approach, { lx, lz, span: s.span, seen: g.seenBy >= 0, scrutiny: what, dt, time });
       if (ev) this.voice(g, ev, what, time, viewer);
       if (g.approach.stage === 'idle' && !watching) g.watcher = -1; } }
