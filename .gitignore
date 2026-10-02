@@ -9,3 +9,6 @@ test-results/
 
 # graft's local graph cache — regenerable, not committed (run `graft build`).
 /graft/
+
+# local escape hatch for the delegation hook (.claude/hooks/delegate.sh)
+/.claude/allow-main-edits
