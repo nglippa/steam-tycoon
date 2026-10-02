@@ -1,6 +1,6 @@
 import * as T from 'three';
 import { box, torus, barrel, crate, bake, mats, asProp } from './assets';
-import { ROUTE, makeCarts, step, pose, activate, cartsCease, type Cart } from '../simulation/traffic';
+import { ROUTE, makeCarts, step, pose, activate, cartsCease, occupied, type Cart } from '../simulation/traffic';
 import type { City } from './city';
 
 /** The Great Main's carts: drawn here, moved by the rules in simulation/traffic. The checkpoint's state is polled
@@ -14,4 +14,7 @@ export class Traffic {
     step(this.state, { gate: works.gate, crackdown: works.crackdown, curfew: cartsCease(works.enforcement, market.enforcement) }, dt, 1.1 + city.economy.state.infrastructure.roads * .3);
     this.state.forEach((c, i) => { const cart = this.carts[i]; cart.visible = c.active; if (!c.active) return; const p = pose(ROUTE, c.s);
       cart.position.set(p.x, city.groundHeight(p.x, p.z), p.z); cart.rotation.y = p.yaw; for (const wheel of this.wheels[i]) wheel.rotation.x = c.s / .43; }); }
+  /** Is a cart crossing the gate at depth gateZ: past its stop line, tail not yet halfWidth beyond the boom? The
+   * checkpoint asks before lowering a boom. Only the Great Main gate (z 10.4) is on the carts' road. */
+  occupying(gateZ: number, halfWidth: number) { return occupied(this.state, gateZ, halfWidth); }
 }
