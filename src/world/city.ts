@@ -135,8 +135,9 @@ export class City {
     if (m.act !== 'none') { const t = m.threat!, gone = t.stamp !== this.threatStamp, d = Math.hypot(t.at.x - p.x, t.at.z - p.z); if ((gone || d > m.exit) && now >= m.start + m.hold) { m.act = 'none'; m.threat = undefined; } }
     if (m.act === 'none' && near) { const t = near.threat, coming = approaching(t, p.x, p.z), cross = !!o.walking && !!o.moving && coming && Math.abs(t.at.x - p.x) < 2.5 && now >= m.shy && this.canCross(p.x, p.z, t);
       const r = respond({ trait: c.manner.trait, kind: t.kind, distance: near.distance, coming, walking: !!o.walking && !!o.moving, occupation, crackdown: s.crackdown, curfew: s.enforcement, seed: m.seed, canCross: cross });
+      // (Someone already standing aside needs no time to react: with it they would drift back toward the line first, then out again.)
       if (r.reaction === 'crossStreet') { m.cross = { c: crossingAt(p.x, p.z)!, phase: 'go', at: now + r.delay, threat: t }; m.act = 'none'; if (this.crossing(m, p, yaw)) return; }
-      else if (r.reaction !== 'none') Object.assign(m, { act: r.reaction, threat: t, start: now + r.delay, hold: r.hold, exit: r.exit, amp: r.amplitude, facing: r.face, reactRate: r.rate, side: 0 }); }
+      else if (r.reaction !== 'none') Object.assign(m, { act: r.reaction, threat: t, start: now + (Math.hypot(m.ox, m.oz) > .3 ? 0 : r.delay), hold: r.hold, exit: r.exit, amp: r.amplitude, facing: r.face, reactRate: r.rate, side: 0 }); }
     if (m.act !== 'none' && now >= m.start) { const t = m.threat!, dx = p.x - t.at.x, dz = p.z - t.at.z, d = Math.hypot(dx, dz) || .01, prox = Math.max(.45, Math.min(1, 1.6 * (1 - d / m.exit))), holding = now < m.start + m.hold;
       // A walking beat is passed to one side of its line. The side is chosen once, in the street's terms, so it holds when the patrol turns round.
       if (t.kind === 'patrol' && t.facing) { const px = Math.cos(t.facing.y), pz = -Math.sin(t.facing.y); if (!m.side) { const off = dx * px + dz * pz; m.side = Math.sign(off) || (jitter(m.seed, 4) < .5 ? -1 : 1);
