@@ -104,6 +104,8 @@ html,body{overscroll-behavior:none;-webkit-user-select:none;user-select:none}
 .ward[data-band=liberated]{color:#2f6f6a}.ward[data-band=low]{color:#55733f}.ward[data-band=controlled]{color:#7a5f1e}.ward[data-band=heavy]{color:#8c4424}.ward[data-band=lockdown]{color:var(--terra-burgundy)}
 body:not(.started) .hour{display:none}
 @media (max-width:900px){.hour{transform:translateX(-50%)}}
+/* A phone has no room between the title card and the treasury: the clock hangs under them, and the toast below it. */
+@media (max-width:700px) and (min-height:521px){.hour{top:calc(100% + 8px)}#toast{top:162px}body.touch #hud-bottom{top:132px}body.touch #toast{top:232px}}
 body.touch .hour{transform:translateX(-50%) scale(.85);transform-origin:top center}
 /* Small screens lose the bearing plate, so the hour plate carries the ward: time, curfew, then one compact line. */
 #ward-mini{display:none;font-weight:800;letter-spacing:.1em;white-space:nowrap;min-height:0}
