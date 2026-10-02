@@ -15,7 +15,7 @@ import { DISTRICTS, BANDS, bandOf, population, admits, districtAt, isOccupier, s
 import { TerraEdge, TERRACE as EDGE_TERRACE, CHASM, GALLERY, WEST_EDGE } from './terra-edge';
 import { Economy, PROPERTIES, SITE_LIBERATED, SITE_RESTORED, type PropertyId, type SiteId } from '../simulation/economy';
 import { Traffic } from './traffic';
-import { ROAD, laneX } from '../simulation/traffic';
+import { ROAD, laneX, laneFree } from '../simulation/traffic';
 export interface Collider { minX: number; maxX: number; minZ: number; maxZ: number; height: number; base?: number; gate?: string; open?: () => boolean }
 /** A walkable surface above or below the street: a roof, a catwalk, a pier past the rim.
  * `y1` makes it a stair or ramp, rising from `y` at the low end of `axis` to `y1` at the high end. */
@@ -185,9 +185,9 @@ export class City {
     if (!this.crossOk[CROSSINGS.indexOf(c)]) return false; const other = this.threats.nearest(c.to, z, .18, 4, from); return !other; }
   /** Holds short of a cart lane while a cart is coming down it (a lane already stepped into is finished). */
   private cartIn(from: number, to: number, z: number, lanes: number[]) { const dir = Math.sign(to - from); for (const lane of lanes) { const ahead = (lane - from) * dir; if (ahead < 1.5 || ahead > 3.2 || (lane - to) * dir > 0) continue; if (!this.laneClear(lane, z)) return true; } return false; }
-  /** Is the cart lane at `x` clear for someone to step across at `z`? A cart on the move is given eight metres either way;
-   * one standing (held at the boom, parked for the night) only its own length, so it never keeps anyone at the kerb till morning. */
-  laneClear(x: number, z: number) { const t = this.traffic; return !t.carts.some((cart, i) => cart.visible && Math.abs(cart.position.x - x) < 1.5 && Math.abs(cart.position.z - z) < (t.state[i].v > .05 ? 8 : 2)); }
+  /** Is the cart lane at `x` clear for someone to step across at `z`? (traffic.laneFree: a cart coming is given eight metres, one gone by
+   * only its length; one standing, held at the boom or parked for the night, only its length, so it never keeps anyone at the kerb till morning.) */
+  laneClear(x: number, z: number) { const t = this.traffic; return !t.carts.some((cart, i) => cart.visible && Math.abs(cart.position.x - x) < 1.5 && !laneFree(cart.position.x, cart.position.z, t.state[i].v > .05, z)); }
   /** One decision of a crossing in progress. Returns false once it is over and the walker is back on their route.
    * Still on their own kerb, they give it up if the patrol has gone by or a cart has kept them there four seconds. Once in the road
    * they only go forward: to the far kerb, or along the strip between the lanes until the lane ahead is clear. Nobody stands in a lane. */

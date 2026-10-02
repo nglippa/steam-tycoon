@@ -73,6 +73,10 @@ export function passage(gate: Gate, crackdown = false): Passage {
 }
 /** An enforced curfew (not a lax one) takes ordinary carts off the street. */
 export const cartsCease = (...enforcement: Enforcement[]) => enforcement.some(e => e === 'normal' || e === 'strict');
+/** Can someone step across a cart's lane at depth z? A cart on the move is given eight metres while it is still coming and its own
+ * length and a stride once it has gone by (the east lane runs north, the west lane south); one standing, only its own length. */
+export function laneFree(cartX: number, cartZ: number, moving: boolean, z: number) { const coming = (z - cartZ) * (cartX > 0 ? -1 : 1);
+  return moving ? coming > 8 || coming < -2.5 : Math.abs(coming) >= 2; }
 
 // ---------------------------------------------------------------- carts
 export interface Cart {

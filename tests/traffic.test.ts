@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { ROUTE, ROAD, CART, STOP, step, pose, passage, cartsCease, makeCarts, activate, ahead, offset, nextLine, occupied, parkPoints, type Cart, type Signal } from '../src/simulation/traffic.ts';
+import { ROUTE, ROAD, CART, STOP, step, pose, passage, cartsCease, makeCarts, activate, ahead, offset, nextLine, occupied, parkPoints, laneFree, type Cart, type Signal } from '../src/simulation/traffic.ts';
 import type { Gate } from '../src/simulation/occupation.ts';
 
 const L = ROUTE.length, north = ROUTE.crossings[0], line = north.s - STOP, cruise = 1.1;
@@ -116,4 +116,15 @@ test('no deadlock, no overlap and no boom crossing under random gate and stage c
   }
   assert.ok(shown > 20 && hid > 20, `stage changes exercised: ${shown} shown, ${hid} hidden`);
   assert.ok(nextLine(ROUTE, line).d === 0);
+});
+test('a walker may step behind a cart that has gone by, never in front of one coming', () => {
+  // East lane runs north (toward -z), west lane south.
+  assert.equal(laneFree(2.8, 45, true, 40), false, 'coming up the east lane, 5 m off');
+  assert.equal(laneFree(2.8, 37, true, 40), true, 'gone by up the east lane, 3 m on');
+  assert.equal(laneFree(2.8, 38.5, true, 40), false, 'still alongside');
+  assert.equal(laneFree(-2.8, 35, true, 40), false, 'coming down the west lane');
+  assert.equal(laneFree(-2.8, 43, true, 40), true, 'gone by down the west lane');
+  assert.equal(laneFree(2.8, 30, true, 40), true, 'far past');
+  assert.equal(laneFree(2.8, 41.5, false, 40), false, 'standing across the step');
+  assert.equal(laneFree(2.8, 43, false, 40), true, 'standing clear of it');
 });
