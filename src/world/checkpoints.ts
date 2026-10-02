@@ -145,7 +145,7 @@ export class Checkpoints {
       if (what === 'refuse') { stepApproach(g.approach, { lx, lz, span: s.span, seen: false, scrutiny: what, dt, time });
         if (Math.abs(lz) < 3.2 && lx > s.span[0] - 1 && lx < s.span[1] + 1 && time - g.refused > 20) { g.refused = time; this.speak(g, 'all', 'authoritative', 4, time); city.onEvent(`“Closed. Curfew. Turn around, Steward.” The boom is down; ${s.around} are not watched.`); }
         continue; }
-      g.scan -= dt; if (g.scan <= 0) { g.scan = .25; g.seenBy = g.crew.find(i => { const q = this.p.workers[i].person.group; return q.visible && inView(city, q, viewer, APPROACH.reach, .95); }) ?? -1; if (g.seenBy >= 0 && g.approach.stage !== 'idle' && g.watcher < 0) g.watcher = g.seenBy; }
+      g.scan -= dt; if (g.scan <= 0) { g.scan = .25; g.seenBy = g.crew.find(i => { const q = this.p.workers[i].person.group; return q.visible && inView(city, q, viewer, APPROACH.reach, .95, true); }) ?? -1; if (g.seenBy >= 0 && g.approach.stage !== 'idle' && g.watcher < 0) g.watcher = g.seenBy; }
       const ev = stepApproach(g.approach, { lx, lz, span: s.span, seen: g.seenBy >= 0, scrutiny: what, dt, time });
       if (ev) this.voice(g, ev, what, time, viewer);
       if (g.approach.stage === 'idle' && !watching) g.watcher = -1; } }

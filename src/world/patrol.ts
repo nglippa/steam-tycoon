@@ -6,9 +6,9 @@ export type Alert = 'patrol' | 'notice' | 'investigate' | 'search' | 'return';
 interface Actor { person: { group: T.Group; tone?: { tone: Tone; until: number } }; kind: Activity }
 import type { Tone } from '../simulation/occupation';
 const wrap = (a: number) => Math.atan2(Math.sin(a), Math.cos(a));
-/** Line of sight on the ground plan: tall colliders (stalls, piers, houses) block it. Something built overhead (a room over
- * an arch, a parapet on the roofs) does not: it starts above `top`, the higher of the two pairs of eyes. */
-export function lineOfSight(city: Pick<City, 'colliders'>, ax: number, az: number, bx: number, bz: number, top = 2) {
+/** Line of sight on the ground plan: tall colliders (stalls, piers, houses) block it. Given `top` (the higher of the two pairs of
+ * eyes), something built overhead (a room over an arch, a parapet on the roofs) does not: it starts above that. */
+export function lineOfSight(city: Pick<City, 'colliders'>, ax: number, az: number, bx: number, bz: number, top = Infinity) {
   const dx = bx - ax, dz = bz - az;
   for (const c of city.colliders) { if (c.height < 1.5 || (c.base ?? 0) > top || c.open?.()) continue; if ((ax > c.minX && ax < c.maxX && az > c.minZ && az < c.maxZ) || (bx > c.minX && bx < c.maxX && bz > c.minZ && bz < c.maxZ)) continue;
     let t0 = 0, t1 = 1; for (const [p, d, lo, hi] of [[ax, dx, c.minX, c.maxX], [az, dz, c.minZ, c.maxZ]]) { if (Math.abs(d) < 1e-6) { if (p < lo || p > hi) { t0 = 2; break; } continue; } let a = (lo - p) / d, b = (hi - p) / d; if (a > b) [a, b] = [b, a]; t0 = Math.max(t0, a); t1 = Math.min(t1, b); if (t0 > t1) break; }
@@ -16,12 +16,13 @@ export function lineOfSight(city: Pick<City, 'colliders'>, ax: number, az: numbe
   return true;
 }
 /** Occupation eyes, shared by every observer: is this point inside the observer's view
- * cone, within range, at street level and not hidden behind a building? */
-export function inView(city: City, observer: T.Object3D, point: { x: number; y: number; z: number }, range: number, cone = .7) {
+ * cone, within range, at street level and not hidden behind a building? `under` lets them see beneath what is built overhead
+ * (only the checkpoint crew asks: every other post's blind spots stay where the game has always had them). */
+export function inView(city: City, observer: T.Object3D, point: { x: number; y: number; z: number }, range: number, cone = .7, under = false) {
   const o = observer.position, dx = point.x - o.x, dz = point.z - o.z, d = Math.hypot(dx, dz);
   if (d > range || point.y > o.y + 4) return false;
   if (d > 1.4 && Math.abs(wrap(Math.atan2(dx, dz) - observer.rotation.y)) > cone) return false;
-  return lineOfSight(city, o.x, o.z, point.x, point.z, Math.max(o.y, point.y) + 2);
+  return lineOfSight(city, o.x, o.z, point.x, point.z, under ? Math.max(o.y, point.y) + 2 : Infinity);
 }
 function mark(text: string, color: string) { const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d')!; x.font = '900 54px "Avenir Next",sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.lineWidth = 8; x.strokeStyle = '#1d1a1a'; x.strokeText(text, 32, 34); x.fillStyle = color; x.fillText(text, 32, 34); const t = new T.CanvasTexture(c); t.colorSpace = T.SRGBColorSpace; return new T.SpriteMaterial({ map: t, depthWrite: false }); }
 
