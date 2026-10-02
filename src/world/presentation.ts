@@ -184,7 +184,7 @@ export class Presentation {
   }
   /** Curb furniture narrows the street visually; the road itself stays clear. */
   streetEdges(){const g=this.section();
-    for(const [x,z] of [[-7.1,48],[-7.1,22],[-7.1,-4],[7.1,47],[7.1,21],[7.1,-6]]){bench(g,x,z,x<0?Math.PI/2:-Math.PI/2);this.city.collider(x,z,.7,2,.9);}
+    for(const [x,z] of [[-7.1,48],[-7.1,22],[-7.1,-4],[7.1,47],[7.1,21],[7.1,-7.4]]){bench(g,x,z,x<0?Math.PI/2:-Math.PI/2);this.city.collider(x,z,.7,2,.9);}
     for(const [x,z,yaw] of [[-7.3,33,Math.PI/2],[7.3,8,-Math.PI/2],[-7.3,-9,Math.PI/2]] as const){pressureStation(g,x,z,yaw);this.city.collider(x,z,.9,1.3,1.6);}
     for(const [x,z] of [[-7.3,55],[7.3,-2.8]]){mailPost(g,x,z);this.city.collider(x,z,.4,.4,2);}
     // Road texture in value regions: rail bed, service covers and drains, all quiet.
