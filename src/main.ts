@@ -44,6 +44,8 @@ city.onEvent = message => ui.toast(message, 8000);
 // The Directorate's reactions are heard as well as read; the cutters crate rides in the Steward's arms.
 const responders = [city.presentation.cinderRow, city.presentation.rationLine];
 for (const s of responders) s.onAlarm = message => { sound.whistle(); ui.toast(message, 8000); };
+// The checkpoint is heard with its lines: one blast with the challenge, two with the refusal and the incident.
+city.presentation.checkpoints.onAlarm = kind => sound.whistle(kind === 'challenge' ? 1 : 2);
 for (const c of Consignment.all) { c.held.position.set(.36, -.5, -.8); c.held.rotation.set(.2, -.45, .05); c.held.scale.setScalar(.55); camera.add(c.held); } scene.add(camera);
 economy.onChange = (kind, id) => { if (kind === 'save-error') { ui.toast('City records could not be saved. Check this browser’s storage permissions.'); return; }
   // Detention ends at home at six in the morning. Sleep, the signal and a lifted crackdown change no geometry.

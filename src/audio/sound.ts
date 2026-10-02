@@ -22,8 +22,8 @@ export class Soundscape {
   collect() { this.tone(880, .2, .04); this.tone(1320, .3, .025, 'sine', .08); }
   step() { this.tone(65 + Math.random() * 35, .07, .05, 'triangle'); }
   hammer() { this.tone(180 + Math.random() * 70, .06, .045, 'square'); }
-  /** The Directorate's inspection whistle: two shrill blasts. */
-  whistle() { this.tone(1760, .16, .05, 'square'); this.tone(1480, .32, .05, 'square', .2); }
+  /** The Directorate's inspection whistle: two shrill blasts (one short one is a man at a checkpoint saying halt). */
+  whistle(blasts = 2) { this.tone(1760, .16, .05, 'square'); if (blasts > 1) this.tone(1480, .32, .05, 'square', .2); }
   update(x: number, z: number, yaw: number, raining: boolean, time: number) { if (!this.context) return; const l = this.context.listener; if (l.positionX) { l.positionX.value = x; l.positionY.value = 1.75; l.positionZ.value = z; l.forwardX.value = -Math.sin(yaw); l.forwardY.value = 0; l.forwardZ.value = -Math.cos(yaw); l.upX.value = 0; l.upY.value = 1; l.upZ.value = 0; } for(const zone of this.zones){const base=zone.kind==='foundry'?.02:zone.kind==='market'?.012:.007;zone.gain.gain.setTargetAtTime(base*(.7+.3*Math.sin(time*(zone.kind==='foundry'?4:1.3))),this.context.currentTime,.1);}
     this.rainGain!.gain.setTargetAtTime(raining ? .2 : .055, this.context.currentTime, 1); const foundry = Math.hypot(x - 32, z - 15), market = Math.hypot(x - 6, z + 26);
     if (foundry < 30 && time > this.nextClang) { this.nextClang = time + .9 + Math.random() * .8; const v = .05 * (1 - foundry / 30); this.tone(820 + Math.random() * 180, .12, v, 'square'); this.tone(1650, .3, v * .3, 'sine', .01); }
