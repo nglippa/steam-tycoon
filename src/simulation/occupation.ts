@@ -199,6 +199,13 @@ export function scrutiny(gate: Gate, heat: number, crackdown = false): Scrutiny 
   if (gate === 'gone' || gate === 'open') return 'none'; if (gate === 'sealed') return 'refuse';
   const limit = crackdown ? .25 : gate === 'light' ? 1.75 : .75; return heat >= limit ? 'challenge' : 'wave';
 }
+// ---------------------------------------------------------------- borders
+/** How a district dresses its own side of a border with the Great Main: the Ordinance's notices while it holds the ward (controlled
+ * and harder), defaced and thinning once it is losing it, civic again when it is free. */
+export type Dress = 'held' | 'low' | 'free';
+export const dressOf = (band: Band): Dress => band === 'liberated' ? 'free' : band === 'low' ? 'low' : 'held';
+/** The border's lamp is the stricter side's: the Ordinance lights a border it still holds on either side, and only two free wards share a warm one. */
+export const borderLamp = (a: Dress, b: Dress): Dress => a === 'held' || b === 'held' ? 'held' : a === 'free' && b === 'free' ? 'free' : 'low';
 /** A ward's name short enough for a phone. */
 export const SHORT: Record<DistrictId, string> = { market: 'MARKET', row: 'CINDER ROW', foundry: 'CINDER 3', gauge: 'RATION LINE', canal: 'CANAL', weatherside: 'WEATHERSIDE', lowworks: 'LOWWORKS' };
 export const bandWord = (band: Band) => ({ liberated: 'FREE', low: 'LOW', controlled: 'HELD', heavy: 'HEAVY', lockdown: 'LOCKDOWN' })[band];

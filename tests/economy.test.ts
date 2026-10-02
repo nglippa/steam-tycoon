@@ -1,5 +1,5 @@
 import { test } from 'node:test';
-import { DISTRICTS, BANDS, GRIP, HEAT, CURFEW, occupation, siteOccupation, bandOf, districtAt, population, admits, seedOf, clock, dayAt, curfewHour, curfewIn, curfewNotice, caught, cooled, mannerOf, conduct, bodyFor, faceAllowed, isOccupier, present, berth, makeRoom, gateState, gateCrew, scrutiny, canAct, wardLine, AUTHORITY_BUDGET, type Band, type Face, type Manner } from '../src/simulation/occupation.ts';
+import { DISTRICTS, BANDS, GRIP, HEAT, CURFEW, occupation, siteOccupation, bandOf, districtAt, population, admits, seedOf, clock, dayAt, curfewHour, curfewIn, curfewNotice, caught, cooled, mannerOf, conduct, bodyFor, faceAllowed, isOccupier, present, berth, makeRoom, gateState, gateCrew, scrutiny, canAct, wardLine, dressOf, borderLamp, AUTHORITY_BUDGET, type Band, type Face, type Manner } from '../src/simulation/occupation.ts';
 import assert from 'node:assert/strict';
 import { Economy, freshSave, decodeSave, cityFacts, spacePhase, PHASE, PROPERTIES, SITES, SITE_LIBERATED, type StorageAdapter } from '../src/simulation/economy.ts';
 const memory = (raw: string | null = null): StorageAdapter => ({ read: () => raw, write: s => { raw = s; }, clear: () => { raw = null; } });
@@ -333,4 +333,11 @@ test('a checkpoint is the band made physical: manned when held hard, lighter, ab
 test('authority is budgeted, posts have jobs, and a phone can still read the ward', () => {
   assert.equal(AUTHORITY_BUDGET, 3); assert.equal(canAct('pair'), false); assert.equal(canAct('observation'), false); assert.equal(canAct('checkpoint'), true); assert.equal(canAct('patrol'), true);
   assert.equal(wardLine('market', 76, 'heavy'), 'MARKET · 76% HEAVY'); assert.equal(wardLine('lowworks', 15, 'liberated'), 'LOWWORKS · 15% FREE'); for (const d of DISTRICTS) assert.ok(wardLine(d.id, 100, 'controlled').length <= 28);
+});
+test('a border is dressed by each side\'s band, and lit by the stricter side', () => {
+  assert.deepEqual((['lockdown', 'heavy', 'controlled', 'low', 'liberated'] as Band[]).map(dressOf), ['held', 'held', 'held', 'low', 'free']);
+  assert.equal(borderLamp('held', 'free'), 'held'); assert.equal(borderLamp('free', 'held'), 'held');
+  assert.equal(borderLamp('low', 'free'), 'low'); assert.equal(borderLamp('free', 'free'), 'free'); assert.equal(borderLamp('low', 'low'), 'low');
+  assert.equal(dressOf(bandOf(occupation({ market: 4, foundry: 0, row: 0, gauge: 0 }, 'market'))), 'free', 'a liberated square is dressed free...');
+  assert.equal(dressOf(bandOf(occupation({ market: 4, foundry: 0, row: 0, gauge: 0 }, 'lowworks'))), 'held', '...while the Great Main beside it is still held');
 });

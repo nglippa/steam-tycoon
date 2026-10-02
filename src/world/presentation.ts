@@ -9,6 +9,7 @@ import { reducedMotion } from '../motion';
 import type { City } from './city';
 import { districtAt, standingOf, seedOf, isOccupier, canAct, AUTHORITY_BUDGET, type DistrictId, type Standing, type Importance, type PostRole } from '../simulation/occupation';
 import { Checkpoints } from './checkpoints';
+import { Borders } from './borders';
 import { inView } from './patrol';
 import { PROPERTIES } from '../simulation/economy';
 import { businessHeights, businessLift } from './architecture';
@@ -38,7 +39,7 @@ export class Presentation {
   mechanisms:{object:T.Object3D;axis:'x'|'y'|'z';speed:number}[]=[];
   workers:{person:ReturnType<typeof citizen>;kind:Activity;tool?:T.Group;minStage:number;maxStage:number;time:'any'|'day'|'night';partner?:number;path?:{a:T.Vector3;b:T.Vector3;speed:number};y:number;when?:()=>boolean;/** Where they belong and how early they leave the street as occupation rises. Story-staged people (`when`) and `keep` are exempt. */district:DistrictId;standing:Standing;seed:number;importance:Importance;base:T.Vector3}[]=[];
   /** Every Ordinance post and what it is for. */
-  posts:{index:number;role:PostRole;rank:number;district:DistrictId}[]=[];checkpoints!:Checkpoints;
+  posts:{index:number;role:PostRole;rank:number;district:DistrictId}[]=[];checkpoints!:Checkpoints;borders!:Borders;
   /** The Ordinance's extra people: decorative, staged by district. Only the nearest few are ever asked whether they can see the Steward. */
   garrisonPosts:number[]=[];private watch={suspicion:0,stage:'none' as 'none'|'noticed'|'challenged',grace:0,unseen:0,by:-1,cooldown:0,scan:0,near:[] as number[]};
   marketSquare!:MarketSquare; foundryWorks!:FoundryWorks; cinderRow!:CinderRow; rationLine!:RationLine; sites:SiteModule[]=[];
@@ -457,7 +458,7 @@ export class Presentation {
     post(-4.4,46,E,1.05);post(4.8,34,Wt,1.12);post(-4.8,19,S,1.2,'patrol',[-4.8,36,.5]);
     post(-9.2,-15.5,E,1.05);post(9.4,-25,Wt,1.12);pair(-5.6,-31.5,-4.4,-31,1.2);
     post(14.5,-1.2,E,1.05);post(26,-3.4,Wt,1.15);post(35.6,15,Wt,1.05);post(34.6,8,Wt,1.15);post(35.2,28,Wt,1.05);post(34.4,37,Wt,1.15);
-    this.checkpoints=new Checkpoints(this);
+    this.checkpoints=new Checkpoints(this);this.borders=new Borders(this);
   }
   /** CURFEW. Decorative guards do not perceive anything; this asks only the three nearest whether they can see the Steward,
    * and only while a curfew is being enforced where the Steward stands. Notice, challenge, order home, then a grace to get
@@ -603,6 +604,6 @@ export class Presentation {
       const speaking=!alone&&w.partner!==undefined&&turnTaking(time,i+100,w.partner+100)&&this.city.speaks(person)&&this.city.speaks(mate!.person);
       animateLife(person,alone&&kind==='talk'?(w.standing==='occupier'?'guard':'walk'):kind,dt,time,calm,viewer,this.city.lifeTarget,speaking,moving);
     });
-    this.animateSet(dt,time,calm);this.watchCurfew(dt,time,viewer);this.checkpoints.update(dt,time,viewer);
+    this.animateSet(dt,time,calm);this.watchCurfew(dt,time,viewer);this.checkpoints.update(dt,time,viewer);this.borders.sync();
   }
 }
