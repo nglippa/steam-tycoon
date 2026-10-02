@@ -1,7 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { ThreatGrid, approaching, passed, intensity, reachOf, respond, jitter, CROSSINGS, crossingAt, crossingSamples, crosses, newGroup, stepGroup, groupPose, hushRadius, routeState, type Situation, type Threat, type GroupInput } from '../src/simulation/crowd.ts';
-import type { Trait } from '../src/simulation/occupation.ts';
+import { ThreatGrid, approaching, passed, intensity, reachOf, respond, jitter, CROSSINGS, crossingAt, crossingSamples, crosses, newGroup, stepGroup, groupPose, hushRadius, routeState, stepClock, atGate, CATCH_UP, type Situation, type Threat, type GroupInput } from '../src/simulation/crowd.ts';
+import { mannerOf, type Trait, type Gate } from '../src/simulation/occupation.ts';
+import { ROAD, laneX } from '../src/simulation/traffic.ts';
 
 /** A heavy daytime street (the Lowworks at the start), a patrol 3 m off and coming. */
 const heavy = (o: Partial<Situation> = {}): Situation => ({ trait: 'sociable', kind: 'patrol', distance: 3, coming: true, walking: true, occupation: .8, crackdown: false, curfew: 'none', seed: .37, ...o });
@@ -129,4 +130,38 @@ test('liberation removes the reactions: free streets keep their conversations, t
   const free = routeState('none', 'walker', .1); assert.equal(free.width, 1); assert.ok(routeState('none', 'merchant', .1).spill > 0);
   // Liberated at night: no curfew there at all, so the night street is as free as the day.
   assert.deepEqual(routeState('none', 'social', 0), routeState('none', 'social', .1));
+});
+
+test('a walker who paused makes the time up gently and ends where the street has them: two on one kerb never stay superimposed', () => {
+  const DT = 1 / 60, period = 113, a = { clock: 0, rate: 1 }, b = { clock: 0, rate: 1 }; let home = 0, worst = 0, fastest = 0, slowest = 9;
+  const run = (seconds: number, wantA: number, pace = 1) => { for (let t = 0; t < seconds; t += DT) { home += DT * pace; const was = a.rate;
+    stepClock(a, wantA, pace, wantA === 1, home, period, DT); stepClock(b, 1, pace, true, home, period, DT);
+    worst = Math.max(worst, Math.abs(a.rate - was)); if (wantA === 1) { fastest = Math.max(fastest, a.rate / pace); slowest = Math.min(slowest, a.rate / pace); } } };
+  run(10, 1); assert.ok(Math.abs(a.clock - home) < .02, 'undisturbed, a walker keeps the street clock');
+  run(6, 0); assert.ok(home - a.clock > 5, 'stopped for a patrol: six seconds behind'); assert.ok(Math.abs(b.clock - home) < .02);
+  run(20, 1); assert.ok(home - a.clock > 1.5, 'no teleport: still catching up after twenty seconds');
+  run(60, 1); assert.ok(Math.abs(a.clock - b.clock) < .02, `back in step: ${(home - a.clock).toFixed(3)} s`);
+  assert.ok(fastest <= 1 + CATCH_UP + 1e-9 && slowest >= 0, `never faster than ${1 + CATCH_UP}: ${fastest.toFixed(3)}`);
+  assert.ok(worst < .05, `no speed pop: the rate never changes by more than ${worst.toFixed(3)} in a frame`);
+  // The curfew pace is the street's, not each walker's: both take it together and neither drifts.
+  worst = 0; run(40, 1, 1.15); assert.ok(Math.abs(a.clock - home) < .1 && Math.abs(a.clock - b.clock) < .02); assert.ok(worst < .05);
+  // Ahead of the street (a turn-back skips part of a lap): made up by dawdling, never by going backwards; a whole lap is no distance at all.
+  a.clock += 8; slowest = 9; run(90, 1); assert.ok(Math.abs(a.clock - home) < .05); assert.ok(slowest >= 1 - CATCH_UP - 1e-9);
+  a.clock += period + 3; const before = a.clock; run(40, 1); assert.ok(Math.abs(a.clock - home - period) < .1, 'only the remainder of a lap is made up'); assert.ok(a.clock > before);
+  // Held (a crossing, a checkpoint), nothing is made up: the clock runs at exactly what was asked.
+  const c = { clock: 0, rate: 0 }; for (let i = 0; i < 120; i++) stepClock(c, 0, 1, false, 50, period, DT); assert.equal(c.clock, 0);
+});
+test('a checkpoint on a route: the sealed boom turns civilians back short of it, the manned one looks them over, the rest stop nobody', () => {
+  for (const seed of [.05, .37, .62, .91]) { const s = atGate('sealed', seed)!, m = atGate('manned', seed)!;
+    assert.ok(s.turnBack && s.short >= 2 && s.short <= 2.8 && s.pause >= .6 && s.pause <= 1.8, `${seed}`);
+    assert.ok(!m.turnBack && m.pause >= 1 && m.pause <= 2.5 && m.short > 0 && m.short < s.short, `${seed}`); }
+  for (const g of ['light', 'open', 'gone'] as Gate[]) assert.equal(atGate(g, .37), undefined, g);
+  assert.notEqual(atGate('sealed', .2)!.pause, atGate('sealed', .7)!.pause); assert.notEqual(atGate('manned', .2)!.short, atGate('manned', .7)!.short);
+});
+test('the Great Main crossing uses the lanes the carts drive, and one scene can be cast in a trait without recasting anyone else', () => {
+  const main = CROSSINGS.filter(c => c.lanes.length);
+  for (const c of main) for (const z of [c.z0, (c.z0 + c.z1) / 2, c.z1]) for (const lane of c.lanes) assert.equal(Math.abs(lane), laneX(z), `lane at z ${z}`);
+  assert.ok(main.every(c => c.lanes.every(l => Math.abs(l) === ROAD.lane)));
+  assert.equal(mannerOf('courier', .854, 'nervous').trait, 'nervous'); assert.equal(mannerOf('courier', .854).trait, 'curious');
+  assert.deepEqual(mannerOf('courier', .854, 'nervous'), mannerOf('courier', .62)); assert.equal(mannerOf('guard', .1, 'nervous').trait, mannerOf('guard', .1).trait);
 });

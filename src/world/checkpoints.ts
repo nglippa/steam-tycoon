@@ -29,7 +29,7 @@ const stopLamp = new T.MeshStandardMaterial({ color: '#d0402e', emissive: '#e044
 const wrap = (a: number) => Math.atan2(Math.sin(a), Math.cos(a));
 type Alarm = 'challenge' | 'refuse' | 'incident';
 type GateRecord = { site: Site; state: Gate; held: T.Group; full: T.Group; lit: T.Group; sealed: T.Group; abandoned: T.Group; civic: T.Group; booms: T.Group[]; root: T.Group; crew: number[]; yaw: number[];
-  /** A cart is under the boom while the gate is sealed: the boom waits for it. */ cart: boolean; waved: number; refused: number; approach: Approach; scan: number; seenBy: number; watcher: number; watchUntil: number };
+  /** A cart is under the boom while the gate is sealed: the boom waits for it. */ cart: boolean; /** Until when each opening is taken up with someone being looked over. */ busy: number[]; waved: number; refused: number; approach: Approach; scan: number; seenBy: number; watcher: number; watchUntil: number };
 
 export class Checkpoints {
   gates: GateRecord[] = [];
@@ -39,7 +39,7 @@ export class Checkpoints {
     for (const site of SITES) { const root = new T.Group(); root.position.set(site.x, 0, site.z); root.rotation.y = site.quarter ? Math.PI / 2 : 0; p.root.add(root);
       const world = (lx: number, lz: number): [number, number] => site.quarter ? [site.x + lz, site.z - lx] : [site.x + lx, site.z + lz];
       const held = new T.Group(), full = new T.Group(), lit = new T.Group(), sealed = new T.Group(), abandoned = new T.Group(), civic = new T.Group(); root.add(held, full, lit, sealed, abandoned, civic);
-      const gate: GateRecord = { site, state: 'manned', held, full, lit, sealed, abandoned, civic, booms: [], root, crew: [], yaw: [], cart: false, waved: -99, refused: -99, approach: approachState(), scan: 0, seenBy: -1, watcher: -1, watchUntil: -99 }; this.gates.push(gate);
+      const gate: GateRecord = { site, state: 'manned', held, full, lit, sealed, abandoned, civic, booms: [], root, crew: [], yaw: [], cart: false, busy: site.openings.map(() => -99), waved: -99, refused: -99, approach: approachState(), scan: 0, seenBy: -1, watcher: -1, watchUntil: -99 }; this.gates.push(gate);
       const available = () => !site.chartered || city.economy.state.districts.includes(site.chartered);
       // What is left lying about an abandoned gate is solid only while it lies there (and too low to hide anyone).
       const litter = (lx: number, lz: number, w: number, d: number, h: number) => { const [x, z] = world(lx, lz); city.collider(x, z, site.quarter ? d : w, site.quarter ? w : d, h, undefined, () => !available() || gate.state !== 'open'); };
@@ -102,6 +102,13 @@ export class Checkpoints {
   private sync(force = false) { for (const g of this.gates) { const state = this.p.city.social.get(g.site.district)!.gate; if (!force && state === g.state) continue; g.state = state;
       const on = !g.site.chartered || this.p.city.economy.state.districts.includes(g.site.chartered); g.root.visible = on;
       g.held.visible = HELD.includes(state); g.full.visible = state === 'manned' || state === 'sealed'; g.lit.visible = HELD.includes(state); g.sealed.visible = state === 'sealed'; g.abandoned.visible = state === 'open'; g.civic.visible = state === 'gone'; for (const b of g.booms) b.visible = HELD.includes(state); } }
+  private hit = { gate: undefined as unknown as GateRecord, lane: 0, d: 0 };
+  /** The held gate someone at (x, z) walking along (hx, hz) is about to walk into through one of its openings: which gate, which
+   * opening, and how far off the boom line is. For the street's civilians, a few times a second each; the answer is one reused object. */
+  ahead(x: number, z: number, hx: number, hz: number) { for (const g of this.gates) { if (!g.root.visible || (g.state !== 'sealed' && g.state !== 'manned')) continue;
+      const s = g.site, dx = x - s.x, dz = z - s.z, lx = s.quarter ? -dz : dx, lz = s.quarter ? dx : dz, d = Math.abs(lz); if (d > 6 || lz * (s.quarter ? hx : hz) > -.5 * d) continue;
+      const lane = s.openings.findIndex(([a, b]) => lx > a - .3 && lx < b + .3); if (lane < 0) continue; this.hit.gate = g; this.hit.lane = lane; this.hit.d = d; return this.hit; }
+    return undefined; }
   /** A line, and the body that goes with it, for one of the crew (or all of them). */
   private speak(g: GateRecord, who: number | 'all', tone: Tone, seconds: number, time: number) { for (const i of who === 'all' ? g.crew : [who]) { const w = this.p.workers[i]; if (w?.person.group.visible) w.person.tone = { tone, until: time + seconds }; } }
   /** What the gate does about what the approach just did. One concise line at most; the bodies say the rest. */

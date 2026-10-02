@@ -1,9 +1,10 @@
 import * as T from 'three';
 import type { Citizen, Expression } from './citizens';
 import type { Archetype } from './palette';
-import { isOccupier, conduct, bodyFor } from '../simulation/occupation';
+import { isOccupier, conduct, bodyFor, type Trait } from '../simulation/occupation';
 export type Activity='talk'|'browse'|'guard'|'carry'|'walk'|'read'|'hammer'|'sweep'|'warm'|'gauge'|'valve'|'argue'|'sit'|'eat'|'lean'|'watch'|'clipboard'|'repair';
-type Scene={x:number;z:number;yaw:number;role:Archetype;activity:Activity;partner?:number;target?:[number,number];route?:number;speed?:number};
+/** `seed` and `trait` cast one scene by hand: who is let out (0..1, low is out in a harder street) and how they carry themselves. */
+type Scene={x:number;z:number;yaw:number;role:Archetype;activity:Activity;partner?:number;target?:[number,number];route?:number;speed?:number;seed?:number;trait?:Trait};
 // Small authored scenes reuse the existing population. Route endpoints stay in open lanes.
 export const streetScenes:Scene[]=[
   {x:8.5,z:47,yaw:Math.PI/2,role:'guard',activity:'guard',partner:1},
@@ -30,7 +31,9 @@ function makeScene(index:number):Scene{
   }
   if(zone===1)return {x:-38.7+offset%2*.9,z:49-offset*8,yaw:Math.PI,role:'resident',activity:'walk',route:14,speed:.28};
   if(zone===2)return {x:34.6+offset%2*.9,z:27-offset*2,yaw:Math.PI,role:'worker',activity:offset%2?'walk':'carry',route:22,speed:.45};
-  return {x:(offset%2?-1:1)*5.1,z:59-offset*11,yaw:Math.PI,role:offset%2?'engineer':'courier',activity:'walk',route:30,speed:.54};
+  // The first of them walks the Great Main's east pavement along the patrol's beat, and is out even in a heavy street: a nervous courier,
+  // so the crossing between the pressure station and the bench is used by someone who would rather not meet the patrol.
+  return {x:(offset%2?-1:1)*5.1,z:59-offset*11,yaw:Math.PI,role:offset%2?'engineer':'courier',activity:'walk',route:30,speed:.54,...(offset===0?{seed:.2,trait:'nervous' as Trait}:{})};
 }
 const scenes=Array.from({length:42},(_,index)=>makeScene(index));
 export function sceneFor(index:number){return scenes[index];}
@@ -212,15 +215,17 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
 export function eased(d:number,L:number,a=1.1){const k=L/(L-a);if(d<a)return d*d/(2*a)*k;if(d<L-a)return (d-a/2)*k;return (L-a-(L-d)*(L-d)/(2*a))*k;}
 /** Where on its route a walker is: going out, or coming back (the turn at the far end counts as out). `clock` is the person's own route clock. */
 export function routeLeg(index:number,clock:number):'out'|'back'|undefined{const scene=sceneFor(index);if(!scene.route)return undefined;const length=scene.route,cycle=(clock*(scene.speed??.4)+index*3)%(length*2+5);return cycle<length+2.5?'out':'back';}
-/** Puts someone where their scene says. `clock` is their route clock: it runs with time, but stops while they stop, so a pause never jumps. */
+const staged={scene:scenes[0],moving:false,again:0};
+/** Puts someone where their scene says. `clock` is their route clock: it runs with time, but stops while they stop, so a pause never jumps.
+ * `again` is how far on their clock a walker is from being at this same spot going the other way (see City.giveRoom). The answer is one reused object. */
 export function stageCitizen(n:Citizen,index:number,clock:number){
-  const scene=sceneFor(index);let z=scene.z,yaw=scene.yaw,moving=false;
+  const scene=sceneFor(index);let z=scene.z,yaw=scene.yaw,moving=false,again=0;
   if(scene.route){
     const length=scene.route,cycle=(clock*(scene.speed??.4)+index*3)%(length*2+5);
-    if(cycle<length){z-=eased(cycle,length);yaw=Math.PI;moving=true;}
+    if(cycle<length){z-=eased(cycle,length);yaw=Math.PI;moving=true;again=(length*2+2.5-cycle*2)/(scene.speed??.4);}
     else if(cycle<length+2.5){z-=length;yaw=Math.PI*(1-T.MathUtils.smoothstep(cycle-length,.4,2.3));}
-    else if(cycle<length*2+2.5){z-=length-eased(cycle-length-2.5,length);yaw=0;moving=true;}
+    else if(cycle<length*2+2.5){z-=length-eased(cycle-length-2.5,length);yaw=0;moving=true;again=(length*4+7.5-cycle*2)/(scene.speed??.4);}
     else yaw=Math.PI*T.MathUtils.smoothstep(cycle-length*2-2.5,.4,2.3);
   }
-  n.group.position.set(scene.x,.18,z);n.group.rotation.y=yaw;return {scene,moving};
+  n.group.position.set(scene.x,.18,z);n.group.rotation.y=yaw;staged.scene=scene;staged.moving=moving;staged.again=again;return staged;
 }

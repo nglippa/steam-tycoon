@@ -113,10 +113,10 @@ const ORDINANCE: Record<string, Omit<Manner, 'trait'>> = {
   weary:    { pace: .88, gesture: .3,  glance: 16, acknowledges: false, posture: .05,  fidget: .2,  space: 1.1, stance: 'behind' },
 };
 const CIVIL_TRAITS = Object.keys(CIVIL) as Trait[], ORDINANCE_TRAITS = Object.keys(ORDINANCE) as Trait[];
-/** Merchants lean animated, workers direct; the Ordinance draws only from its own four. */
-export function mannerOf(archetype: string, seed: number): Manner {
+/** Merchants lean animated, workers direct; the Ordinance draws only from its own four. `as` casts a civilian in a given trait (an authored scene that needs one). */
+export function mannerOf(archetype: string, seed: number, as?: Trait): Manner {
   if (isOccupier(archetype)) { const trait = ORDINANCE_TRAITS[Math.floor(seed * ORDINANCE_TRAITS.length) % ORDINANCE_TRAITS.length]; return { trait, ...ORDINANCE[trait] }; }
-  const trait = CIVIL_TRAITS[Math.floor(seed * CIVIL_TRAITS.length) % CIVIL_TRAITS.length], m = { trait, ...CIVIL[trait], stance: 'ease' as Stance };
+  const trait = as && CIVIL[as] ? as : CIVIL_TRAITS[Math.floor(seed * CIVIL_TRAITS.length) % CIVIL_TRAITS.length], m = { trait, ...CIVIL[trait], stance: 'ease' as Stance };
   if (archetype === 'merchant') m.gesture *= 1.25; if (archetype === 'worker' || archetype === 'engineer') { m.gesture *= .85; m.space *= .9; } if (archetype === 'courier') m.pace *= 1.08;
   return m;
 }

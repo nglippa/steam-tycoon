@@ -1,4 +1,4 @@
-import { berth, type Enforcement, type Manner, type Trait } from './occupation';
+import { berth, type Enforcement, type Gate, type Manner, type Trait } from './occupation';
 import { ROAD } from './traffic';
 
 /** THE CROWD UNDER THE ORDINANCE. How ordinary people use the street while it is held: who steps aside, who stops,
@@ -128,6 +128,29 @@ export function crossingSamples(c: Crossing, step = .5): [number, number][] {
 /** Who crosses rather than stepping aside: the nervous always; the reserved once the street is held hard; under a crackdown,
  * anyone who is not too proud or too hurried to. `level` is the street's intensity. */
 export const crosses = (trait: Trait, crackdown = false, level = 0) => trait === 'nervous' || (trait === 'reserved' && level >= .9) || (crackdown && trait !== 'proud' && trait !== 'hurried');
+
+// ---------------------------------------------------------------- a checkpoint on the route
+/** What a civilian whose route runs through a checkpoint does there. Sealed: they stop `short` metres before the boom, stand
+ * `pause` seconds and turn back. Manned: they stop at the opening for `pause` seconds, as if looked over, and go through.
+ * Any lighter gate stops nobody. Both numbers are the person's own. */
+export function atGate(gate: Gate, seed: number): { short: number; pause: number; turnBack: boolean } | undefined {
+  if (gate === 'sealed') return { short: 2 + jitter(seed, 12) * .8, pause: .6 + jitter(seed, 13) * 1.2, turnBack: true };
+  if (gate === 'manned') return { short: 1.1 + jitter(seed, 12) * .5, pause: 1 + jitter(seed, 13) * 1.5, turnBack: false };
+  return undefined;
+}
+
+// ---------------------------------------------------------------- a walker's own clock
+/** The most a walker hurries or dawdles to get back to their place on the street, as a fraction of their pace. */
+export const CATCH_UP = .15;
+/** One step of a walker's route clock. `want` is how fast their route goes on (0 stopped, 1 walking) and `pace` the hour's
+ * walking pace; the rate is eased, so nothing pops. `home` is the street's clock, which every walker there started on:
+ * once they are walking freely again they make up what a pause cost them, never by more than CATCH_UP, so two people
+ * who share a kerb drift back to the spacing they were given instead of ending up inside each other. A whole lap
+ * (`period`) ahead or behind is the same place, so only the remainder is made up. */
+export function stepClock(c: { clock: number; rate: number }, want: number, pace: number, free: boolean, home: number, period: number, dt: number) {
+  let due = 0; if (free) { let behind = home - c.clock; if (period > 0) behind -= Math.round(behind / period) * period; due = Math.max(-CATCH_UP, Math.min(CATCH_UP, behind * .5)); }
+  c.rate += ((want + due) * pace - c.rate) * Math.min(1, dt * 2.4); c.clock += dt * c.rate; return c.clock;
+}
 
 // ---------------------------------------------------------------- conversations
 export type GroupMode = 'talk' | 'hushed' | 'dispersed';

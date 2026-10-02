@@ -6,7 +6,6 @@ import { citizen } from './citizens';
 import type { Archetype } from './palette';
 import { animateLife, turnTaking, eased, type Activity } from './citizen-life';
 import { reducedMotion } from '../motion';
-import { routeState } from '../simulation/crowd';
 import type { City } from './city';
 import { districtAt, standingOf, seedOf, isOccupier, canAct, AUTHORITY_BUDGET, type DistrictId, type Standing, type Importance, type PostRole } from '../simulation/occupation';
 import { Checkpoints } from './checkpoints';
@@ -32,6 +31,8 @@ const unlit=(g:T.Group)=>{bake(g);for(const m of g.children)m.castShadow=m.recei
 /** World-only presentation. Reads completed visual levels; never changes the economy. */
 const w2=(w:number)=>w*.18;
 const plaqueAtlas=new Atlas(map=>printed(illustrated(new T.MeshStandardMaterial({map}))),2048);
+/** Activities that are standing about, not work. */
+const IDLE=new Set<Activity>(['talk','argue','watch','warm','browse','eat','sit','lean','read']);
 export class Presentation {
   root=new T.Group(); restored=new T.Group(); worn=new T.Group(); market=new T.Group();
   mechanisms:{object:T.Object3D;axis:'x'|'y'|'z';speed:number}[]=[];
@@ -583,22 +584,21 @@ export class Presentation {
     { let best:typeof this.interiors[number]|undefined,bd=1e9;for(const r of this.interiors){const d=Math.hypot(viewer.x-r.x,viewer.y-r.y,viewer.z-r.z);if(d<r.reach&&d<bd){bd=d;best=r;}}
       const L=this.interiorLight;if(best){L.position.set(best.x,best.y,best.z);L.color.lerp(this.interiorColor.set(best.color),.2);}L.intensity+=((best?best.power??34:0)-L.intensity)*Math.min(1,dt*5); }this.canalWard.update(time,viewer,calm);
     // Idling is social: under an enforced curfew nobody the Ordinance has not posted stands about (work goes on).
-    const idle=(kind:Activity)=>kind==='talk'||kind==='argue'||kind==='watch'||kind==='warm'||kind==='browse'||kind==='eat'||kind==='sit'||kind==='lean'||kind==='read';
     this.workers.forEach((w,i)=>{const {person,kind}=w;
       // People further off than a long street are a few pixels: they are neither posed nor drawn.
       const on=stage>=w.minStage&&stage<=w.maxStage&&(w.time==='any'||(w.time==='night')===night)&&(w.when?.()??true)&&this.city.present(w.importance,w.standing,w.partner===undefined?w.seed:this.workers[Math.min(i,w.partner)].seed,w.district)&&Math.hypot(person.group.position.x-viewer.x,person.group.position.z-viewer.z)<90
-        &&(w.importance==='essential'||w.standing==='occupier'||!idle(kind)||routeState(this.city.social.get(w.district)!.enforcement,'social').shown);person.group.visible=on;if(!on)return;
+        &&(w.importance==='essential'||w.standing==='occupier'||!IDLE.has(kind)||this.city.social.get(w.district)!.routes.social.shown);person.group.visible=on;if(!on)return;
       person.worn.visible=stage<3;person.finery.visible=stage>=3;
-      let moving=false;const position=person.group.position;
+      let moving=false,again=0;const position=person.group.position;
       // Out, turn, back, turn: the walk eases in and out of each leg, and the turn is a turn, not a flip. Civilians walk it on their own clock, which stops when they stop for the Ordinance.
-      if(w.path){const {a,b,speed}=w.path,length=a.distanceTo(b),pause=2.6,civil=w.importance!=='essential'&&w.standing!=='occupier',cycle=((civil?this.city.routeClock(person,time,dt):time)*speed+i*2.3)%(length*2+pause*2),out=Math.atan2(b.x-a.x,b.z-a.z),turn=(u:number)=>T.MathUtils.smoothstep(u,.35,pause-.25)*Math.PI;
-        if(cycle<length){position.lerpVectors(a,b,eased(cycle,length)/length);moving=true;person.group.rotation.y=out;}
+      if(w.path){const {a,b,speed}=w.path,length=a.distanceTo(b),pause=2.6,civil=w.importance!=='essential'&&w.standing!=='occupier',cycle=((civil?this.city.routeClock(person,w.district,(length*2+pause*2)/speed,dt):time)*speed+i*2.3)%(length*2+pause*2),out=Math.atan2(b.x-a.x,b.z-a.z),turn=(u:number)=>T.MathUtils.smoothstep(u,.35,pause-.25)*Math.PI;
+        if(cycle<length){position.lerpVectors(a,b,eased(cycle,length)/length);moving=true;again=(length*2+pause-cycle*2)/speed;person.group.rotation.y=out;}
         else if(cycle<length+pause){position.copy(b);person.group.rotation.y=out+turn(cycle-length);}
-        else if(cycle<length*2+pause){position.lerpVectors(b,a,eased(cycle-length-pause,length)/length);moving=true;person.group.rotation.y=out+Math.PI;}
+        else if(cycle<length*2+pause){position.lerpVectors(b,a,eased(cycle-length-pause,length)/length);moving=true;again=(length*4+pause*3-cycle*2)/speed;person.group.rotation.y=out+Math.PI;}
         else{position.copy(a);person.group.rotation.y=out+Math.PI+turn(cycle-length*2-pause);}}
       // Static people stand where they were put, then make room for the Ordinance like anyone else. Story actors are moved by their own modules.
       const mate=w.partner===undefined?undefined:this.workers[w.partner],pair=mate?.person.group,partner=pair?.visible?pair.position:undefined,alone=w.partner!==undefined&&!partner,official=!!partner&&mate!.standing==='occupier';
-      const settled=kind==='sit'||kind==='eat'||kind==='lean';if(w.importance!=='essential'&&!settled&&w.standing!=='occupier'){if(!w.path){position.x=w.base.x;position.z=w.base.z;}this.city.giveRoom(person,dt,{partner:official?undefined:partner,with:official?pair:undefined,walking:!!w.path,moving,staged:!!w.path,merchant:w.standing==='merchant'});}
+      const settled=kind==='sit'||kind==='eat'||kind==='lean';if(w.importance!=='essential'&&!settled&&w.standing!=='occupier'){if(!w.path){position.x=w.base.x;position.z=w.base.z;}const r=this.city.room;r.partner=official?undefined:partner;r.with=official?pair:undefined;r.walking=r.staged=!!w.path;r.moving=moving;r.merchant=w.standing==='merchant';r.again=again;this.city.giveRoom(person,dt,r);}
       if(partner)this.city.lifeTarget.set(partner.x,1.7,partner.z);else this.city.lifeTarget.set(position.x+Math.sin(person.group.rotation.y)*2,1.7,position.z+Math.cos(person.group.rotation.y)*2);
       const speaking=!alone&&w.partner!==undefined&&turnTaking(time,i+100,w.partner+100)&&this.city.speaks(person)&&this.city.speaks(mate!.person);
       animateLife(person,alone&&kind==='talk'?(w.standing==='occupier'?'guard':'walk'):kind,dt,time,calm,viewer,this.city.lifeTarget,speaking,moving);
