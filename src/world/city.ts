@@ -152,11 +152,11 @@ export class City {
       // (Someone walking across it has no kerb to drift from: the same push would change sides under them as they went.)
       const centre = Math.abs(p.x) < 20 ? 0 : p.x < 0 ? -34 : 34, dir = Math.sign(centre - p.x); tx += dir * rs.width * 1.1 * (.5 + .5 * Math.sin(m.clock * .05 + m.seed * 6)); }
     else if (!o.walking && o.merchant && rs.spill > 0) { tx += Math.sin(yaw) * rs.spill; tz += Math.cos(yaw) * rs.spill; } // and trade comes out of the doorway
-    // Only a target that is somewhere a body can stand: try it, then half, then a quarter of it, else stay put
-    // (never the other way: that would be toward the patrol's line).
+    // Only a target that is somewhere a body can stand: the most of it that fits, found to a sixteenth, else stay put
+    // (never the other way: that would be toward the patrol's line). Halves would jump in and out as the step or the wall beside it changed.
     // A walker is tested a metre on as well: that is where they will be by the time a step taken now has been taken back.
     const on = o.walking && o.moving ? 1 : 0, hx = Math.sin(yaw) * on, hz = Math.cos(yaw) * on, bad = () => this.unfit(p.x + tx, p.z + tz, p.y) || (on > 0 && this.unfit(p.x + tx + hx, p.z + tz + hz, p.y));
-    for (let k = 0; k < 3 && (tx || tz) && bad(); k++) { tx /= 2; tz /= 2; if (k === 2 && bad()) tx = tz = 0; }
+    if ((tx || tz) && bad()) { const fx = tx, fz = tz; let lo = 0, hi = 1; for (let k = 0; k < 4; k++) { const f = (lo + hi) / 2; tx = fx * f; tz = fz * f; if (bad()) hi = f; else lo = f; } tx = fx * lo; tz = fz * lo; }
     m.tx = tx; m.tz = tz; m.turnTo = turn; m.rateTo = rate; m.free = rate === 1; }
   /** A checkpoint on someone's route (crowd.atGate). At a sealed boom they stop short, stand a moment and turn back: their route clock is put on
    * to where it would bring them back to this spot, so the turn is the only thing that changes, and the body makes it over the next second.
