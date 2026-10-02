@@ -13,8 +13,9 @@ import type { Scrutiny } from './occupation';
  * Nobody is punished faster than they could have answered. The challenge is timed by pace, not by place: it comes
  * `lead` seconds short of the line (and a beat after the look that notices him), a Steward first seen closer than
  * `lateLead` seconds is let through unasked, and going through the boom is an incident only after a refusal, at least
- * `grace` seconds after the first challenge and `warn` seconds after a renewed one. That last allowance is given once
- * an approach: stopping and starting again does not buy more of it.
+ * `grace` seconds after the first challenge and `warn` seconds after the last warning he heard (a renewed challenge or the
+ * refusal). The challenge is renewed once an approach: coming on again after that is refused without another word, so
+ * stopping and starting again does not buy more time.
  *
  * Distances are metres along the gate's local z (the boom line is z = 0); `lx` runs along the line. */
 export const APPROACH = {
@@ -29,7 +30,7 @@ export const APPROACH = {
   /** Seconds to answer a challenge before walking on counts as refusing it. */ window: 5,
   /** A second, shorter window for someone who turned away and then came on again. */ again: 2.5,
   /** Going through the boom sooner than this after the first challenge is excused with a warning. */ grace: 2,
-  /** The same after the challenge is renewed (he stopped, then came on): no incident sooner than this after that warning. Once an approach. */ warn: 1.2,
+  /** No incident sooner than this after the last warning line (the renewed challenge, the refusal). */ warn: 1.2,
   /** Below this speed toward the line (m/s) the Steward is standing still... */ stillSpeed: .35,
   /** ...and standing still this long is an answer. */ still: .8,
   /** Backing off this far from the closest point reached is an answer. */ retreat: 1,
@@ -48,7 +49,7 @@ export interface Approach {
   stage: Stage; /** Which side of the line the approach came from: +1 or -1, 0 when idle. */ side: number;
   /** Last distance to the line on the approach side and last place along it; smoothed speed toward the line, and over the ground. */ prev: number; px: number; vel: number; speed: number;
   /** Closest point reached since the challenge; furthest point reached since turning away. */ closest: number; furthest: number;
-  /** Seconds since the first challenge of this approach; since he was noticed; since the renewed warning that counts; how often it has been renewed. */ since: number; seenFor: number; warned: number; renewed: number;
+  /** Seconds since the first challenge of this approach; since he was noticed; since the last warning line; how often he has come on again after turning away. */ since: number; seenFor: number; warned: number; renewed: number;
   window: number; still: number; lastIncident: number;
 }
 export const approachState = (): Approach => ({ stage: 'idle', side: 0, prev: NaN, px: 0, vel: 0, speed: 0, closest: 0, furthest: 0, since: 0, seenFor: 0, warned: 99, renewed: 0, window: 0, still: 0, lastIncident: -1e9 });
@@ -105,11 +106,14 @@ export function stepApproach(a: Approach, r: Reading): ApproachEvent | null {
     a.closest = Math.min(a.closest, dist); a.window -= dt;
     a.still = Math.abs(a.vel) < C.stillSpeed ? a.still + dt : 0;
     if (dist > a.closest + C.retreat || a.still >= C.still) { a.stage = 'turnedAway'; a.furthest = dist; a.still = 0; return 'turnedAway'; }
-    if (a.stage === 'challenged' && ((a.vel > C.stillSpeed && dist < Math.max(C.refuseAt, a.vel * C.refuseLead)) || a.window <= 0)) { a.stage = 'refused'; return 'refuse'; }
+    if (a.stage === 'challenged' && ((a.vel > C.stillSpeed && dist < Math.max(C.refuseAt, a.vel * C.refuseLead)) || a.window <= 0)) { a.stage = 'refused'; a.warned = 0; return 'refuse'; }
     return null;
   }
-  // Turned away: watched, not stopped. Coming on again renews the challenge, with less patience.
+  // Turned away: watched, not stopped. Coming on again renews the challenge, with less patience; the second time there is
+  // no more talk: he is refused where he stands ('resume' with renewed > 1: the gate watches him and says nothing).
   a.furthest = Math.max(a.furthest, dist);
-  if (dist < a.furthest - C.readvance && a.vel > C.stillSpeed) { a.stage = 'challenged'; a.window = C.again; a.closest = dist; a.still = 0; if (++a.renewed === 1) a.warned = 0; return 'resume'; }
+  if (dist < a.furthest - C.readvance && a.vel > C.stillSpeed) { a.closest = dist; a.still = 0;
+    if (++a.renewed > 1) { a.stage = 'refused'; return 'resume'; }
+    a.stage = 'challenged'; a.window = C.again; a.warned = 0; return 'resume'; }
   return null;
 }

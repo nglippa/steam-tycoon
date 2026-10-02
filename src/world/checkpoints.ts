@@ -115,6 +115,7 @@ export class Checkpoints {
   private voice(g: GateRecord, ev: ApproachEvent, what: Scrutiny, time: number, viewer: T.Vector3) { const city = this.p.city, by = g.watcher >= 0 ? g.watcher : g.crew.find(i => this.p.workers[i].person.group.visible) ?? -1, others = g.crew.filter(i => i !== by);
     const watch = (seconds: number) => { g.watchUntil = time + seconds; };
     if (ev === 'notice') { g.watcher = g.seenBy; watch(4); this.speak(g, g.seenBy, what === 'challenge' ? 'suspicious' : 'neutral', 2.5, time); }
+    else if (ev === 'resume' && g.approach.renewed > 1) { watch(5); this.speak(g, by, 'hostile', 2.5, time); } // told twice already: a look, no more words
     else if (ev === 'challenge' || ev === 'resume') { watch(APPROACH.window + 1); this.speak(g, by, 'authoritative', ev === 'challenge' ? APPROACH.window : APPROACH.again, time); for (const i of others) this.speak(g, i, 'suspicious', 3, time);
       city.onEvent(ev === 'challenge' ? '“Halt, Steward. Not through here today. Turn back.”' : '“I said turn back.”'); this.onAlarm?.('challenge'); }
     else if (ev === 'refuse') { watch(5); this.speak(g, 'all', 'hostile', 4, time); city.onEvent('“One more step and it is an incident.”'); this.onAlarm?.('refuse'); }

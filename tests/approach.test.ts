@@ -146,12 +146,25 @@ test('stopping, then walking on: no incident sooner than the warning that renews
   for (const [at, speed] of [[6, 1.4], [8, WALK], [4, 1.4]]) { const ev = stopGo(at, speed), r = ev.find(x => x.e === 'resume')!, i = ev.find(x => x.e === 'incident');
     assert.ok(i, `stopped ${at} m out, on at ${speed}`); assert.ok(i.t - r.t >= APPROACH.warn, `${(i.t - r.t).toFixed(2)} s after the warning`); }
 });
-test('stop-and-go is not a way through: the renewed warning buys its allowance once an approach', () => {
+test('stop-and-go is not a way through: the challenge is renewed once an approach, then he is refused without another word', () => {
   const { a, clock } = fresh(); walk(a, clock, 15, 4, 1.4); walk(a, clock, 4, 4, 1, { hold: 1.5 }); assert.equal(a.stage, 'turnedAway');
-  // On a metre, the challenge is renewed; he stops again; on again, renewed again, and straight through the boom.
+  // On a metre, the challenge is renewed; he stops again; on again: refused where he stands, no new line, and straight through the boom.
   const first = trace(a, clock, 4, 2.9, 1.4); assert.deepEqual(first.map(x => x.e), ['resume']); walk(a, clock, 2.9, 2.9, 1, { hold: 1.5 }); assert.equal(a.stage, 'turnedAway');
-  const ev = trace(a, clock, 2.9, -3, WALK), again = ev.find(x => x.e === 'resume')!, i = ev.find(x => x.e === 'incident');
-  assert.ok(i, 'the second renewal does not excuse him'); assert.ok(i.t - again.t < APPROACH.warn); assert.ok(i.t - first[0].t >= APPROACH.warn); assert.equal(a.renewed, 2);
+  const ev = trace(a, clock, 2.9, -3, WALK), i = ev.find(x => x.e === 'incident');
+  assert.deepEqual(ev.map(x => x.e), ['resume', 'incident'], 'the second renewal is silent and buys nothing'); assert.equal(a.renewed, 2);
+  assert.ok(i!.t - first[0].t >= APPROACH.warn, 'and the incident still comes after the last line he heard had time to be heard');
   // A fresh approach has its allowance back.
   const { a: b, clock: c2 } = fresh(); walk(b, c2, 15, 1.2, 1.4); walk(b, c2, 1.2, 1.2, 1, { hold: 1.5 }); assert.ok(walk(b, c2, 1.2, -3, WALK).includes('excused'));
+});
+
+test('an incident never follows a warning line sooner than the allowance, however he stops and starts', () => {
+  for (const speed of [1.4, 2.2, WALK, SPRINT]) for (const stops of [[], [6], [8, 5], [10, 6, 3.5], [4, 2.6]]) {
+    const { a, clock } = fresh(), ev: { e: ApproachEvent; t: number }[] = []; let z = 22;
+    for (const at of stops) { ev.push(...trace(a, clock, z, at, speed)); ev.push(...trace(a, clock, at, at, 1, { hold: 1.5 })); z = at; }
+    ev.push(...trace(a, clock, z, -4, speed)); const i = ev.find(x => x.e === 'incident'); if (!i) continue;
+    let renewals = 0; const lines = ev.filter(x => x.e === 'challenge' || x.e === 'refuse' || (x.e === 'resume' && ++renewals === 1)); // the lines the gate says aloud
+    const last = lines.filter(x => x.t <= i.t).at(-1)!, first = ev.find(x => x.e === 'challenge')!;
+    assert.ok(i.t - last.t >= APPROACH.warn - 1e-9, `${speed} m/s, stops ${stops}: ${(i.t - last.t).toFixed(2)} s after "${last.e}"`);
+    assert.ok(i.t - first.t >= APPROACH.grace - 1e-9, `${speed} m/s, stops ${stops}: ${(i.t - first.t).toFixed(2)} s after the challenge`);
+  }
 });
