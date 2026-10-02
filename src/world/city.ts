@@ -15,6 +15,7 @@ import { DISTRICTS, BANDS, bandOf, population, admits, districtAt, isOccupier, s
 import { TerraEdge, TERRACE as EDGE_TERRACE, CHASM, GALLERY, WEST_EDGE } from './terra-edge';
 import { Economy, PROPERTIES, SITE_LIBERATED, SITE_RESTORED, type PropertyId, type SiteId } from '../simulation/economy';
 import { Traffic } from './traffic';
+import { ROAD, laneX } from '../simulation/traffic';
 export interface Collider { minX: number; maxX: number; minZ: number; maxZ: number; height: number; base?: number; gate?: string; open?: () => boolean }
 /** A walkable surface above or below the street: a roof, a catwalk, a pier past the rim.
  * `y1` makes it a stair or ramp, rising from `y` at the low end of `axis` to `y1` at the high end. */
@@ -37,7 +38,7 @@ interface Room { partner?: T.Vector3; with?: T.Group; walking?: boolean; moving?
  * `turn` is how far they have turned from their scene's facing; `clock`/`rate` drive their route. */
 interface Mind { ox: number; oz: number; vx: number; vz: number; tx: number; tz: number; turn: number; turnTo: number; clock: number; rate: number; rateTo: number; pace: number; next: number; last: number; seed: number;
   act: Reaction; threat?: Threat; start: number; hold: number; exit: number; amp: number; side: number; lx: number; lz: number; facing: Facing; reactRate: number;
-  cross?: { c: Crossing; phase: 'go' | 'wait' | 'back'; at: number; threat: Threat }; group: Group; watch?: Spot; indoors: boolean }
+  cross?: { c: Crossing; phase: 'go' | 'wait' | 'back'; at: number; threat: Threat; /** Since when a cart has kept them out of the next lane. */ held?: number }; /** No crossing is tried again before this. */ shy: number; group: Group; watch?: Spot; indoors: boolean }
 const angle = (a: number) => Math.atan2(Math.sin(a), Math.cos(a));
 /** A body turns a shoulder, not its back: at most ~95 degrees. Something straight behind keeps the side already chosen, so it never flips. */
 const clampTurn = (a: number, prev = 0) => { if (Math.abs(a) > 2.7 && prev) a = Math.sign(prev) * Math.abs(a); return Math.max(-1.65, Math.min(1.65, a)); };
@@ -81,7 +82,7 @@ export class City {
   /** Each civilian's answer to the Ordinance: a sidestep, a pause, a crossing, a conversation gone quiet. Written only by giveRoom. */
   private minds = new WeakMap<object, Mind>();
   private crossOk?: boolean[];
-  private mind(c: { phase: number }) { let m = this.minds.get(c); if (!m) this.minds.set(c, m = { ox: 0, oz: 0, vx: 0, vz: 0, tx: 0, tz: 0, turn: 0, turnTo: 0, clock: NaN, rate: 1, rateTo: 1, pace: 1, next: this.now + (c.phase * 7.13 % 1) * .3, last: this.now, seed: (c.phase * 3.71) % 1, act: 'none', start: 0, hold: 0, exit: 0, amp: 0, side: 0, lx: 0, lz: 0, facing: 'route', reactRate: 1, group: newGroup(), indoors: false }); return m; }
+  private mind(c: { phase: number }) { let m = this.minds.get(c); if (!m) this.minds.set(c, m = { ox: 0, oz: 0, vx: 0, vz: 0, tx: 0, tz: 0, turn: 0, turnTo: 0, clock: NaN, rate: 1, rateTo: 1, pace: 1, next: this.now + (c.phase * 7.13 % 1) * .3, last: this.now, seed: (c.phase * 3.71) % 1, act: 'none', start: 0, hold: 0, exit: 0, amp: 0, side: 0, lx: 0, lz: 0, facing: 'route', reactRate: 1, shy: 0, group: newGroup(), indoors: false }); return m; }
   /** A walker's own route clock: it runs at their pace and stops when they stop, so a pause or a crossing never jumps. */
   routeClock(c: { phase: number }, time: number, dt: number) { const m = this.mind(c); if (Number.isNaN(m.clock)) m.clock = time; m.rate += (m.rateTo - m.rate) * Math.min(1, dt * 2.4); m.clock += dt * m.rate; return m.clock; }
   /** May this person's conversation go on? */
@@ -116,7 +117,7 @@ export class City {
     if (m.cross && this.crossing(m, p, yaw)) return;
     // Hysteresis: a reaction ends only once its man is past the wider exit radius (or gone) and it has lasted its least time.
     if (m.act !== 'none') { const t = m.threat!, gone = t.stamp !== this.socialClock, d = Math.hypot(t.at.x - p.x, t.at.z - p.z); if ((gone || d > m.exit) && now >= m.start + m.hold) { m.act = 'none'; m.threat = undefined; } }
-    if (m.act === 'none' && near) { const t = near.threat, coming = approaching(t, p.x, p.z), cross = !!o.walking && !!o.moving && coming && Math.abs(t.at.x - p.x) < 2.5 && this.canCross(p.x, p.z, t);
+    if (m.act === 'none' && near) { const t = near.threat, coming = approaching(t, p.x, p.z), cross = !!o.walking && !!o.moving && coming && Math.abs(t.at.x - p.x) < 2.5 && now >= m.shy && this.canCross(p.x, p.z, t);
       const r = respond({ trait: c.manner.trait, kind: t.kind, distance: near.distance, coming, walking: !!o.walking && !!o.moving, occupation, crackdown: s.crackdown, curfew: s.enforcement, seed: m.seed, canCross: cross });
       if (r.reaction === 'crossStreet') { m.cross = { c: crossingAt(p.x, p.z)!, phase: 'go', at: now + r.delay, threat: t }; m.act = 'none'; if (this.crossing(m, p, yaw)) return; }
       else if (r.reaction !== 'none') Object.assign(m, { act: r.reaction, threat: t, start: now + r.delay, hold: r.hold, exit: r.exit, amp: r.amplitude, facing: r.face, reactRate: r.rate, side: 0 }); }
@@ -140,32 +141,35 @@ export class City {
     const on = o.walking && o.moving ? 1 : 0, hx = Math.sin(yaw) * on, hz = Math.cos(yaw) * on, bad = () => this.unfit(p.x + tx, p.z + tz, p.y) || (on > 0 && this.unfit(p.x + tx + hx, p.z + tz + hz, p.y));
     for (let k = 0; k < 3 && (tx || tz) && bad(); k++) { tx /= 2; tz /= 2; if (k === 2 && bad()) tx = tz = 0; }
     m.tx = tx; m.tz = tz; m.turnTo = turn; m.rateTo = rate * m.pace; }
-  /** No place to step aside into: a wall or a prop, or one of the Great Main's two cart lanes (wider at the checkpoint, where the carts swing out). */
-  private unfit(x: number, z: number, y: number) { return (z > -13 && z < 66 && y < 1 && Math.abs(Math.abs(x) - 2.8) < (Math.abs(z - 10.4) < 3.5 ? 2 : 1.3)) || this.blocked(x, z, y - .16); }
+  /** No place to step aside into: a wall or a prop, or one of the Great Main's two cart lanes (which swing out at the checkpoint: the carts' own line is asked). */
+  private unfit(x: number, z: number, y: number) { return (z > ROAD.north - 4 && z < ROAD.south + 4 && y < 1 && Math.abs(Math.abs(x) - laneX(z)) < 1.3) || this.blocked(x, z, y - .16); }
   /** Is there a trusted crossing here, and is the far kerb free of the Ordinance? Each crossing's ground is sampled once, the first time it is asked about. */
   private canCross(x: number, z: number, from: Threat) { const c = crossingAt(x, z); if (!c) return false;
     this.crossOk ??= CROSSINGS.map(k => crossingSamples(k).every(([sx, sz]) => !this.blocked(sx, sz, .18)));
     if (!this.crossOk[CROSSINGS.indexOf(c)]) return false; const other = this.threats.nearest(c.to, z, .18, 4, from); return !other; }
   /** Holds short of a cart lane while a cart is coming down it (a lane already stepped into is finished). */
   private cartIn(from: number, to: number, z: number, lanes: number[]) { const dir = Math.sign(to - from); for (const lane of lanes) { const ahead = (lane - from) * dir; if (ahead < 1.5 || ahead > 3.2 || (lane - to) * dir > 0) continue; if (!this.laneClear(lane, z)) return true; } return false; }
-  /** Is the cart lane at `x` clear for someone to step across at `z` (no cart within a few metres either way)? Traffic may replace this. */
-  laneClear: (x: number, z: number) => boolean = (x, z) => !this.carts.some(cart => cart.visible && Math.abs(cart.position.x - x) < 1.5 && Math.abs(cart.position.z - z) < 8);
-  /** One decision of a crossing in progress. Returns false once it is over and the walker is back on their route. */
+  /** Is the cart lane at `x` clear for someone to step across at `z`? A cart on the move is given eight metres either way;
+   * one standing (held at the boom, parked for the night) only its own length, so it never keeps anyone at the kerb till morning. */
+  laneClear(x: number, z: number) { const t = this.traffic; return !t.carts.some((cart, i) => cart.visible && Math.abs(cart.position.x - x) < 1.5 && Math.abs(cart.position.z - z) < (t.state[i].v > .05 ? 8 : 2)); }
+  /** One decision of a crossing in progress. Returns false once it is over and the walker is back on their route.
+   * Still on their own kerb, they give it up if the patrol has gone by or a cart has kept them there four seconds. Once in the road
+   * they only go forward: to the far kerb, or along the strip between the lanes until the lane ahead is clear. Nobody stands in a lane. */
   private crossing(m: Mind, p: T.Vector3, yaw: number) { const x = m.cross!, t = x.threat, c = x.c, now = this.now, at = p.x + m.ox; let goal = x.phase === 'back' ? 0 : c.to - p.x, turn = 0;
-    if (now < x.at && x.phase === 'go') goal = 0;
-    else if (x.phase === 'go' && Math.abs(goal - m.ox) < .2) { x.phase = 'wait'; x.at = Infinity; }
-    if (x.phase === 'wait') { if (x.at === Infinity && (t.stamp !== this.socialClock || passed(t, at, p.z + m.oz))) x.at = now + 1 + jitter(m.seed, 10) * 2.5; if (now >= x.at) x.phase = 'back'; else { m.watch = t.at; turn = clampTurn(angle(Math.atan2(t.at.x - at, t.at.z - p.z) - yaw), m.turnTo) * .5; } }
+    const gone = t.stamp !== this.socialClock || passed(t, at, p.z + m.oz), kerb = !c.lanes.length || (c.lanes[0] - at) * Math.sign(c.to - p.x) >= 1.5, stuck = x.held !== undefined && now - x.held > 4;
+    if (x.phase === 'go') { if (kerb && (gone || stuck)) { x.phase = 'back'; if (stuck) m.shy = now + 20; } else if (now < x.at) goal = 0; else if (Math.abs(goal - m.ox) < .2) { x.phase = 'wait'; x.at = Infinity; } }
+    if (x.phase === 'wait') { if (x.at === Infinity && gone) x.at = now + 1 + jitter(m.seed, 10) * 2.5; if (now >= x.at) x.phase = 'back'; else { m.watch = t.at; turn = clampTurn(angle(Math.atan2(t.at.x - at, t.at.z - p.z) - yaw), m.turnTo) * .5; } }
     if (x.phase === 'back') { goal = 0; if (Math.abs(m.ox) < .25) { m.cross = undefined; m.watch = undefined; return false; } }
-    if (goal !== m.ox && this.cartIn(at, p.x + goal, p.z, c.lanes)) goal = m.ox + m.vx * .2; // wait at the lane's edge for the cart: pull up in a stride, not back onto a mark
+    if (goal !== m.ox && this.cartIn(at, p.x + goal, p.z, c.lanes)) { goal = m.ox + m.vx * .2; x.held ??= now; } else x.held = undefined; // wait at the lane's edge for the cart: pull up in a stride, not back onto a mark
     if (x.phase !== 'wait' && Math.abs(goal - m.ox) > .2) turn = clampTurn(angle(Math.atan2(Math.sign(goal - m.ox), 0) - yaw), m.turnTo) * .9;
-    m.tx = goal; m.tz = 0; m.turnTo = turn; m.rateTo = (x.phase === 'back' ? .3 : 0) * m.pace; return true; }
+    m.tx = goal; m.tz = 0; m.turnTo = turn; m.rateTo = (x.phase === 'back' ? .3 : stuck && !kerb ? .5 : 0) * m.pace; return true; }
   /** The Ordinance has caught the Steward at something. One place decides what that costs. */
   incident(kind: Incident, x: number, z: number) { const o = this.economy.caught(kind, districtAt(x, z)); this.socialClock = -9; this.onEvent(o.message);
     // Everyone near enough to see it draws back for a moment. Nobody helps.
     const flinch = (c: { group: T.Group; archetype: string; tone?: { tone: Tone; until: number } }) => { const q = c.group.position; if (c.group.visible && !isOccupier(c.archetype) && (q.x - x) ** 2 + (q.z - z) ** 2 < 90) c.tone = { tone: 'fearful', until: this.now + 3.5 }; };
     for (const n of this.npcs) flinch(n); for (const w of this.presentation.workers) flinch(w.person); return o; }
   hearth?: T.PointLight; edge!: TerraEdge;
-  gateMeshes = new Map<string, T.Group>(); flags: T.Mesh[] = []; carts: T.Group[] = []; cartWheels: T.Group[][] = []; airship = new T.Group(); tram = new T.Group();
+  gateMeshes = new Map<string, T.Group>(); flags: T.Mesh[] = []; airship = new T.Group(); tram = new T.Group();
   clockMechanism?: T.Group; lantern = new T.MeshStandardMaterial({ color: P.warm.lamp, emissive: P.warm.lamp, emissiveIntensity: .9 }); clockHands: T.Mesh[] = []; stage = -1; raining = false; finchLift?: T.Group;
   constructor(public scene: T.Scene, public economy: Economy) { scene.add(this.root); this.root.add(this.infrastructure, this.prosperity); this.buildGround(); this.buildBlocks(); this.buildLandmarks(); this.buildSignatureMachinery(); this.buildDetails(); this.buildBackground(); this.edge = new TerraEdge(this); this.createPopulation(); this.refreshSocial(0); this.presentation = new Presentation(this);
     setSocialField((x, z, self) => { const s = this.here(x, z), m = this.minds.get(self), near = !isOccupier(self.archetype) && !!this.threats.nearest(x, z, self.group.position.y, 7); return { pressure: s.pressure, watched: near || (!!m && m.group.mode !== 'talk'), threat: m?.watch }; }); this.siteTargets(); for(const x of [-7.9,7.9]) for(const z of (x>0?[-22,-28,-34]:[-26,-32,-38])) this.collider(x,z,2.3,3.6,3.5); this.sync(true); this.crowd = new CrowdBatch([...this.npcs.map(n=>n.group),...this.presentation.workers.map(w=>w.person.group)],this.root); }

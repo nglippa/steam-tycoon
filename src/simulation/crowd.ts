@@ -1,4 +1,5 @@
 import { berth, type Enforcement, type Manner, type Trait } from './occupation';
+import { ROAD } from './traffic';
 
 /** THE CROWD UNDER THE ORDINANCE. How ordinary people use the street while it is held: who steps aside, who stops,
  * who crosses to the other kerb, when a conversation goes quiet and when it breaks up. Pure rules, no rendering:
@@ -110,8 +111,9 @@ export function respond(s: Situation): Response {
 export interface Crossing { z0: number; z1: number; x0: number; x1: number; to: number; lanes: number[] }
 export const CROSSINGS: Crossing[] = [
   // The Great Main between the pressure station and the bench: east walk to the west kerb, and back the other way.
-  { z0: 34.5, z1: 44, x0: 4.5, x1: 5.7, to: -5.6, lanes: [2.8, -2.8] },
-  { z0: 34.5, z1: 44, x0: -5.7, x1: -4.5, to: 5.6, lanes: [-2.8, 2.8] },
+  // Well clear of the checkpoint, so the carts' lanes are at their street width here (simulation/traffic ROAD).
+  { z0: 34.5, z1: 44, x0: 4.5, x1: 5.7, to: -5.6, lanes: [ROAD.lane, -ROAD.lane] },
+  { z0: 34.5, z1: 44, x0: -5.7, x1: -4.5, to: 5.6, lanes: [-ROAD.lane, ROAD.lane] },
   // The housing lane along the patrol's beat and past the west sentry: from the housefronts over to the far side.
   { z0: 14, z1: 35, x0: -39.2, x1: -37.3, to: -31.5, lanes: [] },
 ];

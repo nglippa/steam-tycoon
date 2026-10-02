@@ -29,7 +29,7 @@ const stopLamp = new T.MeshStandardMaterial({ color: '#d0402e', emissive: '#e044
 const wrap = (a: number) => Math.atan2(Math.sin(a), Math.cos(a));
 type Alarm = 'challenge' | 'refuse' | 'incident';
 type GateRecord = { site: Site; state: Gate; held: T.Group; full: T.Group; lit: T.Group; sealed: T.Group; abandoned: T.Group; civic: T.Group; booms: T.Group[]; root: T.Group; crew: number[]; yaw: number[];
-  waved: number; refused: number; approach: Approach; scan: number; seenBy: number; watcher: number; watchUntil: number };
+  /** A cart is under the boom while the gate is sealed: the boom waits for it. */ cart: boolean; waved: number; refused: number; approach: Approach; scan: number; seenBy: number; watcher: number; watchUntil: number };
 
 export class Checkpoints {
   gates: GateRecord[] = [];
@@ -39,7 +39,7 @@ export class Checkpoints {
     for (const site of SITES) { const root = new T.Group(); root.position.set(site.x, 0, site.z); root.rotation.y = site.quarter ? Math.PI / 2 : 0; p.root.add(root);
       const world = (lx: number, lz: number): [number, number] => site.quarter ? [site.x + lz, site.z - lx] : [site.x + lx, site.z + lz];
       const held = new T.Group(), full = new T.Group(), lit = new T.Group(), sealed = new T.Group(), abandoned = new T.Group(), civic = new T.Group(); root.add(held, full, lit, sealed, abandoned, civic);
-      const gate: GateRecord = { site, state: 'manned', held, full, lit, sealed, abandoned, civic, booms: [], root, crew: [], yaw: [], waved: -99, refused: -99, approach: approachState(), scan: 0, seenBy: -1, watcher: -1, watchUntil: -99 }; this.gates.push(gate);
+      const gate: GateRecord = { site, state: 'manned', held, full, lit, sealed, abandoned, civic, booms: [], root, crew: [], yaw: [], cart: false, waved: -99, refused: -99, approach: approachState(), scan: 0, seenBy: -1, watcher: -1, watchUntil: -99 }; this.gates.push(gate);
       const available = () => !site.chartered || city.economy.state.districts.includes(site.chartered);
       // What is left lying about an abandoned gate is solid only while it lies there (and too low to hide anyone).
       const litter = (lx: number, lz: number, w: number, d: number, h: number) => { const [x, z] = world(lx, lz); city.collider(x, z, site.quarter ? d : w, site.quarter ? w : d, h, undefined, () => !available() || gate.state !== 'open'); };
@@ -91,7 +91,7 @@ export class Checkpoints {
         // Abandoned: the boom unbolted and dropped out of the way beyond the opening, along the street; its post cut down to a stump.
         { const lying = new T.Group(); lying.position.set(far + dir * .55, .06, 1.3); lying.rotation.y = Math.PI / 2 + .14 * dir; abandoned.add(lying); box(lying, 0, 0, 0, len, .09, .09, O.bone); for (let x = -len / 2 + .4; x < len / 2; x += .9) box(lying, x, 0, 0, .35, .095, .095, O.oxblood); }
         box(abandoned, pivot, .2, 0, .16, .4, .16, O.iron);
-        const [cx, cz] = world(mid, 0); city.collider(cx, cz, site.quarter ? .3 : len, site.quarter ? len : .3, 1.3, undefined, () => !available() || gate.state !== 'sealed'); }
+        const [cx, cz] = world(mid, 0); city.collider(cx, cz, site.quarter ? .3 : len, site.quarter ? len : .3, 1.3, undefined, () => !available() || gate.state !== 'sealed' || gate.cart); }
       for (const g of [held, full, lit, sealed, abandoned, civic]) bake(g);
       // The crew: two men at the box, one watching each way. Posted by the gate's state, not by the ward's general rank.
       const stand: [number, number, number][] = site.hut ? [[1.55, .9, 0], [-1.55, -.9, Math.PI]] : [[1.45, -1.1, -Math.PI / 2], [-1.45, 1.1, Math.PI / 2]];
@@ -122,7 +122,9 @@ export class Checkpoints {
    * and at curfew the boom simply stays down. Line of sight is asked four times a second, and only of this gate's crew. */
   update(dt: number, time: number, viewer: T.Vector3) { this.sync(); const city = this.p.city;
     for (const g of this.gates) { if (!g.root.visible) continue; const s = g.site, sealed = g.state === 'sealed';
-      for (const b of g.booms) { const want = sealed ? 0 : b.userData.dir * 1.28; b.rotation.z += (want - b.rotation.z) * Math.min(1, dt * 2.2); }
+      // Nothing comes down on a cart: while one is in the crossing the boom stays up and the second bar, the plate and the collider stay off.
+      g.cart = sealed && city.traffic.occupying(s.z, .5); const down = sealed && !g.cart; g.sealed.visible = down;
+      for (const b of g.booms) { const want = down ? 0 : b.userData.dir * 1.28; b.rotation.z += (want - b.rotation.z) * Math.min(1, dt * 2.2); }
       // The man watching the Steward turns to keep him in sight; the rest of the time each faces his own way.
       // (Long after, they are left alone: the curfew watch turns the same men.)
       const watching = time < g.watchUntil;
