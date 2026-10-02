@@ -362,7 +362,7 @@ export function citizen(coat:Material=mats.rust,seed=0,archetype:Archetype='work
   group.scale.set(1+(seed%4-1.5)*.03,.95+(seed%5)*.022,1);
   group.traverse(o=>{if(o instanceof T.Mesh)o.castShadow=false;});
   const motion={stride:seed*1.3,gait:0,speed:0,prevX:NaN,prevZ:0,prevYaw:0,turn:0,tail:0,tailV:0,hair:0,hairV:0,tempo:.88+((seed*37)%25)/100,idle:0,drape:1,pose:null as Float32Array|null};
-  return {group,body,legs,knees,arms,elbows,grips,head,worn,finery,scarf,tails,skirt,swing,face,archetype,motion,phase:seed*1.7,expression:'neutral' as Expression,gaze:'away',manner:mannerOf(archetype,seedOf(seed)),/** A line being spoken, and until when: the body takes the register of the words. */tone:undefined as undefined|{tone:Tone;until:number},setExpression(state:Expression){this.expression=state;face.userData.expression=expressions.indexOf(state);}};
+  return {group,body,legs,knees,arms,elbows,grips,head,worn,finery,scarf,tails,skirt,swing,face,archetype,motion,phase:seed*1.7,expression:'neutral' as Expression,gaze:'away',manner:mannerOf(archetype,seedOf(seed)),/** A line being spoken, and until when: the body takes the register of the words (`palm`: until when a raised palm says halt). */tone:undefined as undefined|{tone:Tone;until:number;palm?:number},setExpression(state:Expression){this.expression=state;face.userData.expression=expressions.indexOf(state);}};
 }
 
 export type Citizen=ReturnType<typeof citizen>;

@@ -110,15 +110,15 @@ export class Checkpoints {
       const lane = s.openings.findIndex(([a, b]) => lx > a - .3 && lx < b + .3); if (lane < 0) continue; this.hit.gate = g; this.hit.lane = lane; this.hit.d = d; return this.hit; }
     return undefined; }
   /** A line, and the body that goes with it, for one of the crew (or all of them). */
-  private speak(g: GateRecord, who: number | 'all', tone: Tone, seconds: number, time: number) { for (const i of who === 'all' ? g.crew : [who]) { const w = this.p.workers[i]; if (w?.person.group.visible) w.person.tone = { tone, until: time + seconds }; } }
+  private speak(g: GateRecord, who: number | 'all', tone: Tone, seconds: number, time: number, palm = 0) { for (const i of who === 'all' ? g.crew : [who]) { const w = this.p.workers[i]; if (w?.person.group.visible) w.person.tone = { tone, until: time + seconds, palm: palm ? time + palm : undefined }; } }
   /** What the gate does about what the approach just did. One concise line at most; the bodies say the rest. */
   private voice(g: GateRecord, ev: ApproachEvent, what: Scrutiny, time: number, viewer: T.Vector3) { const city = this.p.city, by = g.watcher >= 0 ? g.watcher : g.crew.find(i => this.p.workers[i].person.group.visible) ?? -1, others = g.crew.filter(i => i !== by);
     const watch = (seconds: number) => { g.watchUntil = time + seconds; };
     if (ev === 'notice') { g.watcher = g.seenBy; watch(4); this.speak(g, g.seenBy, what === 'challenge' ? 'suspicious' : 'neutral', 2.5, time); }
-    else if (ev === 'resume' && g.approach.renewed > 1) { watch(5); this.speak(g, by, 'hostile', 2.5, time); } // told twice already: a look, no more words
-    else if (ev === 'challenge' || ev === 'resume') { watch(APPROACH.window + 1); this.speak(g, by, 'authoritative', ev === 'challenge' ? APPROACH.window : APPROACH.again, time); for (const i of others) this.speak(g, i, 'suspicious', 3, time);
+    else if (ev === 'resume' && g.approach.renewed > 1) { watch(5); this.speak(g, by, 'hostile', 2.5, time, 1.6); } // told twice already: a look and a palm, no more words
+    else if (ev === 'challenge' || ev === 'resume') { watch(APPROACH.window + 1); this.speak(g, by, 'authoritative', ev === 'challenge' ? APPROACH.window : APPROACH.again, time, 1.8); for (const i of others) this.speak(g, i, 'suspicious', 3, time);
       city.onEvent(ev === 'challenge' ? '“Halt, Steward. Not through here today. Turn back.”' : '“I said turn back.”'); this.onAlarm?.('challenge'); }
-    else if (ev === 'refuse') { watch(5); this.speak(g, 'all', 'hostile', 4, time); city.onEvent('“One more step and it is an incident.”'); this.onAlarm?.('refuse'); }
+    else if (ev === 'refuse') { watch(5); this.speak(g, 'all', 'hostile', 4, time); this.speak(g, by, 'hostile', 4, time, 1.4); city.onEvent('“One more step and it is an incident.”'); this.onAlarm?.('refuse'); }
     else if (ev === 'turnedAway') { watch(3.5); this.speak(g, by, 'suspicious', 3.5, time); }
     else if (ev === 'incident') { watch(4); this.speak(g, 'all', 'hostile', 6, time); city.incident('minor', viewer.x, viewer.z); this.onAlarm?.('incident'); }
     else if (ev === 'excused') { watch(2); this.speak(g, by, 'hostile', 2.5, time); city.onEvent('“Next time you stop when you are told, Steward.”'); }

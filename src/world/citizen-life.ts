@@ -186,6 +186,9 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
     else if(b==='withdraw'){for(let k=0;k<2;k++){n.arms[k].rotation.set(-.7,0,(k?-1:1)*.3);n.elbows[k].rotation.x=-1.5;}n.body.rotation.x-=.08;}
     else if(b==='close'){n.arms[0].rotation.set(-.5,0,.25);n.elbows[0].rotation.x=-1.2;n.body.rotation.x+=.1;}
     else if(b==='open'){for(let k=0;k<2;k++){n.arms[k].rotation.set(-.35,0,(k?1:-1)*-.3);n.elbows[k].rotation.x=-.7;}}
+    // Halt: the other arm out from the side and its forearm raised, palm to the Steward beside the face, for the first moment of the line
+    // (eased in and out with the rest of the pose). It is the arm away from the sentry box, so the hand shows against the street; a pointing arm drops for it.
+    if(n.tone!.palm!==undefined&&time<n.tone!.palm){n.arms[1].rotation.set(-.85,0,.8);n.elbows[1].rotation.x=-1.75;if(b==='point'){n.arms[0].rotation.set(.08,0,.1);n.elbows[0].rotation.x=-.3;}}
     const relative=angle(Math.atan2(player.x-pos.x,player.z-pos.z)-yaw);headYaw=T.MathUtils.clamp(relative,-.48,.48);}
   // The pelvis is the rigid base the legs hang from: lean, twist and sway turn the torso
   // about the hip joint, not about the feet, and a sideways weight shift carries the hips
