@@ -39,7 +39,8 @@ const look=new T.Vector3(),pelvisPoint=new T.Vector3(),hipPoint=new T.Vector3();
 let weariness=1;let raining=false;
 /** What the street is like where someone stands: occupation as 0..1 (curfew counts as full) and whether the Ordinance is within earshot.
  * The city sets this; people only read it, and only twice a second each. */
-export type Social={pressure:number;watched:boolean};
+/** `threat`, when set, is a member of the Ordinance this person has stopped to watch go by (a live position). */
+export type Social={pressure:number;watched:boolean;threat?:{x:number;z:number}};
 let socialAt:(x:number,z:number,self:Citizen)=>Social=()=>({pressure:0,watched:false});
 export function setSocialField(f:typeof socialAt){socialAt=f;}
 const fields=new WeakMap<Citizen,{at:number;social:Social}>();
@@ -164,6 +165,8 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
   if(glance){look.copy(player);n.gaze='player';if((phase%mn.glance)<.45&&!seated&&cd.startle)expression='surprised';
     const idleHands=activity==='guard'||activity==='lean'||activity==='sit'||activity==='watch'||(activity==='talk'&&!speaking)||activity==='walk';
     if(idleHands&&cd.wave&&(phase%mn.glance)>.35&&(phase%mn.glance)<1.3&&dx*dx+dz*dz<9){n.arms[0].rotation.set(-2.7,0,.4);n.elbows[0].rotation.x=-.35+Math.sin(phase*13)*.35;expression='happy';}}
+  // A conversation that has gone quiet watches the patrol by: most of the time, not all of it, and not in step with each other.
+  else if(field.social.threat&&(phase%5.3)<3.9){look.set(field.social.threat.x,1.7,field.social.threat.z);n.gaze='threat';}
   else if(target&&(phase%9)<6.8){look.copy(target);n.gaze='partner';}
   if(n.gaze!=='away'){
     const relative=angle(Math.atan2(look.x-pos.x,look.z-pos.z)-yaw);
@@ -207,10 +210,13 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
 }
 /** Route distance with acceleration and deceleration ramps (meters). */
 export function eased(d:number,L:number,a=1.1){const k=L/(L-a);if(d<a)return d*d/(2*a)*k;if(d<L-a)return (d-a/2)*k;return (L-a-(L-d)*(L-d)/(2*a))*k;}
-export function stageCitizen(n:Citizen,index:number,time:number){
+/** Where on its route a walker is: going out, or coming back (the turn at the far end counts as out). `clock` is the person's own route clock. */
+export function routeLeg(index:number,clock:number):'out'|'back'|undefined{const scene=sceneFor(index);if(!scene.route)return undefined;const length=scene.route,cycle=(clock*(scene.speed??.4)+index*3)%(length*2+5);return cycle<length+2.5?'out':'back';}
+/** Puts someone where their scene says. `clock` is their route clock: it runs with time, but stops while they stop, so a pause never jumps. */
+export function stageCitizen(n:Citizen,index:number,clock:number){
   const scene=sceneFor(index);let z=scene.z,yaw=scene.yaw,moving=false;
   if(scene.route){
-    const length=scene.route,cycle=(time*(scene.speed??.4)+index*3)%(length*2+5);
+    const length=scene.route,cycle=(clock*(scene.speed??.4)+index*3)%(length*2+5);
     if(cycle<length){z-=eased(cycle,length);yaw=Math.PI;moving=true;}
     else if(cycle<length+2.5){z-=length;yaw=Math.PI*(1-T.MathUtils.smoothstep(cycle-length,.4,2.3));}
     else if(cycle<length*2+2.5){z-=length-eased(cycle-length-2.5,length);yaw=0;moving=true;}
