@@ -33,7 +33,8 @@ function makeScene(index:number):Scene{
   if(zone===2)return {x:34.6+offset%2*.9,z:27-offset*2,yaw:Math.PI,role:'worker',activity:offset%2?'walk':'carry',route:22,speed:.45};
   // The first of them walks the Great Main's east pavement along the patrol's beat, and is out even in a heavy street: a nervous courier,
   // so the crossing between the pressure station and the bench is used by someone who would rather not meet the patrol.
-  return {x:(offset%2?-1:1)*5.1,z:59-offset*11,yaw:Math.PI,role:offset%2?'engineer':'courier',activity:'walk',route:30,speed:.54,...(offset===0?{seed:.2,trait:'nervous' as Trait}:{})};
+  // The third walks the same pavement through the checkpoint's east opening, and is out by day in a heavy street too: someone has to queue at it.
+  return {x:(offset%2?-1:1)*5.1,z:59-offset*11,yaw:Math.PI,role:offset%2?'engineer':'courier',activity:'walk',route:30,speed:.54,...(offset===0?{seed:.2,trait:'nervous' as Trait}:offset===2?{seed:.3}:{})};
 }
 const scenes=Array.from({length:42},(_,index)=>makeScene(index));
 export function sceneFor(index:number){return scenes[index];}
