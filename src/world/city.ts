@@ -155,7 +155,10 @@ export class City {
     // Only a target that is somewhere a body can stand: the most of it that fits, found to a sixteenth, else stay put
     // (never the other way: that would be toward the patrol's line). Halves would jump in and out as the step or the wall beside it changed.
     // A walker is tested a metre on as well: that is where they will be by the time a step taken now has been taken back.
-    const on = o.walking && o.moving ? 1 : 0, hx = Math.sin(yaw) * on, hz = Math.cos(yaw) * on, bad = () => this.unfit(p.x + tx, p.z + tz, p.y) || (on > 0 && this.unfit(p.x + tx + hx, p.z + tz + hz, p.y));
+    // So is the way there, halfway from where they stand (now, and half a metre on), so the body does not shave a corner getting there.
+    const on = o.walking && o.moving ? 1 : 0, hx = Math.sin(yaw) * on, hz = Math.cos(yaw) * on;
+    const bad = () => this.unfit(p.x + tx, p.z + tz, p.y) || this.unfit(p.x + (m.ox + tx) / 2, p.z + (m.oz + tz) / 2, p.y)
+      || (on > 0 && (this.unfit(p.x + tx + hx, p.z + tz + hz, p.y) || this.unfit(p.x + (m.ox + tx + hx) / 2, p.z + (m.oz + tz + hz) / 2, p.y)));
     if ((tx || tz) && bad()) { const fx = tx, fz = tz; let lo = 0, hi = 1; for (let k = 0; k < 4; k++) { const f = (lo + hi) / 2; tx = fx * f; tz = fz * f; if (bad()) hi = f; else lo = f; } tx = fx * lo; tz = fz * lo; }
     m.tx = tx; m.tz = tz; m.turnTo = turn; m.rateTo = rate; m.free = rate === 1; }
   /** A checkpoint on someone's route (crowd.atGate). At a sealed boom they stop short, stand a moment and turn back: their route clock is put on
