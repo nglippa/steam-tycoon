@@ -37,8 +37,8 @@ type Person = { group: T.Group; archetype: string; manner: Manner; phase: number
 export interface Room { partner?: T.Vector3; with?: T.Group; walking?: boolean; moving?: boolean; staged?: boolean; merchant?: boolean; again?: number }
 /** One civilian's current answer to the Ordinance. o* is the eased offset from their scene position, t* its target, v* its velocity;
  * `turn` is how far they have turned from their scene's facing; `clock`/`rate` drive their route, `free` says nothing is holding it,
- * `frame` when it last ran; `flip` is a turn-about still to be taken up, `halt` a stop at a checkpoint (`at` the gate waited on, `lane` its opening). */
-interface Mind { ox: number; oz: number; vx: number; vz: number; tx: number; tz: number; turn: number; turnTo: number; clock: number; rate: number; rateTo: number; free: boolean; frame: number; flip: number; next: number; last: number; seed: number;
+ * `frame` when it last ran; `flip` is a turn-about their route made at `flipAt`, which the body is still making; `halt` a stop at a checkpoint (`at` the gate waited on). */
+interface Mind { ox: number; oz: number; vx: number; vz: number; tx: number; tz: number; turn: number; turnTo: number; clock: number; rate: number; rateTo: number; free: boolean; frame: number; flip: number; flipAt: number; next: number; last: number; seed: number;
   halt?: { until: number; turn: boolean; at?: { state: Gate } }; turned: number; waved: number;
   act: Reaction; threat?: Threat; start: number; hold: number; exit: number; amp: number; side: number; lx: number; lz: number; facing: Facing; reactRate: number;
   cross?: { c: Crossing; phase: 'go' | 'wait' | 'back'; at: number; threat: Threat; /** Since when a cart has kept them out of the next lane. */ held?: number }; /** No crossing is tried again before this. */ shy: number; group: Group; watch?: Spot; indoors: boolean }
@@ -92,7 +92,7 @@ export class City {
   /** Each civilian's answer to the Ordinance: a sidestep, a pause, a crossing, a conversation gone quiet. Written only by giveRoom. */
   private minds = new WeakMap<object, Mind>();
   private crossOk?: boolean[];
-  private mind(c: { phase: number }) { let m = this.minds.get(c); if (!m) this.minds.set(c, m = { ox: 0, oz: 0, vx: 0, vz: 0, tx: 0, tz: 0, turn: 0, turnTo: 0, clock: NaN, rate: 1, rateTo: 1, free: true, frame: -9, flip: 0, turned: -99, waved: -99, next: this.now + (c.phase * 7.13 % 1) * .3, last: this.now, seed: (c.phase * 3.71) % 1, act: 'none', start: 0, hold: 0, exit: 0, amp: 0, side: 0, lx: 0, lz: 0, facing: 'route', reactRate: 1, shy: 0, group: newGroup(), indoors: false }); return m; }
+  private mind(c: { phase: number }) { let m = this.minds.get(c); if (!m) this.minds.set(c, m = { ox: 0, oz: 0, vx: 0, vz: 0, tx: 0, tz: 0, turn: 0, turnTo: 0, clock: NaN, rate: 1, rateTo: 1, free: true, frame: -9, flip: 0, flipAt: 0, turned: -99, waved: -99, next: this.now + (c.phase * 7.13 % 1) * .3, last: this.now, seed: (c.phase * 3.71) % 1, act: 'none', start: 0, hold: 0, exit: 0, amp: 0, side: 0, lx: 0, lz: 0, facing: 'route', reactRate: 1, shy: 0, group: newGroup(), indoors: false }); return m; }
   /** A walker's own route clock: it stops when they stop, so a pause or a crossing never jumps, and afterwards it makes its way back to
    * the clock of the street `d` they belong to (crowd.stepClock; `period` is one lap of their route). Someone who was off the street
    * comes back on the street's time: nobody saw where they were. */
@@ -111,12 +111,13 @@ export class City {
    * so this is the one place a civilian's position is nudged, and it never snaps or flickers. */
   giveRoom(c: Person, dt: number, o: Room = {}) { const p = c.group.position, m = this.mind(c);
     if (!o.staged) c.group.rotation.y -= m.turn; // a static figure is not re-posed each frame: take back last frame's turn first
-    if (m.flip) { m.turn += m.flip; m.flip = 0; } // their route turned them about since last frame: the body has still to make the turn
     if (this.now >= m.next || this.now < m.last) this.decide(c, m, o);
     // Walking pace and a soft start: the offset has a velocity, capped and accelerated, never a jump.
     const cap = m.cross ? 1.25 : 1.4, acc = 3 * dt; let wx = (m.tx - m.ox) * 2.6, wz = (m.tz - m.oz) * 2.6; const l = Math.hypot(wx, wz); if (l > cap) { wx *= cap / l; wz *= cap / l; }
     const ax = wx - m.vx, az = wz - m.vz, al = Math.hypot(ax, az), f = al > acc ? acc / al : 1; m.vx += ax * f; m.vz += az * f; m.ox += m.vx * dt; m.oz += m.vz * dt; p.x += m.ox; p.z += m.oz;
-    m.turn += (m.turnTo - m.turn) * Math.min(1, dt * 2.5); c.group.rotation.y += m.turn; }
+    m.turn += (m.turnTo - m.turn) * Math.min(1, dt * 2.5); c.group.rotation.y += m.turn;
+    // Their route turned them about (a sealed boom): from the next frame it faces the other way, and the body makes the turn over a second or so.
+    if (m.flip && this.now > m.flipAt) { const u = (this.now - m.flipAt) / 1.3; if (u >= 1) m.flip = 0; else c.group.rotation.y += m.flip * (1 - u * u * (3 - 2 * u)); } }
   private decide(c: Person, m: Mind, o: Room) { const now = this.now, step = Math.min(1, Math.max(0, now - m.last)); m.last = now; m.next = now + .27 + jitter(m.seed, 1) * .12;
     const p = c.group.position, yaw = c.group.rotation.y, s = this.here(p.x, p.z), occupation = s.percent / 100, level = intensity(occupation, s.crackdown, s.enforcement);
     const rs = s.routes[o.walking ? 'walker' : o.merchant ? 'merchant' : o.partner ? 'social' : 'worker'];
@@ -163,13 +164,13 @@ export class City {
    * opening, are looked over and go through. Returns true while it holds them. The gate is polled each decision, never waited on. */
   private gate(m: Mind, p: T.Vector3, yaw: number, o: Room) { const now = this.now; let h = m.halt;
     if (!h) { const cp = this.presentation?.checkpoints, hit = o.moving && cp ? cp.ahead(p.x, p.z, Math.sin(yaw), Math.cos(yaw)) : undefined, a = hit && atGate(hit.gate.state, m.seed);
-      if (!hit || !a || hit.d > a.short + .5 || hit.d < .2 || (!a.turnBack && now - m.waved < 12)) return false;
+      if (!hit || !a || hit.d > a.short + .3 || hit.d < .2 || (!a.turnBack && now - m.waved < 12)) return false;
       if (a.turnBack) h = o.again && now - m.turned > 25 ? { until: now + a.pause, turn: true, at: hit.gate } : { until: Infinity, turn: false, at: hit.gate };
       else { h = { until: Math.max(now, hit.gate.busy[hit.lane]) + a.pause, turn: false }; hit.gate.busy[hit.lane] = h.until; m.waved = h.until; }
       m.halt = h; }
     else if (h.at && h.at.state !== 'sealed') { m.halt = undefined; return false; } // the boom went up while they stood there
     else if (now >= h.until) { if (!h.turn) { m.halt = undefined; return false; }
-      h.turn = false; h.until = now + 1.1; m.clock += o.again ?? 0; m.flip = (jitter(m.seed, 14) < .5 ? -1 : 1) * Math.PI; m.turned = now; }
+      h.turn = false; h.until = now + 1.2; m.clock += o.again ?? 0; m.flip = (jitter(m.seed, 14) < .5 ? -1 : 1) * Math.PI; m.flipAt = m.turned = now; }
     m.turnTo = 0; m.rateTo = 0; m.free = false; return true; }
 
   /** No place to step aside into: a wall or a prop, or one of the Great Main's two cart lanes (which swing out at the checkpoint: the carts' own line is asked). */

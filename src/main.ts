@@ -61,7 +61,7 @@ player.onStep = () => sound.step(); ui.onStart = () => { arrival = reducedMotion
 window.addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setPixelRatio(pixelRatio()); renderer.setSize(innerWidth, innerHeight); });
 window.addEventListener('pagehide', () => economy.save()); document.addEventListener('visibilitychange', () => { if (document.hidden) economy.save(); });
 document.addEventListener('keydown', e => { if (e.code === 'F3') { e.preventDefault(); debug = !debug; } });
-function frame(now: number) { requestAnimationFrame(frame); if ((document.hidden || !ui.started) && now-last < (document.hidden ? 250 : 1000/24)) return; const raw = (now - last) / 1000; const dt = Math.min(.05, raw); last = now; fps = T.MathUtils.lerp(fps, 1 / Math.max(.001, raw), .035); time += dt;
+function frame(now: number) { requestAnimationFrame(frame); if ((document.hidden || !ui.started) && now-last < (document.hidden ? 250 : 1000/24)) return; const raw = Math.max(0, (now - last) / 1000); /* the first frame's stamp can predate `last` (a long start-up): time never runs backwards */ const dt = Math.min(.05, raw); last = now; fps = T.MathUtils.lerp(fps, 1 / Math.max(.001, raw), .035); time += dt;
   // Sustained slow frames (under ~50 a second for a couple of seconds, not one hitch): give up a fifth of the pixels.
   if (ui.started && !document.hidden && !reviewMode) { slow = raw > 1 / 50 && raw < .25 ? slow + raw : Math.max(0, slow - raw * 2); if (slow > 2 && strain > .4) { strain *= .8; slow = 0; renderer.setPixelRatio(pixelRatio()); } }
   if (ui.started) { economy.tick(raw); autosave += dt; if (autosave >= 10) { autosave = 0; economy.save(); } }
