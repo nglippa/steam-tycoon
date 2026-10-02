@@ -13,6 +13,7 @@ import { animateLife, sceneFor, stageCitizen, setLifeConditions, setSocialField,
 import { DISTRICTS, BANDS, bandOf, population, admits, districtAt, isOccupier, standingOf, seedOf, gateState, makeRoom, type DistrictId, type Band, type Enforcement, type Standing, type Incident, type Importance, type Gate, type Manner, type Tone } from '../simulation/occupation';
 import { TerraEdge, TERRACE as EDGE_TERRACE, CHASM, GALLERY, WEST_EDGE } from './terra-edge';
 import { Economy, PROPERTIES, SITE_LIBERATED, SITE_RESTORED, type PropertyId, type SiteId } from '../simulation/economy';
+import { Traffic } from './traffic';
 export interface Collider { minX: number; maxX: number; minZ: number; maxZ: number; height: number; base?: number; gate?: string; open?: () => boolean }
 /** A walkable surface above or below the street: a roof, a catwalk, a pier past the rim.
  * `y1` makes it a stair or ramp, rising from `y` at the low end of `axis` to `y1` at the high end. */
@@ -352,8 +353,10 @@ export class City {
       if(profile.activity==='read'){const ledger=new T.Group();ledger.position.set(0,1.2,.29);ledger.rotation.x=-.55;npc.body.add(ledger);box(ledger,0,0,0,.27,.035,.32,mats.cream);asProp(ledger);bake(ledger);}
       this.root.add(npc.group);this.npcs.push(npc);
     }
-    for (let i = 0; i < 3; i++) { const cart = new T.Group(); box(cart, 0, .65, 0, 1.3, .25, 2); for (const x of [-.65, .65]) box(cart, x, 1, 0, .1, .65, 2); crate(cart, 0, .8, -.3, .7); barrel(cart, 0, .8, .55); const wheels: T.Group[] = []; for (const x of [-.85, .85]) { const wheel = new T.Group(); wheel.position.set(x, .45, 0); wheel.rotation.y = Math.PI / 2; cart.add(wheel); torus(wheel, 0, 0, 0, .43, .075, mats.iron); for (let j = 0; j < 4; j++) box(wheel, 0, 0, 0, .77, .045, .06, mats.brass).rotation.z = j * Math.PI / 4; asProp(wheel); bake(wheel); wheels.push(wheel); } this.cartWheels.push(wheels); asProp(cart); this.root.add(cart); this.carts.push(cart); }
+    this.traffic = new Traffic(this);
   }
+  /** The Great Main's carts, which stop where the checkpoint says (src/world/traffic.ts). */
+  traffic!: Traffic;
   propertyUpgrade(id: PropertyId) { const v = this.properties.get(id)!; const level = this.economy.state.properties[id].level; v.level = level; this.disposeGroup(v.additions); const g = v.additions;
     // Shop windows: boarded while derelict, then stocked with the trade's own goods.
     const index = PROPERTIES.findIndex(p => p.id === id);
@@ -457,7 +460,7 @@ export class City {
       animateLife(npc,alone?(isOccupier(npc.archetype)?'guard':'walk'):scene.activity,dt,time,calm,this.viewer,target,speaking,moving);
     }
     this.crowd.update();
-    this.carts.forEach((cart, i) => { cart.visible = i <= this.economy.stage; const speed = 1.1 + this.economy.state.infrastructure.roads * .3; cart.position.set(i % 2 ? -2.8 : 2.8, .18, 60 - (time * speed + i * 38) % 118); for (const wheel of this.cartWheels[i]) wheel.rotation.x = -time * speed / .43; });
+    this.traffic.update(dt);
     this.airship.position.set(Math.sin(time * .007) * 85, 46 + Math.sin(time * .04), -95 + Math.cos(time * .007) * 15); this.airship.rotation.y = -.1; this.tram.position.x = (time * (this.economy.stage>=3?4.5:2.5)) % 240 - 120;
     for (const hand of this.clockHands) hand.parent!.rotation.z = this.economy.state.infrastructure.steam > 0 ? -this.economy.state.day * Math.PI * 48 : -.4;
     if (this.finchLift) { const u = (time * .06) % 2, pp = u < 1 ? u : 2 - u; this.finchLift.position.y = 14.4 + 9 * pp * pp * (3 - 2 * pp); }
