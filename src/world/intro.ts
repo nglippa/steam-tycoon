@@ -26,7 +26,7 @@ export class Intro {
   private t = 0; private k = 0; private dawdle = 0; private time = 0; private leaf = 0; private hold = 0; private steps = 0; private stepT = 0; private again = 0; private againT = 0; private path: [number, number][] = [];
   private cut = document.createElement('div'); private guards: Figure[] = []; private stranger?: Figure;
   constructor(private o: { economy: Economy; city: City; player: Player; ui: Interface; sound: Soundscape; dialogue: Dialogue; reducedMotion: () => boolean; enabled: boolean }) {
-    this.cut.id = 'cut'; document.body.append(this.cut); o.dialogue.onSkip = () => this.skip(); o.ui.onDoor = () => this.answerDoor(); }
+    this.cut.id = 'cut'; o.ui.app.append(this.cut); o.dialogue.onSkip = () => this.skip(); o.ui.onDoor = () => this.answerDoor(); }
   private get roof() { return this.o.city.presentation.roofwalk; }
   private get figures() { return this.stranger ? [...this.guards, this.stranger] : []; }
   /** The three scene figures, made the first time they are needed and hidden between uses. */
@@ -36,9 +36,9 @@ export class Intro {
     const mask = new T.Mesh(new T.CylinderGeometry(.205, .17, .15, 16, 1, true, -Math.PI * .62, Math.PI * 1.24), illustrated(new T.MeshStandardMaterial({ color: '#3b3a40', side: T.DoubleSide }))); mask.position.y = -.14; this.stranger.p.head.add(mask); }
   /** A new stewardship starts here. Nothing else starts the scene: not the frame loop, not a view, not a save that has seen it. */
   begin() { const { economy, player, dialogue } = this.o; if (!this.o.enabled || economy.state.intro.played) return; this.cast();
-    this.active = true; this.answer = null; this.t = this.k = this.dawdle = this.leaf = this.steps = this.again = this.hold = 0; this.beat = 'black'; dialogue.live = true;
+    this.active = true; this.answer = null; this.t = this.k = this.dawdle = this.leaf = this.steps = this.stepT = this.again = this.againT = this.hold = 0; this.path = []; this.beat = 'black'; dialogue.end(); dialogue.live = true;
     document.body.classList.add('scene'); this.cut.classList.add('now', 'on'); economy.state.day = dayAt(6, 20);
-    for (const f of this.figures) f.p.group.visible = false;
+    for (const f of this.figures) { f.p.group.visible = false; f.moving = false; } this.stranger!.act = 'sit';
     const d = this.roof.door; d.shut = true; d.awaiting = false; d.leaf.visible = true; d.leaf.rotation.y = 0; this.roof.chalkMark.visible = false;
     player.teleport(-2.8, 5.55, Math.PI / 2, F + 1.75); player.pitch = -.03; player.riding = true; player.only = null; }
   /** Turn the view toward a point: a cut under reduced motion, an ease otherwise. */
@@ -51,7 +51,7 @@ export class Intro {
   private ask(node: 'guard' | 'porch', done: () => void, speaker?: Figure) { this.o.dialogue.ask(SCRIPT.find(s => s.id === node)!.choices, (c: Choice) => { if (node === 'porch') this.answer = c.id; this.say(c.reply, done, speaker); }); }
   private to(beat: Beat) { this.beat = beat; this.t = 0; }
   /** The door is answered: it opens on the two men who were knocking. */
-  answerDoor() { if (this.beat !== 'room') return; const { player } = this.o, d = this.roof.door; d.awaiting = false; d.shut = false; player.only = null; player.riding = true; this.o.sound.door();
+  answerDoor() { if (this.beat !== 'room') return; const { player } = this.o, d = this.roof.door; d.awaiting = false; d.shut = false; player.only = null; player.riding = true; this.again = 0; this.o.sound.door();
     this.guards[0].p.group.position.set(-7.1, F, 4.9); this.guards[1].p.group.position.set(-8.3, F, 5.15); for (const f of this.guards) { f.p.group.rotation.y = Math.PI / 2; f.p.group.visible = true; f.act = 'guard'; f.moving = false; } this.to('open'); }
   update(dt: number, time: number) { if (this.beat === 'idle' || !dt) return; this.time = time; this.t += dt; const { player, sound, dialogue } = this.o, calm = this.o.reducedMotion(), d = this.roof.door; dialogue.update(dt);
     if (this.beat === 'black') { while (this.k < KNOCKS.length && this.t > KNOCKS[this.k]) sound.knock(this.k++ >= 3);
@@ -61,7 +61,7 @@ export class Intro {
       if (this.t > 1.1) { this.to('guards'); this.say(SCRIPT[0].lines, () => this.ask('guard', () => this.to('leave'), this.guards[0]), this.guards[0]); } }
     else if (this.beat === 'leave') { const [a, b] = this.guards; this.face(a.p.group.position.x, a.p.group.position.z, dt);
       if (this.t > .6) { a.act = b.act = 'walk'; this.stepT -= dt; if (this.stepT <= 0 && this.steps === 0) { this.stepT = .4; sound.step(.03); }
-        if (this.go(a, -14.4, 4.95, F, dt, 2.9) && this.go(b, -14.4, 5.15, F, dt, 2.7)) { for (const f of this.guards) f.p.group.visible = false; this.steps = 7; this.stepT = 0; this.stranger!.p.group.position.copy(SEAT); this.stranger!.p.group.rotation.y = -Math.PI / 2; this.stranger!.p.group.visible = true; player.riding = false; this.to('walk'); } } }
+        if (this.go(a, -14.4, 4.95, F, dt, 2.9) && this.go(b, -14.4, 5.15, F, dt, 2.7)) { for (const f of this.guards) f.p.group.visible = false; this.steps = 7; this.stepT = 0; this.stranger!.p.group.position.copy(SEAT); this.stranger!.p.group.rotation.y = -Math.PI / 2; this.stranger!.p.group.visible = true; player.riding = false; player.only = 'scene'; this.to('walk'); } } }
     else if (this.beat === 'walk') { const g = this.stranger!.p.group.position; if (player.position.x < -17.4 && player.position.y < 3 && Math.hypot(player.position.x - g.x, player.position.z - g.z) < 3.5) { player.riding = true; player.velocity.set(0, 0, 0); this.to('porch'); this.say(SCRIPT[1].lines, () => this.ask('porch', () => this.farewell())); } }
     else if (this.beat === 'porch') this.face(SEAT.x, SEAT.z, dt, 4, SEAT.y + .85);
     else if (this.beat === 'after') this.leaveStranger(dt);
@@ -80,5 +80,5 @@ export class Intro {
     d.shut = d.awaiting = false; d.leaf.visible = false; player.only = null; player.riding = false; player.velocity.set(0, 0, 0); this.cut.classList.remove('on'); this.steps = this.again = 0; economy.finishIntro(this.answer);
     document.body.classList.remove('scene'); ui.tracked = 'scrap'; ui.toast(OBJECTIVE, 7000); if (skipped) dialogue.end(); else { dialogue.hide(); dialogue.live = false; dialogue.showTitle(); } }
   /** Skip, from any beat: the save is marked, everything off, the Steward on the stoop with the mark on the post. */
-  skip() { if (!this.active) return; this.release(true); for (const f of this.figures) f.p.group.visible = false; this.beat = 'idle'; this.roof.chalkMark.visible = true; this.o.player.teleport(-16.9, -2.65, Math.PI); this.o.player.pitch = -.03; }
+  skip() { if (!this.active) return; this.release(true); for (const f of this.figures) f.p.group.visible = false; this.beat = 'idle'; this.roof.chalkMark.visible = true; this.o.player.teleport(-16.7, -2.35, Math.PI / 2); this.o.player.pitch = -.03; }
 }

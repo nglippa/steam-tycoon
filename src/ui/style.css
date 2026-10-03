@@ -118,6 +118,7 @@ body.touch #ward-mini{display:block}
 #hud,#hud-bottom,#tracked{transition:opacity 1.2s ease}
 body.scene #hud,body.scene #hud-bottom,body.scene #tracked,body.scene #toast,body.scene .touch-ledger{opacity:0;visibility:hidden;pointer-events:none}
 body.scene.dialogue #touch{display:none!important}
+body.scene .pause{z-index:10}body.scene .pause [data-action=ledger],body.scene .pause [data-action=settings]{display:none}
 #dialogue{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);width:min(640px,calc(100vw - 32px));z-index:9;display:flex;flex-direction:column;gap:10px;align-items:stretch}
 #dialogue[hidden]{display:none}
 .dlg-card{pointer-events:auto;background:var(--terra-paper);border:2px solid var(--terra-ink);box-shadow:3px 4px 0 var(--terra-ink);color:var(--terra-ink);padding:12px 18px 10px;cursor:pointer}
