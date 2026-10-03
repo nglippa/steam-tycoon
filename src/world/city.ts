@@ -104,7 +104,7 @@ export class City {
   private indoors(c: { phase: number; group: T.Group }, index: number, transit: boolean, d: DistrictId) { const m = this.mind(c), want = transit && routeLeg(index, Number.isNaN(m.clock) ? this.street[d] : m.clock) === 'back';
     if (want !== m.indoors && (c.group.position.x - this.viewer.x) ** 2 + (c.group.position.z - this.viewer.z) ** 2 > 24 * 24) m.indoors = want; return m.indoors; }
   /** Someone who has left the street drops whatever they were doing about the Ordinance. */
-  private forget(c: object) { const m = this.minds.get(c); if (!m) return; m.cross = m.halt = undefined; m.act = 'none'; m.threat = undefined; m.ox = m.oz = m.vx = m.vz = m.tx = m.tz = m.turn = m.turnTo = m.flip = 0; m.rate = m.rateTo = 1; m.free = true; }
+  private forget(c: object) { const m = this.minds.get(c); if (!m) return; m.cross = m.halt = undefined; m.act = 'none'; m.threat = undefined; m.ox = m.oz = m.vx = m.vz = m.tx = m.tz = m.turn = m.turnTo = m.flip = 0; m.rate = m.rateTo = 1; m.free = true; const n = c as { motion?: { prevX: number } }; if (n.motion) n.motion.prevX = NaN; }
   /** People make room for the Ordinance: a step to the side of a walking patrol's line, a wide margin round a post, a wait before an inspector,
    * a crossing to the other kerb, a conversation that stops. Call it after the person has been put where their scene says.
    * Decisions are made three times a second, each person on their own beat; between them the body only eases toward the last answer,
@@ -607,6 +607,6 @@ export class City {
     for (const hand of this.clockHands) hand.parent!.rotation.z = this.economy.state.infrastructure.steam > 0 ? -this.economy.state.day * Math.PI * 48 : -.4;
     if (this.finchLift) { const u = (time * .06) % 2, pp = u < 1 ? u : 2 - u; this.finchLift.position.y = 14.4 + 9 * pp * pp * (3 - 2 * pp); }
 
-    for (let i = this.constructions.length - 1; i >= 0; i--) { const c = this.constructions[i]; c.time += dt; for (const w of c.workers) w.arms[0].rotation.x = -1 + Math.sin(time * 14) * .7; if (c.time >= c.duration) { c.finish(); this.root.remove(c.group); this.constructions.splice(i, 1); } }
+    for (let i = this.constructions.length - 1; i >= 0; i--) { const c = this.constructions[i]; c.time += dt; for (const w of c.workers) w.arms[0].rotation.x = -1 + Math.sin(time * 14) * .7; if (c.time >= c.duration) { c.finish(); this.root.remove(c.group); for (const w of c.workers) (w.face.material as T.Material).dispose(); this.constructions.splice(i, 1); } }
   }
 }

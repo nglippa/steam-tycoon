@@ -1,8 +1,8 @@
 import * as T from 'three';
 import type { Citizen, Expression } from './citizens';
 import type { Archetype } from './palette';
-import { walk, pose, legZ, STANCE, REST, type Params } from '../simulation/gait';
-import { isOccupier, conduct, bodyFor, faceAllowed, moodOfTone, stepMood, type Trait, type MoodIn } from '../simulation/occupation';
+import { walk, advance, MIN, pose, legZ, STANCE, REST, type Params } from '../simulation/gait';
+import { isOccupier, conduct, bodyFor, faceAllowed, moodOfTone, stepMood, nearBand, type Trait, type MoodIn } from '../simulation/occupation';
 export type Activity='talk'|'browse'|'guard'|'carry'|'walk'|'read'|'hammer'|'sweep'|'warm'|'gauge'|'valve'|'argue'|'sit'|'eat'|'lean'|'watch'|'clipboard'|'repair';
 /** `seed` and `trait` cast one scene by hand: who is let out (0..1, low is out in a harder street) and how they carry themselves. */
 type Scene={x:number;z:number;yaw:number;role:Archetype;activity:Activity;partner?:number;target?:[number,number];route?:number;speed?:number;seed?:number;trait?:Trait};
@@ -66,7 +66,7 @@ const personality:Record<string,{cad:number;arm:number;lean:number;stride:number
   resident:{cad:.95,arm:.28,lean:.04,stride:.4,gesture:1.1},ordinal:{cad:.84,arm:.14,lean:-.03,stride:.47,gesture:.35},courier:{cad:1.18,arm:.42,lean:.1,stride:.48,gesture:1}};
 const ease=(x:number)=>x*x*(3-2*x),clamp01=(x:number)=>Math.min(1,Math.max(0,x));
 /** `LEG` is the stride constant: the cycle covers 2*LEG*A/STANCE metres whatever the stance fraction (it is what the stride was before the ankle). */
-const LEG=.84,gait=pose(),walking:Params={stance:STANCE,reach:0,clear:.07,knee:1,heel:1,pelvis:1};
+const LEG=.84,gait=pose(),walking:Params={stance:STANCE,want:0,clear:.07,knee:1,pelvis:1};
 /** How a walk is carried, on one base: `s` stance fraction, `knee` stance flexion, `clear` toe clearance (x7 cm), `arm` swing, `lean` forward lean, `pel` pelvis motion. */
 const BASE={s:STANCE,knee:1,clear:1,arm:1,lean:0,pel:1},PATROL={...BASE,clear:.8,arm:.55,lean:-.01,pel:.9},WEARY={s:.64,knee:.7,clear:.6,arm:.8,lean:.05,pel:.8},HURRIED={s:.58,knee:1.1,clear:1,arm:1.2,lean:.03,pel:.9};
 const GAIT:Record<string,typeof BASE>={hurried:HURRIED,nervous:{...HURRIED,clear:.95,lean:.02},tired:WEARY,weary:{...WEARY,arm:.6}};
@@ -79,30 +79,34 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
   const pos=n.group.position,yaw=n.group.rotation.y;
   // Who this is and where they stand decides what the body may do: the Ordinance never waves, and nobody does with the Ordinance watching.
   let field=fields.get(n);if(!field||time-field.at>.5||time<field.at){field={at:time+(n.phase%.4),social:socialAt(pos.x,pos.z,n)};fields.set(n,field);
-    const d2=(player.x-pos.x)**2+(player.z-pos.z)**2,sc=field.social;moodIn.archetype=n.archetype;moodIn.trait=mn.trait;moodIn.pick=m.pick;moodIn.pressure=sc.pressure;moodIn.watched=sc.watched;moodIn.activity=activity;moodIn.weariness=weariness;moodIn.near=d2<16?2:d2<81?1:0;moodIn.tone=n.tone&&time<n.tone.until?n.tone.tone:undefined;moodIn.react=sc.react??0;stepMood(m.mood,moodIn,time);}
+    const d2=(player.x-pos.x)**2+(player.z-pos.z)**2,sc=field.social;moodIn.archetype=n.archetype;moodIn.trait=mn.trait;moodIn.pick=m.pick;moodIn.pressure=sc.pressure;moodIn.watched=sc.watched;moodIn.activity=activity;moodIn.weariness=weariness;moodIn.near=m.mood.near=nearBand(m.mood.near,Math.sqrt(d2));moodIn.tone=n.tone&&time<n.tone.until?n.tone.tone:undefined;moodIn.react=sc.react??0;stepMood(m.mood,moodIn,time);}
   const occupier=isOccupier(n.archetype),cd=conduct(n.archetype,mn,field.social.pressure,field.social.watched),spoken=n.tone&&time<n.tone.until?bodyFor(n.archetype,n.tone.tone):undefined;
   if(!cd.talks)speaking=false;
   // Gait comes from real velocity, so route easing produces anticipation and settling.
   if(Number.isNaN(m.prevX)){m.prevX=pos.x;m.prevZ=pos.z;m.prevYaw=yaw;}
-  const step=Math.max(dt,1e-4),dist=Math.hypot(pos.x-m.prevX,pos.z-m.prevZ),moved=Math.min(dist,3.2*step),speed=dist/step,turnRate=angle(yaw-m.prevYaw)/step;m.prevX=pos.x;m.prevZ=pos.z;m.prevYaw=yaw;
+  let step=Math.max(dt,1e-4),dist=Math.hypot(pos.x-m.prevX,pos.z-m.prevZ);
+  // A jump of more than three quarters of a metre in one frame is a re-pose (a scene change, someone let back out), not a walk: it is not fed into the gait.
+  if(dist>.75)dist=0;
+  const moved=Math.min(dist,3.2*step),speed=dist/step,turnRate=angle(yaw-m.prevYaw)/step;m.prevX=pos.x;m.prevZ=pos.z;m.prevYaw=yaw;
   const accel=(speed-m.speed)/step;m.speed+=(Math.min(speed,3)-m.speed)*Math.min(1,dt*8);m.turn+=(turnRate-m.turn)*Math.min(1,dt*6);
   const turning=Math.abs(m.turn)>.25&&m.speed<.1,target_g=clamp01(m.speed/.35)+(turning?.35:0);m.gait+=(Math.min(1,target_g)-m.gait)*Math.min(1,dt*5);
   const g=calm?m.gait*.5:m.gait,load=activity==='carry'?1.25:1;
   // Planted feet: the cycle clock runs on distance walked, so the stance foot moves backward exactly as far as the body moves forward
   // (gait.ts pins the sole to the ground and builds the leg around it), through every start, stop and hurry. Turning in place steps on the spot.
-  const hobble=n.skirt.drop>.3?.86:1,A=turning?.13:Math.min(.42,Math.max(.12,.16+.3*m.speed))*(pr.stride/.44)*hobble;
-  // The half-sweep of a stance follows the speed slowly (a quick change would drag the planted foot), and the clock is solved from it.
-  const gp=GAIT[mn.trait]??(occupier?PATROL:BASE),want=turning?0:LEG*A*gp.s/STANCE;m.reach=m.reach<0?want:m.reach+(want-m.reach)*Math.min(1,dt*2);
-  const reach=m.reach;m.stride+=turning?dt*2.4*pr.cad:Math.PI*moved*gp.s/Math.max(reach,.06);
+  // Stride keeps lengthening above a brisk walk (the intro's guards leave at 2.9 m/s), so cadence stays that of a walk, then a stride.
+  const hobble=n.skirt.drop>.3?.86:1,A=turning?.13:Math.min(.6,(Math.min(.42,Math.max(.12,.16+.3*m.speed))+Math.max(0,m.speed-1.2)*.1)*(pr.stride/.44)*hobble);
+  // Each leg's sweep is latched at its own heel strike and its planted foot is pinned by the distance walked (gait.ts), so it stays put through starts, stops and turns.
+  const gp=GAIT[mn.trait]??(occupier?PATROL:BASE),want=turning?MIN:LEG*A*gp.s/STANCE;
+  m.stride=Math.PI*2*advance(m.latch,m.stride/(Math.PI*2),moved,dt,want,gp.s,turning?2.4*pr.cad/(Math.PI*2):0);
   const c=m.stride,seated=activity==='sit'||activity==='eat',tired=weariness*(activity==='guard'?.3:1);
-  const w=seated?0:clamp01(g/.35),q=clamp01(reach/.1);
-  walking.stance=gp.s;walking.reach=reach;walking.clear=.07*gp.clear*(.5+.5*q);walking.knee=gp.knee*(load>1?1.15:1);walking.heel=q;walking.pelvis=gp.pel;walk(walking,c/(Math.PI*2),gait);
+  const w=seated?0:clamp01(g/.35),q=clamp01((want-MIN)/.1);
+  walking.stance=gp.s;walking.want=want;walking.clear=.07*gp.clear*(.5+.5*q);walking.knee=gp.knee*(load>1?1.15:1);walking.pelvis=gp.pel;walk(walking,m.latch,c/(Math.PI*2),gait);
   const twist=gait.yaw*w,roll=gait.roll*w;
   // Idle weight transfer holds on one leg, then shifts: never a metronome.
   const shift=Math.tanh(3*Math.sin(phase*.21+n.phase))*(1-g)*(occupier&&mn.trait!=='bored'?.4:1);
   // The pelvis rides the height the stance legs allow, sways over the planted foot, drops on the swing side and turns with the stride;
   // the thorax answers against it (figure-construction: contrapposto), so the walk has torsion and not a rigid block.
-  n.body.position.set(shift*.022+w*gait.sway,bodyHeight+w*(gait.H-REST+.13*(1-1/n.group.scale.y)/* the pavement sits .13 under the origin, in the figure's own scale */)-(seated?.46:0)+breath*.003*(1-g),0);
+  n.body.position.set(shift*.022+w*gait.sway,bodyHeight+w*(gait.H-REST)+.13*(1-1/n.group.scale.y)/* the pavement sits .13 under the origin, in the figure's own scale */-(seated?.46:0)+breath*.003*(1-g),0);
   n.body.rotation.set(g*(pr.lean+tired*.05)+w*gp.lean+(1-g)*tired*.06-(activity==='lean'?.07:0)-(activity==='carry'?.08:0)+(seated?-.06:0),-.7*twist+m.turn*.06,shift*.025-.5*roll);
   n.legs.forEach((leg,k)=>{leg.position.y=hipHeight-(seated?.46:0);
     if(seated){leg.position.z=0;leg.rotation.set(-1.42,0,(k?-1:1)*.06);n.knees[k].rotation.x=1.4+(activity==='eat'&&k?Math.sin(phase)*.05:0);n.ankles[k].rotation.x=0;return;}
@@ -112,7 +116,7 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
   // Arms oppose the legs and hang slightly away from the body. The forearm drags behind the
   // swing (the elbow bends as the arm comes forward, a beat late), and the back swing arcs out
   // so the hands clear the hips (figure-construction: motion).
-  n.arms.forEach((arm,k)=>{const z=Math.max(-1.3,Math.min(1.3,gait.thigh[k]/Math.max(.12,reach/.9)))*w*q,drag=legZ(c/(Math.PI*2)+k*.5-.095,gp.s),out=k?1:-1;arm.rotation.set(pr.arm*gp.arm*z-.05+breath*.008,0,out*(.06+tired*.03+g*.05*Math.max(0,z)));n.elbows[k].rotation.x=-.16-g*(.1+.3*Math.max(0,-drag))-(1-g)*.03*Math.sin(phase*.7+k);});
+  n.arms.forEach((arm,k)=>{const z=Math.max(-1.3,Math.min(1.3,gait.thigh[k]/Math.max(.12,m.latch[k]/.9)))*w*clamp01((m.latch[k]-MIN)/.1),drag=legZ(c/(Math.PI*2)+k*.5-.095,gp.s),out=k?1:-1;arm.rotation.set(pr.arm*gp.arm*z-.05+breath*.008,0,out*(.06+tired*.03+g*.05*Math.max(0,z)));n.elbows[k].rotation.x=-.16-g*(.1+.3*Math.max(0,-drag))-(1-g)*.03*Math.sin(phase*.7+k);});
   let expression=m.mood.mood as Expression;
   let nod=0,tilt=0;
   if(activity==='talk'||activity==='browse'||activity==='argue'){
@@ -213,11 +217,12 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
   // (legs tilt so the feet stay planted) instead of sliding the torso off the thighs.
   // The pelvis group takes the body's lean and sway, plus the stride's own yaw and roll (the thorax holds the opposite share).
   const sway=n.body.position.x,pelvis=hipHeight-bodyHeight;n.pelvis.position.copy(n.body.position);n.pelvis.rotation.set(n.body.rotation.x,n.body.rotation.y+1.7*twist,n.body.rotation.z+1.5*roll);
-  for(const o of [n.body,n.pelvis]){pelvisPoint.set(0,pelvis,0).applyEuler(o.rotation);o.position.x-=pelvisPoint.x;o.position.y+=pelvis-pelvisPoint.y;o.position.z-=pelvisPoint.z;}
+  pelvisPoint.set(0,pelvis,0).applyEuler(n.body.rotation);n.body.position.x-=pelvisPoint.x;n.body.position.y+=pelvis-pelvisPoint.y;n.body.position.z-=pelvisPoint.z;
+  pelvisPoint.set(0,pelvis,0).applyEuler(n.pelvis.rotation);n.pelvis.position.x-=pelvisPoint.x;n.pelvis.position.y+=pelvis-pelvisPoint.y;n.pelvis.position.z-=pelvisPoint.z;
   // The legs hang from the pelvis: each hip pivot is the pelvis's own hip point, carried by its sway, lean, twist and bob, so the two can never come apart.
   // The thighs keep the line of walk (the foot is not swung round by the pelvis) and the weight-shift tilt keeps the planted feet in place.
   n.legs.forEach(leg=>{hipPoint.set(leg.userData.hipX??=leg.position.x,pelvis,0).applyEuler(n.pelvis.rotation).add(n.pelvis.position);leg.position.copy(hipPoint);
-    leg.rotation.y=(1-w)*n.pelvis.rotation.y;if(!seated)leg.rotation.z-=sway/LEG;});
+    leg.rotation.y=(1-w)*n.pelvis.rotation.y;if(!seated)leg.rotation.z-=sway/REST;});
   // Head stabilization: the head cancels torso lean and twist.
   const blend=1-Math.exp(-dt*(occupier?8:4));n.head.rotation.y=T.MathUtils.lerp(n.head.rotation.y,T.MathUtils.clamp(headYaw-n.body.rotation.y,occupier?-.85:-.6,occupier?.85:.6),blend);
   n.head.rotation.x=T.MathUtils.lerp(n.head.rotation.x,pitch-n.body.rotation.x*.8+nod+(speaking?Math.sin(phase*2)*.03:0),blend);

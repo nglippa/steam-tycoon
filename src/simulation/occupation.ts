@@ -169,7 +169,7 @@ const WORK = new Set(['hammer', 'repair', 'valve', 'read', 'gauge', 'clipboard']
  * a free one is warm. The Ordinance draws only from its own vocabulary. Pure: `pick` is the only dice. */
 export function moodFor(i: MoodIn): Mood {
   if (i.tone) return moodOfTone(i.archetype, i.tone);
-  if (isOccupier(i.archetype)) return i.activity === 'argue' ? 'barking' : roll(ODDS[i.trait][i.near], i.pick);
+  if (isOccupier(i.archetype)) return i.activity === 'argue' ? 'barking' : roll((ODDS[i.trait] ?? ODDS.rigid)[i.near], i.pick);
   if (i.startled) return 'startled'; if (i.worried) return 'worried';
   const t = i.trait, p = i.pressure, w = i.weariness;
   if (i.watched || p >= .6) return t === 'nervous' ? (i.pick < .6 ? 'worried' : 'guarded') : t === 'proud' ? 'stern' : p >= .6 && i.pick < .3 ? 'worried' : 'guarded';
@@ -181,8 +181,10 @@ export function moodFor(i: MoodIn): Mood {
   return t === 'sociable' ? (i.pick < .7 ? 'smiling' : 'relaxed') : t === 'curious' ? 'curious' : t === 'tired' ? (w > .3 ? 'tired' : 'relaxed') : t === 'hurried' || t === 'nervous' ? 'neutral' : 'relaxed';
 }
 /** One person's mood over time: they hold a face for seconds, and change it only when it runs out or the street around them changes. */
-export interface MoodState { mood: Mood; until: number; min: number; key: number; n: number; reactAt: number; last: number; peak: number }
-export const newMood = (): MoodState => ({ mood: 'neutral', until: 0, min: 0, key: -1, n: 0, reactAt: -1e9, last: -1e9, peak: 0 });
+export interface MoodState { mood: Mood; until: number; min: number; key: number; n: number; reactAt: number; last: number; peak: number; near: 0 | 1 | 2 }
+export const newMood = (): MoodState => ({ mood: 'neutral', until: 0, min: 0, key: -1, n: 0, reactAt: -1e9, last: -1e9, peak: 0, near: 0 });
+/** Which band of the Steward's distance (m) someone is in, with a margin so hovering at an edge does not flicker: in at 4 and 9, out at 5 and 10.5. */
+export const nearBand = (prev: 0 | 1 | 2, d: number): 0 | 1 | 2 => prev === 2 ? (d < 5 ? 2 : d < 10.5 ? 1 : 0) : prev === 1 ? (d < 4 ? 2 : d < 10.5 ? 1 : 0) : (d < 4 ? 2 : d < 9 ? 1 : 0);
 /** The 2 Hz step. `react` is 0 none, 1 stepping aside / pausing / crossing, 2 a fresh incident: startled for a moment, worried for a while after.
  * The state changes only on a threshold crossing (pressure .2/.6, watched, near, a fright, a line of speech), never by cycling. */
 export function stepMood(s: MoodState, i: Omit<MoodIn, 'startled' | 'worried'> & { react: number }, time: number): Mood {
@@ -192,7 +194,7 @@ export function stepMood(s: MoodState, i: Omit<MoodIn, 'startled' | 'worried'> &
   const changed = key !== s.key; s.key = key;
   if (time >= s.until || (changed && (startled || i.tone || time >= s.min))) {
     s.n++; s.mood = moodFor({ ...i, startled, worried, pick: (i.pick + s.n * .618) % 1 });
-    s.until = time + (startled ? (s.peak > 1 ? 2.5 : .9) : 2.5 + i.pick * 3.5); s.min = time + (startled ? 0 : 1.2);
+    s.until = time + (startled ? (s.peak > 1 ? 2.5 : .9) : 2.5 + i.pick * 3.5); s.min = time + (startled ? 0 : 2.5);
   }
   return s.mood;
 }

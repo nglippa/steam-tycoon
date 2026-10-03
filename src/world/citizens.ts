@@ -1,5 +1,6 @@
 import * as T from 'three';
 import { mannerOf, seedOf, newMood, type Tone } from '../simulation/occupation';
+import { footing } from '../simulation/gait';
 import { palette as P, wardrobes, type Archetype } from './palette';
 import { box, cyl, sphere, torus, bake, mats, thinLine, type Material } from './assets';
 import { painted } from './tone';
@@ -46,7 +47,6 @@ const LOOK = {
   relaxed: [0, 0, 1], smiling: [4, 6, 2], hopeful: [14, 6, 1], curious: [9, 5, 0], worried: [15, 2, 11], guarded: [6, 0, 4], irritated: [1, 4, 3], suspicious: [6, 5, 4], startled: [2, 1, 7], stern: [0, 4, 4], angry: [8, 3, 4], talking: [0, 0, 5],
   cold: [10, 4, 4], scrutiny: [11, 4, 4], sideeye: [12, 5, 4], impatient: [12, 4, 3], contempt: [11, 5, 8], challenge: [10, 3, 4], scan: [10, 4, 4], barking: [11, 3, 9], bored: [5, 0, 4], weary: [5, 7, 3],
 } as const satisfies Record<string, readonly [number, number, number]>;
-export const expressions = Object.keys(LOOK) as (keyof typeof LOOK)[];
 export type Expression = keyof typeof LOOK;
 const TALK = [[5, 6, -1], [9, 5, -1]];
 
@@ -241,11 +241,11 @@ function weathervaneMask(g:T.Object3D,rings:number[][],shape:(p:number[])=>numbe
   for(let r=0;r<R;r++)for(let i=0;i<C;i++){const a=r*(C+1)+i,b=a+C+1;idx.push(a,a+1,b,a+1,b+1,b);}
   for(let i=0;i<C;i++)idx.push(i,base,i+1);
   const geo=new T.BufferGeometry();geo.setAttribute('position',new T.Float32BufferAttribute(pos,3));geo.setAttribute('uv',new T.Float32BufferAttribute(uv,2));geo.setIndex(idx);geo.computeVertexNormals();
-  const cloth=new T.Mesh(geo,maskCloth);cloth.material=maskCloth;g.add(cloth);(cloth.material as T.Material).side=T.DoubleSide;
+  const cloth=new T.Mesh(geo,maskCloth);cloth.material=maskCloth;g.add(cloth);
   // The knot and its two tails, tied over the ear on one side.
   const kp=surface(-1.42,-.11,.03),knot=new T.Group();knot.position.set(kp[0],kp[1],kp[2]-.01);knot.rotation.y=-Math.PI/2;g.add(knot);
   sphere(knot,0,0,.004,.03,maskCloth).scale.set(.032,.026,.022);
-  for(const [x,len,tilt] of [[-.012,.17,.14],[.016,.12,-.2]]){const t=panel(knot,[[-.014,0],[.014,0],[.01,-len],[-.004,-len-.01]],.012,maskCloth);t.position.x=x;t.rotation.z=tilt;(t.material as T.Material).side=T.DoubleSide;}
+  for(const [x,len,tilt] of [[-.012,.17,.14],[.016,.12,-.2]]){const t=panel(knot,[[-.014,0],[.014,0],[.01,-len],[-.004,-len-.01]],.012,maskCloth);t.position.x=x;t.rotation.z=tilt;}
   // Turquoise cross-stitch on the cheek: handmade, a small mark and nothing more.
   const sp=surface(.7,-.125,.013);for(const rz of [.75,-.75]){const m=box(g,sp[0],sp[1],sp[2],.034,.006,.006,maskThread);m.rotation.set(0,.62,rz);}
 }
@@ -444,7 +444,7 @@ export function citizen(coat:Material=mats.rust,seed=0,archetype:Archetype='work
   body.position.y-=.14;pelvis.position.y-=.14;for(const leg of legs)leg.position.y-=.14;
   group.scale.set(1+(seed%4-1.5)*.03,.95+(seed%5)*.022,1);
   group.traverse(o=>{if(o instanceof T.Mesh)o.castShadow=false;});
-  const motion={stride:seed*1.3,reach:-1,gait:0,speed:0,prevX:NaN,prevZ:0,prevYaw:0,turn:0,tail:0,tailV:0,hair:0,hairV:0,tempo:.88+((seed*37)%25)/100,idle:0,drape:1,pose:null as Float32Array|null,mood:newMood(),pick:Math.abs(Math.sin(seed*12.9898+1.7)*43758.5453)%1};
+  const motion={stride:seed*1.3,latch:footing(),gait:0,speed:0,prevX:NaN,prevZ:0,prevYaw:0,turn:0,tail:0,tailV:0,hair:0,hairV:0,tempo:.88+((seed*37)%25)/100,idle:0,drape:1,pose:null as Float32Array|null,mood:newMood(),pick:Math.abs(Math.sin(seed*12.9898+1.7)*43758.5453)%1};
   return {group,body,pelvis,legs,knees,ankles,arms,elbows,grips,head,worn,finery,scarf,tails,skirt,swing,face,archetype,motion,phase:seed*1.7,expression:'neutral' as Expression,gaze:'away',manner:mannerOf(archetype,seedOf(seed)),/** A line being spoken, and until when: the body takes the register of the words (`palm`: until when a raised palm says halt). */tone:undefined as undefined|{tone:Tone;until:number;palm?:number},packed:0,
     /** Dress the face: a named look, with the eyes shut for a blink, the mouth moving (`talk` 0..2 is a frame of speech) or the eyes turned (`eye` 6 left, 7 right on the atlas). Writes only when the look changes. */
     setExpression(state:Expression,blink=false,talk=-1,eye=-1){const [e,b,m]=LOOK[state];let E:number=eye>=0?eye:e,M:number=m;if(blink&&E!==4)E=3;if(talk>=0){const t=TALK[m===9?1:0][talk];if(t>=0)M=t;}

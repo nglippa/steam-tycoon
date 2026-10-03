@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { moodFor, moodOfTone, stepMood, newMood, faceAllowed, type MoodIn, type Mood, type Trait } from '../src/simulation/occupation.ts';
+import { moodFor, moodOfTone, stepMood, newMood, nearBand, faceAllowed, type MoodIn, type Mood, type Trait } from '../src/simulation/occupation.ts';
 
 const base = (o: Partial<MoodIn> = {}): MoodIn => ({ archetype: 'resident', trait: 'reserved', pick: .5, pressure: 0, watched: false, startled: false, worried: false, activity: 'walk', weariness: 0, near: 0, ...o });
 const CIVIL: Trait[] = ['sociable', 'reserved', 'hurried', 'tired', 'nervous', 'curious', 'proud'], ORD: Trait[] = ['rigid', 'watchful', 'bored', 'weary'];
@@ -54,4 +54,16 @@ test('a reaction starts startled, decays to worried, and the street relaxes afte
 test('a heavy street at the weariest end keeps the tired minority, not a third of everyone', () => {
   let tired = 0; for (let k = 0; k < 100; k++) if (moodFor(base({ weariness: 1, trait: 'reserved', pick: k / 100 })) === 'tired') tired++;
   assert.ok(tired <= 36 && tired > 0, `tired ${tired}`);
+});
+test('someone hovering at a distance edge does not flicker: the band has a margin and a mood is held 2.5 s', () => {
+  let band: 0 | 1 | 2 = 0, flips = 0;
+  for (let k = 0; k < 400; k++) { const d = 4.5 + Math.sin(k * .9) * .45, b = nearBand(band, d); if (b !== band) flips++; band = b; }
+  assert.ok(flips <= 1, `crossed ${flips} times`);
+  band = 0; flips = 0; for (let k = 0; k < 400; k++) { const d = 9.75 + Math.sin(k * .9) * .7, b = nearBand(band, d); if (b !== band) flips++; band = b; }
+  assert.ok(flips <= 1, `outer edge crossed ${flips} times`);
+  assert.equal(nearBand(0, 3.9), 2); assert.equal(nearBand(2, 4.9), 2); assert.equal(nearBand(2, 5.1), 1); assert.equal(nearBand(1, 10.4), 1); assert.equal(nearBand(1, 10.6), 0);
+  // The Ordinance's mood changes with the band; at an edge, with a swing of dice-free input, it still holds for 2.5 s.
+  const s = newMood(); let b: 0 | 1 | 2 = 0, last = -9, gaps = 99;
+  for (let t = 0; t < 60; t += .5) { b = nearBand(b, 4.5 + Math.sin(t * 7) * .6); const m0 = s.mood, n0 = s.n; stepMood(s, { ...base({ archetype: 'guard', trait: 'watchful', pick: .4 }), near: b, react: 0 }, t); if (s.n !== n0) { gaps = Math.min(gaps, t - last); last = t; } void m0; }
+  assert.ok(gaps >= 2.5, `a mood was re-rolled after ${gaps}s`);
 });

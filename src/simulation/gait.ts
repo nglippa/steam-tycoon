@@ -6,11 +6,37 @@ export const L1 = .43, L2 = .495, SOLE = .052, HIP = .09, STANCE = .62, REST = .
 /** The boot's sole rolls on two arcs (radius `r`, centred over the flat sole at `x` ahead of the ankle): the heel's, small, and the forefoot's, wide enough to lie under the toe cap. */
 export const HEEL = { x: -.015, r: .04 }, BALL = { x: .065, r: .33 };
 const REACH = .9985 * (L1 + L2), DEG = Math.PI / 180, N = 512, TAU = Math.PI * 2;
-/** What a person's walk is made of: `reach` is half the stance sweep (m), `heel` scales the foot roll, `pelvis` scales yaw, roll and sway, `knee` the stance flexion. */
-export interface Params { stance: number; reach: number; clear: number; knee: number; heel: number; pelvis: number }
+/** What a person's walk is made of: `want` is the half-sweep of a stance (m) the speed asks for, `pelvis` scales yaw, roll and sway, `knee` the stance flexion. */
+export interface Params { stance: number; want: number; clear: number; knee: number; pelvis: number }
 /** One frame of walk. Per-leg values are [left, right]; `ankle` is the joint angle, `foot` the ground-relative pitch. `x`, `y`: ankle relative to the hip centre line, and above ground. */
 export interface Pose { H: number; yaw: number; roll: number; sway: number; thigh: Float64Array; knee: Float64Array; ankle: Float64Array; foot: Float64Array; x: Float64Array; y: Float64Array }
 export const pose = (): Pose => ({ H: REST, yaw: 0, roll: 0, sway: 0, thigh: new Float64Array(2), knee: new Float64Array(2), ankle: new Float64Array(2), foot: new Float64Array(2), x: new Float64Array(2), y: new Float64Array(2) });
+/** The least sweep, and the most one stride may change by: each heel strike takes the speed's sweep, within a factor `STEP` of the other leg's. */
+export const MIN = .06, STEP = 1.25;
+/** A walker's footing, six numbers: [0..1] each leg's sweep latched at its own heel strike (a planted foot cannot change its stride), [2..3] the distance walked since that strike,
+ * [4..5] where the foot left the ground, hip-relative. The planted foot is pinned to the ground by the distance walked, so it stays put whatever the speed does. */
+export const footing = () => new Float64Array([-1, -1, 0, 0, 0, 0]);
+const frac = (x: number) => x - Math.floor(x), heelOf = (x: number) => Math.min(1, Math.max(0, (x - MIN) / .1));
+/** The sweep a leg will latch at its next heel strike. */
+export const sweep = (st: ArrayLike<number>, leg: number, want: number) => Math.min(Math.max(want, st[1 - leg] / STEP), st[1 - leg] * STEP);
+/** Footing of a walker mid-stride at cycle phase `u`, as if it had walked steadily with sweep `x`. */
+export function settle(st: Float64Array, x: number, stance: number, u: number) {
+  for (let leg = 0; leg < 2; leg++) { const v = frac(u + .5 * leg); st[leg] = x; st[2 + leg] = v < stance ? 2 * x * v / stance : 0; st[4 + leg] = -x; }
+}
+/** Advances the cycle (in cycles, unwrapped) and the footing. Walking, the clock runs on distance, so a stance covers about twice its sweep;
+ * turning in place it runs on time (`turn`, cycles/s) and the sweeps close at once. */
+export function advance(st: Float64Array, u: number, dist: number, dt: number, want: number, stance: number, turn: number): number {
+  if (st[0] < 0) settle(st, want, stance, u);
+  const was = u;
+  if (turn > 0) { const k = Math.min(1, dt * 8); st[0] += (MIN - st[0]) * k; st[1] += (MIN - st[1]) * k; u += dt * turn; }
+  else u += dist * stance / (2 * st[frac(u) < .5 ? 0 : 1]);
+  st[2] += dist; st[3] += dist;
+  for (let leg = 0; leg < 2; leg++) {
+    if (Math.floor(u + .5 * leg) > Math.floor(was + .5 * leg)) { st[leg] = sweep(st, leg, want); st[2 + leg] = 0; }
+    else if (frac(was + .5 * leg) < stance && frac(u + .5 * leg) >= stance) st[4 + leg] = st[leg] - st[2 + leg];
+  }
+  return u;
+}
 const KNEE = [[0, 4], [.06, 18], [.2, 7], [.35, 5], [.45, 14], [.55, 35], [.62, 42], [.72, 62], [.8, 45], [.88, 20], [.96, 6], [1, 4]];
 const PITCH = [[0, -8], [.06, 0], [.12, 0], [.3, 0], [.4, 8], [.5, 16], [.62, 26], [.7, 8], [.76, 2], [.82, 0], [.9, -2], [.97, -6], [1, -8]];
 /** A monotone cubic through the knots (no overshoot in the flat stretches), closed on itself, sampled once. */
@@ -41,26 +67,26 @@ export function ik(x: number, h: number, o: Float64Array, i: number) {
 const foot0 = new Float64Array(3), foot1 = new Float64Array(3);
 /** The ankle (x, y) and foot pitch during stance (u < stance). A flat foot's ankle rides back with the ground; pitched, the sole rolls on its heel or forefoot
  * arc without slipping (the arc's centre moves r*pitch along the ground), so the material in contact stays put. */
-function planted(u: number, p: Params, o: Float64Array) {
-  const th = at(PITCH_T, u) * DEG * p.heel, a = th <= 0 ? HEEL : BALL, back = p.reach * (1 - 2 * u / p.stance), c = Math.cos(th), s = Math.sin(th);
+function planted(u: number, o: Float64Array, back: number, heel: number) {
+  const th = at(PITCH_T, u) * DEG * heel, a = th <= 0 ? HEEL : BALL, c = Math.cos(th), s = Math.sin(th);
   o[0] = back + a.x + a.r * th - a.x * c - (a.r - SOLE) * s; o[1] = a.r + a.x * s + (SOLE - a.r) * c; o[2] = th;
 }
 /** The foot's place for one leg: planted in stance, a Hermite arc from toe-off to the next contact (carrying the ground's speed at both ends) in swing. */
-function place(u: number, p: Params, o: Float64Array) {
-  if (u < p.stance) return planted(u, p, o);
-  planted(p.stance, p, foot0); planted(0, p, foot1);
-  const t = (u - p.stance) / (1 - p.stance), t2 = t * t, t3 = t2 * t, m = -2 * p.reach / p.stance * (1 - p.stance);
+function place(u: number, p: Params, st: Float64Array, o: Float64Array, leg: number) {
+  if (u < p.stance) return planted(u, o, st[leg] - st[2 + leg], heelOf(st[leg]));
+  const next = sweep(st, leg, p.want); planted(p.stance, foot0, st[4 + leg], heelOf(st[leg])); planted(0, foot1, next, heelOf(next));
+  const t = (u - p.stance) / (1 - p.stance), t2 = t * t, t3 = t2 * t, m = -(st[leg] + next) / p.stance * (1 - p.stance);
   o[0] = (2 * t3 - 3 * t2 + 1) * foot0[0] + (t3 - 2 * t2 + t) * m + (-2 * t3 + 3 * t2) * foot1[0] + (t3 - t2) * m;
-  o[1] = foot0[1] + (foot1[1] - foot0[1]) * t2 * (3 - 2 * t) + p.clear * Math.sin(Math.PI * t); o[2] = at(PITCH_T, u) * DEG * p.heel;
+  o[1] = foot0[1] + (foot1[1] - foot0[1]) * t2 * (3 - 2 * t) + p.clear * Math.sin(Math.PI * t); o[2] = at(PITCH_T, u) * DEG * (heelOf(st[leg]) + (heelOf(next) - heelOf(st[leg])) * t);
 }
 const spot = new Float64Array(3), hipUp = new Float64Array(2), gap = new Float64Array(2), YAW = .075, RHO = .0055, SWAY = .028;
 /** One pose of the walk at cycle phase `u` (the left leg's; the right is half a cycle behind). */
-export function walk(p: Params, u: number, o: Pose) {
+export function walk(p: Params, st: Float64Array, u: number, o: Pose) {
   u -= Math.floor(u); const k = p.pelvis, yaw = YAW * k * Math.cos(TAU * u), sy = Math.sin(yaw);
   o.yaw = yaw; o.sway = -SWAY * k * Math.sin(TAU * u); hipUp[0] = RHO * k * Math.sin(TAU * u); hipUp[1] = -hipUp[0]; o.roll = Math.asin(hipUp[1] / HIP);
   for (let leg = 0; leg < 2; leg++) {
     const v = u + leg * .5 - Math.floor(u + leg * .5), hz = leg ? -HIP * sy : HIP * sy;
-    place(v, p, spot); o.x[leg] = spot[0] - hz; o.y[leg] = spot[1]; o.foot[leg] = spot[2];
+    place(v, p, st, spot, leg); o.x[leg] = spot[0] - hz; o.y[leg] = spot[1]; o.foot[leg] = spot[2];
     // The stance legs set the pelvis: each, as flexed by its curve (the pre-swing bend comes out of the IK instead), can hold the hip this high; a foot that is leaving the ground (or has not yet come down) stops counting, smoothly.
     const phi = (v < .45 ? at(KNEE_T, v) : Math.min(at(KNEE_T, v), 14)) * DEG * p.knee, lift = .15 * (v < p.stance + .1 ? ramp((v - p.stance) / .1) : v < .76 ? 1 : 1 - ramp((v - .76) / .24));
     gap[leg] = spot[1] - hipUp[leg] + Math.sqrt(Math.max(L1 * L1 + L2 * L2 + 2 * L1 * L2 * Math.cos(phi) - o.x[leg] * o.x[leg], .01)) + lift;
