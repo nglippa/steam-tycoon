@@ -111,3 +111,28 @@ body.touch .hour{transform:translateX(-50%) scale(.85);transform-origin:top cent
 #ward-mini{display:none;font-weight:800;letter-spacing:.1em;white-space:nowrap;min-height:0}
 @media (max-width:900px){#ward-mini{display:block}.hour{padding:4px 10px}.hour small:empty{display:none}}
 body.touch #ward-mini{display:block}
+
+/* THE KNOCK: the opening scene. The HUD is held back until it ends; the card is the toast's paper, with a speaker and choices. */
+#cut{position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;z-index:8;transition:opacity 1.6s ease}
+#cut.on{opacity:1}#cut.now{transition:none}
+#hud,#hud-bottom,#tracked{transition:opacity 1.2s ease}
+body.scene #hud,body.scene #hud-bottom,body.scene #tracked,body.scene #toast,body.scene .touch-ledger{opacity:0;visibility:hidden;pointer-events:none}
+body.scene.dialogue #touch{display:none!important}
+#dialogue{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);width:min(640px,calc(100vw - 32px));z-index:9;display:flex;flex-direction:column;gap:10px;align-items:stretch}
+#dialogue[hidden]{display:none}
+.dlg-card{pointer-events:auto;background:var(--terra-paper);border:2px solid var(--terra-ink);box-shadow:3px 4px 0 var(--terra-ink);color:var(--terra-ink);padding:12px 18px 10px;cursor:pointer}
+.dlg-card .overline{display:block;font:800 9px "Avenir Next",sans-serif;letter-spacing:2.2px;color:var(--terra-burgundy);margin-bottom:4px}
+.dlg-card p{margin:0;font:600 17px/1.4 Georgia,serif;text-shadow:none}
+.dlg-card small{display:block;margin-top:6px;font-size:9px;letter-spacing:1.8px;color:#526c64;text-align:right}
+.dlg-choices{display:flex;flex-direction:column;gap:6px}
+.dlg-choices button{pointer-events:auto;display:flex;gap:12px;align-items:center;text-align:left;background:var(--terra-paper);border:2px solid var(--terra-ink);box-shadow:2px 3px 0 var(--terra-ink);color:var(--terra-ink);font:700 15px "Avenir Next",sans-serif;padding:10px 14px;min-height:44px;cursor:pointer}
+.dlg-choices button:hover,.dlg-choices button:focus-visible{background:#edd08a;outline:none}
+.dlg-choices kbd{font:800 11px "Avenir Next",sans-serif;border:1px solid var(--terra-ink);padding:2px 7px;background:#fff8;min-width:12px;text-align:center}
+#skip{display:none;position:fixed;right:max(16px,env(safe-area-inset-right));top:max(14px,env(safe-area-inset-top));z-index:9;pointer-events:auto;background:var(--terra-paper);color:var(--terra-ink);border:2px solid var(--terra-ink);box-shadow:2px 3px 0 var(--terra-ink);border-radius:999px;font:800 10px "Avenir Next",sans-serif;letter-spacing:1.8px;padding:8px 14px;min-height:36px;cursor:pointer}
+#skip kbd{font:inherit;opacity:.6;margin-left:6px}
+body.scene #skip{display:block}
+#title-card{position:fixed;left:50%;top:38%;transform:translateX(-50%);z-index:7;pointer-events:none;text-align:center;opacity:0;transition:opacity 1.4s ease;color:#f4ead0;text-shadow:0 2px 14px #000a}
+#title-card.show{opacity:1}
+#title-card b{display:block;font:900 clamp(56px,11vw,120px)/1 "Avenir Next",sans-serif;letter-spacing:.18em;padding-left:.18em}
+#title-card span{display:block;font:700 11px "Avenir Next",sans-serif;letter-spacing:.4em;margin-top:10px}
+@media(max-width:700px),(max-height:520px){#dialogue{bottom:auto;top:max(64px,calc(env(safe-area-inset-top) + 56px))}.dlg-card p{font-size:15px}#title-card{top:30%}}

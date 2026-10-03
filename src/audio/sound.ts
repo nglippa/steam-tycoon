@@ -20,7 +20,10 @@ export class Soundscape {
   /** A milestone is heard as well as seen: a brass rise that holds, not the ledger's chime. */
   milestone() { [196, 261.63, 329.63, 392, 523.25, 659.25].forEach((f, i) => this.tone(f, 1.5 - i * .1, .075, i < 3 ? 'sawtooth' : 'triangle', i * .11)); this.tone(98, 2, .05, 'sine'); }
   collect() { this.tone(880, .2, .04); this.tone(1320, .3, .025, 'sine', .08); }
-  step() { this.tone(65 + Math.random() * 35, .07, .05, 'triangle'); }
+  step(volume = .05) { this.tone(65 + Math.random() * 35, .07, volume, 'triangle'); }
+  /** Someone at the door: a heavy thump with a wood click (harder when it is the second time of asking), and the door itself. */
+  knock(hard = false) { this.tone(hard ? 88 : 104, .14, hard ? .3 : .22); this.tone(210, .04, .16, 'square'); this.tone(55, .2, hard ? .18 : .1, 'triangle'); }
+  door() { this.tone(70, .5, .12, 'sawtooth'); this.tone(94, .35, .07, 'sawtooth', .08); this.tone(60, .12, .15, 'square', .5); }
   hammer() { this.tone(180 + Math.random() * 70, .06, .045, 'square'); }
   /** The Directorate's inspection whistle: two shrill blasts (one short one is a man at a checkpoint saying halt). */
   whistle(blasts = 2) { this.tone(1760, .16, .05, 'square'); if (blasts > 1) this.tone(1480, .32, .05, 'square', .2); }

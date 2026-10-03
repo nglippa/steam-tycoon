@@ -2,7 +2,7 @@ import * as T from 'three';
 import { reducedMotion } from '../motion';
 import type { City, Ladder, Target } from '../world/city';
 export class Player {
-  keys = new Set<string>(); yaw = 0; pitch = -.025; velocity = new T.Vector3(); position = new T.Vector3(0, 1.93, 77); grounded = true; locked = false; paused = true; fallback = false; dragging = false; target: Target | null = null; moved = 0; stick = new T.Vector2(); touch = false; /** Carried by a lift: no walking, gravity or ground snapping. */ riding = false;
+  keys = new Set<string>(); yaw = 0; pitch = -.025; velocity = new T.Vector3(); position = new T.Vector3(0, 1.93, 77); grounded = true; locked = false; paused = true; fallback = false; dragging = false; target: Target | null = null; moved = 0; stick = new T.Vector2(); touch = false; /** Carried by a lift: no walking, gravity or ground snapping. */ riding = false; /** While set, the only thing that can be offered is the target with this id (the opening scene). */ only: string | null = null;
   /** On a ladder: the three legs of the climb (onto the rungs, along them, off at the far end). */
   climbing?: { path: T.Vector3[]; leg: number; rung: number };
   onInteract: (t: Target) => void = () => {}; onLock: (locked: boolean) => void = () => {}; onStep: () => void = () => {};
@@ -40,6 +40,7 @@ export class Player {
     // A ladder is offered to anyone standing at either end of it, wherever they are looking: no aiming on a phone.
     // It wins over anything else in view that is further off than arm's length.
     if ((!this.target || (this.target.kind !== 'ladder' && reach > 2.2)) && !this.riding) { const feet = this.position.y - 1.75, near = this.city.ladders.find(l => [l.bottom, l.top].some(e => Math.abs(e.y - feet) < .6 && Math.hypot(e.x - this.position.x, e.z - this.position.z) < 1.5)); if (near) this.target = this.city.targets.find(t => t.id === near.id) ?? this.target; }
+    if (this.only && this.target?.id !== this.only) this.target = null;
     if (this.riding) this.target = null;
   }
 }
