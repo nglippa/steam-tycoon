@@ -252,7 +252,7 @@ function weathervaneMask(g:T.Object3D,rings:number[][],shape:(p:number[])=>numbe
 /** `mask`: the Weathervane's half-mask, a fitted dark cloth baked with the head. `solo`: a figure outside the crowd batch (a scene's own, a static one) gets its own face material, so its expression is a uniform and not an instance colour. */
 export function citizen(coat:Material=mats.rust,seed=0,archetype:Archetype='worker',opts:{solo?:boolean;mask?:boolean}={}){
   void coat;
-  const group=new T.Group(),body=new T.Group();group.add(body);
+  const group=new T.Group(),body=new T.Group();group.add(body);const pelvis=new T.Group();group.add(pelvis);
   const contact=new T.Mesh(contactShape,contactInk);contact.rotation.x=-Math.PI/2;contact.position.y=-.10;contact.scale.y=.7;group.add(contact);
   const outfit=wardrobes[archetype][(seed+Math.floor(seed/3))%wardrobes[archetype].length];
   const cloth=outfitMaterial(outfit[0],outfit[3]),secondary=outfitMaterial(outfit[1]),accent=outfitMaterial(outfit[2]);
@@ -278,11 +278,12 @@ export function citizen(coat:Material=mats.rust,seed=0,archetype:Archetype='work
   // Pelvis: a separate rigid mass in the trousers, not the shirt run down to the crotch.
   // Widest at the hip joints, set back into a seat (forward tilt), then turning under
   // into a closed crotch that the thighs leave from, so the legs start at a V, not a rim.
-  tailored(body,W([[1.14,.146+(k-1)*.12,.108],[1.06,.162,.12,-.004],[.99,.18,.13,-.012],[.93,.172,.126,-.013],[.885,.126,.104,-.009],[.862,.058,.06,-.004],[.855,0,0,-.004]]),kit.trousers,14);
+  tailored(pelvis,W([[1.14,.146+(k-1)*.12,.108],[1.06,.162,.12,-.004],[.99,.18,.13,-.012],[.93,.172,.126,-.013],[.885,.126,.104,-.009],[.862,.058,.06,-.004],[.855,0,0,-.004]]),kit.trousers,14);
   tailored(body,[[1.5,.05,.047],[1.6,.04,.04],[1.7,.041,.04]],skinMat,10);
   // Belt at the waist, everyone: the clearest single read of an anime figure.
-  tailored(body,W([[1.1,.156+(k-1)*.12,.114],[1.15,.154+(k-1)*.12,.113]]),archetype==='guard'||archetype==='engineer'||archetype==='ordinal'?gloveInk:leather,14);
-  box(body,0,1.125,.117*kz,.05,.04,.012,brass);
+  tailored(pelvis,W([[1.1,.156+(k-1)*.12,.114],[1.15,.154+(k-1)*.12,.113]]),archetype==='guard'||archetype==='engineer'||archetype==='ordinal'?gloveInk:leather,14);
+  box(pelvis,0,1.125,.117*kz,.05,.04,.012,brass);
+  bakeCharacter(pelvis);
   if(kit.coat){
     // Asymmetric double-breasted front, lapel and a standing collar.
     panel(body,[[.035,1.44],[.075,1.43],[.06,1.26],[.038,1.29]],.14*kz,accent);
@@ -398,7 +399,7 @@ export function citizen(coat:Material=mats.rust,seed=0,archetype:Archetype='work
   if(kit.hat==='goggles'){tailored(hat,[[.12,.214,.2],[.16,.214,.2]],leather,14);for(const x of [-.075,.075]){const rim=torus(hat,x,.15,.19,.045,.014,brass);rim.rotation.x=-.3;const glass=sphere(hat,x,.15,.19,1,lens);glass.scale.set(.034,.034,.012);}}
   bakeCharacter(hat);
   const face=head.children.find(o=>o instanceof T.Mesh&&o.material===faceMat) as T.Mesh;
-  const legs:T.Group[]=[],knees:T.Group[]=[],arms:T.Group[]=[],elbows:T.Group[]=[],grips:T.Group[]=[];
+  const legs:T.Group[]=[],knees:T.Group[]=[],ankles:T.Group[]=[],arms:T.Group[]=[],elbows:T.Group[]=[],grips:T.Group[]=[];
   for(const side of [-1,1]){
     // Legs: shaped thigh, knee, calf and a clear ankle into real boots.
     // The hip joint sits inside the pelvis; the thigh is slimmer at its root, fullest in the
@@ -413,7 +414,9 @@ export function citizen(coat:Material=mats.rust,seed=0,archetype:Archetype='work
     if(kit.boots==='tall'){tailored(knee,[[-.08,.07,.075],[-.14,.066,.071],[-.42,.053,.058],[-.49,.056,.062]],bootMat,12);tailored(knee,[[-.3,.061,.066],[-.33,.061,.066]],brass,12);}
     else tailored(knee,[[-.33,.056,.06],[-.49,.057,.062]],bootMat,12);
     if(kit.boots==='heavy')tailored(knee,[[-.33,.061,.065],[-.36,.061,.065]],leather,12);
-    foot(knee,-.495,bootMat,kit.boots==='heavy');bakeCharacter(knee);
+    bakeCharacter(knee);
+    // The foot hangs from its own ankle joint, so the shank can bend without tipping the toe down.
+    const ankle=new T.Group();ankle.position.y=-.495;knee.add(ankle);ankles.push(ankle);foot(ankle,0,bootMat,kit.boots==='heavy');bakeCharacter(ankle);
     // Arms: rounded shoulder cap, shaped upper arm, tapered forearm, small hand.
     const shoulder=new T.Group();shoulder.position.set(side*.215*k,1.44,0);body.add(shoulder);arms.push(shoulder);
     const sleeve=kit.sleeve==='rolled'?kit.shirt:top;
@@ -438,11 +441,11 @@ export function citizen(coat:Material=mats.rust,seed=0,archetype:Archetype='work
   const chain=torus(finery,.06,1.2,.12*kz,.05,.006,brass);chain.rotation.set(0,0,.2);sphere(finery,.1,1.17,.122*kz,.016,brass);
   if(archetype!=='worker')torus(finery,0,1.51,.02,.075,.01,brass).rotation.x=1.25;
   bakeCharacter(finery);finery.visible=false;
-  body.position.y-=.14;for(const leg of legs)leg.position.y-=.14;
+  body.position.y-=.14;pelvis.position.y-=.14;for(const leg of legs)leg.position.y-=.14;
   group.scale.set(1+(seed%4-1.5)*.03,.95+(seed%5)*.022,1);
   group.traverse(o=>{if(o instanceof T.Mesh)o.castShadow=false;});
-  const motion={stride:seed*1.3,gait:0,speed:0,prevX:NaN,prevZ:0,prevYaw:0,turn:0,tail:0,tailV:0,hair:0,hairV:0,tempo:.88+((seed*37)%25)/100,idle:0,drape:1,pose:null as Float32Array|null,mood:newMood(),pick:Math.abs(Math.sin(seed*12.9898+1.7)*43758.5453)%1};
-  return {group,body,legs,knees,arms,elbows,grips,head,worn,finery,scarf,tails,skirt,swing,face,archetype,motion,phase:seed*1.7,expression:'neutral' as Expression,gaze:'away',manner:mannerOf(archetype,seedOf(seed)),/** A line being spoken, and until when: the body takes the register of the words (`palm`: until when a raised palm says halt). */tone:undefined as undefined|{tone:Tone;until:number;palm?:number},packed:0,
+  const motion={stride:seed*1.3,reach:-1,gait:0,speed:0,prevX:NaN,prevZ:0,prevYaw:0,turn:0,tail:0,tailV:0,hair:0,hairV:0,tempo:.88+((seed*37)%25)/100,idle:0,drape:1,pose:null as Float32Array|null,mood:newMood(),pick:Math.abs(Math.sin(seed*12.9898+1.7)*43758.5453)%1};
+  return {group,body,pelvis,legs,knees,ankles,arms,elbows,grips,head,worn,finery,scarf,tails,skirt,swing,face,archetype,motion,phase:seed*1.7,expression:'neutral' as Expression,gaze:'away',manner:mannerOf(archetype,seedOf(seed)),/** A line being spoken, and until when: the body takes the register of the words (`palm`: until when a raised palm says halt). */tone:undefined as undefined|{tone:Tone;until:number;palm?:number},packed:0,
     /** Dress the face: a named look, with the eyes shut for a blink, the mouth moving (`talk` 0..2 is a frame of speech) or the eyes turned (`eye` 6 left, 7 right on the atlas). Writes only when the look changes. */
     setExpression(state:Expression,blink=false,talk=-1,eye=-1){const [e,b,m]=LOOK[state];let E:number=eye>=0?eye:e,M:number=m;if(blink&&E!==4)E=3;if(talk>=0){const t=TALK[m===9?1:0][talk];if(t>=0)M=t;}
       this.expression=blink?'blink':state;const p=E|b<<4|M<<8;if(p===this.packed)return;this.packed=p;face.userData.face=p;if(opts.solo)(faceMat.userData.look as T.Vector3).set(E,b,M);}};
