@@ -1,7 +1,7 @@
 import * as T from 'three';
 import type { Citizen, Expression } from './citizens';
 import type { Archetype } from './palette';
-import { isOccupier, conduct, bodyFor, type Trait } from '../simulation/occupation';
+import { isOccupier, conduct, bodyFor, faceAllowed, moodOfTone, stepMood, type Trait, type MoodIn } from '../simulation/occupation';
 export type Activity='talk'|'browse'|'guard'|'carry'|'walk'|'read'|'hammer'|'sweep'|'warm'|'gauge'|'valve'|'argue'|'sit'|'eat'|'lean'|'watch'|'clipboard'|'repair';
 /** `seed` and `trait` cast one scene by hand: who is let out (0..1, low is out in a harder street) and how they carry themselves. */
 type Scene={x:number;z:number;yaw:number;role:Archetype;activity:Activity;partner?:number;target?:[number,number];route?:number;speed?:number;seed?:number;trait?:Trait};
@@ -44,10 +44,17 @@ let weariness=1;let raining=false;
 /** What the street is like where someone stands: occupation as 0..1 (curfew counts as full) and whether the Ordinance is within earshot.
  * The city sets this; people only read it, and only twice a second each. */
 /** `threat`, when set, is a member of the Ordinance this person has stopped to watch go by (a live position). */
-export type Social={pressure:number;watched:boolean;threat?:{x:number;z:number}};
+/** `react`: 0 nothing, 1 stepping aside, pausing or crossing for the Ordinance, 2 a fresh incident. */
+export type Social={pressure:number;watched:boolean;react?:number;threat?:{x:number;z:number}};
 let socialAt:(x:number,z:number,self:Citizen)=>Social=()=>({pressure:0,watched:false});
 export function setSocialField(f:typeof socialAt){socialAt=f;}
 const fields=new WeakMap<Citizen,{at:number;social:Social}>();
+const moodIn={archetype:'',trait:'reserved',pick:0,pressure:0,watched:false,activity:'',weariness:0,near:0,react:0} as Omit<MoodIn,'startled'|'worried'>&{react:number},hash=(x:number)=>{const v=Math.sin(x*127.1)*43758.5453;return v-Math.floor(v);};
+/** The head of someone on duty dwells, then turns: it holds a bearing for seconds and goes to the next in a beat, not a sine sweep. Returns the bearing and, while it is turning, which way the eyes lead (1 left of the figure, -1 right, 0 settled). */
+const dwell={yaw:0,lead:0};
+function dwelling(t:number,seed:number,amp:number,period:number){const s=t/period+seed,i=Math.floor(s),u=s-i,a0=(hash(i-1+seed*7)*2-1)*amp,a1=(hash(i+seed*7)*2-1)*amp;dwell.yaw=a0+(a1-a0)*ease(clamp01(u/.16));dwell.lead=u<.28?Math.sign(a1-a0):0;return dwell;}
+/** Where the chin goes for each face the Ordinance wears (positive is down). */
+const CHIN:Partial<Record<Expression,number>>={scrutiny:.1,contempt:-.11,challenge:-.04,barking:-.08,weary:.1,impatient:.03,sideeye:.02,scan:-.02,bored:.04};
 /** Early Terra walks tired; prosperity straightens backs. Rain opens umbrellas. */
 export function setLifeConditions(stage:number,rain:boolean){weariness=Math.max(0,1-stage/3);raining=rain;}
 const hipHeight=.84,bodyHeight=-.14;
@@ -69,7 +76,8 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
   const m=n.motion,pr=personality[n.archetype]??personality.resident,mn=n.manner,tempo=m.tempo*mn.pace,phase=time*tempo+n.phase,breath=Math.sin(phase*1.1);
   const pos=n.group.position,yaw=n.group.rotation.y;
   // Who this is and where they stand decides what the body may do: the Ordinance never waves, and nobody does with the Ordinance watching.
-  let field=fields.get(n);if(!field||time-field.at>.5||time<field.at){field={at:time+(n.phase%.4),social:socialAt(pos.x,pos.z,n)};fields.set(n,field);}
+  let field=fields.get(n);if(!field||time-field.at>.5||time<field.at){field={at:time+(n.phase%.4),social:socialAt(pos.x,pos.z,n)};fields.set(n,field);
+    const d2=(player.x-pos.x)**2+(player.z-pos.z)**2,sc=field.social;moodIn.archetype=n.archetype;moodIn.trait=mn.trait;moodIn.pick=m.pick;moodIn.pressure=sc.pressure;moodIn.watched=sc.watched;moodIn.activity=activity;moodIn.weariness=weariness;moodIn.near=d2<16?2:d2<81?1:0;moodIn.tone=n.tone&&time<n.tone.until?n.tone.tone:undefined;moodIn.react=sc.react??0;stepMood(m.mood,moodIn,time);}
   const occupier=isOccupier(n.archetype),cd=conduct(n.archetype,mn,field.social.pressure,field.social.watched),spoken=n.tone&&time<n.tone.until?bodyFor(n.archetype,n.tone.tone):undefined;
   if(!cd.talks)speaking=false;
   // Gait comes from real velocity, so route easing produces anticipation and settling.
@@ -84,7 +92,7 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
   m.stride+=dt*Math.max(stepRate,.4)/load;
   const c=m.stride,seated=activity==='sit'||activity==='eat',tired=weariness*(activity==='guard'?.3:1);
   // Idle weight transfer holds on one leg, then shifts: never a metronome.
-  const shift=Math.tanh(3*Math.sin(phase*.21+n.phase))*(1-g),feet=[footPhase(c),footPhase(c+Math.PI)];
+  const shift=Math.tanh(3*Math.sin(phase*.21+n.phase))*(1-g)*(occupier&&mn.trait!=='bored'?.4:1),feet=[footPhase(c),footPhase(c+Math.PI)];
   // The hips ride on the stance leg: lowest at contact, when the planted leg is furthest from
   // vertical, highest as the body passes over it. Dropping by the leg's own swing keeps the
   // planted foot on the ground while the legs stay attached (a little knee give softens it).
@@ -100,53 +108,50 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
   // swing (the elbow bends as the arm comes forward, a beat late), and the back swing arcs out
   // so the hands clear the hips (figure-construction: motion).
   n.arms.forEach((arm,k)=>{const z=feet[k].z,drag=footPhase(c+k*Math.PI-.6).z,out=k?1:-1;arm.rotation.set(pr.arm*g*z-.05+breath*.008,0,out*(.06+tired*.03+g*.05*Math.max(0,z)));n.elbows[k].rotation.x=-.16-g*(.1+.3*Math.max(0,-drag))-(1-g)*.03*Math.sin(phase*.7+k);});
-  let expression:Expression=tired>.6&&(phase%13)<5?'tired':'neutral';
+  let expression=m.mood.mood as Expression;
   let nod=0,tilt=0;
   if(activity==='talk'||activity==='browse'||activity==='argue'){
     // Listen → react → gesture → settle. Gestures come in bursts, not on a beat.
     const burst=Math.max(0,Math.sin(phase*.55))*pr.gesture*cd.gesture,gesture=Math.pow(Math.max(0,Math.sin(phase*2.3)),2)*burst;
-    expression=activity==='argue'?(speaking?'annoyed':'focused'):speaking?(activity==='browse'?'focused':'happy'):'neutral';
     if(speaking){const big=activity==='argue'?1.5:1;n.arms[0].rotation.set(-.3-gesture*.45*big,0,.2+gesture*.15);n.elbows[0].rotation.x=-.75-gesture*.35;
       if(activity==='argue'||gesture>.8){n.arms[1].rotation.set(-.25-Math.max(0,Math.sin(phase*1.9+1))*.4*big,0,-.22);n.elbows[1].rotation.x=-.9;}
       tilt=Math.sin(phase*.9)*.05;}
     else if(activity!=='browse'){for(let k=0;k<2;k++){n.arms[k].rotation.set(-.42,0,(k?-1:1)*.45);n.elbows[k].rotation.x=-1.62;}
-      nod=fract(phase*.27)<.12?Math.sin(fract(phase*.27)/.12*Math.PI*2)*.13:0;tilt=Math.sin(phase*.33)*.06;if(fract(phase*.13)<.05)expression='happy';
-      // Talk dies when the Ordinance is in earshot: hands come down, eyes go to the ground.
-      if(!cd.talks){for(let k=0;k<2;k++){n.arms[k].rotation.set(-.05,0,(k?-1:1)*.06);n.elbows[k].rotation.x=-.2;}nod=0;tilt=0;expression='neutral';}}
-    if(activity==='browse'){n.arms[1].rotation.x=-.45-gesture*.18;n.elbows[1].rotation.x=-.6;if(Math.floor(time/5+n.phase)%7===0)expression='annoyed';}
+      nod=fract(phase*.27)<.12?Math.sin(fract(phase*.27)/.12*Math.PI*2)*.13:0;tilt=Math.sin(phase*.33)*.06;      // Talk dies when the Ordinance is in earshot: hands come down, eyes go to the ground.
+      if(!cd.talks){for(let k=0;k<2;k++){n.arms[k].rotation.set(-.05,0,(k?-1:1)*.06);n.elbows[k].rotation.x=-.2;}nod=0;tilt=0;}}
+    if(activity==='browse'){n.arms[1].rotation.x=-.45-gesture*.18;n.elbows[1].rotation.x=-.6;}
   }
   if(activity==='read'||activity==='gauge'||activity==='clipboard'){
     // Lean → inspect → write → glance back.
-    const u=fract(phase/6.5),inspect=u<.35,write=u>=.35&&u<.75;expression='focused';
+    const u=fract(phase/6.5),inspect=u<.35,write=u>=.35&&u<.75;
     n.body.rotation.x+=inspect?.12*ease(clamp01(u/.1)):write?.06:0;
     n.arms[0].rotation.x=-.62;n.arms[1].rotation.x=activity==='gauge'&&inspect?-.9:-.55;n.elbows[0].rotation.x=-.9;
     if(write||activity==='clipboard'){n.elbows[1].rotation.x=-1.1+Math.sin(phase*7)*.07*(write?1:.3);n.arms[1].rotation.z=-.3;}
     tilt=inspect?.08:0;if(u>.8)tilt=-.05;
   }
-  if(activity==='carry'){expression=tired>.3?'tired':'neutral';for(let k=0;k<2;k++){n.arms[k].rotation.set(-.5,0,(k?1:-1)*.1);n.elbows[k].rotation.x=-.95;}}
+  if(activity==='carry'){for(let k=0;k<2;k++){n.arms[k].rotation.set(-.5,0,(k?1:-1)*.1);n.elbows[k].rotation.x=-.95;}}
   if(activity==='hammer'){// Raise → strike → recoil → settle.
     const u=fract(phase*.72),a=u<.55?-.6-1.8*ease(u/.55):u<.64?-2.4+1.95*((u-.55)/.09):u<.76?-.45-.35*Math.sin((u-.64)/.12*Math.PI):-.6;
-    expression='focused';n.arms[0].rotation.set(a,0,-.28*Math.min(1,-a/1.4));n.elbows[0].rotation.x=-.3-(u<.55?.3*ease(u/.55):0);n.arms[1].rotation.x=-.45;n.elbows[1].rotation.x=-.5;n.body.rotation.x=.1+(u>.55&&u<.7?.1:0);}
-  if(activity==='repair'){expression='focused';const twist=Math.sin(phase*2.4);for(let k=0;k<2;k++){n.arms[k].rotation.set(-2.2+Math.sin(phase*2.4+k*2)*.12,0,(k?1:-1)*.42);n.elbows[k].rotation.x=-.4-(k===0?Math.max(0,twist)*.25:0);}n.body.rotation.x=-.08;}
-  if(activity==='sweep'){expression=tired>.3?'tired':'neutral';const stroke=Math.sin(phase*1.8);n.arms[0].rotation.x=-.45+stroke*.22;n.arms[1].rotation.x=-.4+stroke*.1;n.body.rotation.set(.12,stroke*.08,0);n.body.position.x+=stroke*.035;}
+    n.arms[0].rotation.set(a,0,-.28*Math.min(1,-a/1.4));n.elbows[0].rotation.x=-.3-(u<.55?.3*ease(u/.55):0);n.arms[1].rotation.x=-.45;n.elbows[1].rotation.x=-.5;n.body.rotation.x=.1+(u>.55&&u<.7?.1:0);}
+  if(activity==='repair'){const twist=Math.sin(phase*2.4);for(let k=0;k<2;k++){n.arms[k].rotation.set(-2.2+Math.sin(phase*2.4+k*2)*.12,0,(k?1:-1)*.42);n.elbows[k].rotation.x=-.4-(k===0?Math.max(0,twist)*.25:0);}n.body.rotation.x=-.08;}
+  if(activity==='sweep'){const stroke=Math.sin(phase*1.8);n.arms[0].rotation.x=-.45+stroke*.22;n.arms[1].rotation.x=-.4+stroke*.1;n.body.rotation.set(.12,stroke*.08,0);n.body.position.x+=stroke*.035;}
   if(activity==='valve'){// Reach → grip → turn against resistance → release → rest.
     const u=fract(phase/4.2),reach=ease(clamp01(u/.18))*(1-ease(clamp01((u-.74)/.12)));const turnU=clamp01((u-.2)/.54),jerk=Math.floor(turnU*5)/5+ease(fract(turnU*5))/5;
-    expression=u>.2&&u<.74?'focused':'neutral';
     for(let k=0;k<2;k++){const r=(k?-1:1)*(Math.cos(jerk*Math.PI*2)*.22);n.arms[k].rotation.set(-.2-.75*reach+(k?.08:-.08)*Math.sin(jerk*Math.PI*2)*reach,0,(k?-.1:.1)+r*reach);n.elbows[k].rotation.x=-.3-.25*reach;}
     n.body.rotation.x=.04+.1*reach;}
-  if(activity==='warm'){expression='tired';const rub=Math.sin(phase*6)*.06;for(let k=0;k<2;k++){n.arms[k].rotation.set(-.9+breath*.06,0,(k?-1:1)*(.16+rub));n.elbows[k].rotation.x=-.9;}n.body.rotation.x=.1;}
+  if(activity==='warm'){const rub=Math.sin(phase*6)*.06;for(let k=0;k<2;k++){n.arms[k].rotation.set(-.9+breath*.06,0,(k?-1:1)*(.16+rub));n.elbows[k].rotation.x=-.9;}n.body.rotation.x=.1;}
   if(activity==='guard'){
     // Standing duty, four ways. Attention: arms down, still. Behind: hands clasped at the back. Crossed: arms folded, weight on one leg. Scan: the head does the work.
-    const st=mn.stance;expression=mn.trait==='bored'||mn.trait==='weary'?((phase%17)<5?'tired':'neutral'):Math.floor(time/12+n.phase)%3===0?'annoyed':'focused';
+    const st=mn.stance;
     for(let k=0;k<2;k++){const o=k?1:-1;
       if(st==='behind'){n.arms[k].rotation.set(.42,0,o*.16);n.elbows[k].rotation.x=-.5;}
       else if(st==='crossed'){n.arms[k].rotation.set(-.42,0,-o*.45);n.elbows[k].rotation.x=-1.65;}
       else if(st==='attention'){n.arms[k].rotation.set(.03,0,o*-.05);n.elbows[k].rotation.x=-.06;}
       else{n.arms[k].rotation.set(.15,0,o*-.12);n.elbows[k].rotation.x=-.25;}}}
   if(activity==='lean'){for(let k=0;k<2;k++){n.arms[k].rotation.set(-.42,0,(k?-1:1)*.45);n.elbows[k].rotation.x=-1.65;}}
-  if(activity==='watch'){expression=(phase%10)<3?'surprised':'happy';for(let k=0;k<2;k++){n.arms[k].rotation.set(.2,0,(k?1:-1)*-.15);n.elbows[k].rotation.x=-.5;}if((phase%10)<3){n.arms[0].rotation.set(-2.2,0,.2);n.elbows[0].rotation.x=-.1;}}
+  if(activity==='watch'){if((phase%10)<3)expression='startled';for(let k=0;k<2;k++){n.arms[k].rotation.set(.2,0,(k?1:-1)*-.15);n.elbows[k].rotation.x=-.5;}if((phase%10)<3){n.arms[0].rotation.set(-2.2,0,.2);n.elbows[0].rotation.x=-.1;}}
   if(seated){for(let k=0;k<2;k++){n.arms[k].rotation.set(-.35,0,(k?-1:1)*.05);n.elbows[k].rotation.x=-.6;}
-    if(activity==='eat'){const bite=Math.max(0,Math.sin(phase*.9));n.arms[0].rotation.x=-.4-bite*.9;n.elbows[0].rotation.x=-.8-bite*1.1;expression=bite>.8?'happy':'neutral';}}
+    if(activity==='eat'){const bite=Math.max(0,Math.sin(phase*.9));n.arms[0].rotation.x=-.4-bite*.9;n.elbows[0].rotation.x=-.8-bite*1.1;if(bite>.8)expression='smiling';}}
   const umbrella=n.group.userData.umbrella as T.Object3D|undefined;
   if(umbrella){umbrella.visible=raining;if(raining){n.arms[1].rotation.set(-.55,0,-.1);n.elbows[1].rotation.x=-1.3;}}
   // Secondary motion: damped springs driven by gait, acceleration and turning.
@@ -164,22 +169,30 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
   const dx=player.x-pos.x,dz=player.z-pos.z,close=dx*dx+dz*dz<14;
   const glance=close&&(phase%mn.glance)<1.35;
   // Idle heads differ: a sentry sweeps the street, a nervous man checks over his shoulder, most people barely move.
-  let headYaw=Math.sin(phase*.39)*(mn.stance==='scan'?.55:.12)*(1-g)+m.turn*.28+(field.social.pressure>.4?Math.sin(phase*1.7+n.phase)*.22*mn.fidget*(1-g):0),pitch=activity==='read'||activity==='clipboard'?.2:activity==='browse'?.1:activity==='watch'?-.38:activity==='repair'?-.45:tired*.12;
+  const dw=occupier?dwelling(phase,n.phase%1,mn.stance==='scan'?.7:mn.stance==='attention'?.14:.3,mn.stance==='scan'?2.4:mn.stance==='attention'?6:3.8+n.phase%1.5):dwell,stare=occupier&&!seated&&(expression==='challenge'||expression==='scrutiny')&&dx*dx+dz*dz<81,lim=stare?.7:.48;
+  let headYaw=(occupier?dw.yaw:Math.sin(phase*.39)*(mn.stance==='scan'?.55:.12))*(1-g)+m.turn*.28+(field.social.pressure>.4?Math.sin(phase*1.7+n.phase)*.22*mn.fidget*(1-g):0),pitch=activity==='read'||activity==='clipboard'?.2:activity==='browse'?.1:activity==='watch'?-.38:activity==='repair'?-.45:tired*.12;
   n.gaze='away';
-  if(glance){look.copy(player);n.gaze='player';if((phase%mn.glance)<.45&&!seated&&cd.startle)expression='surprised';
+  if(glance){look.copy(player);n.gaze='player';if((phase%mn.glance)<.45&&!seated&&cd.startle)expression='startled';
     const idleHands=activity==='guard'||activity==='lean'||activity==='sit'||activity==='watch'||(activity==='talk'&&!speaking)||activity==='walk';
-    if(idleHands&&cd.wave&&(phase%mn.glance)>.35&&(phase%mn.glance)<1.3&&dx*dx+dz*dz<9){n.arms[0].rotation.set(-2.7,0,.4);n.elbows[0].rotation.x=-.35+Math.sin(phase*13)*.35;expression='happy';}}
+    if(idleHands&&cd.wave&&(phase%mn.glance)>.35&&(phase%mn.glance)<1.3&&dx*dx+dz*dz<9){n.arms[0].rotation.set(-2.7,0,.4);n.elbows[0].rotation.x=-.35+Math.sin(phase*13)*.35;expression='smiling';}}
+  else if(stare){look.copy(player);n.gaze='player';}
   // A conversation that has gone quiet watches the patrol by: most of the time, not all of it, and not in step with each other.
   else if(field.social.threat&&(phase%5.3)<3.9){look.set(field.social.threat.x,1.7,field.social.threat.z);n.gaze='threat';}
   else if(target&&(phase%9)<6.8){look.copy(target);n.gaze='partner';}
   if(n.gaze!=='away'){
     const relative=angle(Math.atan2(look.x-pos.x,look.z-pos.z)-yaw);
-    if(Math.abs(relative)<1.25)headYaw=T.MathUtils.clamp(relative,-.48,.48);else n.gaze='away';
+    if(Math.abs(relative)<1.25)headYaw=T.MathUtils.clamp(relative,-lim,lim);else n.gaze='away';
   }
+  // A sidelong look: the eyes are on the Steward and the head is not quite.
+  let eye=-1;if(occupier&&expression==='sideeye'&&dx*dx+dz*dz<81){const rel=angle(Math.atan2(dx,dz)-yaw);if(Math.abs(rel)<1.4){headYaw=rel*.4;if(Math.abs(rel)>.15)eye=rel>0?7:6;}}
+  else if(occupier&&expression==='scan'&&!g&&dw.lead)eye=dw.lead>0?7:6;
+  if(occupier){pitch+=CHIN[expression]??0;if(expression==='impatient'||expression==='contempt')tilt+=(n.phase%2<1?1:-1)*.05;
+    // Squared shoulders: the Ordinance carries its boards wide and high.
+    for(const a of n.arms){a.position.x=(a.userData.sx??=a.position.x)*1.05;a.position.y=1.455;}}
   // Posture is personal: the proud stand back on their heels, the tired fold forward.
   n.body.rotation.x+=mn.posture*(1-g*.5);
   // A line being spoken sets the body's register for as long as it hangs in the air.
-  if(spoken){const b=spoken.bearing;expression=spoken.face;look.copy(player);n.gaze='player';
+  if(spoken){const b=spoken.bearing;expression=moodOfTone(n.archetype,n.tone!.tone);look.copy(player);n.gaze='player';
     if(b==='point'){n.arms[0].rotation.set(-1.32,0,.12);n.elbows[0].rotation.x=-.12;n.arms[1].rotation.set(.3,0,.14);n.elbows[1].rotation.x=-.45;}
     else if(b==='square'){for(let k=0;k<2;k++){n.arms[k].rotation.set(-.1,0,(k?1:-1)*-.5);n.elbows[k].rotation.x=-1.25;}n.body.rotation.x+=.07;}
     else if(b==='watch'){for(let k=0;k<2;k++){n.arms[k].rotation.set(-.42,0,(k?-1:1)*.45);n.elbows[k].rotation.x=-1.65;}}
@@ -189,7 +202,7 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
     // Halt: the other arm out from the side and its forearm raised, palm to the Steward beside the face, for the first moment of the line
     // (eased in and out with the rest of the pose). It is the arm away from the sentry box, so the hand shows against the street; a pointing arm drops for it.
     if(n.tone!.palm!==undefined&&time<n.tone!.palm){n.arms[1].rotation.set(-.85,0,.8);n.elbows[1].rotation.x=-1.75;if(b==='point'){n.arms[0].rotation.set(.08,0,.1);n.elbows[0].rotation.x=-.3;}}
-    const relative=angle(Math.atan2(player.x-pos.x,player.z-pos.z)-yaw);headYaw=T.MathUtils.clamp(relative,-.48,.48);}
+    const relative=angle(Math.atan2(player.x-pos.x,player.z-pos.z)-yaw);headYaw=T.MathUtils.clamp(relative,-.7,.7);if(occupier)n.body.rotation.y+=T.MathUtils.clamp(relative,-.5,.5)*.25;}
   // The pelvis is the rigid base the legs hang from: lean, twist and sway turn the torso
   // about the hip joint, not about the feet, and a sideways weight shift carries the hips
   // (legs tilt so the feet stay planted) instead of sliding the torso off the thighs.
@@ -201,19 +214,20 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
   n.legs.forEach(leg=>{hipPoint.set(leg.userData.hipX??=leg.position.x,pelvis,0).applyEuler(n.body.rotation).add(n.body.position);leg.position.copy(hipPoint);
     leg.rotation.y=n.body.rotation.y;if(!seated)leg.rotation.z-=sway/LEG;});
   // Head stabilization: the head cancels torso lean and twist.
-  const blend=1-Math.exp(-dt*4);n.head.rotation.y=T.MathUtils.lerp(n.head.rotation.y,T.MathUtils.clamp(headYaw-n.body.rotation.y,-.6,.6),blend);
+  const blend=1-Math.exp(-dt*(occupier?8:4));n.head.rotation.y=T.MathUtils.lerp(n.head.rotation.y,T.MathUtils.clamp(headYaw-n.body.rotation.y,occupier?-.85:-.6,occupier?.85:.6),blend);
   n.head.rotation.x=T.MathUtils.lerp(n.head.rotation.x,pitch-n.body.rotation.x*.8+nod+(speaking?Math.sin(phase*2)*.03:0),blend);
   n.head.rotation.z=calm?0:breath*.012+tilt;
   // Nothing snaps. The logic above says where each joint should be; the body gets there on a short
   // critically damped ease, so a change of activity, a gesture or a glance blends instead of popping.
   // Legs are left alone: their timing is what keeps the feet planted.
   { const want=[n.arms[0].rotation.x,n.arms[0].rotation.z,n.arms[1].rotation.x,n.arms[1].rotation.z,n.elbows[0].rotation.x,n.elbows[1].rotation.x,n.body.rotation.x,n.body.rotation.y,n.body.rotation.z];
-    const p=m.pose??=Float32Array.from(want),ka=1-Math.exp(-dt*(activity==='hammer'?34:11+g*9)),kb=1-Math.exp(-dt*9);
+    const p=m.pose??=Float32Array.from(want),ka=1-Math.exp(-dt*(activity==='hammer'?34:occupier&&spoken?26:11+g*9)),kb=1-Math.exp(-dt*9);
     for(let i=0;i<9;i++)p[i]+=(want[i]-p[i])*(i<6?ka:kb);
     n.arms[0].rotation.x=p[0];n.arms[0].rotation.z=p[1];n.arms[1].rotation.x=p[2];n.arms[1].rotation.z=p[3];n.elbows[0].rotation.x=p[4];n.elbows[1].rotation.x=p[5]; }
   // Last word on the face: nobody smiles under the Ordinance's eye, and the Ordinance does not smile at all.
-  if((expression==='happy'&&!cd.smile)||(expression==='surprised'&&!cd.startle))expression=occupier?'focused':'neutral';
-  if((phase%4.7)<.13)expression='blink';n.setExpression(expression);
+  if(!faceAllowed(n.archetype,expression))expression='cold';else if(!cd.smile&&(expression==='happy'||expression==='smiling'||expression==='hopeful'))expression='neutral';
+  // Only the blink and, near the camera, a speaking mouth move between decisions; the Ordinance blinks less.
+  n.setExpression(expression,(phase%(occupier?6.3:4.7))<.13,(speaking||spoken)&&near<400?Math.floor(time*7+n.phase*3)%3:-1,eye);
 }
 /** Route distance with acceleration and deceleration ramps (meters). */
 export function eased(d:number,L:number,a=1.1){const k=L/(L-a);if(d<a)return d*d/(2*a)*k;if(d<L-a)return (d-a/2)*k;return (L-a-(L-d)*(L-d)/(2*a))*k;}

@@ -31,7 +31,7 @@ export class Intro {
   private get figures() { return this.stranger ? [...this.guards, this.stranger] : []; }
   /** The three scene figures, made the first time they are needed and hidden between uses. */
   private cast() { if (this.stranger) return; const root = this.o.city.presentation.root;
-    const make = (role: 'guard' | 'ordinal' | 'courier', seed: number, act: Activity): Figure => { const p = citizen(mats.rust, seed, role); p.group.visible = false; root.add(p.group); return { p, act, moving: false }; };
+    const make = (role: 'guard' | 'ordinal' | 'courier', seed: number, act: Activity): Figure => { const p = citizen(mats.rust, seed, role, { solo: true }); p.group.visible = false; root.add(p.group); return { p, act, moving: false }; };
     this.guards = [make('guard', 1, 'guard'), make('ordinal', 2, 'guard')]; this.stranger = make('courier', 7, 'sit');
     const mask = new T.Mesh(new T.CylinderGeometry(.205, .17, .15, 16, 1, true, -Math.PI * .62, Math.PI * 1.24), illustrated(new T.MeshStandardMaterial({ color: '#3b3a40', side: T.DoubleSide }))); mask.position.y = -.14; this.stranger.p.head.add(mask); }
   /** A new stewardship starts here. Nothing else starts the scene: not the frame loop, not a view, not a save that has seen it. */

@@ -1,5 +1,5 @@
 import * as T from 'three';
-import { mannerOf, seedOf, type Tone } from '../simulation/occupation';
+import { mannerOf, seedOf, newMood, type Tone } from '../simulation/occupation';
 import { palette as P, wardrobes, type Archetype } from './palette';
 import { box, cyl, sphere, torus, bake, mats, thinLine, type Material } from './assets';
 import { painted } from './tone';
@@ -40,8 +40,15 @@ plainToon.onBeforeCompile=wardrobeHook;plainToon.customProgramCacheKey=()=> 'ter
 export function setCitizenProsperity(stage:number){wardrobePhase.value=Math.min(1,stage/5);}
 const wardrobeMaterials=new Map<string,T.MeshToonMaterial>();
 function outfitMaterial(early:string,late=early){const key=early+late;let m=wardrobeMaterials.get(key);if(!m){m=toon(early);m.userData.restoredColor=late;wardrobeMaterials.set(key,m);}return m;}
-export const expressions=['neutral','happy','tired','focused','annoyed','blink','surprised'] as const;
-export type Expression=typeof expressions[number];
+/** A face is a choice of eye, brow and mouth (see the atlas below). The first seven names are the originals and keep working. */
+const LOOK = {
+  neutral: [0, 0, 0], happy: [4, 6, 2], tired: [5, 7, 0], focused: [1, 0, 0], annoyed: [1, 3, 3], blink: [3, 0, 0], surprised: [2, 1, 7],
+  relaxed: [0, 0, 1], smiling: [0, 6, 1], hopeful: [9, 6, 1], curious: [9, 5, 0], worried: [9, 2, 10], guarded: [6, 0, 4], irritated: [1, 4, 3], suspicious: [6, 5, 4], startled: [2, 1, 7], stern: [0, 4, 4], angry: [8, 3, 4], talking: [0, 0, 5],
+  cold: [0, 4, 0], scrutiny: [1, 4, 4], sideeye: [7, 5, 4], impatient: [7, 4, 3], contempt: [1, 5, 8], challenge: [0, 3, 4], scan: [6, 4, 0], barking: [8, 3, 9], bored: [5, 0, 0], weary: [5, 7, 3],
+} as const satisfies Record<string, readonly [number, number, number]>;
+export const expressions = Object.keys(LOOK) as (keyof typeof LOOK)[];
+export type Expression = keyof typeof LOOK;
+const TALK = [[5, 6, -1], [9, 5, -1]];
 
 // Elliptical rings make a continuous tailored silhouette instead of stacked boxes.
 function tailored(g:T.Object3D, rings:number[][], material:Material, segments=10, start=0, arc=Math.PI*2) {
@@ -63,13 +70,15 @@ function bakeCharacter(group:T.Group){
     geometry.setAttribute('restoredColor',new T.BufferAttribute(late,3));object.geometry=geometry;object.material=object.material.userData.plain?plainToon:coloredToon;
   });return bake(group);
 }
-// One atlas per skin tone: eight face types (rows) by five expressions and a blink (columns).
-// Types vary eye shape, brows, nose, mouth and marks independently, so a crowd reads as
-// different people drawn by one hand (figure-construction: faces). The expression column
-// comes from the BatchedMesh instance colour channel; the type row comes from the UVs.
-export const FACE_TYPES = 8;
+// One shared atlas for all three skin tones: eight face types (rows) by eleven feature variants (columns). Skin is left transparent
+// and filled per material in the shader (a third of three atlases). The face is drawn in three bands (brows, eyes, mouth) and each band
+// reads its own column from the figure's three numbers (eye, brow, mouth), so an expression is a choice of each, never a rig or an extra
+// draw. Nose, marks and blush are the same in every column, so every seam between bands lies in plain skin.
+// Types vary eye shape, brows, nose, mouth and marks independently, so a crowd reads as different people drawn by one hand.
+export const FACE_TYPES = 8, FACE_COLS = 11;
 type Nose = 'dash' | 'dot' | 'hook' | 'button'; type Mark = 'none' | 'freckles' | 'stubble' | 'mole' | 'bags' | 'scar' | 'lines';
-const faceTypes: { rise: number; w: number; tilt: number; lash: number; iris: string; brow: [thick: number, arch: number, tilt: number]; nose: Nose; mouth: number; marks: Mark }[] = [
+type FaceType = { rise: number; w: number; tilt: number; lash: number; iris: string; brow: [thick: number, arch: number, tilt: number]; nose: Nose; mouth: number; marks: Mark };
+const faceTypes: FaceType[] = [
   { rise: 64, w: 33, tilt: 2, lash: 11, iris: '#3d6b9a', brow: [5, 8, 0], nose: 'dash', mouth: 1, marks: 'none' },
   { rise: 69, w: 34, tilt: 6, lash: 12, iris: '#7a4b35', brow: [4, 11, -2], nose: 'dot', mouth: .8, marks: 'freckles' },
   { rise: 53, w: 35, tilt: -3, lash: 10, iris: '#2f7f72', brow: [7, 4, 3], nose: 'hook', mouth: 1.15, marks: 'none' },
@@ -79,74 +88,100 @@ const faceTypes: { rise: number; w: number; tilt: number; lash: number; iris: st
   { rise: 55, w: 35, tilt: 5, lash: 10, iris: '#3b5b3a', brow: [7, 3, -4], nose: 'hook', mouth: 1.1, marks: 'scar' },
   { rise: 65, w: 33, tilt: -1, lash: 11, iris: '#8c3f46', brow: [5, 8, 2], nose: 'button', mouth: .95, marks: 'none' },
 ];
-const faces=skinColors.map(tone=>{
-  const canvas=document.createElement('canvas');canvas.width=1792;canvas.height=256*FACE_TYPES;const c=canvas.getContext('2d')!;
-  for(let type=0;type<FACE_TYPES;type++)for(let state=0;state<7;state++){
-    const f=faceTypes[type];
-    c.save();c.translate(state*256,type*256);c.scale(.5,.5);c.fillStyle=tone;c.fillRect(0,0,512,512);c.lineCap='round';c.lineJoin='round';
-    const ink=P.neutral.ink,closed=state===5||state===1,y=300;
-    // A face is skin, two eyes, brows and a mouth. Anything more has to earn its place (figure-construction: faces).
-    // Soft cheek colour under every expression; happiness warms it.
-    for(const side of [-1,1]){const blush=c.createRadialGradient(256+side*66,y+50,2,256+side*66,y+50,30);blush.addColorStop(0,state===1?'rgba(240,132,138,.42)':'rgba(238,143,138,.2)');blush.addColorStop(1,'rgba(238,143,138,0)');c.fillStyle=blush;c.fillRect(256+side*66-32,y+18,64,64);}
-    // Marks: the small particular things that make a stranger someone.
-    if(f.marks==='freckles'){c.fillStyle='rgba(120,62,44,.55)';for(const side of [-1,1])for(let k=0;k<7;k++){c.beginPath();c.arc(256+side*(44+(k*13)%34),y+40+(k*7)%18,2.6,0,Math.PI*2);c.fill();}}
-    if(f.marks==='stubble'){c.fillStyle='rgba(40,30,32,.22)';for(let k=0;k<140;k++){const a=(k*2.399)%Math.PI,r=78+(k*7)%40;c.fillRect(256+Math.cos(a)*r*.95-1,382+Math.sin(a)*r*.55-1,2.4,2.4);}}
-    if(f.marks==='mole'){c.fillStyle='#3a2426';c.beginPath();c.arc(300,372,4.2,0,Math.PI*2);c.fill();}
-    if(f.marks==='bags'){c.strokeStyle='rgba(70,44,48,.28)';c.lineWidth=2;for(const side of [-1,1]){c.beginPath();c.moveTo(256+side*28,y+38);c.quadraticCurveTo(256+side*52,y+48,256+side*76,y+36);c.stroke();}}
-    if(f.marks==='scar'){c.strokeStyle='rgba(150,72,72,.5)';c.lineWidth=3;c.beginPath();c.moveTo(196,250);c.lineTo(204,286);c.stroke();}
-    if(f.marks==='lines'){c.strokeStyle='rgba(70,44,48,.42)';c.lineWidth=2.4;for(const side of [-1,1]){c.beginPath();c.moveTo(256+side*18,y+50);c.quadraticCurveTo(256+side*34,y+74,256+side*30,y+92);c.stroke();}}
-    for(const side of [-1,1]){
-      const surprised=state===6,x=256+side*50,w=f.w,rise=f.rise*(state===3?.72:state===4?.6:surprised?1.25:1),lid=state===2?.52:0,up=f.tilt;
-      const outer=x+side*w,inner=x-side*w;
-      if(closed){c.strokeStyle=ink;c.lineWidth=6;c.beginPath();
-        if(state===1){c.moveTo(inner,y-4);c.quadraticCurveTo(x,y-40,outer,y-6-up);}else{c.moveTo(inner,y-10);c.quadraticCurveTo(x,y+10,outer+side*4,y-14-up);}
-        c.stroke();}
-      else{
-        // Tall anime eyes: the opening is nearly as high as it is wide, the iris fills it, and the
-        // upper lid covers the top of the iris so it never floats.
-        const drop=30,lidPath=()=>{c.beginPath();c.moveTo(inner,y-2);c.quadraticCurveTo(x-side*4,y-rise*1.25,outer,y-8-up);c.quadraticCurveTo(x+side*4,y+drop*1.9,inner,y-2);c.closePath();};
-        c.save();lidPath();c.fillStyle='#fbf6ea';c.fill();c.clip();
-        const ix=x-side*2,iy=y-rise*.2,rx=surprised?18:25,ry=surprised?24:rise*.66;
-        const iris=c.createLinearGradient(0,iy-ry,0,iy+ry);const pale=new T.Color(f.iris).lerp(new T.Color('#fff4dc'),.45).getStyle();iris.addColorStop(0,'#15122a');iris.addColorStop(.38,f.iris);iris.addColorStop(1,pale);
-        c.fillStyle=iris;c.beginPath();c.ellipse(ix,iy,rx,ry,0,0,Math.PI*2);c.fill();
-        c.strokeStyle='rgba(18,15,30,.75)';c.lineWidth=3;c.beginPath();c.ellipse(ix,iy,rx,ry,0,0,Math.PI*2);c.stroke();
-        c.fillStyle='#120f1e';c.beginPath();c.ellipse(ix,iy-ry*.08,rx*.46,ry*.5,0,0,Math.PI*2);c.fill();
-        c.fillStyle='#ffffff';c.beginPath();c.ellipse(ix-side*-7-8,iy-ry*.42,7.5,9,0,0,Math.PI*2);c.fill();c.beginPath();c.arc(ix+9,iy+ry*.46,3.2,0,Math.PI*2);c.fill();
-        // The lid's shadow on the top of the eye keeps it seated in the head.
-        c.fillStyle='rgba(22,16,34,.34)';c.fillRect(inner-40,y-rise*1.3,120,rise*.5);
-        if(lid){c.fillStyle=tone;c.fillRect(inner-40,y-rise*1.3,120,rise*.72);}
-        c.restore();
-        // One confident upper lash line with a small outer flick; a hairline for the lower lid.
-        c.strokeStyle='#120f16';c.lineWidth=f.lash;c.beginPath();
-        const top=lid?y-rise*.2:y-rise*.64;
-        c.moveTo(inner-side*1,y-3);c.quadraticCurveTo(x-side*4,top*2-(y-3+y-8-up)/2,outer,y-8-up);c.lineTo(outer+side*(f.lash>9?8:5),y-15-up*1.3);c.stroke();
-        c.strokeStyle='rgba(18,15,22,.55)';c.lineWidth=2;c.beginPath();c.moveTo(outer-side*3,y-2);c.quadraticCurveTo(x+side*6,y+drop*.92,x-side*10,y+drop*.86);c.stroke();
-      }
-      // Brows: thickness, arch and set vary by face; emotion lives in their angle.
-      const slant=state===4?side*-13:state===3?side*-7:state===2?side*6:state===1?side*4:surprised?-12:0,[thick,arch,set]=f.brow;
-      const by=y-f.rise*.64-26;c.strokeStyle='rgba(28,20,24,.9)';c.lineWidth=thick;c.beginPath();c.moveTo(inner+side*4,by+slant+set);c.quadraticCurveTo(x,by-arch-(surprised?8:0),outer-side*2,by-slant*.4-set*.5);c.stroke();
-    }
-    // Nose: halfway between the tops of the eyes and the chin (figure-construction: faces).
-    c.strokeStyle='rgba(150,96,88,.75)';c.lineWidth=2.6;c.fillStyle='rgba(150,96,88,.75)';
-    if(f.nose==='dash'){c.beginPath();c.moveTo(259,352);c.lineTo(256,359);c.stroke();}
-    if(f.nose==='dot'){c.beginPath();c.ellipse(257,356,2.8,2.2,0,0,Math.PI*2);c.fill();}
-    if(f.nose==='hook'){c.beginPath();c.moveTo(262,340);c.quadraticCurveTo(266,354,256,360);c.stroke();}
-    if(f.nose==='button'){c.beginPath();c.moveTo(251,354);c.quadraticCurveTo(257,361,263,354);c.stroke();}
-    // Mouth: slightly above halfway between nose and chin; its width varies by face.
-    const m=f.mouth;c.strokeStyle='#4a2a30';c.lineWidth=4.5;
-    if(state===1){c.fillStyle='#8c3a47';c.beginPath();c.moveTo(256-14*m,384);c.quadraticCurveTo(256,406,256+14*m,384);c.closePath();c.fill();c.fillStyle='#e0848a';c.beginPath();c.ellipse(256,395,7*m,3.4,0,0,Math.PI*2);c.fill();}
-    else if(state===6){c.fillStyle='#6c3b45';c.beginPath();c.ellipse(256,390,7,9,0,0,Math.PI*2);c.fill();}
-    else{c.beginPath();c.moveTo(256-9*m,388);c.quadraticCurveTo(256,state===4?383:state===2?388:393,256+9*m,388);c.stroke();}
-    c.restore();
-  }
-  const map=new T.CanvasTexture(canvas);map.colorSpace=T.SRGBColorSpace;map.generateMipmaps=true;map.minFilter=T.LinearMipmapLinearFilter;map.anisotropy=8;
-  const m=new T.MeshToonMaterial({map,gradientMap:ramp,emissive:P.neutral.paper,emissiveMap:map,emissiveIntensity:.12});
-  m.userData.faceAtlas=true;
-  m.onBeforeCompile=shader=>{
-    shader.vertexShader=shader.vertexShader.replace('#include <color_vertex>','#include <color_vertex>\n#ifdef USE_BATCHING_COLOR\nvColor=vec3(1.);vMapUv.x+=(batchingColor.r-1.)/7.;vEmissiveMapUv.x+=(batchingColor.r-1.)/7.;\n#endif');
-  };
-  m.customProgramCacheKey=()=> 'terra-expression-atlas';return thinLine(painted(m));
-});
+// Bands in the 512-unit tile, y down: brows 130-238, eyes 238-344, mouth 364-436. Nothing a variant draws crosses its band.
+const BAND = [130, 238, 344, 364, 436] as const, tV = (y: number) => (1 - y / 512).toFixed(4);
+type Ctx = CanvasRenderingContext2D;
+/** Eyes: 0 open, 1 narrowed, 2 wide, 3 shut, 4 happy arc, 5 heavy-lidded, 6 glance left, 7 glance right, 8 glare, 9 earnest (looking up). */
+function paintEye(c: Ctx, f: FaceType, side: number, v: number) {
+  const x = 256 + side * 50, y = 300, inner = x - side * f.w, outer = x + side * f.w, up = f.tilt;
+  c.strokeStyle = '#120f16';
+  if (v === 3 || v === 4) { c.lineWidth = 6; c.beginPath();
+    if (v === 4) { c.moveTo(inner, y - 3); c.quadraticCurveTo(x, y - 38, outer, y - 8 - up); } else { c.moveTo(inner, y - 8); c.quadraticCurveTo(x, y + 12, outer + side * 3, y - 12 - up); }
+    c.stroke(); return; }
+  // The lid is a curve from the inner to the outer corner; the iris is always full size, so a lowered lid covers it and the eye reads as narrowed, never as a small eye.
+  const r = f.rise, H = Math.min(58, r * [.8, .58, 1, 0, 0, .5, .8, .8, .66, .88][v]), L = H * (v === 1 || v === 8 ? .28 : v === 5 ? .2 : .36), skew = v === 8 ? .3 : 1, end = y - 8 - up - (v === 8 ? 10 : v === 5 ? -6 : 0);
+  const k1 = inner + (outer - inner) * .15, k2 = inner + (outer - inner) * .7, upper = () => { c.moveTo(inner, y + 1); c.bezierCurveTo(k1, y - H * 1.15 * skew, k2, y - H * 1.4, outer, end); };
+  c.save(); c.beginPath(); upper(); c.quadraticCurveTo(x + side * 3, y + L * 2.1, inner, y + 1); c.closePath(); c.fillStyle = '#fbf6ea'; c.fill(); c.clip();
+  const ry = Math.min(r * .5, H * .85), rx = ry * .76, ix = x - side * 2 + (v === 6 ? -.4 : v === 7 ? .4 : 0) * f.w, iy = y - H * .3 - (v === 9 ? H * .08 : 0);
+  const iris = c.createLinearGradient(0, iy - ry, 0, iy + ry), pale = new T.Color(f.iris).lerp(new T.Color('#fff4dc'), .45).getStyle(); iris.addColorStop(0, '#15122a'); iris.addColorStop(.38, f.iris); iris.addColorStop(1, pale);
+  c.fillStyle = iris; c.beginPath(); c.ellipse(ix, iy, rx, ry, 0, 0, Math.PI * 2); c.fill();
+  c.strokeStyle = 'rgba(18,15,30,.75)'; c.lineWidth = 3; c.beginPath(); c.ellipse(ix, iy, rx, ry, 0, 0, Math.PI * 2); c.stroke();
+  c.fillStyle = '#120f1e'; c.beginPath(); c.ellipse(ix, iy - ry * .08, rx * (v === 2 ? .36 : .46), ry * (v === 2 ? .4 : .5), 0, 0, Math.PI * 2); c.fill();
+  c.fillStyle = '#ffffff'; c.beginPath(); c.ellipse(ix - side * -7 - 8, iy - ry * .42, 7.5, 9, 0, 0, Math.PI * 2); c.fill(); c.beginPath(); c.arc(ix + 9, iy + ry * .46, 3.2, 0, Math.PI * 2); c.fill();
+  // The lid's shadow is a soft fade at the top edge of the eye, not a block.
+  const shade = c.createLinearGradient(0, y - H * 1.1, 0, y - H * .5); shade.addColorStop(0, 'rgba(22,16,34,.4)'); shade.addColorStop(1, 'rgba(22,16,34,0)'); c.fillStyle = shade; c.fillRect(inner - 40, y - H * 1.2, 120, H * .8);
+  c.restore();
+  // One lash line with a small outer flick, light enough not to close the eye; a hairline for the lower lid.
+  c.strokeStyle = '#120f16'; c.lineWidth = f.lash * (v === 5 ? .82 : .6); c.beginPath(); upper(); c.lineTo(outer + side * 6, end - 9 - up); c.stroke();
+  c.strokeStyle = 'rgba(18,15,22,.5)'; c.lineWidth = 2; c.beginPath(); c.moveTo(outer - side * 3, end + 8); c.quadraticCurveTo(x + side * 6, y + L * 2, x - side * 10, y + L * .93); c.stroke();
+}
+/** Brows: 0 relaxed, 1 raised, 2 worried, 3 angry, 4 stern and low, 5 sceptical (one up, one down), 6 lifted and glad, 7 tired and drooping. */
+// [inner end, outer end, raise, arch factor, arch added, thickness factor]
+const BROW = [[0, 2, 0, 1, 0, 1], [-4, -6, -20, 1, 6, 1], [-18, 6, -4, 0, 0, 1], [12, -12, 2, 0, 0, 1.3], [6, 0, 10, .2, 0, 1.25], [-6, -8, -18, 1, 6, 1], [-2, -4, -10, 1, 5, 1], [-6, 12, 8, .4, 0, .95]];
+function paintBrow(c: Ctx, f: FaceType, side: number, v: number) {
+  const x = 256 + side * 50, xi = x - side * (f.w - 4), xo = x + side * (f.w + 4), [thick, arch, set] = f.brow, by = 214;
+  const [di, dO, up, am, aa, tk] = v === 5 && side < 0 ? [6, 2, 8, .5, 0, 1.15] : BROW[v];
+  c.strokeStyle = 'rgba(28,20,24,.9)'; c.lineWidth = thick * tk * 1.4; c.beginPath(); c.moveTo(xi, by + up + di + set); c.quadraticCurveTo(x, by + up + (di + dO) / 2 - 2 * (arch * am + aa), xo, by + up + dO - set * .5); c.stroke();
+}
+/** Mouths: 0 plain, 1 soft smile, 2 open smile, 3 frown, 4 tight, 5 speaking A, 6 speaking B, 7 O, 8 smirk, 9 shout, 10 worried. */
+function paintMouth(c: Ctx, f: FaceType, v: number) {
+  const m = f.mouth, line = (a: number, b: number, k: number, w = 4.5) => { c.strokeStyle = '#4a2a30'; c.lineWidth = w; c.beginPath(); c.moveTo(256 - 10 * m, a); c.quadraticCurveTo(256, k, 256 + 10 * m, b); c.stroke(); };
+  const open = (rx: number, ry: number, y: number, fill = '#6c3b45') => { c.fillStyle = fill; c.beginPath(); c.ellipse(256, y, rx * m, ry, 0, 0, Math.PI * 2); c.fill(); c.strokeStyle = '#4a2a30'; c.lineWidth = 3; c.stroke(); };
+  if (v === 0) line(389, 389, 389.5); else if (v === 1) line(387, 387, 395); else if (v === 3) line(392, 392, 384); else if (v === 4) line(389, 389, 389, 5.5);
+  else if (v === 2) { c.fillStyle = '#8c3a47'; c.beginPath(); c.moveTo(256 - 14 * m, 384); c.quadraticCurveTo(256, 406, 256 + 14 * m, 384); c.closePath(); c.fill(); c.fillStyle = '#e0848a'; c.beginPath(); c.ellipse(256, 395, 7 * m, 3.4, 0, 0, Math.PI * 2); c.fill(); }
+  else if (v === 5) open(8, 8, 391); else if (v === 6) open(12, 4.5, 390); else if (v === 7) open(7.5, 9.5, 392);
+  else if (v === 8) { c.strokeStyle = '#4a2a30'; c.lineWidth = 4.5; c.beginPath(); c.moveTo(256 - 10 * m, 391); c.quadraticCurveTo(256 + 2, 390, 256 + 12 * m, 382); c.stroke(); }
+  else if (v === 9) { c.fillStyle = '#5a2630'; c.beginPath(); c.moveTo(256 - 15 * m, 382); c.quadraticCurveTo(256, 378, 256 + 15 * m, 382); c.lineTo(256 + 11 * m, 404); c.quadraticCurveTo(256, 410, 256 - 11 * m, 404); c.closePath(); c.fill(); c.fillStyle = '#f2e8d6'; c.fillRect(256 - 12 * m, 382, 24 * m, 6); c.strokeStyle = '#3a1c22'; c.lineWidth = 3; c.stroke(); }
+  else { c.strokeStyle = '#4a2a30'; c.lineWidth = 4; c.beginPath(); c.moveTo(256 - 8 * m, 391); c.quadraticCurveTo(256 - 3 * m, 385, 256, 390); c.quadraticCurveTo(256 + 3 * m, 395, 256 + 8 * m, 390); c.stroke(); }
+}
+function paintFace(c: Ctx, f: FaceType, col: number) {
+  const y = 300;
+  // Soft cheek colour under every expression.
+  for (const side of [-1, 1]) { const blush = c.createRadialGradient(256 + side * 66, y + 50, 2, 256 + side * 66, y + 50, 30); blush.addColorStop(0, 'rgba(238,143,138,.2)'); blush.addColorStop(1, 'rgba(238,143,138,0)'); c.fillStyle = blush; c.fillRect(256 + side * 66 - 32, y + 18, 64, 64); }
+  // Marks: the small particular things that make a stranger someone.
+  if (f.marks === 'freckles') { c.fillStyle = 'rgba(120,62,44,.55)'; for (const side of [-1, 1]) for (let k = 0; k < 7; k++) { c.beginPath(); c.arc(256 + side * (44 + (k * 13) % 34), y + 40 + (k * 7) % 18, 2.6, 0, Math.PI * 2); c.fill(); } }
+  if (f.marks === 'stubble') { c.fillStyle = 'rgba(40,30,32,.22)'; for (let k = 0; k < 140; k++) { const a = (k * 2.399) % Math.PI, r = 78 + (k * 7) % 40; c.fillRect(256 + Math.cos(a) * r * .95 - 1, 382 + Math.sin(a) * r * .55 - 1, 2.4, 2.4); } }
+  if (f.marks === 'mole') { c.fillStyle = '#3a2426'; c.beginPath(); c.arc(300, 372, 4.2, 0, Math.PI * 2); c.fill(); }
+  if (f.marks === 'bags') { c.strokeStyle = 'rgba(70,44,48,.28)'; c.lineWidth = 2; for (const side of [-1, 1]) { c.beginPath(); c.moveTo(256 + side * 28, y + 38); c.quadraticCurveTo(256 + side * 52, y + 48, 256 + side * 76, y + 36); c.stroke(); } }
+  if (f.marks === 'scar') { c.strokeStyle = 'rgba(150,72,72,.5)'; c.lineWidth = 3; c.beginPath(); c.moveTo(196, 250); c.lineTo(204, 286); c.stroke(); }
+  if (f.marks === 'lines') { c.strokeStyle = 'rgba(70,44,48,.42)'; c.lineWidth = 2.4; for (const side of [-1, 1]) { c.beginPath(); c.moveTo(256 + side * 18, y + 50); c.quadraticCurveTo(256 + side * 34, y + 74, 256 + side * 30, y + 92); c.stroke(); } }
+  c.lineCap = 'round'; c.lineJoin = 'round';
+  for (const side of [-1, 1]) { paintEye(c, f, side, col < 10 ? col : 0); paintBrow(c, f, side, col < 8 ? col : 0); }
+  // Nose: halfway between the tops of the eyes and the chin.
+  c.strokeStyle = 'rgba(150,96,88,.75)'; c.lineWidth = 2.6; c.fillStyle = 'rgba(150,96,88,.75)';
+  if (f.nose === 'dash') { c.beginPath(); c.moveTo(259, 352); c.lineTo(256, 359); c.stroke(); }
+  if (f.nose === 'dot') { c.beginPath(); c.ellipse(257, 356, 2.8, 2.2, 0, 0, Math.PI * 2); c.fill(); }
+  if (f.nose === 'hook') { c.beginPath(); c.moveTo(262, 340); c.quadraticCurveTo(266, 354, 256, 360); c.stroke(); }
+  if (f.nose === 'button') { c.beginPath(); c.moveTo(251, 354); c.quadraticCurveTo(257, 361, 263, 354); c.stroke(); }
+  paintMouth(c, f, col);
+}
+const faceAtlas = (() => {
+  const W = 256 * FACE_COLS, H = 256 * FACE_TYPES, canvas = document.createElement('canvas'); canvas.width = W; canvas.height = H; const c = canvas.getContext('2d', { willReadFrequently: true })!;
+  for (let type = 0; type < FACE_TYPES; type++) for (let col = 0; col < FACE_COLS; col++) { c.save(); c.translate(col * 256, type * 256); c.scale(.5, .5); paintFace(c, faceTypes[type], col); c.restore(); }
+  // Straight alpha, with the transparent texels carrying a skin-ish colour so mip levels do not darken the edge of a feature.
+  const data = new Uint8Array(c.getImageData(0, 0, W, H).data.buffer), mid = skinColors.map(s => new T.Color(s)).reduce((a, s) => a.add(s), new T.Color(0, 0, 0)).multiplyScalar(1 / skinColors.length).convertLinearToSRGB();
+  const [mr, mg, mb] = [mid.r, mid.g, mid.b].map(v => Math.round(v * 255));
+  for (let i = 0; i < data.length; i += 4) if (!data[i + 3]) { data[i] = mr; data[i + 1] = mg; data[i + 2] = mb; }
+  canvas.width = canvas.height = 0;
+  const map = new T.DataTexture(data, W, H, T.RGBAFormat); map.colorSpace = T.SRGBColorSpace; map.generateMipmaps = true; map.minFilter = T.LinearMipmapLinearFilter; map.magFilter = T.LinearFilter; map.anisotropy = 8; map.needsUpdate = true;
+  return map;
+})();
+/** Each band picks its own column: the shader reads the tile's height (the head's baked v) and takes the eye, brow or mouth column from the figure's `vFace`. Texture gradients come from the
+ * unshifted uv, so the jump between columns does not pick a coarse mip at a seam. */
+const FACE_MAP = `vec3 fc=floor(vFace+.5);float ft=1.-fract(vMapUv.y*${FACE_TYPES}.);
+float fcol=ft>=${tV(BAND[1])}&&ft<${tV(BAND[0])}?fc.y:ft>=${tV(BAND[2])}&&ft<${tV(BAND[1])}?fc.x:ft>=${tV(BAND[4])}&&ft<${tV(BAND[3])}?fc.z:0.;
+vec4 fs=textureGrad(map,vMapUv+vec2(fcol/${FACE_COLS}.,0.),dFdx(vMapUv),dFdy(vMapUv));diffuseColor.rgb=mix(diffuseColor.rgb,fs.rgb,fs.a);`;
+/** A face material: the shared atlas over one skin tone. The three shared ones are batched (the feature numbers ride on the instance colour); a figure outside the
+ * crowd batch takes its own (`uFace`, written by `setExpression`). */
+const faceMaterial = (tone: number) => {
+  const look = { value: new T.Vector3() }, m = new T.MeshToonMaterial({ map: faceAtlas, color: skinColors[tone], gradientMap: ramp, emissive: P.neutral.paper, emissiveIntensity: .12 });
+  m.userData.faceAtlas = true; m.userData.look = look.value;
+  m.onBeforeCompile = shader => { shader.uniforms.uFace = look;
+    shader.vertexShader = 'uniform vec3 uFace;flat varying vec3 vFace;\n' + shader.vertexShader.replace('#include <color_vertex>', '#include <color_vertex>\n#ifdef USE_BATCHING_COLOR\nvColor=vec3(1.);vFace=batchingColor;\n#else\nvFace=uFace;\n#endif');
+    shader.fragmentShader = 'flat varying vec3 vFace;\n' + shader.fragmentShader.replace('#include <map_fragment>', FACE_MAP).replace('#include <emissivemap_fragment>', 'totalEmissiveRadiance*=diffuseColor.rgb;'); };
+  m.customProgramCacheKey = () => 'terra-face-bands'; return thinLine(painted(m));
+};
+const faces = skinColors.map((_, i) => faceMaterial(i));
 const contactShape=new T.CircleGeometry(.28,14);
 const contactInk=new T.MeshBasicMaterial({color:'#253d40',transparent:true,opacity:.19,depthWrite:false});
 function hairChunk(g:T.Group,points:number[][],z:number,depth:number,material:Material){const shape=new T.Shape();points.forEach(([x,y],i)=>i?shape.lineTo(x,y):shape.moveTo(x,y));shape.closePath();const mesh=new T.Mesh(new T.ExtrudeGeometry(shape,{depth,bevelEnabled:true,bevelThickness:.018,bevelSize:.012,bevelSegments:2,curveSegments:4}),material);mesh.position.z=z;g.add(mesh);return mesh;}
@@ -172,7 +207,8 @@ function hand(g:T.Object3D,material:Material,side:number){const inward=-side;
  * authored with their grip point at their own origin and their handle along local z. */
 function gripSocket(elbow:T.Object3D,side:number){const grip=new T.Group();grip.position.set(-side*.028,-.312,.004);elbow.add(grip);return grip;}
 
-export function citizen(coat:Material=mats.rust,seed=0,archetype:Archetype='worker'){
+/** `solo`: a figure outside the crowd batch (a scene's own, a static one) gets its own face material, so its expression is a uniform and not an instance colour. */
+export function citizen(coat:Material=mats.rust,seed=0,archetype:Archetype='worker',opts:{solo?:boolean}={}){
   void coat;
   const group=new T.Group(),body=new T.Group();group.add(body);
   const contact=new T.Mesh(contactShape,contactInk);contact.rotation.x=-Math.PI/2;contact.position.y=-.10;contact.scale.y=.7;group.add(contact);
@@ -251,8 +287,8 @@ export function citizen(coat:Material=mats.rust,seed=0,archetype:Archetype='work
   const faceType=(seed*5+Math.floor(seed/3)*3+archetype.length)%FACE_TYPES,skullShape=(seed*11+Math.floor(seed/2))%3,taper=[.1,.16,.26][skullShape],cheek=[1.04,1,.97][skullShape];
   // Anime head: a round cranium, soft cheeks and a small chin carried forward.
   const rings=[[-.228,.048,.042,.034],[-.2,.092*jaw,.094,.026],[-.15,.126*jaw,.13,.012],[-.11,.145,.142,.004],[-.07,.163,.154,0],[.03,.18,.172,-.006],[.13,.168,.163,-.016],[.205,.112,.112,-.022],[.245,.004,.004,-.022]];
-  const skull=tailored(head,rings,faces[skinTone],24,-Math.PI,Math.PI*2);
-  const uv=skull.geometry.attributes.uv;for(let j=0;j<rings.length;j++)for(let i=0;i<=24;i++){uv.setX(j*25+i,uv.getX(j*25+i)/7);uv.setY(j*25+i,((Math.max(-.22,rings[j][0])+.22)/.465+FACE_TYPES-1-faceType)/FACE_TYPES);}
+  const faceMat=opts.solo?faceMaterial(skinTone):faces[skinTone],skull=tailored(head,rings,faceMat,24,-Math.PI,Math.PI*2);
+  const uv=skull.geometry.attributes.uv;for(let j=0;j<rings.length;j++)for(let i=0;i<=24;i++){uv.setX(j*25+i,uv.getX(j*25+i)/FACE_COLS);uv.setY(j*25+i,(faceType+1-(Math.max(-.22,rings[j][0])+.22)/.465)/FACE_TYPES);}
   // A soft head: the jaw narrows gently toward a small rounded chin and the front stays curved,
   // so no plane change is hard enough for the ink pass to draw a crease across the cheek.
   {const pos=skull.geometry.attributes.position;for(let i=0;i<pos.count;i++){let x=pos.getX(i),z=pos.getZ(i);const y=pos.getY(i),front=Math.max(0,z)/(.17);
@@ -317,7 +353,7 @@ export function citizen(coat:Material=mats.rust,seed=0,archetype:Archetype='work
     turned([[.225,0],[.35,-.006],[.365,.024],[.352,.032],[.228,.014]],boot,.12,1,.9);}
   if(kit.hat==='goggles'){tailored(hat,[[.12,.214,.2],[.16,.214,.2]],leather,14);for(const x of [-.075,.075]){const rim=torus(hat,x,.15,.19,.045,.014,brass);rim.rotation.x=-.3;const glass=sphere(hat,x,.15,.19,1,lens);glass.scale.set(.034,.034,.012);}}
   bakeCharacter(hat);
-  const face=head.children.find(o=>o instanceof T.Mesh&&o.material===faces[skinTone]) as T.Mesh;face.userData.expression=0;
+  const face=head.children.find(o=>o instanceof T.Mesh&&o.material===faceMat) as T.Mesh;
   const legs:T.Group[]=[],knees:T.Group[]=[],arms:T.Group[]=[],elbows:T.Group[]=[],grips:T.Group[]=[];
   for(const side of [-1,1]){
     // Legs: shaped thigh, knee, calf and a clear ankle into real boots.
@@ -361,8 +397,11 @@ export function citizen(coat:Material=mats.rust,seed=0,archetype:Archetype='work
   body.position.y-=.14;for(const leg of legs)leg.position.y-=.14;
   group.scale.set(1+(seed%4-1.5)*.03,.95+(seed%5)*.022,1);
   group.traverse(o=>{if(o instanceof T.Mesh)o.castShadow=false;});
-  const motion={stride:seed*1.3,gait:0,speed:0,prevX:NaN,prevZ:0,prevYaw:0,turn:0,tail:0,tailV:0,hair:0,hairV:0,tempo:.88+((seed*37)%25)/100,idle:0,drape:1,pose:null as Float32Array|null};
-  return {group,body,legs,knees,arms,elbows,grips,head,worn,finery,scarf,tails,skirt,swing,face,archetype,motion,phase:seed*1.7,expression:'neutral' as Expression,gaze:'away',manner:mannerOf(archetype,seedOf(seed)),/** A line being spoken, and until when: the body takes the register of the words (`palm`: until when a raised palm says halt). */tone:undefined as undefined|{tone:Tone;until:number;palm?:number},setExpression(state:Expression){this.expression=state;face.userData.expression=expressions.indexOf(state);}};
+  const motion={stride:seed*1.3,gait:0,speed:0,prevX:NaN,prevZ:0,prevYaw:0,turn:0,tail:0,tailV:0,hair:0,hairV:0,tempo:.88+((seed*37)%25)/100,idle:0,drape:1,pose:null as Float32Array|null,mood:newMood(),pick:Math.abs(Math.sin(seed*12.9898+1.7)*43758.5453)%1};
+  return {group,body,legs,knees,arms,elbows,grips,head,worn,finery,scarf,tails,skirt,swing,face,archetype,motion,phase:seed*1.7,expression:'neutral' as Expression,gaze:'away',manner:mannerOf(archetype,seedOf(seed)),/** A line being spoken, and until when: the body takes the register of the words (`palm`: until when a raised palm says halt). */tone:undefined as undefined|{tone:Tone;until:number;palm?:number},packed:0,
+    /** Dress the face: a named look, with the eyes shut for a blink, the mouth moving (`talk` 0..2 is a frame of speech) or the eyes turned (`eye` 6 left, 7 right on the atlas). Writes only when the look changes. */
+    setExpression(state:Expression,blink=false,talk=-1,eye=-1){const [e,b,m]=LOOK[state];let E:number=eye>=0?eye:e,M:number=m;if(blink&&E!==4)E=3;if(talk>=0){const t=TALK[m===9?1:0][talk];if(t>=0)M=t;}
+      this.expression=blink?'blink':state;const p=E|b<<4|M<<8;if(p===this.packed)return;this.packed=p;face.userData.face=p;if(opts.solo)(faceMat.userData.look as T.Vector3).set(E,b,M);}};
 }
 
 export type Citizen=ReturnType<typeof citizen>;

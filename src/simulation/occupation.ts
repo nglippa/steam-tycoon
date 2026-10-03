@@ -133,15 +133,69 @@ export function conduct(archetype: string, manner: Manner, pressure: number, wat
 // ---------------------------------------------------------------- tone: what is said and how the body says it
 export type Tone = 'friendly' | 'neutral' | 'authoritative' | 'suspicious' | 'hostile' | 'fearful' | 'secretive';
 export type Bearing = 'open' | 'plain' | 'point' | 'watch' | 'square' | 'withdraw' | 'close';
-export type Face = 'happy' | 'neutral' | 'focused' | 'annoyed' | 'tired' | 'surprised';
+export type Face = Mood | 'happy' | 'annoyed' | 'surprised';
 const TONES: Record<Tone, { face: Face; bearing: Bearing }> = {
   friendly: { face: 'happy', bearing: 'open' }, neutral: { face: 'neutral', bearing: 'plain' }, authoritative: { face: 'focused', bearing: 'point' },
   suspicious: { face: 'focused', bearing: 'watch' }, hostile: { face: 'annoyed', bearing: 'square' }, fearful: { face: 'surprised', bearing: 'withdraw' }, secretive: { face: 'neutral', bearing: 'close' },
 };
 /** The body that goes with a line. The Ordinance has no friendly register: asked for one, it is merely civil. */
 export function bodyFor(archetype: string, tone: Tone) { return TONES[isOccupier(archetype) && (tone === 'friendly' || tone === 'fearful' || tone === 'secretive') ? 'neutral' : tone]; }
+/** Faces the Ordinance never wears: nothing warm, nothing afraid, nothing curious. */
+const NOT_ORDINANCE = new Set<string>(['happy', 'surprised', 'smiling', 'hopeful', 'relaxed', 'curious', 'worried', 'startled', 'guarded']);
 /** Faces a kind of person may ever wear in the street. */
-export function faceAllowed(archetype: string, face: Face) { return !isOccupier(archetype) || (face !== 'happy' && face !== 'surprised'); }
+export function faceAllowed(archetype: string, face: Face | string) { return !isOccupier(archetype) || !NOT_ORDINANCE.has(face); }
+
+// ---------------------------------------------------------------- mood: the face that goes with who someone is and what is around them
+/** One face per feeling. Civilians draw on the first group, the Ordinance on the second (weary and bored are its minority). */
+export type Mood = 'neutral' | 'relaxed' | 'smiling' | 'hopeful' | 'curious' | 'worried' | 'guarded' | 'tired' | 'irritated' | 'suspicious' | 'startled' | 'stern' | 'angry' | 'focused'
+  | 'cold' | 'scrutiny' | 'sideeye' | 'impatient' | 'contempt' | 'challenge' | 'scan' | 'barking' | 'bored' | 'weary';
+/** What the face does for a line of speech. The Ordinance has no friendly, afraid or secretive register. */
+export function moodOfTone(archetype: string, tone: Tone): Mood {
+  if (isOccupier(archetype)) return tone === 'authoritative' ? 'challenge' : tone === 'suspicious' ? 'scrutiny' : tone === 'hostile' ? 'barking' : 'cold';
+  return ({ friendly: 'smiling', neutral: 'neutral', authoritative: 'stern', suspicious: 'suspicious', hostile: 'angry', fearful: 'startled', secretive: 'guarded' } as Record<Tone, Mood>)[tone];
+}
+type Odds = readonly (readonly [Mood, number])[];
+const ODDS: Record<string, readonly [Odds, Odds, Odds]> = {
+  // [far, within 9 m, within 4 m]: the Ordinance's face hardens as the Steward comes near.
+  rigid: [[['cold', .7], ['scrutiny', .3]], [['cold', .5], ['scrutiny', .5]], [['scrutiny', .6], ['challenge', .4]]],
+  watchful: [[['scan', .55], ['sideeye', .25], ['cold', .2]], [['scan', .35], ['sideeye', .35], ['scrutiny', .3]], [['scrutiny', .5], ['challenge', .25], ['sideeye', .25]]],
+  bored: [[['bored', .35], ['impatient', .3], ['contempt', .15], ['cold', .2]], [['impatient', .4], ['contempt', .3], ['sideeye', .3]], [['contempt', .4], ['scrutiny', .3], ['impatient', .3]]],
+  weary: [[['weary', .4], ['cold', .35], ['bored', .25]], [['cold', .5], ['scrutiny', .3], ['weary', .2]], [['scrutiny', .5], ['cold', .3], ['impatient', .2]]],
+};
+const roll = (odds: Odds, pick: number): Mood => { let a = 0; for (const [m, w] of odds) { a += w; if (pick < a) return m; } return odds[odds.length - 1][0]; };
+export interface MoodIn { archetype: string; trait: Trait; /** 0..1, stable for one hold */ pick: number; pressure: number; watched: boolean; startled: boolean; worried: boolean; activity: string; weariness: number; /** 0 far, 1 within 9 m, 2 within 4 m of the Steward */ near: 0 | 1 | 2; tone?: Tone }
+const WORK = new Set(['hammer', 'repair', 'valve', 'read', 'gauge', 'clipboard']);
+/** The mood for one moment. A line of speech overrides everything; a fright overrides the street; a hard street is guarded or worried;
+ * a free one is warm. The Ordinance draws only from its own vocabulary. Pure: `pick` is the only dice. */
+export function moodFor(i: MoodIn): Mood {
+  if (i.tone) return moodOfTone(i.archetype, i.tone);
+  if (isOccupier(i.archetype)) return i.activity === 'argue' ? 'barking' : roll(ODDS[i.trait][i.near], i.pick);
+  if (i.startled) return 'startled'; if (i.worried) return 'worried';
+  const t = i.trait, p = i.pressure, w = i.weariness;
+  if (i.watched || p >= .6) return t === 'nervous' ? (i.pick < .6 ? 'worried' : 'guarded') : t === 'proud' ? 'stern' : p >= .6 && i.pick < .3 ? 'worried' : 'guarded';
+  if (p >= .2) return t === 'nervous' ? 'worried' : t === 'tired' ? 'tired' : t === 'curious' && i.pick < .5 ? 'curious' : i.pick < .5 ? 'guarded' : 'neutral';
+  if (i.activity === 'argue') return 'irritated'; if (WORK.has(i.activity)) return 'focused'; if (i.activity === 'watch') return 'curious';
+  if (w > .3 && (i.activity === 'carry' || i.activity === 'sweep' || i.activity === 'warm')) return 'tired';
+  if (w > .5 && i.pick < w * .35) return 'tired';
+  if (w < .2 && i.pick > .6 && t !== 'hurried' && t !== 'nervous') return 'hopeful';
+  return t === 'sociable' ? (i.pick < .7 ? 'smiling' : 'relaxed') : t === 'curious' ? 'curious' : t === 'tired' ? (w > .3 ? 'tired' : 'relaxed') : t === 'hurried' || t === 'nervous' ? 'neutral' : 'relaxed';
+}
+/** One person's mood over time: they hold a face for seconds, and change it only when it runs out or the street around them changes. */
+export interface MoodState { mood: Mood; until: number; min: number; key: number; n: number; reactAt: number; last: number; peak: number }
+export const newMood = (): MoodState => ({ mood: 'neutral', until: 0, min: 0, key: -1, n: 0, reactAt: -1e9, last: -1e9, peak: 0 });
+/** The 2 Hz step. `react` is 0 none, 1 stepping aside / pausing / crossing, 2 a fresh incident: startled for a moment, worried for a while after.
+ * The state changes only on a threshold crossing (pressure .2/.6, watched, near, a fright, a line of speech), never by cycling. */
+export function stepMood(s: MoodState, i: Omit<MoodIn, 'startled' | 'worried'> & { react: number }, time: number): Mood {
+  if (i.react > 0) { if (time - s.last > 4) { s.reactAt = time; s.peak = i.react; } else s.peak = Math.max(s.peak, i.react); s.last = time; }
+  const startled = time - s.reactAt < (s.peak > 1 ? 2.5 : .9), worried = !startled && time - s.last < 6;
+  const key = (startled ? 1 : 0) | (worried ? 2 : 0) | (i.tone ? 4 : 0) | (i.pressure < .2 ? 0 : i.pressure < .6 ? 8 : 16) | (i.watched ? 32 : 0) | i.near << 6;
+  const changed = key !== s.key; s.key = key;
+  if (time >= s.until || (changed && (startled || i.tone || time >= s.min))) {
+    s.n++; s.mood = moodFor({ ...i, startled, worried, pick: (i.pick + s.n * .618) % 1 });
+    s.until = time + (startled ? (s.peak > 1 ? 2.5 : .9) : 2.5 + i.pick * 3.5); s.min = time + (startled ? 0 : 1.2);
+  }
+  return s.mood;
+}
 
 // ---------------------------------------------------------------- heat: being caught, and being caught again
 export type Incident = 'minor' | 'contraband' | 'curfew';
