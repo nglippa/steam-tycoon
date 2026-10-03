@@ -26,6 +26,7 @@ import { Roofwalk } from './roofwalk';
 import { CanalWard } from './canal-ward';
 import { WEST_EDGE } from './geography';
 import { RationLine } from './ration-line';
+import { RookYard } from './rook-yard';
 import type { SiteModule } from './layers';
 import { SITE_RESTORED } from '../simulation/economy';
 
@@ -44,7 +45,7 @@ export class Presentation {
   posts:{index:number;role:PostRole;rank:number;district:DistrictId}[]=[];checkpoints!:Checkpoints;borders!:Borders;
   /** The Ordinance's extra people: decorative, staged by district. Only the nearest few are ever asked whether they can see the Steward. */
   garrisonPosts:number[]=[];private watch={suspicion:0,stage:'none' as 'none'|'noticed'|'challenged',grace:0,unseen:0,by:-1,cooldown:0,scan:0,near:[] as number[]};
-  marketSquare!:MarketSquare; foundryWorks!:FoundryWorks; cinderRow!:CinderRow; rationLine!:RationLine; sites:SiteModule[]=[];
+  rookYard!:RookYard;marketSquare!:MarketSquare; foundryWorks!:FoundryWorks; cinderRow!:CinderRow; rationLine!:RationLine; sites:SiteModule[]=[];
   /** The Ordinance's coal furnace at Cinder No. 3: its own group, because restoration removes it. */
   foundryFurnace?:T.Group; foundryHoist?:T.Group; furnaceHammer=0;
   cartPusher=0;shaftMat?:T.MeshBasicMaterial;shafts?:T.Group;poolMat?:T.MeshBasicMaterial;pools?:T.Group;terracePlanters:[number,number][]=[];birds!:T.InstancedMesh;capsules:T.Group[]=[];moths!:T.InstancedMesh;hoistCrate!:T.Group;skyCanal!:SkyCanal;weatherside!:Weatherside;hangway!:Hangway;roofwalk!:Roofwalk;canalWard!:CanalWard;craneJib!:T.Group;ingotCart!:T.Group;
@@ -56,7 +57,7 @@ export class Presentation {
   verges:[number,number][]=[[-7.3,42],[-7.3,16],[-7.3,-13],[7.3,38],[7.3,13],[7.3,-17]];
   tarp=illustrated(new T.MeshStandardMaterial({color:'#8f9d97',side:T.DoubleSide}));
   soot=new T.MeshBasicMaterial({color:'#2a2a36',transparent:true,opacity:.28,depthWrite:false});
-  constructor(public city:City){city.root.add(this.root);this.root.add(this.restored,this.worn,this.market);this.gate();this.street();this.industries();this.square();this.story();this.boundaries();this.greatMain();this.streetEdges();this.life();this.everyday();this.nightLights();this.density();this.ornament();this.carving();this.vignettes();this.marketSquare=new MarketSquare(this);this.foundryWorks=new FoundryWorks(this);this.cinderRow=new CinderRow(this);this.rationLine=new RationLine(this);this.sites=[this.marketSquare,this.foundryWorks,this.cinderRow,this.rationLine];}
+  constructor(public city:City){city.root.add(this.root);this.root.add(this.restored,this.worn,this.market);this.gate();this.street();this.industries();this.square();this.story();this.boundaries();this.greatMain();this.streetEdges();this.life();this.everyday();this.nightLights();this.density();this.ornament();this.carving();this.vignettes();this.marketSquare=new MarketSquare(this);this.foundryWorks=new FoundryWorks(this);this.cinderRow=new CinderRow(this);this.rationLine=new RationLine(this);this.sites=[this.marketSquare,this.foundryWorks,this.cinderRow,this.rationLine];this.rookYard=new RookYard(this);}
   section(){const g=new T.Group();this.root.add(g);return g;}
   gate(){const g=this.section();
     // Curved iron arch lowers the opening into the player's field of view.
@@ -506,7 +507,7 @@ export class Presentation {
   sync(){
     const e=this.city.economy;const levels=PROPERTIES.map(p=>this.city.properties.get(p.id)!.level);const key=[...levels,...Object.values(e.state.infrastructure),...Object.values(e.state.sites),e.stage,e.state.resist.rook,...e.state.research,...e.state.districts].join(':');if(key===this.signature)return;this.signature=key;
     const businesses=Object.fromEntries(PROPERTIES.map((p,i)=>[p.id,levels[i]])) as Record<typeof PROPERTIES[number]['id'],number>;
-    for(const s of this.sites)s.sync({control:e.state.sites[s.id],stage:e.stage,levels:businesses,sites:{...e.state.sites}});this.weatherside.sync();this.roofwalk.sync(e.state.research);this.canalWard.sync();this.hangway.sync(e.state.research);
+    for(const s of this.sites)s.sync({control:e.state.sites[s.id],stage:e.stage,levels:businesses,sites:{...e.state.sites}});this.weatherside.sync();this.roofwalk.sync(e.state.research);this.canalWard.sync();this.hangway.sync(e.state.research);this.rookYard.sync();
     this.worn.visible=e.state.infrastructure.roads===0;
     this.city.disposeGroup(this.restored);this.city.disposeGroup(this.market);const g=this.restored;const rich=e.stage>=3;const soot=this.soot;const marketLevel=levels[5];
     // Repairs have literal mechanical consequences unique to every property.
@@ -582,7 +583,7 @@ export class Presentation {
     for(const m of this.mechanisms)m.object.rotation[m.axis]=Math.sin(time*m.speed)*.12+(m.axis==='z'&&Math.abs(m.speed)>.2?time*m.speed:0);
     const calm=reducedMotion(this.city.economy.state.settings.reducedMotion);
     const stage=this.city.economy.stage,day=this.city.economy.state.day,night=day<.24||day>.78;
-    for(const s of this.sites)s.update(dt,time,viewer,calm);this.weatherside.update(time,viewer,calm);this.hangway.update(viewer);this.roofwalk.update(time,calm);
+    for(const s of this.sites)s.update(dt,time,viewer,calm);this.weatherside.update(time,viewer,calm);this.hangway.update(viewer);this.roofwalk.update(time,calm);this.rookYard.update(dt,time,viewer);
     // Authored light, not more ambient: the lamp follows the Steward from room to room and is dark in the street.
     { let best:typeof this.interiors[number]|undefined,bd=1e9;for(const r of this.interiors){const d=Math.hypot(viewer.x-r.x,viewer.y-r.y,viewer.z-r.z);if(d<r.reach&&d<bd){bd=d;best=r;}}
       const L=this.interiorLight;if(best){L.position.set(best.x,best.y,best.z);L.color.lerp(this.interiorColor.set(best.color),.2);}L.intensity+=((best?best.power??34:0)-L.intensity)*Math.min(1,dt*5); }this.canalWard.update(time,viewer,calm);

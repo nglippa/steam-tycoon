@@ -36,6 +36,8 @@ const query = new URLSearchParams(location.search); const dev = query.has('dev')
 if (dev && query.get('intro') === '0') economy.finishIntro(null);
 const dialogue = new Dialogue(ui.app);
 const intro = new Intro({ economy, city, player, ui, sound, dialogue, reducedMotion, enabled: !reviewMode });
+// The Rook hand's one line is a flash over the street, said only to a player who is in the world.
+city.presentation.rookYard.onLine = line => { if (!player.locked || intro.active) return false; dialogue.flash(line); return true; };
 // Resolution is a pixel budget, not a fixed ratio: a laptop panel gets the full 1.5x, a 4K or 5K window is capped
 // at the same number of pixels instead of four times the fill. `strain` steps the budget down when frames run slow.
 let strain = 1, slow = 0;

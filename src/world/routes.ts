@@ -5,7 +5,7 @@ import type { City } from './city';
 /** Authored vertical routes: ladders, stairs and the parapets that keep a roof honest.
  * Each helper builds what is seen and registers what is walked (City.deck / City.collider),
  * so a route cannot look climbable without being climbable. */
-const unseen = new T.MeshBasicMaterial({ visible: false });
+export const unseen = new T.MeshBasicMaterial({ visible: false });
 const UP = new T.Vector3(0, 1, 0);
 
 /** A fixed ladder on a wall. `(nx, nz)` points away from the wall, toward whoever stands at

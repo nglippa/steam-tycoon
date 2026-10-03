@@ -20,8 +20,8 @@ test('the bookend answers the porch, and falls back to the promise', () => {
   for (const l of lines) assert.match(l, /point|who|something/);
   assert.equal(bookendLine(null), 'Now you see the point.'); assert.equal(bookendLine('nonsense'), 'Now you see the point.'); assert.equal(bookendLine('point'), 'Now you see the point.');
 });
-test('the stranger and the Rook hand are not the regime: nobody here says Steward in the Ordinance’s voice', () => {
-  for (const h of Object.values(HOLD)) { assert.ok(h.signed && h.hand); assert.ok(!/Steward|citizen/.test(h.hand)); }
+test('what the trade holds is worded, and none of it says Steward in the Ordinance’s voice', () => {
+  for (const h of Object.values(HOLD)) { for (const l of Object.values(h)) { assert.ok(l); assert.ok(!/Steward/.test(l), l); } assert.ok(!/citizen/.test(h.hand)); }
   assert.ok(HOLD.scrap);
 });
 test('a new save starts the loop at 0; an older save without it loads with the default and keeps its opening', () => {

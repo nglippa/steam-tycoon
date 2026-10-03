@@ -1,6 +1,7 @@
 import { clock, curfewNotice, districtAt, district, heatName, wardLine as compactWard } from '../simulation/occupation';
 import { HOME_TIERS, homeTier } from '../simulation/home';
 import { OBJECTIVE } from '../simulation/intro';
+import { HOLD } from '../simulation/resist';
 import { Economy, PROPERTIES, INFRA, STAGES, TRAITS, OFFLINE, ANCHOR_CLUES, ANCHOR_CASE, format, type PropertyId, type InfraId, type SiteId } from '../simulation/economy';
 import { Consignment } from '../world/logistics';
 import type { Player } from '../player/controller';
@@ -50,8 +51,10 @@ export class Interface {
   rest() { const r = this.economy.sleep(); if (!r) return this.toast('Too early to sleep. The room is yours all the same: nobody watches a Steward at home.', 6000);
     this.sound.collect(); this.toast(`You sleep ${r.hours} hours. Six in the morning; the curfew is lifted.${r.award >= 1 ? ` The trades brought in ${format(r.award)} Crowns overnight.` : ''}`, 9000); }
   answer() { const got = this.economy.signal(); if (!got) return; this.sound.purchase(); this.toast(`You turn the lamp up, twice. The Weathervane answers, and something crosses the roofs toward the cellar. +${format(got)} Crowns by morning.`, 9500); }
+  /** The bench at Rook & Son: the day's work, signed. It counts as reporting, exactly as the ledger does. */
+  work() { this.economy.inspect('scrap'); this.sound.collect(); this.toast(HOLD.scrap!.signed, 8000); }
   onDoor: () => void = () => {};
-  interact(t: Target) { if (t.kind === 'door') return this.onDoor(); if (t.kind === 'home') return this.rest(); if (t.kind === 'signal') return this.answer(); if (t.kind === 'property') { this.economy.inspect(t.id); this.selected = t.id as PropertyId; this.panel = 'property'; this.player.release(); this.render(); } else if (t.kind === 'lift') this.city.edge.startRide(this.player, t.id === 'lift.down'); else if (t.kind === 'ladder') { const l = this.city.ladders.find(l => l.id === t.id); if (l) this.player.climb(l); } else if (t.kind === 'ledger') this.openLedger(); else if (t.kind === 'district') this.openLedger('Districts'); else if (t.kind === 'site') { const load = Consignment.all.find(c => c.id === t.id), held = Consignment.carried(); if (load) this.carry(load); else if (held?.deliverAt === t.id) this.deliver(held); else this.openSite(t.id); } else { const text = LORE[t.id] ?? '';
+  interact(t: Target) { if (t.kind === 'door') return this.onDoor(); if (t.kind === 'home') return this.rest(); if (t.kind === 'signal') return this.answer(); if (t.kind === 'resist') return this.work(); if (t.kind === 'property') { this.economy.inspect(t.id); this.selected = t.id as PropertyId; this.panel = 'property'; this.player.release(); this.render(); } else if (t.kind === 'lift') this.city.edge.startRide(this.player, t.id === 'lift.down'); else if (t.kind === 'ladder') { const l = this.city.ladders.find(l => l.id === t.id); if (l) this.player.climb(l); } else if (t.kind === 'ledger') this.openLedger(); else if (t.kind === 'district') this.openLedger('Districts'); else if (t.kind === 'site') { const load = Consignment.all.find(c => c.id === t.id), held = Consignment.carried(); if (load) this.carry(load); else if (held?.deliverAt === t.id) this.deliver(held); else this.openSite(t.id); } else { const text = LORE[t.id] ?? '';
       if (this.economy.discover(t.id)) { this.sound.collect(); this.toast(`${text}  +55 Crowns · +3% income`, 9500); return; }
       // An observation is kept, not collected. If it changes what can be done, say so in one line.
       const before = this.economy.researchBlocker('anchors'), price = this.economy.charterCost('anchors'), fresh = this.economy.learn(t.id);
@@ -63,7 +66,7 @@ export class Interface {
   /** Logistics in the Steward's own arms: take the Foundry's cutters crate, and hand it over at the Finch cellar. */
   carry(load: Consignment) { this.toast(load.take() ?? load.taken, 8000); }
   /** Delivery happens where the goods are received; it is covert, so watching eyes there refuse it. */
-  deliver(load: Consignment) { const at = load.deliverAt.split('.')[0] as SiteId; if (this.city.watched(at)) return this.toast(this.economy.site(at).watched); if (this.economy.deliver(load.site)) { load.drop(); this.sound.purchase(); } }
+  deliver(load: Consignment) { if (!load.site) { if (load.receive?.()) { load.drop(); this.sound.purchase(); } return; } const at = load.deliverAt.split('.')[0] as SiteId; if (this.city.watched(at)) return this.toast(this.economy.site(at).watched); if (this.economy.deliver(load.site)) { load.drop(); this.sound.purchase(); } }
   /** Physical places, not menus: each site's spots (a cellar door, a shift board, a spring,
    * a forge) carry their own steps. Covert spots refuse while occupation eyes are on you. */
   openSite(key: string) { const [id, name] = key.split('.') as [SiteId, string]; const s = this.economy.state, level = s.sites[id], site = this.economy.site(id), spot = site.spots[name];
