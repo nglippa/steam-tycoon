@@ -5,6 +5,7 @@ import { occupationMats, canvasTarp, signs } from './factions';
 import { inView } from './patrol';
 import { gateCrew, scrutiny, type Gate, type DistrictId, type Scrutiny, type Tone } from '../simulation/occupation';
 import { VOICE } from '../simulation/voice';
+import { atHome } from '../simulation/home';
 import { APPROACH, approachState, stepApproach, type Approach, type ApproachEvent } from '../simulation/approach';
 import type { Presentation } from './presentation';
 
@@ -140,7 +141,7 @@ export class Checkpoints {
       if (time < g.watchUntil + 4) g.crew.forEach((i, k) => { const q = this.p.workers[i].person.group; if (!q.visible) return; const want = watching && i === g.watcher ? Math.atan2(viewer.x - q.position.x, viewer.z - q.position.z) : g.yaw[k]; q.rotation.y += wrap(want - q.rotation.y) * Math.min(1, dt * 3); });
       const dx = viewer.x - s.x, dz = viewer.z - s.z, lx = s.quarter ? -dz : dx, lz = s.quarter ? dx : dz;
       // Up on the roofs is the other way through, and nobody watches it: a challenge does not follow him up the ladder.
-      const up = viewer.y > 4, far = Math.abs(lz) > APPROACH.reach + APPROACH.leave + 1 || lx < s.span[0] - APPROACH.leave - 2 || lx > s.span[1] + APPROACH.leave + 2;
+      const up = viewer.y > 4 || atHome(viewer.x, viewer.y, viewer.z), far = Math.abs(lz) > APPROACH.reach + APPROACH.leave + 1 || lx < s.span[0] - APPROACH.leave - 2 || lx > s.span[1] + APPROACH.leave + 2;
       if (!HELD.includes(g.state) || up || (far && g.approach.stage === 'idle')) { if (g.approach.stage !== 'idle') g.approach = { ...approachState(), lastIncident: g.approach.lastIncident }; g.seenBy = -1; g.scan = 0; continue; }
       const what = scrutiny(g.state, city.economy.state.heat, city.social.get(s.district)!.crackdown);
       if (what === 'refuse') { stepApproach(g.approach, { lx, lz, span: s.span, seen: false, scrutiny: what, dt, time });

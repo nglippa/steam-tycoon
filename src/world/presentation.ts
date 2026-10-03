@@ -9,6 +9,7 @@ import { reducedMotion } from '../motion';
 import type { City } from './city';
 import { districtAt, standingOf, seedOf, isOccupier, canAct, AUTHORITY_BUDGET, type DistrictId, type Standing, type Importance, type PostRole } from '../simulation/occupation';
 import { VOICE } from '../simulation/voice';
+import { atHome } from '../simulation/home';
 import { Checkpoints } from './checkpoints';
 import { Borders } from './borders';
 import { inView } from './patrol';
@@ -465,8 +466,8 @@ export class Presentation {
    * and only while a curfew is being enforced where the Steward stands. Notice, challenge, order home, then a grace to get
    * out of sight; being seen when it runs out is an incident. Roofs and rooms are out of their sight. */
   watchCurfew(dt:number,time:number,viewer:T.Vector3){const w=this.watch,city=this.city,here=city.here(viewer.x,viewer.z);w.cooldown=Math.max(0,w.cooldown-dt);
-    const enforced=here.enforcement!=='none'&&viewer.y<4.6&&w.cooldown<=0;
-    if(!enforced){w.suspicion=Math.max(0,w.suspicion-dt*.5);if(w.stage!=='none'&&here.enforcement==='none'){w.stage='none';}if(w.stage==='challenged'&&viewer.y>=4.6){w.unseen+=dt;if(w.unseen>4){w.stage='none';w.suspicion=0;city.onEvent('The street below loses sight of you.');}}return;}
+    const indoors=viewer.y>=4.6||atHome(viewer.x,viewer.y,viewer.z),enforced=here.enforcement!=='none'&&!indoors&&w.cooldown<=0;
+    if(!enforced){w.suspicion=Math.max(0,w.suspicion-dt*.5);if(w.stage!=='none'&&here.enforcement==='none'){w.stage='none';}if(w.stage==='challenged'&&indoors){w.unseen+=dt;if(w.unseen>4){w.stage='none';w.suspicion=0;city.onEvent('The street below loses sight of you.');}}return;}
     w.scan-=dt;if(w.scan<=0){w.scan=.25;w.near=this.authority.filter(i=>this.workers[i].person.group.visible).map(i=>[i,this.workers[i].person.group.position.distanceToSquared(viewer)] as const).filter(([,d])=>d<256).sort((a,b)=>a[1]-b[1]).slice(0,AUTHORITY_BUDGET).map(([i])=>i);}
     let seenBy=-1;for(const i of w.near){const g=this.workers[i].person.group;if(inView(city,g,viewer,13,.9)){seenBy=i;break;}}
     const rate=here.enforcement==='strict'?.8:here.enforcement==='normal'?.5:.25;

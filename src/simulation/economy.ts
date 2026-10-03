@@ -147,6 +147,8 @@ export function cityFacts(sites: Record<SiteId, number>) {
 }
 export type CityFacts = ReturnType<typeof cityFacts>;
 export interface PropertyState { level: number; automated: boolean; stored: number; progress: number }
+import { HOME_TIERS } from './home';
+import { PORCH_ANSWERS } from './intro';
 import { occupation, bandOf, BANDS, curfewIn, curfewHour, caught, cooled, clock, dayAt, districtAt, DISTRICTS, HEAT, type DistrictId, type Band, type Effects, type Enforcement, type Incident, type Outcome } from './occupation';
 /** One day in Terra, in seconds of play. */
 export const DAY_SECONDS = 720;
@@ -154,11 +156,13 @@ export interface Settings { master: number; ambience: number; sfx: number; music
 export interface Save { version: 3; crowns: number; earned: number; properties: Record<PropertyId, PropertyState>; infrastructure: Record<InfraId, number>; districts: string[]; research: string[]; knowledge: string[]; discoveries: string[]; sites: Record<SiteId, number>; objective: number; playtime: number; day: number; lastSave: number; settings: Settings;
   /** How often the Ordinance has had to deal with the Steward lately (0 to 5, cools with time), the district it is leaning on because of it,
    * until when the Embers keep their doors shut, and when the rooftop signal was last answered. Times are in seconds of play. */
-  heat: number; crackdown: { district: DistrictId; until: number } | null; quietUntil: number; signalAt: number }
+  heat: number; crackdown: { district: DistrictId; until: number } | null; quietUntil: number; signalAt: number;
+  /** The opening scene: played once per new save (older saves never see it), and the porch answer, kept for later. The home tier is not read by anything yet. */
+  intro: { played: boolean; answer: string | null }; home: { level: number } }
 export interface StorageAdapter { read(): string | null; write(value: string): void; clear(): void }
 export const SAVE_KEY = 'locke.terra.save';
 export function freshSave(now = Date.now()): Save {
-  return { version: 3, crowns: 35, earned: 0, properties: Object.fromEntries(PROPERTIES.map(p => [p.id, { level: 0, automated: false, stored: 0, progress: 0 }])) as Save['properties'], infrastructure: { lamps: 0, roads: 0, steam: 0, gardens: 0, housing: 0 }, districts: [], research: [], knowledge: [], discoveries: [], sites: { market: 0, foundry: 0, row: 0, gauge: 0 }, objective: 0, playtime: 0, day: .72, lastSave: now, settings: { master: .55, ambience: .45, sfx: .7, music: 0, sensitivity: 1, reducedMotion: false, quality: 'high' }, heat: 0, crackdown: null, quietUntil: 0, signalAt: -1e9 };
+  return { version: 3, crowns: 35, earned: 0, properties: Object.fromEntries(PROPERTIES.map(p => [p.id, { level: 0, automated: false, stored: 0, progress: 0 }])) as Save['properties'], infrastructure: { lamps: 0, roads: 0, steam: 0, gardens: 0, housing: 0 }, districts: [], research: [], knowledge: [], discoveries: [], sites: { market: 0, foundry: 0, row: 0, gauge: 0 }, objective: 0, playtime: 0, day: .72, lastSave: now, settings: { master: .55, ambience: .45, sfx: .7, music: 0, sensitivity: 1, reducedMotion: false, quality: 'high' }, heat: 0, crackdown: null, quietUntil: 0, signalAt: -1e9, intro: { played: false, answer: null }, home: { level: 0 } };
 }
 const finite = (v: unknown, fallback: number, max = 1e15) => typeof v === 'number' && Number.isFinite(v) ? Math.min(max, Math.max(0, v)) : fallback;
 export function decodeSave(raw: string | null): Save | null {
@@ -177,6 +181,8 @@ export function decodeSave(raw: string | null): Save | null {
     for (const key of ['master', 'ambience', 'sfx', 'music', 'sensitivity'] as const) s.settings[key] = finite(data.settings?.[key], s.settings[key], key === 'sensitivity' ? 2 : 1);
     s.heat = finite(data.heat, 0, HEAT.max); s.quietUntil = finite(data.quietUntil, 0); s.signalAt = typeof data.signalAt === 'number' && Number.isFinite(data.signalAt) ? data.signalAt : -1e9;
     s.crackdown = data.crackdown && DISTRICTS.some(d => d.id === data.crackdown.district) && Number.isFinite(data.crackdown.until) ? { district: data.crackdown.district, until: data.crackdown.until } : null;
+    s.home.level = Math.floor(finite(data.home?.level, 0, HOME_TIERS.length - 1));
+    s.intro = data.intro ? { played: Boolean(data.intro.played), answer: PORCH_ANSWERS.includes(data.intro.answer) ? data.intro.answer : null } : { played: true, answer: null };
     s.settings.reducedMotion = Boolean(data.settings?.reducedMotion); s.settings.quality = data.settings?.quality === 'low' ? 'low' : 'high'; return s;
   } catch { return null; }
 }
@@ -275,6 +281,8 @@ export class Economy {
     for (const p of PROPERTIES) { const s = this.state.properties[p.id]; const out = this.output(p.id); const passive = out / p.interval * (s.automated ? 1 : .4) * dt; this.state.crowns += passive; this.state.earned += passive; s.progress += dt; const cycles = Math.floor(s.progress / p.interval); s.progress %= p.interval; if (!s.automated) s.stored = Math.min(s.stored + cycles * out * .6, out * 30); }
   }
   save(now = Date.now()) { this.state.lastSave = now; try { this.storage.write(JSON.stringify(this.state)); } catch { this.onChange('save-error', ''); } }
+  /** The opening is over (or skipped): it never plays again for this save. */
+  finishIntro(answer: string | null = this.state.intro.answer) { this.state.intro = { played: true, answer }; this.save(); }
   reset() { this.state = freshSave(); this.offlineAward = 0; this.storage.clear(); this.save(); }
 }
 export function format(n: number) { return n >= 1e6 ? (n / 1e6).toFixed(2) + 'm' : n >= 1e4 ? (n / 1000).toFixed(1) + 'k' : Math.floor(n).toLocaleString('en-US'); }
