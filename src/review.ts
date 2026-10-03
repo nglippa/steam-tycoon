@@ -58,6 +58,8 @@ export class Review {
     results.yardGantry=(p=>p.z>94&&near(p.y,10.85))(walk(-73.4,57,S,10,8.85));
     results.aqueduct=(p=>p.z>20&&near(p.y,7.85))(walk(-66.5,-60.5,S,20,7.85));
     results.hallStair=(p=>near(walk(p.x,p.z,0,1.5,p.y).y,7.85))(walk(-67.5,-10.1,W,3.5));
+    // The way home: from the stoop through the street door, up the stair, along the corridor, into the room.
+    results.homeWay=(a=>(b=>(c=>c.x>-5&&near(c.y,10.2))(walk(b.x,b.z,-W,4,b.y)))(walk(a.x,a.z,S,5,a.y)))(walk(-16.9,-2.65,-W,1.5));
     results.channelStair=walk(-64.7,-46,0,5).y>7.6;
     results.hangway=(p=>p.z< -56&&near(p.y,-3.75))(walk(41.6,43,0,24,-3.75));
     // The Leads: along the Bridge-house ridge onto the terrace, and the lower Hangway by its two flights.

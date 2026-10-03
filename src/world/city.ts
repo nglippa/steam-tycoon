@@ -23,7 +23,7 @@ export interface Deck { minX: number; maxX: number; minZ: number; maxZ: number; 
 /** An authored ladder: where the Steward stands at each end, and the line the rungs follow. */
 export interface Ladder { id: string; x: number; z: number; bottom: T.Vector3; top: T.Vector3 }
 const deckHeight = (d: Deck, x: number, z: number) => d.y1 === undefined ? d.y : d.y + (d.y1 - d.y) * T.MathUtils.clamp(d.axis === 'x' ? (x - d.minX) / (d.maxX - d.minX) : (z - d.minZ) / (d.maxZ - d.minZ), 0, 1);
-export interface Target { object: T.Object3D; id: string; kind: 'property' | 'ledger' | 'discovery' | 'district' | 'site' | 'lift' | 'ladder' | 'home' | 'signal'; label: string; position: T.Vector3; hint?: string; /** Not offered while this is false (a thing behind a door that is still shut). */ when?: () => boolean }
+export interface Target { object: T.Object3D; id: string; kind: 'property' | 'ledger' | 'discovery' | 'district' | 'site' | 'lift' | 'ladder' | 'home' | 'signal' | 'door'; label: string; position: T.Vector3; hint?: string; /** Not offered while this is false (a thing behind a door that is still shut). */ when?: () => boolean }
 interface PropertyVisual { root: T.Group; additions: T.Group; machine: T.Group; gear: T.Group; piston: T.Mesh; level: number; building: T.Group; sign: T.Mesh }
 /** Clock terrace: concentric 0.2 m steps rising 1.2 m toward the tower. */
 export const TERRACE = { x: 0, z: -49.5, outer: 13.5, inner: 9, rise: 1.2, steps: 6 };

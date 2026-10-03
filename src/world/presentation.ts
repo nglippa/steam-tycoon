@@ -77,12 +77,12 @@ export class Presentation {
       for(const zz of [z-1.7,z+1.7]){box(g,0,8.3,zz,27.2,.28,.3,mats.stone);for(const x of [-12.6,12.6])box(g,x,2.6,zz,1.8,5.2,.2,mats.stone);const key=new T.Group();key.position.set(0,7,zz+(zz>z?.12:-.12));key.rotation.y=zz>z?0:Math.PI;g.add(key);box(key,0,0,0,1.1,1.4,.2,mats.stone);pressureRing(key,0,0,.14,.42,mats.brass);}
       box(g,0,9.9,z,25.4,3.2,2.8,artMats.plaster);box(g,0,11.6,z,26,.26,3.4,mats.stone);
       for(const zz of [z-1.42,z+1.42])for(let x=-10.5;x<=10.5;x+=3){const face=new T.Group();face.position.set(x,0,zz);face.rotation.y=zz>z?0:Math.PI;g.add(face);windowUnit(face,0,8.8,0,true,1.1,1.8,'rect');}
-      for(const x of [-12.9,-6.45,0,6.45,12.9])box(g,x,9.9,z,.3,3.3,3,mats.wood);
+      for(const x of [-12.9,-6.45,0,6.45,12.9]){if(x<-6.4){box(g,x,9.9,4.2,.3,3.3,.2,mats.wood);box(g,x,9.9,6.4,.3,3.3,1.4,mats.wood);}else box(g,x,9.9,z,.3,3.3,3,mats.wood);} // the two west posts leave the corridor to the stair-house open
       const rg=new T.Group();rg.position.set(0,0,z);rg.rotation.y=Math.PI/2;g.add(rg);roof(rg,0,11.72,0,3.9,2.1,26.8,mats.teal);
       for(const x of [-7,7]){box(g,x,13.3,z,.7,2.2,.7,mats.brick);}
       pipe(g,[[-14,8.55,z+1.9],[14,8.55,z+1.9]],.12,mats.copper);
       sign(g,'MARKET SQUARE ↑','CIVIC WALK',-6.2,7.35,z+1.72,3.5,.55);
-      for(const x of [-12.6,12.6])this.city.collider(x,z,1.6,3.2);}
+      for(const x of [-12.6,12.6])this.city.collider(x,z,1.6,3.2,x<0?8.2:30);} // the west pier stops under the corridor floor (8.45): the way down to the street door crosses it
     // Side-street service infrastructure and projecting signs.
     for(const side of [-1,1])for(const z of [28,2,-30]){
 

@@ -7,6 +7,7 @@ import { hungRing, splitRing, channel } from './ancient-kit';
 import { dado, ceilingBeam, desk, papers, shelves } from './interior-kit';
 import { spacePhase } from '../simulation/economy';
 import { ladder, parapet, examine } from './routes';
+import { bridgeHouse } from './bridge-house';
 import type { Presentation } from './presentation';
 
 /** THE LEADS. The roofs in the middle of the ward, joined up. A duckboard walk runs the
@@ -24,6 +25,10 @@ const chalk = decalMat(emberChalk, .92), unseenMat = new T.MeshBasicMaterial({ v
 export const HOME = { floor: 8.45, x: -3.2, z: 5.6, yaw: Math.PI };
 
 export class Roofwalk {
+  /** The room's west door, hung only for the opening scene: shut while someone knocks, thrown open for the guards. */
+  door = { leaf: new T.Group(), shut: false, awaiting: false };
+  /** The Weathervane's sign on the street door's post, once a stranger has left it. */
+  chalkMark!: T.Mesh;
   root = new T.Group(); private live = new T.Group(); private governors = new T.Group(); private pennants = new T.Group(); private chartered = false; private spin: T.Group[] = []; private roofs!: Staged; private search = new T.Group(); private city!: Presentation['city'];
   constructor(p: Presentation) { const city = this.city = p.city, s = new T.Group(), d = new T.Group(); p.root.add(this.root); this.root.add(s, d, this.live, this.governors, this.pennants);
     city.roofAt(-19, 14, LAND - .05); for (const x of [-12.6, 12.6]) city.roofAt(x, 5.6, LEADS - .1);
@@ -58,7 +63,10 @@ export class Roofwalk {
     // HOME. A rented room over the street in the Market Bridge-house, reached by a hatch in the Leads. Two windows:
     // north to the clock and the square, south down the Great Main. Nobody watches a Steward at home.
     { const h = new T.Group(); this.root.add(h); const F = HOME.floor, C = 11.4, X0 = -6.2, X1 = -.2, cx = (X0 + X1) / 2, P2 = mats.cream, mid = (F + C) / 2;
-      box(h, cx, F - .05, 5.6, 6.2, .1, 3.1, mats.wood); box(h, cx, C + .05, 5.6, 6.2, .1, 3.1, P2); for (const x of [X0 - .05, X1 + .05]) box(h, x, mid, 5.6, .1, C - F, 3.1, P2);
+      box(h, cx, F - .05, 5.6, 6.2, .1, 3.1, mats.wood); box(h, cx, C + .05, 5.6, 6.2, .1, 3.1, P2); box(h, X1 + .05, mid, 5.6, .1, C - F, 3.1, P2);
+      // The west wall has the door: 1.3 m between jambs (the player needs a metre and a bit), z 4.35..5.65, 2.1 m high, and the corridor behind it.
+      box(h, X0 - .05, mid, 4.2, .1, C - F, .3, P2); box(h, X0 - .05, mid, 6.4, .1, C - F, 1.5, P2); box(h, X0 - .05, (F + 2.1 + C) / 2, 5, .1, C - F - 2.1, 1.3, P2);
+      for (const z of [4.35, 5.65]) box(h, X0 - .05, F + 1.05, z, .14, 2.1, .08, mats.wood); box(h, X0 - .05, F + 2.14, 5, .14, .08, 1.38, mats.wood);
       for (const [z, dz] of [[4.15, 1], [7.05, -1]] as const) { box(h, cx, (F + 8.85) / 2, z, 6.2, 8.85 - F, .1, P2); box(h, cx, (10.55 + C) / 2, z, 6.2, C - 10.55, .1, P2);
         for (const [a, b] of [[X0, -5.1], [-3.9, -2.1], [-.9, X1]]) box(h, (a + b) / 2, 9.7, z, b - a, 1.7, .1, P2); for (const x of [-4.5, -1.5]) box(h, x, 8.83, z + dz * .12, 1.3, .06, .3, mats.wood); }
       for (const z of [4.3, 6.9]) dado(h, cx, z, 6, true, mats.wood, F, .8); ceilingBeam(h, cx, C - .1, 5.6, 2.9, false); ceilingBeam(h, -4.9, C - .1, 5.6, 2.9, false);
@@ -79,11 +87,14 @@ export class Roofwalk {
       // Enough to say whose room it is: a mug and the ledger on the table, boots by the bed, a second blanket folded at its foot.
       cyl(h, -3.42, F + .88, 4.86, .045, .1, mats.copper); box(h, -2.95, F + .84, 4.8, .3, .05, .22, artMats.wine); for (const dx of [0, .16]) { box(h, -2.7 + dx, F + .1, 6.05, .11, .2, .26, mats.dark); box(h, -2.7 + dx, F + .26, 5.96, .11, .16, .1, mats.dark); }
       box(h, -2.05, F + .53, 6.4, .34, .08, .8, artMats.ochre); box(h, -.3, F + 1.5, 4.7, .03, .4, .3, mats.wood); box(h, -.31, F + 1.5, 4.7, .02, .3, .22, artMats.fadedPaint);
-      bake(h); city.deck(X0 - .25, X1 + .25, 4, 7.2, F);
-      for (const [x, z, w, d] of [[cx, 3.95, 6.6, .1], [cx, 7.25, 6.6, .1], [X0 - .3, 5.6, .1, 3.4], [X1 + .3, 5.6, .1, 3.4]]) city.collider(x, z, w, d, C + .2, undefined, undefined, F - .25);
+      bake(h); city.deck(X0 - .25, X1 + .25, 4, 7.2, F); this.chalkMark = bridgeHouse(p, this.root, this.live);
+      for (const [x, z, w, d] of [[cx, 3.95, 6.6, .1], [cx, 7.25, 6.6, .1], [X0 - .3, 4.125, .1, .45], [X0 - .3, 6.475, .1, 1.65], [X1 + .3, 5.6, .1, 3.4]]) city.collider(x, z, w, d, C + .2, undefined, undefined, F - .25);
+      city.collider(X0 - .3, 5, .1, 1.3, C + .2, undefined, () => !this.door.shut, F - .25); this.door.leaf.position.set(X0 - .05, F, 4.35); this.door.leaf.visible = false; box(this.door.leaf, 0, 1.03, .65, .07, 2.06, 1.28, mats.wood); box(this.door.leaf, -.05, 1.0, 1.1, .03, .1, .1, mats.brass); this.live.add(this.door.leaf);
       ladder(h, this.live, city, 'ladder.home', 'The hatch to your room', -5.5, 4.32, F, LEADS, 0, 1, mats.iron, [0, .1]);
       p.interiors.push({ x: -3.2, y: F + 2.2, z: 5.6, color: '#ffd9a0', reach: 4.4, power: 26 });
-      const spot = (id: string, kind: 'home' | 'signal', label: string, hint: string, x: number, y: number, z: number, w: number, hh: number, d: number, when?: () => boolean) => { const hit = new T.Mesh(new T.BoxGeometry(1, 1, 1), unseenMat); hit.position.set(x, y, z); hit.scale.set(w, hh, d); this.live.add(hit); hit.updateWorldMatrix(true, false); city.targets.push({ object: hit, id, kind, label, hint, position: hit.getWorldPosition(new T.Vector3()), when }); };
+      const spot = (id: string, kind: 'home' | 'signal' | 'door', label: string, hint: string, x: number, y: number, z: number, w: number, hh: number, d: number, when?: () => boolean) => { const hit = new T.Mesh(new T.BoxGeometry(1, 1, 1), unseenMat); hit.position.set(x, y, z); hit.scale.set(w, hh, d); this.live.add(hit); hit.updateWorldMatrix(true, false); city.targets.push({ object: hit, id, kind, label, hint, position: hit.getWorldPosition(new T.Vector3()), when }); };
+      // The door only answers during the opening, while somebody is knocking.
+      spot('home.door', 'door', 'The door', 'ANSWER THE DOOR', X0, F + 1.05, 5, .6, 2.1, 1.3, () => this.door.awaiting);
       spot('home.bed', 'home', 'Your bed', 'SLEEP', -1.35, F + .5, 6.4, 1.9, .7, .9);
       // Curfew is when nobody is expected on the roofs: a lamp in the north window answers the Weathervane.
       spot('home.lamp', 'signal', 'The window lamp', 'ANSWER THE WEATHERVANE', -4.5, 9.6, 4.35, 1.1, 1.5, .4, () => city.economy.canSignal()); }
