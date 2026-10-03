@@ -1,10 +1,10 @@
 import * as T from 'three';
-import { box, bake, crate, mats } from './assets';
-import { artMats } from './art-kit';
+import { box, cyl, sphere, bake, mats } from './assets';
+import { artMats, labeledCrate } from './art-kit';
 import { unseen } from './routes';
 import { Consignment } from './logistics';
 import { inView, Attention } from './patrol';
-import { decalMat, emberChalk, signs } from './factions';
+import { decalMat, emberChalk, canvasTarp } from './factions';
 import { canDivert, canNotice, HOLD } from '../simulation/resist';
 import type { Line } from '../simulation/intro';
 import type { Presentation } from './presentation';
@@ -12,7 +12,7 @@ import type { Presentation } from './presentation';
 /** Rook & Son's part in the first resistance loop (simulation/resist.ts): the manifest on the pavement bench, the chalk that
  * appears on it and on the stock at the yard lane, the hand who says one thing about it, and the crate of held governors
  * waiting in the yard under a collection clerk's eye. Everything shows from what the save says; nothing here is a menu. */
-const BENCH = { x: -10.7, z: 32.4 }, HAND = { x: -12.4, z: 33.9 }, STOCK = { x: -10.3, z: 47.9 }, CRATE = { x: -26.4, z: 45.9 }, CLERK = { x: -29, z: 47.6 };
+const BENCH = { x: -10.7, z: 32.4 }, HAND = { x: -12.4, z: 33.9 }, STOCK = { x: -10.3, z: 47.9 }, CRATE = { x: -26.4, z: 45.9 }, CLERK = { x: -29, z: 47.6 }, CACHE = { x: -17.2, y: 14.45, z: 7.4 };
 /** The clerk counts the held stock, then bends to his sheet. The sheet is the window. */
 const WATCH: [yaw: number, seconds: number][] = [[2.15, 5], [Math.PI, 4.5]];
 const chalk = decalMat(emberChalk, .92);
@@ -23,7 +23,7 @@ export class RookYard {
   crate: Consignment; attention = new Attention(WATCH);
   /** Say a line to the player now; false if this is not the moment (the ledger is open, the opening is playing). */
   onLine: (line: Line) => boolean = () => false;
-  private ticks = new T.Group(); private clerk: number; private hand: number; private hear = 0; private viewer = new T.Vector3(0, -99, 0);
+  private ticks = new T.Group(); private waiting = new T.Group(); private under = new T.Group(); private clerk: number; private hand: number; private hear = 0; private viewer = new T.Vector3(0, -99, 0);
   constructor(private pres: Presentation) {
     const city = pres.city, root = new T.Group(); pres.root.add(root), root.add(this.ticks);
     // The manifest, always: pinned to the back board of the bench where the street can read it, three lines in a clerk's hand.
@@ -39,21 +39,33 @@ export class RookYard {
     // The hand at the bench, and the clerk who has come to collect what is held.
     this.hand = pres.addWorker(HAND.x, HAND.z, .85, 'repair', { role: 'worker', essential: true });
     this.clerk = pres.addWorker(CLERK.x, CLERK.z, WATCH[0][0], 'guard', { role: 'ordinal', tool: 'clipboard', essential: true, when: () => this.held });
-    // The held crate: plate and chalk on the lane face, the braced face to the wall.
-    this.crate = new Consignment('rook.crate', null, 'rook.loft', root, CRATE, g => { const c = new T.Group(); c.rotation.y = Math.PI / 2; g.add(c); crate(c, 0, 0, 0, .7);
-        const plate = new T.Mesh(signs.plate(HOLD.scrap!.plate, .62, .22), signs.material); plate.position.set(-.356, .48, 0); plate.rotation.y = -Math.PI / 2; g.add(plate); tick(g, -.358, .17, 0, .22, -Math.PI / 2); bake(g); },
-      () => this.held, HOLD.scrap!.taken, () => !canDivert(this.rook) ? HOLD.scrap!.held : this.watching ? HOLD.scrap!.watched : null);
+    // The held crate: the Directorate's grey, stencilled on every face, and the Embers' chalk on the lane side.
+    this.crate = new Consignment('rook.crate', null, 'rook.loft', root, CRATE, g => { labeledCrate(g, 0, 0, 0, .7, HOLD.scrap!.plate, 0, '#9a9486'); tick(g, -.358, .16, .2, .2, -Math.PI / 2); bake(g); },
+      () => this.held, HOLD.scrap!.taken, () => !canDivert(this.rook) ? HOLD.scrap!.held : this.watching ? HOLD.scrap!.watched : null, () => this.receive());
+    this.crate.contraband = true;
+    this.cache(root);
     city.collider(CRATE.x, CRATE.z, .8, .8, .75, undefined, () => !(this.held && !this.crate.carrying));
     this.crate.target.updateWorldMatrix(true, false);
     city.targets.push({ object: this.crate.target, id: 'rook.crate', kind: 'site', label: 'Held crate', hint: 'CARRY', position: this.crate.target.getWorldPosition(new T.Vector3()) });
   }
+  /** Behind Finch's pigeon loft: a pallet under a lamp, a tarp folded beside it and a chalked ember. Delivered, the crate is under the tarp. */
+  private cache(root: T.Group) {
+    const { x, y, z } = CACHE, always = new T.Group(), before = this.waiting, after = this.under; root.add(always, before, after);
+    box(always, x, y + .07, z, 1, .14, .8, mats.wood); cyl(always, x + .9, y + .9, z - .5, .03, 1.8, mats.iron); cyl(always, x + .9, y + 1.85, z - .5, .09, .16, mats.iron); sphere(always, x + .9, y + 1.7, z - .5, .1, mats.glow); bake(always);
+    box(before, x - 1.15, y + .1, z + .2, .7, .2, .5, canvasTarp); tick(before, x - .1, y + .09, z + .401, .2, 0); bake(before);
+    labeledCrate(after, x, y + .14, z, .7, HOLD.scrap!.plate, 0, '#9a9486'); box(after, x, y + .88, z, .95, .05, .85, canvasTarp); for (const d of [-1, 1]) { const f = box(after, x + d * .5, y + .6, z, .05, .6, .85, canvasTarp); f.rotation.z = d * .35; } tick(after, x, y + .5, z + .43, .2, 0); bake(after);
+    const hit = new T.Mesh(new T.BoxGeometry(1.5, 1.4, 1.3), unseen); hit.position.set(x, y + .7, z); root.add(hit); hit.updateWorldMatrix(true, false);
+    this.pres.city.targets.push({ object: hit, id: 'rook.loft', kind: 'site', label: 'Finch’s cache', hint: 'LEAVE THE CRATE', position: hit.getWorldPosition(new T.Vector3()), when: () => this.crate.carrying });
+  }
+  /** The crate is left under the tarp: the third step, and the toast that says what it was for. */
+  private receive() { if (!this.pres.city.economy.advanceResist(3)) return false; this.pres.city.onEvent(HOLD.scrap!.delivered); return true; }
   private get rook() { return this.pres.city.economy.state.resist.rook; }
   /** The crate waits in the yard from the report until it is delivered. */
   private get held() { return this.rook >= 1 && this.rook < 3; }
   private get eyes() { return this.pres.workers[this.clerk].person.group; }
   /** The clerk is facing the held stock and could see the Steward at it. */
   get watching() { return this.held && inView(this.pres.city, this.eyes, this.viewer, 10, .75); }
-  sync() { this.ticks.visible = this.rook >= 1; }
+  sync() { this.ticks.visible = this.rook >= 1; this.waiting.visible = this.rook < 3; this.under.visible = this.rook >= 3; }
   update(dt: number, time: number, viewer: T.Vector3) {
     this.viewer.copy(viewer); this.crate.update();
     if (this.held) { this.attention.update(dt, time, this.eyes); this.pres.workers[this.clerk].kind = this.attention.facing(WATCH[0][0], .5) ? 'guard' : 'clipboard'; }

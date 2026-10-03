@@ -22,8 +22,10 @@ const BOOKEND: Record<string, string> = {
 export const bookendLine = (answer: string | null) => (answer && PORCH_ANSWERS.includes(answer) ? BOOKEND[answer] : null) ?? 'Now you see the point.';
 /** What a trade holds for the resistance: the words and marks that belong to it. Rook & Son is the only entry so far. */
 export interface Hold { /** The toast when the work is done at the bench. */ signed: string; /** The one line a hand says, unprompted. */ hand: string;
-  /** The held crate: what its plate says, the toast on shouldering it, why it will not be touched before it is noticed, and the clerk's eye. */ plate: string; taken: string; held: string; watched: string }
+  /** The held crate: what its plate says, the toast on shouldering it, why it will not be touched before it is noticed, and the clerk's eye. */ plate: string; taken: string; held: string; watched: string;
+  /** The objective line while the crate is in the arms, and the toast when it is left under the tarp. */ carrying: string; delivered: string }
 export const HOLD: Partial<Record<PropertyId, Hold>> = {
   scrap: { signed: 'Day’s manifest signed. Beside it on the board, someone has chalked a small ember.', hand: 'Not everything on their manifests arrives where they think it does.',
-    plate: 'HELD · BY ORDER', taken: 'You shoulder the crate. Regulator governors, by the weight: confiscated, listed, and not yours.', held: 'HELD BY ORDER of the Directorate of Labour. Nothing says it is yours to move.', watched: 'The Directorate’s clerk is counting the held stock. Wait until he bends to his sheet.' },
+    plate: 'HELD/BY ORDER', taken: 'You shoulder the crate. Regulator governors, by the weight: confiscated, listed, and not yours.', held: 'HELD BY ORDER of the Directorate of Labour. Nothing says it is yours to move.', watched: 'The Directorate’s clerk is counting the held stock. Wait until he bends to his sheet.',
+    carrying: 'Get the crate to Finch’s pigeon loft. The gate will want to look inside.', delivered: 'The crate goes under the tarp. Finch’s hands will know what to do with governors. Look to the Great Main.' },
 };

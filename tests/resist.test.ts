@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { advance, canNotice, canDivert, bookendDue, bookendLine, HOLD, RESIST_DONE } from '../src/simulation/resist.ts';
 import { PORCH_ANSWERS } from '../src/simulation/intro.ts';
+import { scrutiny, CONTRABAND_HEAT } from '../src/simulation/occupation.ts';
 import { Economy, freshSave, decodeSave, type StorageAdapter } from '../src/simulation/economy.ts';
 const memory = (raw: string | null = null): StorageAdapter => ({ read: () => raw, write: s => { raw = s; }, clear: () => { raw = null; } });
 
@@ -45,4 +46,9 @@ test('reporting at the ledger and at the bench are the same report', () => {
   const e = new Economy(memory()); e.inspect('market'); assert.equal(e.state.objective, 0); assert.equal(e.state.resist.rook, 0);
   e.inspect('scrap'); assert.equal(e.state.objective, 1); assert.equal(e.state.resist.rook, 1); e.inspect('scrap'); assert.equal(e.state.resist.rook, 1);
   const later = new Economy(memory()); later.state.objective = 3; later.inspect('scrap'); assert.equal(later.state.objective, 3); assert.equal(later.state.resist.rook, 1);
+});
+test('carrying contraband reads as heat at a held gate, and changes nothing at an open or sealed one', () => {
+  assert.equal(scrutiny('manned', 0), 'wave'); assert.equal(scrutiny('manned', 0, false, true), 'challenge'); assert.equal(scrutiny('light', 0), 'wave'); assert.equal(scrutiny('light', 0, false, true), 'challenge');
+  assert.ok(CONTRABAND_HEAT > 1.75); assert.equal(scrutiny('sealed', 0, false, true), 'refuse'); assert.equal(scrutiny('open', 0, false, true), 'none'); assert.equal(scrutiny('gone', 5, true, true), 'none');
+  for (const g of ['manned', 'light'] as const) for (const h of [0, 1, 2, 3]) assert.equal(scrutiny(g, h, false, false), scrutiny(g, h));
 });

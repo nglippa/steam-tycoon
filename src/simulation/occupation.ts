@@ -249,12 +249,14 @@ export function gateState(band: Band, enforcement: Enforcement = 'none'): Gate {
 }
 /** How many of its two men stand at it. */
 export const gateCrew = (gate: Gate) => gate === 'manned' || gate === 'sealed' ? 2 : gate === 'light' ? 1 : 0;
-/** What walking up to it costs. Unknown to the patrols, the Steward is waved through; once noticed, papers are an incident.
+/** What walking up to it costs. Unknown to the patrols, the Steward is waved through; once noticed, papers are an incident. Carrying contraband
+ * reads as that much more heat, whatever the Steward's record.
  * A lighter checkpoint lets more pass; a crackdown stops everyone it knows at all. */
 export type Scrutiny = 'none' | 'wave' | 'challenge' | 'refuse';
-export function scrutiny(gate: Gate, heat: number, crackdown = false): Scrutiny {
+export const CONTRABAND_HEAT = 2;
+export function scrutiny(gate: Gate, heat: number, crackdown = false, carrying = false): Scrutiny {
   if (gate === 'gone' || gate === 'open') return 'none'; if (gate === 'sealed') return 'refuse';
-  const limit = crackdown ? .25 : gate === 'light' ? 1.75 : .75; return heat >= limit ? 'challenge' : 'wave';
+  const limit = crackdown ? .25 : gate === 'light' ? 1.75 : .75; return heat + (carrying ? CONTRABAND_HEAT : 0) >= limit ? 'challenge' : 'wave';
 }
 // ---------------------------------------------------------------- borders
 /** How a district dresses its own side of a border with the Great Main: the Ordinance's notices while it holds the ward (controlled
