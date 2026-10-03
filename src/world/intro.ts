@@ -80,5 +80,5 @@ export class Intro {
     d.shut = d.awaiting = false; d.leaf.visible = false; player.only = null; player.riding = false; player.velocity.set(0, 0, 0); this.cut.classList.remove('on'); this.steps = this.again = 0; economy.finishIntro(this.answer);
     document.body.classList.remove('scene'); ui.tracked = 'scrap'; ui.toast(OBJECTIVE, 7000); if (skipped) dialogue.end(); else { dialogue.hide(); dialogue.live = false; dialogue.showTitle(); } }
   /** Skip, from any beat: the save is marked, everything off, the Steward on the stoop with the mark on the post. */
-  skip() { if (!this.active) return; this.release(true); for (const f of this.figures) f.p.group.visible = false; this.beat = 'idle'; this.roof.chalkMark.visible = true; this.o.player.teleport(-16.7, -2.35, Math.PI / 2); this.o.player.pitch = -.03; }
+  skip() { if (!this.active) return; this.release(true); for (const f of this.figures) f.p.group.visible = false; this.beat = 'idle'; this.roof.chalkMark.visible = true; this.o.player.teleport(-16.7, -2.35, Math.PI); this.o.player.pitch = -.03; }
 }
