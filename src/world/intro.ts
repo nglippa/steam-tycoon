@@ -1,7 +1,7 @@
 import * as T from 'three';
 import { citizen } from './citizens';
 import { animateLife, type Activity } from './citizen-life';
-import { illustrated, mats } from './assets';
+import { mats } from './assets';
 import { HOME } from './roofwalk';
 import { SCRIPT, DAWDLE, OBJECTIVE, type Choice, type Line } from '../simulation/intro';
 import { dayAt } from '../simulation/occupation';
@@ -31,9 +31,9 @@ export class Intro {
   private get figures() { return this.stranger ? [...this.guards, this.stranger] : []; }
   /** The three scene figures, made the first time they are needed and hidden between uses. */
   private cast() { if (this.stranger) return; const root = this.o.city.presentation.root;
-    const make = (role: 'guard' | 'ordinal' | 'courier', seed: number, act: Activity): Figure => { const p = citizen(mats.rust, seed, role, { solo: true }); p.group.visible = false; root.add(p.group); return { p, act, moving: false }; };
-    this.guards = [make('guard', 1, 'guard'), make('ordinal', 2, 'guard')]; this.stranger = make('courier', 7, 'sit');
-    const mask = new T.Mesh(new T.CylinderGeometry(.205, .17, .15, 16, 1, true, -Math.PI * .62, Math.PI * 1.24), illustrated(new T.MeshStandardMaterial({ color: '#3b3a40', side: T.DoubleSide }))); mask.position.y = -.14; this.stranger.p.head.add(mask); }
+    const make = (role: 'guard' | 'ordinal' | 'courier', seed: number, act: Activity, mask = false): Figure => { const p = citizen(mats.rust, seed, role, { solo: true, mask }); p.group.visible = false; root.add(p.group); return { p, act, moving: false }; };
+    this.guards = [make('guard', 1, 'guard'), make('ordinal', 2, 'guard')]; this.stranger = make('courier', 7, 'sit', true);
+  }
   /** A new stewardship starts here. Nothing else starts the scene: not the frame loop, not a view, not a save that has seen it. */
   begin() { const { economy, player, dialogue } = this.o; if (!this.o.enabled || economy.state.intro.played) return; this.cast();
     this.active = true; this.answer = null; this.t = this.k = this.dawdle = this.leaf = this.steps = this.stepT = this.again = this.againT = this.hold = 0; this.path = []; this.beat = 'black'; dialogue.end(); dialogue.live = true;

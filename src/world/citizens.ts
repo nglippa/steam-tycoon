@@ -207,8 +207,35 @@ function hand(g:T.Object3D,material:Material,side:number){const inward=-side;
  * authored with their grip point at their own origin and their handle along local z. */
 function gripSocket(elbow:T.Object3D,side:number){const grip=new T.Group();grip.position.set(-side*.028,-.312,.004);elbow.add(grip);return grip;}
 
-/** `solo`: a figure outside the crowd batch (a scene's own, a static one) gets its own face material, so its expression is a uniform and not an instance colour. */
-export function citizen(coat:Material=mats.rust,seed=0,archetype:Archetype='worker',opts:{solo?:boolean}={}){
+/** The Weathervane's half-mask: a dark cloth cut to the lower face. It is lofted over the skull's own surface (the rings, then the same jaw and cheek shaping), a hair off it:
+ * high at the nose bridge, falling under the eyes and rising to the ears, a ridge over the nose, tucked up under the jaw, a knot and two tails at one ear and a tiny turquoise cross-stitch on the cheek. */
+const maskCloth=toon('#383744'),maskThread=toon('#2f9c97');maskThread.userData.plain=true;
+const MASK_EDGE=[[0,-.03],[.22,-.07],[.6,-.092],[1,-.082],[1.5,-.05]];
+function weathervaneMask(g:T.Object3D,rings:number[][],shape:(p:number[])=>number[]){
+  const edge=(a:number)=>{a=Math.abs(a);for(let i=1;i<MASK_EDGE.length;i++)if(a<=MASK_EDGE[i][0]){const [a0,y0]=MASK_EDGE[i-1],[a1,y1]=MASK_EDGE[i];return y0+(y1-y0)*(a-a0)/(a1-a0);}return MASK_EDGE[MASK_EDGE.length-1][1];};
+  const surface=(a:number,y:number,lift:number)=>{let j=0;while(j<rings.length-2&&y>rings[j+1][0])j++;const [y0,w0,d0,o0]=rings[j],[y1,w1,d1,o1]=rings[j+1],t=T.MathUtils.clamp((y-y0)/(y1-y0),0,1);
+    const w=w0+(w1-w0)*t,d=d0+(d1-d0)*t,oz=o0+(o1-o0)*t,p=shape([Math.sin(a)*w,y,Math.cos(a)*d+oz]),n=Math.hypot(p[0],p[2]-oz)||1;
+    // Cloth stands off the skin, and a ridge over the nose lifts the middle of the front.
+    const ridge=Math.max(0,1-Math.abs(a)/.34)*T.MathUtils.smoothstep(y,-.17,-.1)*.016;p[0]+=p[0]/n*(lift+ridge*.3);p[2]+=(p[2]-oz)/n*lift+ridge;return p;};
+  const C=22,R=9,pos:number[]=[],uv:number[]=[],idx:number[]=[];
+  for(let r=0;r<=R;r++)for(let i=0;i<=C;i++){const u=i/C*2-1,a=u*1.5,top=edge(a),f=r/R,tuck=Math.max(0,1-f*4);
+    // Rows run from under the jaw to the sloped top edge; the lowest curl in under the chin.
+    const y=-.268+(top+.268)*f,p=surface(a,Math.max(y,-.226),.011+.004*f);if(y<-.226){p[1]=y;p[0]*=.8;p[2]=p[2]*.8-.008;}
+    p[0]*=1-tuck*.15;pos.push(p[0],p[1],p[2]);uv.push(i/C,f);}
+  const base=pos.length/3;pos.push(0,-.265,-.01);uv.push(.5,0);
+  for(let r=0;r<R;r++)for(let i=0;i<C;i++){const a=r*(C+1)+i,b=a+C+1;idx.push(a,a+1,b,a+1,b+1,b);}
+  for(let i=0;i<C;i++)idx.push(i,base,i+1);
+  const geo=new T.BufferGeometry();geo.setAttribute('position',new T.Float32BufferAttribute(pos,3));geo.setAttribute('uv',new T.Float32BufferAttribute(uv,2));geo.setIndex(idx);geo.computeVertexNormals();
+  const cloth=new T.Mesh(geo,maskCloth);cloth.material=maskCloth;g.add(cloth);(cloth.material as T.Material).side=T.DoubleSide;
+  // The knot and its two tails, tied over the ear on one side.
+  const kp=surface(-1.42,-.11,.03),knot=new T.Group();knot.position.set(kp[0],kp[1],kp[2]-.01);knot.rotation.y=-Math.PI/2;g.add(knot);
+  sphere(knot,0,0,.004,.03,maskCloth).scale.set(.032,.026,.022);
+  for(const [x,len,tilt] of [[-.012,.17,.14],[.016,.12,-.2]]){const t=panel(knot,[[-.014,0],[.014,0],[.01,-len],[-.004,-len-.01]],.012,maskCloth);t.position.x=x;t.rotation.z=tilt;(t.material as T.Material).side=T.DoubleSide;}
+  // Turquoise cross-stitch on the cheek: handmade, a small mark and nothing more.
+  const sp=surface(.7,-.125,.013);for(const rz of [.75,-.75]){const m=box(g,sp[0],sp[1],sp[2],.034,.006,.006,maskThread);m.rotation.set(0,.62,rz);}
+}
+/** `mask`: the Weathervane's half-mask, a fitted dark cloth baked with the head. `solo`: a figure outside the crowd batch (a scene's own, a static one) gets its own face material, so its expression is a uniform and not an instance colour. */
+export function citizen(coat:Material=mats.rust,seed=0,archetype:Archetype='worker',opts:{solo?:boolean;mask?:boolean}={}){
   void coat;
   const group=new T.Group(),body=new T.Group();group.add(body);
   const contact=new T.Mesh(contactShape,contactInk);contact.rotation.x=-Math.PI/2;contact.position.y=-.10;contact.scale.y=.7;group.add(contact);
@@ -291,11 +318,12 @@ export function citizen(coat:Material=mats.rust,seed=0,archetype:Archetype='work
   const uv=skull.geometry.attributes.uv;for(let j=0;j<rings.length;j++)for(let i=0;i<=24;i++){uv.setX(j*25+i,uv.getX(j*25+i)/FACE_COLS);uv.setY(j*25+i,(faceType+1-(Math.max(-.22,rings[j][0])+.22)/.465)/FACE_TYPES);}
   // A soft head: the jaw narrows gently toward a small rounded chin and the front stays curved,
   // so no plane change is hard enough for the ink pass to draw a crease across the cheek.
-  {const pos=skull.geometry.attributes.position;for(let i=0;i<pos.count;i++){let x=pos.getX(i),z=pos.getZ(i);const y=pos.getY(i),front=Math.max(0,z)/(.17);
+  const shape=(p:number[])=>{let [x,y,z]=p;const front=Math.max(0,z)/(.17);
     if(y<-.04){const t=Math.min(1,(-.04-y)/.19);x*=1-t*taper*Math.min(1,front*1.4);z*=1-t*.08;}
     if(y>-.1&&y<.04)x*=cheek;
     if(z>.14&&y>-.16&&y<.1)z=.14+(z-.14)*.75;
-    pos.setXYZ(i,x,y,z);}skull.geometry.computeVertexNormals();}
+    p[0]=x;p[2]=z;return p;};
+  {const pos=skull.geometry.attributes.position,q=[0,0,0];for(let i=0;i<pos.count;i++){shape(q);q[0]=pos.getX(i);q[1]=pos.getY(i);q[2]=pos.getZ(i);shape(q);pos.setXYZ(i,q[0],q[1],q[2]);}skull.geometry.computeVertexNormals();}
   for(const side of [-1,1]){const ear=sphere(head,side*.177,-.035,-.005,.035,skinMat);ear.scale.set(.027,.046,.033);}
   const hairIndex=(seed*3+Math.floor(seed/4))%4,hairMat=hair[hairIndex],under=shadowHair[hairIndex],rawStyle=(seed*5+Math.floor(seed/8))%8,hatted=kit.hat==='cap'||kit.hat==='peak'||kit.hat==='helm'||kit.hat==='bowler'||kit.hat==='top',style=hatted&&(rawStyle===0||rawStyle===3||rawStyle===7)?1:rawStyle;
   const crown=new T.Mesh(new T.SphereGeometry(.212,20,10,0,Math.PI*2,0,Math.PI*.5),hairMat);crown.position.set(0,.075,-.02);crown.scale.set(1.06,style===7?1.15:1.02,1.02);head.add(crown);
@@ -323,6 +351,7 @@ export function citizen(coat:Material=mats.rust,seed=0,archetype:Archetype='work
   if(style===1||style===4)for(const side of [-1,1])lockCone(side*.13,.1,.17,.16,.05,Math.PI-.25,side*.25);
   if(style===3){const bun=sphere(head,0,.25,-.1,1,hairMat);bun.scale.set(.1,.09,.1);torus(head,0,.2,-.09,.07,.014,accent).rotation.x=-1.1;}
   bakeCharacter(head);
+  if(opts.mask){const g=new T.Group();head.add(g);weathervaneMask(g,rings,shape);bakeCharacter(g);}
   // Ponytails and long hair swing from their own pivot.
   const swing=new T.Group();swing.position.set(0,.1,-.2);head.add(swing);
   if(style===2){torus(swing,0,.02,0,.045,.018,accent);tailored(swing,[[0,.06,.055],[-.12,.085,.065],[-.3,.06,.04],[-.42,.012,.012]],hairMat,10).rotation.x=-.2;}
