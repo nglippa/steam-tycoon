@@ -44,7 +44,7 @@ function outfitMaterial(early:string,late=early){const key=early+late;let m=ward
 const LOOK = {
   neutral: [0, 0, 0], happy: [4, 6, 2], tired: [5, 7, 0], focused: [1, 0, 0], annoyed: [1, 3, 3], blink: [3, 0, 0], surprised: [2, 1, 7],
   relaxed: [0, 0, 1], smiling: [0, 6, 1], hopeful: [9, 6, 1], curious: [9, 5, 0], worried: [9, 2, 10], guarded: [6, 0, 4], irritated: [1, 4, 3], suspicious: [6, 5, 4], startled: [2, 1, 7], stern: [0, 4, 4], angry: [8, 3, 4], talking: [0, 0, 5],
-  cold: [0, 4, 0], scrutiny: [1, 4, 4], sideeye: [7, 5, 4], impatient: [7, 4, 3], contempt: [1, 5, 8], challenge: [0, 3, 4], scan: [6, 4, 0], barking: [8, 3, 9], bored: [5, 0, 0], weary: [5, 7, 3],
+  cold: [1, 4, 0], scrutiny: [1, 5, 4], sideeye: [7, 5, 4], impatient: [7, 4, 3], contempt: [1, 5, 8], challenge: [0, 3, 4], scan: [6, 4, 0], barking: [8, 3, 9], bored: [5, 0, 0], weary: [5, 7, 3],
 } as const satisfies Record<string, readonly [number, number, number]>;
 export const expressions = Object.keys(LOOK) as (keyof typeof LOOK)[];
 export type Expression = keyof typeof LOOK;
