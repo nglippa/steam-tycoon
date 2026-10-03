@@ -53,7 +53,7 @@ export class Intro {
   /** The door is answered: it opens on the two men who were knocking. */
   answerDoor() { if (this.beat !== 'room') return; const { player } = this.o, d = this.roof.door; d.awaiting = false; d.shut = false; player.only = null; player.riding = true; this.again = 0; this.o.sound.door();
     this.guards[0].p.group.position.set(-7.1, F, 4.9); this.guards[1].p.group.position.set(-8.3, F, 5.15); for (const f of this.guards) { f.p.group.rotation.y = Math.PI / 2; f.p.group.visible = true; f.act = 'guard'; f.moving = false; } this.to('open'); }
-  update(dt: number, time: number) { if (this.beat === 'idle' || !dt) return; this.time = time; this.t += dt; const { player, sound, dialogue } = this.o, calm = this.o.reducedMotion(), d = this.roof.door; dialogue.update(dt);
+  update(dt: number, time: number) { if (this.beat === 'idle' || !dt) return; this.time = time; this.t += dt; const { player, sound, dialogue } = this.o, calm = this.o.reducedMotion(), d = this.roof.door;
     if (this.beat === 'black') { while (this.k < KNOCKS.length && this.t > KNOCKS[this.k]) sound.knock(this.k++ >= 3);
       if (this.t > 5.8) { this.cut.classList.remove('now', 'on'); player.riding = false; player.only = 'home.door'; d.awaiting = true; this.dawdle = 0; this.to('room'); } }
     else if (this.beat === 'room') { this.dawdle += dt; if (this.dawdle > DAWDLE.after) { this.dawdle = 0; this.again = 4; dialogue.flash(DAWDLE.line); } }

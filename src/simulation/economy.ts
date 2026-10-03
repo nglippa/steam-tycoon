@@ -149,6 +149,7 @@ export type CityFacts = ReturnType<typeof cityFacts>;
 export interface PropertyState { level: number; automated: boolean; stored: number; progress: number }
 import { HOME_TIERS } from './home';
 import { PORCH_ANSWERS } from './intro';
+import { advance, RESIST_DONE } from './resist';
 import { occupation, bandOf, BANDS, curfewIn, curfewHour, caught, cooled, clock, dayAt, districtAt, DISTRICTS, HEAT, type DistrictId, type Band, type Effects, type Enforcement, type Incident, type Outcome } from './occupation';
 /** One day in Terra, in seconds of play. */
 export const DAY_SECONDS = 720;
@@ -158,11 +159,13 @@ export interface Save { version: 3; crowns: number; earned: number; properties: 
    * until when the Embers keep their doors shut, and when the rooftop signal was last answered. Times are in seconds of play. */
   heat: number; crackdown: { district: DistrictId; until: number } | null; quietUntil: number; signalAt: number;
   /** The opening scene: played once per new save (older saves never see it), and the porch answer, kept for later. The home tier is not read by anything yet. */
-  intro: { played: boolean; answer: string | null }; home: { level: number } }
+  intro: { played: boolean; answer: string | null }; home: { level: number };
+  /** How far the first resistance loop has come (simulation/resist.ts). Carrying is never saved: only the stage. */
+  resist: { rook: number } }
 export interface StorageAdapter { read(): string | null; write(value: string): void; clear(): void }
 export const SAVE_KEY = 'locke.terra.save';
 export function freshSave(now = Date.now()): Save {
-  return { version: 3, crowns: 35, earned: 0, properties: Object.fromEntries(PROPERTIES.map(p => [p.id, { level: 0, automated: false, stored: 0, progress: 0 }])) as Save['properties'], infrastructure: { lamps: 0, roads: 0, steam: 0, gardens: 0, housing: 0 }, districts: [], research: [], knowledge: [], discoveries: [], sites: { market: 0, foundry: 0, row: 0, gauge: 0 }, objective: 0, playtime: 0, day: .72, lastSave: now, settings: { master: .55, ambience: .45, sfx: .7, music: 0, sensitivity: 1, reducedMotion: false, quality: 'high' }, heat: 0, crackdown: null, quietUntil: 0, signalAt: -1e9, intro: { played: false, answer: null }, home: { level: 0 } };
+  return { version: 3, crowns: 35, earned: 0, properties: Object.fromEntries(PROPERTIES.map(p => [p.id, { level: 0, automated: false, stored: 0, progress: 0 }])) as Save['properties'], infrastructure: { lamps: 0, roads: 0, steam: 0, gardens: 0, housing: 0 }, districts: [], research: [], knowledge: [], discoveries: [], sites: { market: 0, foundry: 0, row: 0, gauge: 0 }, objective: 0, playtime: 0, day: .72, lastSave: now, settings: { master: .55, ambience: .45, sfx: .7, music: 0, sensitivity: 1, reducedMotion: false, quality: 'high' }, heat: 0, crackdown: null, quietUntil: 0, signalAt: -1e9, intro: { played: false, answer: null }, home: { level: 0 }, resist: { rook: 0 } };
 }
 const finite = (v: unknown, fallback: number, max = 1e15) => typeof v === 'number' && Number.isFinite(v) ? Math.min(max, Math.max(0, v)) : fallback;
 export function decodeSave(raw: string | null): Save | null {
@@ -182,6 +185,7 @@ export function decodeSave(raw: string | null): Save | null {
     s.heat = finite(data.heat, 0, HEAT.max); s.quietUntil = finite(data.quietUntil, 0); s.signalAt = typeof data.signalAt === 'number' && Number.isFinite(data.signalAt) ? data.signalAt : -1e9;
     s.crackdown = data.crackdown && DISTRICTS.some(d => d.id === data.crackdown.district) && Number.isFinite(data.crackdown.until) ? { district: data.crackdown.district, until: data.crackdown.until } : null;
     s.home.level = Math.floor(finite(data.home?.level, 0, HOME_TIERS.length - 1));
+    s.resist.rook = Math.floor(finite(data.resist?.rook, 0, RESIST_DONE));
     s.intro = data.intro ? { played: Boolean(data.intro.played), answer: PORCH_ANSWERS.includes(data.intro.answer) ? data.intro.answer : null } : { played: true, answer: null };
     s.settings.reducedMotion = Boolean(data.settings?.reducedMotion); s.settings.quality = data.settings?.quality === 'low' ? 'low' : 'high'; return s;
   } catch { return null; }
@@ -272,7 +276,9 @@ export class Economy {
     for (const [other, control] of Object.entries(r.sites ?? {}) as [SiteId, number][]) if (this.state.sites[other] < control) return `Requires ${this.site(other).name}: ${this.site(other).steps[control - 1].name.toLowerCase()}`;
     return null; }
   advanceSite(id: SiteId) { const level = this.state.sites[id], step = this.site(id).steps[level]; if (!step || this.siteBlocker(id) || !this.spend(this.siteCost(id))) return false; this.state.sites[id]++; if (this.state.sites[id] === SITE_LIBERATED) this.state.heat = Math.max(0, this.state.heat - HEAT.liberation); this.onChange('site', id); this.save(); return true; }
-  inspect(id: string) { if (id === 'scrap' && this.state.objective === 0) this.state.objective = 1; }
+  inspect(id: string) { if (id !== 'scrap') return; if (this.state.objective === 0) this.state.objective = 1; this.advanceResist(1); }
+  /** Move the first resistance loop on one step; false if that was not the next step. */
+  advanceResist(to: number) { const r = this.state.resist, next = advance(r.rook, to); if (next === r.rook) return false; r.rook = next; this.onChange('resist', ''); this.save(); return true; }
   checkObjective() { if (this.state.objective === 2 && this.state.properties.scrap.level > 0) this.state.objective = 3; if (this.state.objective === 3 && this.state.properties.boiler.level > 0) this.state.objective = 4; if (this.state.objective === 4 && this.state.infrastructure.lamps > 0) this.state.objective = 5; }
   tick(dt: number) { dt = Number.isFinite(dt) ? Math.max(0, Math.min(dt, OFFLINE.hours * 3600)) : 0;
     // A long gap between frames is a suspended tab, not play: it pays what time away pays.

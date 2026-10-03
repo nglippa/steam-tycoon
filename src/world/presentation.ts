@@ -504,7 +504,7 @@ export class Presentation {
       importance:o.essential||(isOccupier(role)&&o.when)?'essential':o.when?'conditional':'ambient'});return this.workers.length-1;
   }
   sync(){
-    const e=this.city.economy;const levels=PROPERTIES.map(p=>this.city.properties.get(p.id)!.level);const key=[...levels,...Object.values(e.state.infrastructure),...Object.values(e.state.sites),e.stage,...e.state.research,...e.state.districts].join(':');if(key===this.signature)return;this.signature=key;
+    const e=this.city.economy;const levels=PROPERTIES.map(p=>this.city.properties.get(p.id)!.level);const key=[...levels,...Object.values(e.state.infrastructure),...Object.values(e.state.sites),e.stage,e.state.resist.rook,...e.state.research,...e.state.districts].join(':');if(key===this.signature)return;this.signature=key;
     const businesses=Object.fromEntries(PROPERTIES.map((p,i)=>[p.id,levels[i]])) as Record<typeof PROPERTIES[number]['id'],number>;
     for(const s of this.sites)s.sync({control:e.state.sites[s.id],stage:e.stage,levels:businesses,sites:{...e.state.sites}});this.weatherside.sync();this.roofwalk.sync(e.state.research);this.canalWard.sync();this.hangway.sync(e.state.research);
     this.worn.visible=e.state.infrastructure.roads===0;
