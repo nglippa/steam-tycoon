@@ -1,4 +1,5 @@
 import type { SiteId } from './economy';
+import { VOICE } from './voice';
 
 /** OCCUPATION, AS THE STREET FEELS IT.
  *
@@ -155,8 +156,8 @@ export function caught(heat: number, kind: Incident, crowns: number, rate: numbe
   const share = [0, .04, .08, .1, .14][tier], cap = Math.max(20, rate * [0, 90, 150, 200, 300][tier]), fine = tier === 0 ? 0 : Math.floor(Math.min(crowns * share, cap));
   const name = ['Warning', 'Fine', 'Fine and a crackdown', 'The Embers go quiet', 'Detention'][tier];
   const message = [
-    kind === 'curfew' ? '“Curfew, Steward. Home. I will not say it twice.”' : '“Papers. Your business is trade, not loitering. Move along.”',
-    kind === 'curfew' && heat < .75 ? `“Out after curfew. That is a fine, Steward, and the next one is a cell.” ${fine} Crowns.` : `“Again, Steward?” The Ordinance fines the treasury ${fine} Crowns.`,
+    kind === 'curfew' ? VOICE.curfewWarn : '“Papers. Your business is trade, not loitering. Move along.”',
+    kind === 'curfew' && heat < .75 ? VOICE.curfewFine(fine) : VOICE.again(fine),
     `${fine} Crowns, and the ward pays for it too: more men on this street until the Ordinance is satisfied.`,
     `${fine} Crowns. Word goes round faster than the patrol: the Embers will not open a door to you for a while.`,
     `Detained until morning. ${fine} Crowns for the night’s lodging, and you are walked home.`,

@@ -4,6 +4,7 @@ import { V, bench, bunting } from './art-kit';
 import { occupationMats, canvasTarp, signs } from './factions';
 import { inView } from './patrol';
 import { gateCrew, scrutiny, type Gate, type DistrictId, type Scrutiny, type Tone } from '../simulation/occupation';
+import { VOICE } from '../simulation/voice';
 import { APPROACH, approachState, stepApproach, type Approach, type ApproachEvent } from '../simulation/approach';
 import type { Presentation } from './presentation';
 
@@ -117,13 +118,13 @@ export class Checkpoints {
     if (ev === 'notice') { g.watcher = g.seenBy; watch(4); this.speak(g, g.seenBy, what === 'challenge' ? 'suspicious' : 'neutral', 2.5, time); }
     else if (ev === 'resume' && g.approach.renewed > 1) { watch(5); this.speak(g, by, 'hostile', 2.5, time, 1.6); } // told twice already: a look and a palm, no more words
     else if (ev === 'challenge' || ev === 'resume') { watch(APPROACH.window + 1); this.speak(g, by, 'authoritative', ev === 'challenge' ? APPROACH.window : APPROACH.again, time, 1.8); for (const i of others) this.speak(g, i, 'suspicious', 3, time);
-      city.onEvent(ev === 'challenge' ? '“Halt, Steward. Not through here today. Turn back.”' : '“I said turn back.”'); this.onAlarm?.('challenge'); }
+      city.onEvent(ev === 'challenge' ? VOICE.halt : '“I said turn back.”'); this.onAlarm?.('challenge'); }
     else if (ev === 'refuse') { watch(5); this.speak(g, 'all', 'hostile', 4, time); this.speak(g, by, 'hostile', 4, time, 1.4); city.onEvent('“One more step and it is an incident.”'); this.onAlarm?.('refuse'); }
     else if (ev === 'turnedAway') { watch(3.5); this.speak(g, by, 'suspicious', 3.5, time); }
     else if (ev === 'incident') { watch(4); this.speak(g, 'all', 'hostile', 6, time); city.incident('minor', viewer.x, viewer.z); this.onAlarm?.('incident'); }
-    else if (ev === 'excused') { watch(2); this.speak(g, by, 'hostile', 2.5, time); city.onEvent('“Next time you stop when you are told, Steward.”'); }
-    else if (ev === 'released') { watch(2); this.speak(g, by, 'neutral', 3, time); city.onEvent('A word from the box. “…Never mind. Go on, Steward.”'); }
-    else if (ev === 'cleared' && what === 'wave' && time - g.waved > 45) { g.waved = time; watch(2); this.speak(g, by, 'neutral', 3, time); city.onEvent('“Papers.” A look, a nod. “Go on, Steward.”'); }
+    else if (ev === 'excused') { watch(2); this.speak(g, by, 'hostile', 2.5, time); city.onEvent(VOICE.excused); }
+    else if (ev === 'released') { watch(2); this.speak(g, by, 'neutral', 3, time); city.onEvent(VOICE.released); }
+    else if (ev === 'cleared' && what === 'wave' && time - g.waved > 45) { g.waved = time; watch(2); this.speak(g, by, 'neutral', 3, time); city.onEvent(VOICE.papers); }
   }
   /** One gate is ever near enough to matter. Walking up to an opening is what the checkpoint is for: a stranger is watched and
    * waved on, someone the patrols know is stopped short of the boom and given a moment to turn round (simulation/approach.ts),
@@ -143,7 +144,7 @@ export class Checkpoints {
       if (!HELD.includes(g.state) || up || (far && g.approach.stage === 'idle')) { if (g.approach.stage !== 'idle') g.approach = { ...approachState(), lastIncident: g.approach.lastIncident }; g.seenBy = -1; g.scan = 0; continue; }
       const what = scrutiny(g.state, city.economy.state.heat, city.social.get(s.district)!.crackdown);
       if (what === 'refuse') { stepApproach(g.approach, { lx, lz, span: s.span, seen: false, scrutiny: what, dt, time });
-        if (Math.abs(lz) < 3.2 && lx > s.span[0] - 1 && lx < s.span[1] + 1 && time - g.refused > 20) { g.refused = time; this.speak(g, 'all', 'authoritative', 4, time); city.onEvent(`“Closed. Curfew. Turn around, Steward.” The boom is down; ${s.around} are not watched.`); }
+        if (Math.abs(lz) < 3.2 && lx > s.span[0] - 1 && lx < s.span[1] + 1 && time - g.refused > 20) { g.refused = time; this.speak(g, 'all', 'authoritative', 4, time); city.onEvent(VOICE.closed(s.around)); }
         continue; }
       g.scan -= dt; if (g.scan <= 0) { g.scan = .25; g.seenBy = g.crew.find(i => { const q = this.p.workers[i].person.group; return q.visible && inView(city, q, viewer, APPROACH.reach, .95, true); }) ?? -1; if (g.seenBy >= 0 && g.approach.stage !== 'idle' && g.watcher < 0) g.watcher = g.seenBy; }
       const ev = stepApproach(g.approach, { lx, lz, span: s.span, seen: g.seenBy >= 0, scrutiny: what, dt, time });

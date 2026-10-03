@@ -8,6 +8,7 @@ import { animateLife, turnTaking, eased, type Activity } from './citizen-life';
 import { reducedMotion } from '../motion';
 import type { City } from './city';
 import { districtAt, standingOf, seedOf, isOccupier, canAct, AUTHORITY_BUDGET, type DistrictId, type Standing, type Importance, type PostRole } from '../simulation/occupation';
+import { VOICE } from '../simulation/voice';
 import { Checkpoints } from './checkpoints';
 import { Borders } from './borders';
 import { inView } from './patrol';
@@ -472,7 +473,7 @@ export class Presentation {
     if(seenBy>=0){const g=this.workers[seenBy],d=g.person.group.position.distanceTo(viewer);w.suspicion=Math.min(1.2,w.suspicion+dt*rate*(d<6?1.7:1));w.by=seenBy;w.unseen=0;
       if(!g.path)g.person.group.rotation.y+=Math.atan2(Math.sin(Math.atan2(viewer.x-g.person.group.position.x,viewer.z-g.person.group.position.z)-g.person.group.rotation.y),Math.cos(Math.atan2(viewer.x-g.person.group.position.x,viewer.z-g.person.group.position.z)-g.person.group.rotation.y))*Math.min(1,dt*3);
       if(w.stage==='none'&&w.suspicion>.3){w.stage='noticed';g.person.tone={tone:'suspicious',until:time+3};}
-      if(w.stage==='noticed'&&w.suspicion>=1){w.stage='challenged';w.grace=here.enforcement==='lax'?16:10;g.person.tone={tone:'authoritative',until:time+5};city.onEvent('“Halt. It is past curfew, Steward. Go home, now.”');}}
+      if(w.stage==='noticed'&&w.suspicion>=1){w.stage='challenged';w.grace=here.enforcement==='lax'?16:10;g.person.tone={tone:'authoritative',until:time+5};city.onEvent(VOICE.curfewHalt);}}
     else{w.suspicion=Math.max(0,w.suspicion-dt*.3);w.unseen+=dt;if(w.stage==='noticed'&&w.suspicion<.1)w.stage='none';if(w.stage==='challenged'&&w.unseen>4){w.stage='none';w.suspicion=0;city.onEvent('You have lost them. The patrol goes back to its post.');}}
     if(w.stage==='challenged'){w.grace-=dt;if(w.grace<=0&&seenBy>=0){this.workers[seenBy].person.tone={tone:'hostile',until:time+6};city.incident('curfew',viewer.x,viewer.z);w.stage='none';w.suspicion=0;w.cooldown=25;}}
   }
