@@ -184,8 +184,8 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
     if(Math.abs(relative)<1.25)headYaw=T.MathUtils.clamp(relative,-lim,lim);else n.gaze='away';
   }
   // A sidelong look: the eyes are on the Steward and the head is not quite.
-  let eye=-1;if(occupier&&expression==='sideeye'&&dx*dx+dz*dz<81){const rel=angle(Math.atan2(dx,dz)-yaw);if(Math.abs(rel)<1.4){headYaw=rel*.4;if(Math.abs(rel)>.15)eye=rel>0?7:6;}}
-  else if(occupier&&expression==='scan'&&!g&&dw.lead)eye=dw.lead>0?7:6;
+  let eye=-1;if(occupier&&expression==='sideeye'&&dx*dx+dz*dz<81){const rel=angle(Math.atan2(dx,dz)-yaw);if(Math.abs(rel)<1.4){headYaw=rel*.4;if(Math.abs(rel)>.15)eye=rel>0?13:12;}}
+  else if(occupier&&expression==='scan'&&!g&&dw.lead)eye=dw.lead>0?13:12;
   if(occupier){pitch+=CHIN[expression]??0;if(expression==='impatient'||expression==='contempt')tilt+=(n.phase%2<1?1:-1)*.05;
     // Squared shoulders: the Ordinance carries its boards wide and high.
     for(const a of n.arms){a.position.x=(a.userData.sx??=a.position.x)*1.05;a.position.y=1.455;}}

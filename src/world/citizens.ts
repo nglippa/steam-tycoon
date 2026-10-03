@@ -43,8 +43,8 @@ function outfitMaterial(early:string,late=early){const key=early+late;let m=ward
 /** A face is a choice of eye, brow and mouth (see the atlas below). The first seven names are the originals and keep working. */
 const LOOK = {
   neutral: [0, 0, 0], happy: [4, 6, 2], tired: [5, 7, 0], focused: [1, 0, 0], annoyed: [1, 3, 3], blink: [3, 0, 0], surprised: [2, 1, 7],
-  relaxed: [0, 0, 1], smiling: [0, 6, 1], hopeful: [9, 6, 1], curious: [9, 5, 0], worried: [9, 2, 10], guarded: [6, 0, 4], irritated: [1, 4, 3], suspicious: [6, 5, 4], startled: [2, 1, 7], stern: [0, 4, 4], angry: [8, 3, 4], talking: [0, 0, 5],
-  cold: [1, 4, 0], scrutiny: [1, 5, 4], sideeye: [7, 5, 4], impatient: [7, 4, 3], contempt: [1, 5, 8], challenge: [0, 3, 4], scan: [6, 4, 0], barking: [8, 3, 9], bored: [5, 0, 0], weary: [5, 7, 3],
+  relaxed: [0, 0, 1], smiling: [4, 6, 2], hopeful: [14, 6, 1], curious: [9, 5, 0], worried: [15, 2, 11], guarded: [6, 0, 4], irritated: [1, 4, 3], suspicious: [6, 5, 4], startled: [2, 1, 7], stern: [0, 4, 4], angry: [8, 3, 4], talking: [0, 0, 5],
+  cold: [10, 4, 4], scrutiny: [11, 4, 4], sideeye: [12, 5, 4], impatient: [12, 4, 3], contempt: [11, 5, 8], challenge: [10, 3, 4], scan: [10, 4, 4], barking: [11, 3, 9], bored: [5, 0, 4], weary: [5, 7, 3],
 } as const satisfies Record<string, readonly [number, number, number]>;
 export const expressions = Object.keys(LOOK) as (keyof typeof LOOK)[];
 export type Expression = keyof typeof LOOK;
@@ -70,12 +70,12 @@ function bakeCharacter(group:T.Group){
     geometry.setAttribute('restoredColor',new T.BufferAttribute(late,3));object.geometry=geometry;object.material=object.material.userData.plain?plainToon:coloredToon;
   });return bake(group);
 }
-// One shared atlas for all three skin tones: eight face types (rows) by eleven feature variants (columns). Skin is left transparent
+// One shared atlas for all three skin tones: eight face types (rows) by sixteen feature variants (columns). Skin is left transparent
 // and filled per material in the shader (a third of three atlases). The face is drawn in three bands (brows, eyes, mouth) and each band
 // reads its own column from the figure's three numbers (eye, brow, mouth), so an expression is a choice of each, never a rig or an extra
 // draw. Nose, marks and blush are the same in every column, so every seam between bands lies in plain skin.
 // Types vary eye shape, brows, nose, mouth and marks independently, so a crowd reads as different people drawn by one hand.
-export const FACE_TYPES = 8, FACE_COLS = 11;
+export const FACE_TYPES = 8, FACE_COLS = 16;
 type Nose = 'dash' | 'dot' | 'hook' | 'button'; type Mark = 'none' | 'freckles' | 'stubble' | 'mole' | 'bags' | 'scar' | 'lines';
 type FaceType = { rise: number; w: number; tilt: number; lash: number; iris: string; brow: [thick: number, arch: number, tilt: number]; nose: Nose; mouth: number; marks: Mark };
 const faceTypes: FaceType[] = [
@@ -91,15 +91,29 @@ const faceTypes: FaceType[] = [
 // Bands in the 512-unit tile, y down: brows 130-238, eyes 238-344, mouth 364-436. Nothing a variant draws crosses its band.
 const BAND = [130, 238, 344, 364, 436] as const, tV = (y: number) => (1 - y / 512).toFixed(4);
 type Ctx = CanvasRenderingContext2D;
-/** Eyes: 0 open, 1 narrowed, 2 wide, 3 shut, 4 happy arc, 5 heavy-lidded, 6 glance left, 7 glance right, 8 glare, 9 earnest (looking up). */
+/** Eyes: 0 open, 1 narrowed, 2 wide, 3 shut, 4 happy arc, 5 heavy-lidded, 6 narrowed glance left, 7 narrowed glance right, 8 glare, 9 earnest (looking up), 14 smiling (lower lid lifted), 15 worried (lid rising to the inner corner, a thin brow bar above).
+ * The Ordinance's eyes are 10 hard, 11 hard and narrowed, 12 and 13 hard glances: a straight lid line sloping down to the nose cuts the top of a small dull iris, under a heavy brow bar that is part of the eye. */
 function paintEye(c: Ctx, f: FaceType, side: number, v: number) {
   const x = 256 + side * 50, y = 300, inner = x - side * f.w, outer = x + side * f.w, up = f.tilt;
   c.strokeStyle = '#120f16';
   if (v === 3 || v === 4) { c.lineWidth = 6; c.beginPath();
     if (v === 4) { c.moveTo(inner, y - 3); c.quadraticCurveTo(x, y - 38, outer, y - 8 - up); } else { c.moveTo(inner, y - 8); c.quadraticCurveTo(x, y + 12, outer + side * 3, y - 12 - up); }
     c.stroke(); return; }
+  if (v >= 10 && v <= 13) {
+    const sq = v === 11, inY = y - (sq ? 0 : 3), outY = y - 14 - up - (sq ? 4 : 0), L = sq ? 15 : 23;
+    c.save(); c.beginPath(); c.moveTo(inner, inY); c.lineTo(outer, outY); c.quadraticCurveTo(x + side * 3, y + L * 2.05, inner, inY); c.closePath(); c.fillStyle = '#e6dfcf'; c.fill(); c.clip();
+    const ix = x - side * 2 + (v === 12 ? -.36 : v === 13 ? .36 : 0) * f.w, iy = y + 1, iris = c.createLinearGradient(0, iy - 19, 0, iy + 19), pale = new T.Color(f.iris).lerp(new T.Color('#9a958c'), .5).getStyle(); iris.addColorStop(0, '#15122a'); iris.addColorStop(.45, pale); iris.addColorStop(1, pale);
+    c.fillStyle = iris; c.beginPath(); c.ellipse(ix, iy, 15, 19, 0, 0, Math.PI * 2); c.fill(); c.strokeStyle = 'rgba(18,15,30,.8)'; c.lineWidth = 3; c.stroke();
+    c.fillStyle = '#120f1e'; c.beginPath(); c.ellipse(ix, iy, 8, 11, 0, 0, Math.PI * 2); c.fill(); c.fillStyle = 'rgba(255,255,255,.5)'; c.beginPath(); c.ellipse(ix - 5, iy - 4, 2.6, 3.2, 0, 0, Math.PI * 2); c.fill();
+    const shade = c.createLinearGradient(0, outY, 0, outY + 22); shade.addColorStop(0, 'rgba(18,14,28,.5)'); shade.addColorStop(1, 'rgba(18,14,28,0)'); c.fillStyle = shade; c.fillRect(inner - 40, outY - 4, 120, 40);
+    c.restore();
+    c.strokeStyle = '#120f16'; c.lineWidth = 8; c.beginPath(); c.moveTo(inner - side, inY); c.lineTo(outer + side * 5, outY - 4); c.stroke();
+    c.strokeStyle = 'rgba(18,15,22,.5)'; c.lineWidth = 2; c.beginPath(); c.moveTo(outer - side * 3, outY + 8); c.quadraticCurveTo(x + side * 6, y + L * 2, x - side * 10, y + L * .93); c.stroke();
+    // The brow is a heavy bar touching the lid, angled down toward the nose, so the brim and fringe cannot hide it.
+    c.strokeStyle = 'rgba(22,16,20,.95)'; c.lineWidth = 10; c.beginPath(); c.moveTo(inner + side * 2, inY - 9); c.lineTo(outer + side * 3, outY - 13 - (sq ? 3 : 0)); c.stroke(); return;
+  }
   // The lid is a curve from the inner to the outer corner; the iris is always full size, so a lowered lid covers it and the eye reads as narrowed, never as a small eye.
-  const r = f.rise, H = Math.min(58, r * [.8, .58, 1, 0, 0, .5, .8, .8, .66, .88][v]), L = H * (v === 1 || v === 8 ? .28 : v === 5 ? .2 : .36), skew = v === 8 ? .3 : 1, end = y - 8 - up - (v === 8 ? 10 : v === 5 ? -6 : 0);
+  const r = f.rise, H = Math.min(58, r * [.8, .58, 1, 0, 0, .5, .64, .64, .66, .88, 0, 0, 0, 0, .74, .66][v]), L = H * (v === 1 || v === 8 || v === 6 || v === 7 ? .28 : v === 5 ? .2 : v === 14 ? .16 : .36), skew = v === 8 ? .3 : v === 15 ? 1.7 : 1, end = y - 8 - up - (v === 8 ? 10 : v === 5 ? -6 : 0);
   const k1 = inner + (outer - inner) * .15, k2 = inner + (outer - inner) * .7, upper = () => { c.moveTo(inner, y + 1); c.bezierCurveTo(k1, y - H * 1.15 * skew, k2, y - H * 1.4, outer, end); };
   c.save(); c.beginPath(); upper(); c.quadraticCurveTo(x + side * 3, y + L * 2.1, inner, y + 1); c.closePath(); c.fillStyle = '#fbf6ea'; c.fill(); c.clip();
   const ry = Math.min(r * .5, H * .85), rx = ry * .76, ix = x - side * 2 + (v === 6 ? -.4 : v === 7 ? .4 : 0) * f.w, iy = y - H * .3 - (v === 9 ? H * .08 : 0);
@@ -114,6 +128,7 @@ function paintEye(c: Ctx, f: FaceType, side: number, v: number) {
   // One lash line with a small outer flick, light enough not to close the eye; a hairline for the lower lid.
   c.strokeStyle = '#120f16'; c.lineWidth = f.lash * (v === 5 ? .82 : .6); c.beginPath(); upper(); c.lineTo(outer + side * 6, end - 9 - up); c.stroke();
   c.strokeStyle = 'rgba(18,15,22,.5)'; c.lineWidth = 2; c.beginPath(); c.moveTo(outer - side * 3, end + 8); c.quadraticCurveTo(x + side * 6, y + L * 2, x - side * 10, y + L * .93); c.stroke();
+  if (v === 15) { c.strokeStyle = 'rgba(28,20,24,.9)'; c.lineWidth = 6; c.beginPath(); c.moveTo(inner + side * 2, y - 56); c.lineTo(outer, y - 44); c.stroke(); }
 }
 /** Brows: 0 relaxed, 1 raised, 2 worried, 3 angry, 4 stern and low, 5 sceptical (one up, one down), 6 lifted and glad, 7 tired and drooping. */
 // [inner end, outer end, raise, arch factor, arch added, thickness factor]
@@ -125,12 +140,12 @@ function paintBrow(c: Ctx, f: FaceType, side: number, v: number) {
 }
 /** Mouths: 0 plain, 1 soft smile, 2 open smile, 3 frown, 4 tight, 5 speaking A, 6 speaking B, 7 O, 8 smirk, 9 shout, 10 worried. */
 function paintMouth(c: Ctx, f: FaceType, v: number) {
-  const m = f.mouth, line = (a: number, b: number, k: number, w = 4.5) => { c.strokeStyle = '#4a2a30'; c.lineWidth = w; c.beginPath(); c.moveTo(256 - 10 * m, a); c.quadraticCurveTo(256, k, 256 + 10 * m, b); c.stroke(); };
+  const m = f.mouth, line = (a: number, b: number, k: number, w = 4.5, h = 10) => { c.strokeStyle = '#4a2a30'; c.lineWidth = w; c.beginPath(); c.moveTo(256 - h * m, a); c.quadraticCurveTo(256, k, 256 + h * m, b); c.stroke(); };
   const open = (rx: number, ry: number, y: number, fill = '#6c3b45') => { c.fillStyle = fill; c.beginPath(); c.ellipse(256, y, rx * m, ry, 0, 0, Math.PI * 2); c.fill(); c.strokeStyle = '#4a2a30'; c.lineWidth = 3; c.stroke(); };
-  if (v === 0) line(389, 389, 389.5); else if (v === 1) line(387, 387, 395); else if (v === 3) line(392, 392, 384); else if (v === 4) line(389, 389, 389, 5.5);
-  else if (v === 2) { c.fillStyle = '#8c3a47'; c.beginPath(); c.moveTo(256 - 14 * m, 384); c.quadraticCurveTo(256, 406, 256 + 14 * m, 384); c.closePath(); c.fill(); c.fillStyle = '#e0848a'; c.beginPath(); c.ellipse(256, 395, 7 * m, 3.4, 0, 0, Math.PI * 2); c.fill(); }
-  else if (v === 5) open(8, 8, 391); else if (v === 6) open(12, 4.5, 390); else if (v === 7) open(7.5, 9.5, 392);
-  else if (v === 8) { c.strokeStyle = '#4a2a30'; c.lineWidth = 4.5; c.beginPath(); c.moveTo(256 - 10 * m, 391); c.quadraticCurveTo(256 + 2, 390, 256 + 12 * m, 382); c.stroke(); }
+  if (v === 0) line(389, 389, 389.5); else if (v === 1) line(384, 384, 402, 5, 13); else if (v === 3) line(395, 395, 383, 5.5, 11); else if (v === 4) line(389, 389, 389, 5.5);
+  else if (v === 2) { c.fillStyle = '#8c3a47'; c.beginPath(); c.moveTo(256 - 19 * m, 382); c.quadraticCurveTo(256, 424, 256 + 19 * m, 382); c.closePath(); c.fill(); c.fillStyle = '#f2e8d6'; c.fillRect(256 - 13 * m, 383, 26 * m, 5); c.fillStyle = '#e0848a'; c.beginPath(); c.ellipse(256, 402, 8 * m, 3.6, 0, 0, Math.PI * 2); c.fill(); }
+  else if (v === 5) open(8, 8, 391); else if (v === 6) open(12, 4.5, 390); else if (v === 7) open(5.5, 7, 391); else if (v === 11) open(6.5, 5.5, 392);
+  else if (v === 8) { c.strokeStyle = '#4a2a30'; c.lineWidth = 4.5; c.beginPath(); c.moveTo(256 - 10 * m, 392); c.quadraticCurveTo(256 + 2, 391, 256 + 12 * m, 379); c.stroke(); }
   else if (v === 9) { c.fillStyle = '#5a2630'; c.beginPath(); c.moveTo(256 - 15 * m, 382); c.quadraticCurveTo(256, 378, 256 + 15 * m, 382); c.lineTo(256 + 11 * m, 404); c.quadraticCurveTo(256, 410, 256 - 11 * m, 404); c.closePath(); c.fill(); c.fillStyle = '#f2e8d6'; c.fillRect(256 - 12 * m, 382, 24 * m, 6); c.strokeStyle = '#3a1c22'; c.lineWidth = 3; c.stroke(); }
   else { c.strokeStyle = '#4a2a30'; c.lineWidth = 4; c.beginPath(); c.moveTo(256 - 8 * m, 391); c.quadraticCurveTo(256 - 3 * m, 385, 256, 390); c.quadraticCurveTo(256 + 3 * m, 395, 256 + 8 * m, 390); c.stroke(); }
 }
@@ -146,14 +161,14 @@ function paintFace(c: Ctx, f: FaceType, col: number) {
   if (f.marks === 'scar') { c.strokeStyle = 'rgba(150,72,72,.5)'; c.lineWidth = 3; c.beginPath(); c.moveTo(196, 250); c.lineTo(204, 286); c.stroke(); }
   if (f.marks === 'lines') { c.strokeStyle = 'rgba(70,44,48,.42)'; c.lineWidth = 2.4; for (const side of [-1, 1]) { c.beginPath(); c.moveTo(256 + side * 18, y + 50); c.quadraticCurveTo(256 + side * 34, y + 74, 256 + side * 30, y + 92); c.stroke(); } }
   c.lineCap = 'round'; c.lineJoin = 'round';
-  for (const side of [-1, 1]) { paintEye(c, f, side, col < 10 ? col : 0); paintBrow(c, f, side, col < 8 ? col : 0); }
+  for (const side of [-1, 1]) { paintEye(c, f, side, col); paintBrow(c, f, side, col < 8 ? col : 0); }
   // Nose: halfway between the tops of the eyes and the chin.
   c.strokeStyle = 'rgba(150,96,88,.75)'; c.lineWidth = 2.6; c.fillStyle = 'rgba(150,96,88,.75)';
   if (f.nose === 'dash') { c.beginPath(); c.moveTo(259, 352); c.lineTo(256, 359); c.stroke(); }
   if (f.nose === 'dot') { c.beginPath(); c.ellipse(257, 356, 2.8, 2.2, 0, 0, Math.PI * 2); c.fill(); }
   if (f.nose === 'hook') { c.beginPath(); c.moveTo(262, 340); c.quadraticCurveTo(266, 354, 256, 360); c.stroke(); }
   if (f.nose === 'button') { c.beginPath(); c.moveTo(251, 354); c.quadraticCurveTo(257, 361, 263, 354); c.stroke(); }
-  paintMouth(c, f, col);
+  paintMouth(c, f, col < 12 ? col : 0);
 }
 const faceAtlas = (() => {
   const W = 256 * FACE_COLS, H = 256 * FACE_TYPES, canvas = document.createElement('canvas'); canvas.width = W; canvas.height = H; const c = canvas.getContext('2d', { willReadFrequently: true })!;
