@@ -19,9 +19,9 @@ import { ROAD, laneX, laneFree } from '../simulation/traffic';
 export interface Collider { minX: number; maxX: number; minZ: number; maxZ: number; height: number; base?: number; gate?: string; open?: () => boolean }
 /** A walkable surface above or below the street: a roof, a catwalk, a pier past the rim.
  * `y1` makes it a stair or ramp, rising from `y` at the low end of `axis` to `y1` at the high end. */
-export interface Deck { minX: number; maxX: number; minZ: number; maxZ: number; y: number; y1?: number; axis?: 'x' | 'z' }
+export interface Deck { minX: number; maxX: number; minZ: number; maxZ: number; y: number; y1?: number; axis?: 'x' | 'z'; /** Not there while this is false. */ when?: () => boolean }
 /** An authored ladder: where the Steward stands at each end, and the line the rungs follow. */
-export interface Ladder { id: string; x: number; z: number; bottom: T.Vector3; top: T.Vector3 }
+export interface Ladder { id: string; x: number; z: number; bottom: T.Vector3; top: T.Vector3; /** Not there while this is false (a ladder that has not been built yet). */ active?: () => boolean }
 const deckHeight = (d: Deck, x: number, z: number) => d.y1 === undefined ? d.y : d.y + (d.y1 - d.y) * T.MathUtils.clamp(d.axis === 'x' ? (x - d.minX) / (d.maxX - d.minX) : (z - d.minZ) / (d.maxZ - d.minZ), 0, 1);
 export interface Target { object: T.Object3D; id: string; kind: 'property' | 'ledger' | 'discovery' | 'district' | 'site' | 'lift' | 'ladder' | 'home' | 'signal' | 'door' | 'resist'; label: string; position: T.Vector3; hint?: string; /** Not offered while this is false (a thing behind a door that is still shut). */ when?: () => boolean }
 interface PropertyVisual { root: T.Group; additions: T.Group; machine: T.Group; gear: T.Group; piston: T.Mesh; level: number; building: T.Group; sign: T.Mesh }
@@ -217,7 +217,7 @@ export class City {
   roofAt(x: number, z: number, height: number) { for (const c of this.colliders) if (c.height >= 30 && x > c.minX && x < c.maxX && z > c.minZ && z < c.maxZ) c.height = height; }
   deck(minX: number, maxX: number, minZ: number, maxZ: number, y: number, y1?: number, axis?: 'x' | 'z') { this.decks.push({ minX, maxX, minZ, maxZ, y, y1, axis }); }
   /** The deck under these feet, if any: the highest one they could be standing on. */
-  private deckAt(x: number, z: number, feet: number) { let best = -Infinity; for (const d of this.decks) if (x >= d.minX && x <= d.maxX && z >= d.minZ && z <= d.maxZ) { const h = deckHeight(d, x, z); if (h <= feet + .4 && h > best) best = h; } return best; }
+  private deckAt(x: number, z: number, feet: number) { let best = -Infinity; for (const d of this.decks) if (d.when?.() !== false && x >= d.minX && x <= d.maxX && z >= d.minZ && z <= d.maxZ) { const h = deckHeight(d, x, z); if (h <= feet + .4 && h > best) best = h; } return best; }
   target(g: T.Group, id: string, kind: Target['kind'], label: string, x: number, y: number, z: number) { const board = box(g, x, y, z, 1.05, .8, .18, mats.brass); const panel = sign(g, kind === 'property' ? 'LEDGER' : label, kind === 'property' ? 'Accounts & improvements' : 'Terra • Locke', x, y, z + .101, .96, .62); box(g, x, y - .85, z, .12, 1.1, .12, mats.iron); board.updateWorldMatrix(true, false); const pos = board.getWorldPosition(new T.Vector3()); this.targets.push({ object: board, id, kind, label, position: pos }); panel.userData.interaction = id; }
   buildGround() { const g = new T.Group(); this.root.add(g); // The ground stops at the cleft: the Lowworks canal is a chasm open to the sky beneath.
     box(g, (-79 + CHASM.x0) / 2, -.5, -5.5, 79 + CHASM.x0, 1, 179, mats.dirt); box(g, (CHASM.x1 + 79) / 2, -.5, -5.5, 79 - CHASM.x1, 1, 179, mats.dirt); box(g, (CHASM.x0 + CHASM.x1) / 2, -.5, (CHASM.z1 + 84) / 2, CHASM.x1 - CHASM.x0, 1, 84 - CHASM.z1, mats.dirt); box(g, 0, .018, 9, 12.6, .06, 139, mats.road);

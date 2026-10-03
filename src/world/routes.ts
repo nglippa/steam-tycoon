@@ -11,8 +11,8 @@ const UP = new T.Vector3(0, 1, 0);
 /** A fixed ladder on a wall. `(nx, nz)` points away from the wall, toward whoever stands at
  * the foot; the top lets them off on the far side, 1.2 m in from the edge (or at `top`, an
  * offset from the ladder, when it comes up through a hatch in a deck instead). The interaction
- * target is one generous unseen box, and the controller also offers it by proximity. */
-export function ladder(g: T.Object3D, live: T.Object3D, city: City, id: string, label: string, x: number, z: number, y0: number, y1: number, nx: number, nz: number, m: Material = mats.iron, top?: [number, number]) {
+ * target is one generous unseen box, and the controller also offers it by proximity. `when` hides a ladder that is not built yet. */
+export function ladder(g: T.Object3D, live: T.Object3D, city: City, id: string, label: string, x: number, z: number, y0: number, y1: number, nx: number, nz: number, m: Material = mats.iron, top?: [number, number], when?: () => boolean) {
   const tx = -nz, tz = nx, head = y1 + 1.15, lx = x + nx * .1, lz = z + nz * .1, across = new T.Vector3(tx, 0, tz);
   for (const s of [-.27, .27]) cyl(g, lx + tx * s, (y0 + head) / 2, lz + tz * s, .035, head - y0, m);
   for (let y = y0 + .3; y < head - .1; y += .32) cyl(g, lx, y, lz, .022, .54, m).quaternion.setFromUnitVectors(UP, across);
@@ -20,8 +20,8 @@ export function ladder(g: T.Object3D, live: T.Object3D, city: City, id: string, 
   for (let y = y0 + 1.2; y < y1; y += 2.4) for (const s of [-.27, .27]) box(g, lx + tx * s - nx * .06, y, lz + tz * s - nz * .06, .05 + Math.abs(nx) * .12, .05, .05 + Math.abs(nz) * .12, m);
   if (y1 - y0 > 6) for (let y = y0 + 2.6; y < y1 + .6; y += 1.5) torus(g, lx + nx * .34, y, lz + nz * .34, .36, .018, m).rotation.x = Math.PI / 2;
   const hit = new T.Mesh(new T.BoxGeometry(1, 1, 1), unseen); hit.position.set(lx + nx * .15, (y0 + head) / 2, lz + nz * .15); hit.scale.set(.9 + Math.abs(nx) * .2, head - y0, .9 + Math.abs(nz) * .2); live.add(hit); hit.updateWorldMatrix(true, false);
-  city.targets.push({ object: hit, id, kind: 'ladder', label, hint: 'CLIMB', position: hit.getWorldPosition(new T.Vector3()) });
-  city.ladders.push({ id, x: x + nx * .5, z: z + nz * .5, bottom: new T.Vector3(x + nx * .95, y0, z + nz * .95), top: top ? new T.Vector3(x + top[0], y1, z + top[1]) : new T.Vector3(x - nx * 1.2, y1, z - nz * 1.2) });
+  city.targets.push({ object: hit, id, kind: 'ladder', label, hint: 'CLIMB', position: hit.getWorldPosition(new T.Vector3()), when });
+  city.ladders.push({ id, x: x + nx * .5, z: z + nz * .5, bottom: new T.Vector3(x + nx * .95, y0, z + nz * .95), top: top ? new T.Vector3(x + top[0], y1, z + top[1]) : new T.Vector3(x - nx * 1.2, y1, z - nz * 1.2), active: when });
 }
 
 /** Make a thing examinable as itself, with no plaque: an unseen box round it is the target.

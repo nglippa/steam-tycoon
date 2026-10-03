@@ -179,7 +179,7 @@ export class Presentation {
       for(const dx of [-.8,.8]){const band=torus(g,side*14.5+dx,y,z,.9,.07,dx<0?mats.teal:mats.cream);band.rotation.y=Math.PI/2;}
     }
     // Maintenance catwalk hung beside the pipe.
-    box(g,0,12.72,z+1.3,22,.1,.8,mats.iron);railing(g,0,12.77,z+1.72,22);for(let x=-10;x<=10;x+=5)beam(g,V(x,12.72,z+1.3),V(x,13.9,z+.9),.03,mats.iron);
+    box(g,0,12.72,z+1.55,22,.1,1.3,mats.iron);for(const [rx,rw] of [[-10.1,1.8],[0,15.6],[10.1,1.8]])railing(g,rx,12.77,z+2.15,rw);for(let x=-10;x<=10;x+=5)beam(g,V(x,12.72,z+1.3),V(x,13.9,z+.9),.03,mats.iron);
     for(const face of [-1,1]){const plaque=new T.Group();plaque.position.set(0,y+.6,z+face*1.95);plaque.rotation.y=face<0?Math.PI:0;g.add(plaque);pressureRing(plaque,0,0,0,.7,mats.cream);}
     this.steamOrigins.push(V(-6,13.2,z),V(6,13.2,z),V(-24.9,2.6,8));
     bake(g);
@@ -483,9 +483,9 @@ export class Presentation {
   /** Those who can be asked to act: posts with a job that involves watching, and the Ordinance's story people who stand still. */
   get authority(){return this.actors??=this.posts.filter(q=>canAct(q.role)).map(q=>q.index).concat(this.ordinance);}private actors?:number[];
   get ordinance(){return this.staticOrdinance??=this.workers.map((w,i)=>isOccupier(w.person.archetype)&&!this.garrisonPosts.includes(i)&&!w.path?i:-1).filter(i=>i>=0);}private staticOrdinance?:number[];
-  addWorker(x:number,z:number,yaw:number,kind:Activity,o:{y?:number;role?:Archetype;minStage?:number;maxStage?:number;time?:'any'|'day'|'night';scale?:number;partner?:number;path?:[number,number,number];tool?:string;when?:()=>boolean;essential?:boolean}={}) {
+  addWorker(x:number,z:number,yaw:number,kind:Activity,o:{y?:number;role?:Archetype;minStage?:number;maxStage?:number;time?:'any'|'day'|'night';scale?:number;partner?:number;path?:[number,number,number];tool?:string;when?:()=>boolean;essential?:boolean;mask?:boolean}={}) {
     const role=o.role??(kind==='gauge'||kind==='valve'||kind==='clipboard'?'engineer':kind==='browse'||(z<0&&kind==='read')?'merchant':kind==='read'||kind==='watch'||kind==='lean'?'resident':'worker');
-    const person=citizen(mats.rust,this.workers.length+43,role);const y=o.y!==undefined?o.y+.18:this.city.groundHeight(x,z);person.group.position.set(x,y,z);person.group.rotation.y=yaw;if(o.scale)person.group.scale.multiplyScalar(o.scale);this.root.add(person.group);
+    const person=citizen(mats.rust,this.workers.length+43,role,o.mask?{mask:true}:undefined);const y=o.y!==undefined?o.y+.18:this.city.groundHeight(x,z);person.group.position.set(x,y,z);person.group.rotation.y=yaw;if(o.scale)person.group.scale.multiplyScalar(o.scale);this.root.add(person.group);
     // Held things sit in the right hand's grip socket, authored grip-first: the handle runs through
     // the fist along z and the rest hangs off it (figure-construction: arms-hands). Crates are
     // carried against the body between both palms.
@@ -505,7 +505,7 @@ export class Presentation {
       importance:o.essential||(isOccupier(role)&&o.when)?'essential':o.when?'conditional':'ambient'});return this.workers.length-1;
   }
   sync(){
-    const e=this.city.economy;const levels=PROPERTIES.map(p=>this.city.properties.get(p.id)!.level);const key=[...levels,...Object.values(e.state.infrastructure),...Object.values(e.state.sites),e.stage,e.state.resist.rook,...e.state.research,...e.state.districts].join(':');if(key===this.signature)return;this.signature=key;
+    const e=this.city.economy;const levels=PROPERTIES.map(p=>this.city.properties.get(p.id)!.level);const key=[...levels,...Object.values(e.state.infrastructure),...Object.values(e.state.sites),e.stage,...e.state.research,...e.state.districts].join(':');if(key===this.signature)return;this.signature=key;
     const businesses=Object.fromEntries(PROPERTIES.map((p,i)=>[p.id,levels[i]])) as Record<typeof PROPERTIES[number]['id'],number>;
     for(const s of this.sites)s.sync({control:e.state.sites[s.id],stage:e.stage,levels:businesses,sites:{...e.state.sites}});this.weatherside.sync();this.roofwalk.sync(e.state.research);this.canalWard.sync();this.hangway.sync(e.state.research);this.rookYard.sync();
     this.worn.visible=e.state.infrastructure.roads===0;

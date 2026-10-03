@@ -75,7 +75,7 @@ export class Review {
     // No roof lets a walker off its edge: push at all four sides of the high places.
     results.edgesHold=([[-71,-28,32.85],[-71,-23.9,19.85],[-70,-18,7.85],[-70,18,7.85],[-69,-63,7.85],[-70.5,54,8.85],[-68,96.5,10.85],[6,4.2,15.75],[-19,8,16.2],[-15.9,14,21.6],[-19,20,16.2],[57.5,-41.5,13.85],[60,-44,25.85]] as const).every(([x,z,eye])=>[0,S,W,-W].every(yaw=>near(walk(x,z,yaw,2.6,eye).y,eye)));
     // Every ladder, up and then down again, ending where a walker can move off.
-    results.ladders=Object.fromEntries(city.ladders.filter(l=>!city.blocked(l.bottom.x,l.bottom.z,l.bottom.y)).map(l=>{const ride=()=>{player.climb(l);let n=0;while(player.climbing&&n++<1500)player.update(1/60,n/60);return n;};
+    results.ladders=Object.fromEntries(city.ladders.filter(l=>(l.active?.()??true)&&!city.blocked(l.bottom.x,l.bottom.z,l.bottom.y)).map(l=>{const ride=()=>{player.climb(l);let n=0;while(player.climbing&&n++<1500)player.update(1/60,n/60);return n;};
       player.teleport(l.bottom.x,l.bottom.z,0,l.bottom.y+1.75);const up=ride(),top=near(player.position.y-1.75,l.top.y)&&!city.blocked(player.position.x,player.position.z,l.top.y);
       const down=ride(),foot=near(player.position.y-1.75,l.bottom.y)&&!city.blocked(player.position.x,player.position.z,l.bottom.y);
       return [l.id,{top,foot,seconds:+(up/60).toFixed(1),height:+(l.top.y-l.bottom.y).toFixed(1),ok:top&&foot&&up<1500&&down<1500}];}));
