@@ -137,6 +137,9 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
     n.arms[0].rotation.x=-.62;n.arms[1].rotation.x=activity==='gauge'&&inspect?-.9:-.55;n.elbows[0].rotation.x=-.9;
     if(write||activity==='clipboard'){n.elbows[1].rotation.x=-1.1+Math.sin(phase*7)*.07*(write?1:.3);n.arms[1].rotation.z=-.3;}
     tilt=inspect?.08:0;if(u>.8)tilt=-.05;
+    // The held sheet and board are fitted to the rig: the sheet sits ~40 cm from the eyes facing them, the board rests at the waist, tilted back, to be written on.
+    if(activity==='read'){n.arms[0].rotation.set(-1.16,.18,-.28);n.elbows[0].rotation.x=-1.48;}
+    if(activity==='clipboard'){n.arms[0].rotation.set(-.38,.18,-.13);n.elbows[0].rotation.x=-1.22;}
   }
   if(activity==='carry'){for(let k=0;k<2;k++){n.arms[k].rotation.set(-.5,0,(k?1:-1)*.1);n.elbows[k].rotation.x=-.95;}}
   if(activity==='hammer'){// Raise → strike → recoil → settle.
