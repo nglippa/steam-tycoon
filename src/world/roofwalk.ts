@@ -34,7 +34,8 @@ export class Roofwalk {
     city.roofAt(-19, 14, LAND - .05); for (const x of [-12.6, 12.6]) city.roofAt(x, 5.6, LEADS - .1);
     // The duckboards: timber on iron saddles over the ridge, a rail each side, the chimneys alongside.
     box(s, .7, LEADS - .06, 4.2, 24.6, .12, 2, mats.wood); for (let x = -11; x <= 13; x += 3) { box(s, x, LEADS - .2, 4.2, .12, .16, 2.1, mats.iron); box(s, x, 13.2, 3.4, .1, 1.5, .1, mats.iron); }
-    city.deck(-11.6, 13, 3.2, 5.2, LEADS); parapet(s, city, -13.3, 3.2, 13, 3.2, LEADS, mats.iron, false); parapet(s, city, -11.6, 5.2, 13, 5.2, LEADS, mats.iron, false); parapet(s, city, 13, 3.2, 13, 5.2, LEADS, mats.iron, false);
+    // The ladders come up through gaps in the north rail, as the Great Main catwalk's do.
+    city.deck(-11.6, 13, 3.2, 5.2, LEADS); for (const [x0, x1] of [[-13.3, -12.95], [-11.85, 11.65], [12.75, 13]]) parapet(s, city, x0, 3.2, x1, 3.2, LEADS, mats.iron, false); parapet(s, city, -11.6, 5.2, 13, 5.2, LEADS, mats.iron, false); parapet(s, city, 13, 3.2, 13, 5.2, LEADS, mats.iron, false);
     // The landing where the walk meets the workshop: one step up, then one more onto the terrace.
     box(s, -12.45, LAND - .12, 5.1, 1.7, .24, 3.8, mats.wood); city.deck(-13.3, -11.6, 3.2, 7, LAND); parapet(s, city, -13.3, 7, -11.6, 7, LAND, mats.iron, false); parapet(s, city, -11.6, 5.2, -11.6, 7, LAND, mats.iron, false); parapet(s, city, -13.3, 3.2, -13.3, 5.3, LAND, mats.iron, false);
     ladder(s, this.live, city, 'ladder.leads.west', 'Bridge-house ladder', -12.4, 3.2, G, LAND, 0, -1); ladder(s, this.live, city, 'ladder.leads.east', 'Bridge-house ladder', 12.2, 3.2, G, LEADS, 0, -1);
