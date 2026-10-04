@@ -137,3 +137,93 @@ body.scene #skip{display:block}
 #title-card b{display:block;font:900 clamp(56px,11vw,120px)/1 "Avenir Next",sans-serif;letter-spacing:.18em;padding-left:.18em}
 #title-card span{display:block;font:700 11px "Avenir Next",sans-serif;letter-spacing:.4em;margin-top:10px}
 @media(max-width:700px),(max-height:520px){#dialogue{bottom:auto;top:max(64px,calc(env(safe-area-inset-top) + 56px))}.dlg-card p{font-size:15px}#title-card{top:30%}}
+
+/* ---------------------------------------------------------------------------------------------------------------
+   Fixes VII: one card language. Every plate on the HUD shares the same edge, shadow, gutter and type floor, and the
+   muted text is dark enough to read on the paper (4.5:1 or better on --terra-paper). */
+:root{
+  --ui-gutter:34px;--ui-top:32px;--ui-bottom:32px;--ui-card-h:80px;
+  --ui-edge:2px solid var(--terra-ink);
+  --ui-shadow:3px 4px 0 var(--terra-ink);--ui-shadow-sm:2px 3px 0 var(--terra-ink);--ui-shadow-lg:6px 7px 0 #34494a88;
+  --ui-soft:#3c5653;--gold:#7a5230;--muted:#3c5653;
+  --ui-fs-label:10px;--ui-fs-small:11px;--ui-fs-body:13px;--ui-fs-lead:15px;
+  --ui-hover:#f6ecd5;--ui-accent:#edd08a;--ui-focus:#226f6c;
+}
+/* The top row: four plates on one baseline, one height, one edge. The tilt is kept for the two corner cards, softened. */
+header{top:var(--ui-top);left:var(--ui-gutter);right:var(--ui-gutter)}
+.identity,.treasury,.bearing,.hour{min-height:var(--ui-card-h);border:var(--ui-edge);box-shadow:var(--ui-shadow);box-sizing:border-box}
+.identity{transform:rotate(-.6deg)}.treasury{transform:rotate(.6deg);padding-block:8px}
+.bearing,.hour{justify-content:center}
+/* The clock and the compass plate are one centred pair, so a long ward name pushes them apart instead of overlapping. */
+@media(min-width:901px){.centre{position:absolute;left:50%;top:0;transform:translateX(-50%);display:flex;gap:10px;align-items:stretch}.centre .bearing,.centre .hour{position:static;transform:none}}
+@media(max-width:900px){.centre{display:contents}}
+.identity span,.treasury small,.bearing small,.hour small,.income small{font-size:var(--ui-fs-label);color:var(--ui-soft)}
+.hour small.on{color:var(--terra-burgundy)}
+.income b{color:#2d6254}
+/* The bottom row shares the same gutter and shadow; the waypoint chip sits on the row's baseline, between the two cards. */
+footer{left:var(--ui-gutter);right:var(--ui-gutter);bottom:var(--ui-bottom)}
+.objective,.controls,#tracked,#interaction,#toast{border:var(--ui-edge);box-shadow:var(--ui-shadow)}
+.objective>small,.objective .overline{font-size:var(--ui-fs-label)}.objective>small{color:var(--ui-soft)}.objective .overline{color:var(--terra-burgundy)}
+.objective p{font-size:var(--ui-fs-body);line-height:1.4}
+.controls{font-size:var(--ui-fs-small);color:var(--terra-ink);gap:16px;align-items:center}
+.controls .ledger-control{font:inherit}
+kbd{font-size:var(--ui-fs-label);min-width:24px;height:24px}
+@media(min-width:1000px){#tracked{bottom:var(--ui-bottom);box-shadow:var(--ui-shadow);border:var(--ui-edge);padding:9px 14px;min-height:42px;display:flex;align-items:center;font-size:var(--ui-fs-small)}#tracked small{opacity:1;color:var(--ui-soft);font-size:var(--ui-fs-label)}}
+/* The prompt: the key is the call to action, the label is the verb, the hint is the small print. */
+#interaction{gap:14px;padding:10px 18px 10px 12px;font-size:var(--ui-fs-lead);font-weight:700;top:57%}
+#interaction kbd{width:34px;height:34px;font-size:15px;font-weight:800;box-shadow:var(--ui-shadow-sm)}
+#interaction small{font-size:var(--ui-fs-label);font-weight:700;letter-spacing:1.6px;color:var(--ui-soft);margin-top:3px}
+/* The toast: clear of the clock row, left aligned for reading, and never hidden behind the ledger. */
+#toast{top:calc(var(--ui-top) + var(--ui-card-h) + 14px);font-size:var(--ui-fs-body);line-height:1.5;font-weight:600;padding:11px 20px;max-width:min(560px,calc(100vw - 2*var(--ui-gutter)));text-align:left;border-left:8px solid var(--terra-civic)}
+body:has(#panel:not([hidden])) #toast{left:calc((100% - 490px)/2);max-width:min(560px,calc(100vw - 530px))}
+/* Dialogue and prompt copy floor. */
+.dlg-card small,.welcome-foot,.panel-top>span,.panel-bottom,.panel-bottom small{font-size:var(--ui-fs-label)}
+.dlg-card small{color:var(--ui-soft)}
+.description,.ledger-row p,.ledger-row small,.muted,.footnote,.stat-row,.slider,.check,.city-stage p,.instrument small,.instrument span,.instrument em,.panel-bottom small,.tabs button,.level-track span,.plain{color:var(--ui-soft)}
+.instrument small,.instrument span{font-size:var(--ui-fs-label)}
+.section-label{color:#6a4a2b;font-size:var(--ui-fs-label)}
+.description{font-size:var(--ui-fs-body);line-height:1.7}
+.stat-row,.slider,.check{font-size:12px}.footnote{font-size:var(--ui-fs-small)}
+.level-track span{border-top-width:3px;border-top-color:#34494a33;font-size:var(--ui-fs-label);font-weight:700}
+.level-track .done{border-top-color:#357365;color:#245a4d}
+.production-bar{height:7px;border:1px solid #34494a55;background:#34494a14}
+/* The ledger, pause and settings share the card edge; the panel keeps its softer offset because it is large. */
+.pause,.panel{border:var(--ui-edge);box-shadow:var(--ui-shadow-lg)}
+.pause{left:8vw}
+.pause p{color:var(--ui-soft);font-size:var(--ui-fs-body)}
+.plain{display:flex;align-items:center;justify-content:space-between;padding:13px 4px;font-size:var(--ui-fs-body);font-weight:700;color:var(--terra-ink);border-bottom:1px solid #34494a55;transition:background .12s,padding .12s}
+.plain:after{content:'\2192';font-weight:400;color:var(--ui-soft)}
+.plain:hover:not(:disabled){background:var(--ui-hover);padding-inline:10px;filter:none}
+.plain:focus-visible{background:var(--ui-hover)}
+/* The ledger's tabs are a row of labelled tabs that wrap as even pills instead of leaving one word alone on a line. */
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.tabs button{min-height:36px;padding:0 6px;text-align:center;white-space:nowrap;border:2px solid transparent;border-radius:999px;font-size:var(--ui-fs-small);font-weight:700;color:var(--ui-soft)}
+.tabs button:hover:not(.active){border-color:var(--terra-ink);color:var(--terra-ink);filter:none}
+.tabs button.active{background:var(--terra-ink);color:var(--terra-paper);border:2px solid var(--terra-ink)}
+/* Buttons: one raised state, one pressed state, and a disabled state that still reads (the fill shows the savings). */
+.purchase{border:2px solid var(--terra-ink);box-shadow:var(--ui-shadow-sm);font-size:var(--ui-fs-body);min-height:48px;transition:transform .12s,box-shadow .12s,background .12s}
+.purchase:not(:disabled):hover{transform:translate(-1px,-2px);box-shadow:3px 5px 0 var(--terra-ink)}
+.purchase:not(:disabled):active{transform:translate(2px,3px);box-shadow:0 0 0 var(--terra-ink)}
+.purchase:disabled{opacity:1;cursor:not-allowed;color:#4c5f5a;border-style:dashed;border-color:#34494a99;box-shadow:none}
+.purchase:disabled b{color:var(--terra-burgundy)}
+.purchase[data-locked]:disabled{background:#34494a12;background-image:none}.purchase[data-locked]:disabled b{color:var(--ui-soft)}
+.find{border:2px solid var(--terra-ink)}.find:hover{filter:none;transform:translate(-1px,-1px);box-shadow:3px 4px 0 var(--terra-ink)}
+.panel-top button{border-radius:2px;border:2px solid transparent}.panel-top button:hover{border-color:var(--terra-ink);filter:none}
+/* Focus: one ring, always visible against paper. */
+button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--ui-focus);outline-offset:3px}
+input[type=range]{accent-color:#40897b}
+@media(max-width:900px){:root{--ui-gutter:22px}}
+.pause .primary{margin-bottom:10px}
+/* Around 1024px wide the clock pair and the treasury meet: the ward line and the treasury give up some air, never any words. */
+@media(min-width:901px) and (max-width:1180px){
+  .bearing{padding-inline:12px}.bearing small.ward{letter-spacing:.03em}.bearing>span:before,.bearing>span:after{margin:0 8px;letter-spacing:3px}
+  .treasury{gap:10px;padding-inline:12px}.coin{width:32px;height:32px;font-size:20px}.income{padding-left:12px;margin-left:0}.treasury strong{font-size:24px}
+}
+/* New game confirm: a warning plate with the safe choice first in reading order and a clear destructive button. */
+.danger{border:2px solid var(--terra-burgundy);background:#793d5912;padding:16px 18px;margin-top:18px;box-shadow:var(--ui-shadow-sm)}
+.danger h3{color:var(--terra-burgundy);margin-top:0}.danger p{color:#4a2c3a;font-size:var(--ui-fs-body)}
+.danger button{display:block;width:100%;min-height:44px;margin-top:8px;padding:0 14px;text-align:left;font-weight:700;font-size:var(--ui-fs-body);border:2px solid var(--terra-burgundy);color:var(--terra-burgundy);background:transparent}
+.danger button[data-action=reset-confirm]{background:var(--terra-burgundy);color:var(--terra-paper)}
+.danger button:hover{filter:none;background:#793d5922}.danger button[data-action=reset-confirm]:hover{background:#8d4a69}
+.danger-text{color:var(--terra-burgundy)}
+#panel:focus{outline:none}
