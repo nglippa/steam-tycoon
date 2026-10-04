@@ -64,7 +64,7 @@ export class Interface {
       const consequence = !clue ? '' : wasCase && isCase ? ' That is a case. The Finch Institute will hear it.' : t.id === 'survey' && e.charterCost('anchors') < price ? ' The Institute can work from their measurements.' : !isCase && e.state.knowledge.includes('anchor') ? ' The Institute will want more than this.' : '';
       this.toast(text + consequence, 9500); if (this.panel) this.render(); } }
   /** Logistics in the Steward's own arms: take the Foundry's cutters crate, and hand it over at the Finch cellar. */
-  carry(load: Consignment) { this.toast(load.take() ?? load.taken, 8000); }
+  carry(load: Consignment) { if (load.carrying) { load.drop(); return this.toast('You set the crate back where it was.'); } this.toast(load.take() ?? load.taken, 8000); }
   /** Delivery happens where the goods are received; it is covert, so watching eyes there refuse it. */
   deliver(load: Consignment) { if (!load.site) { if (load.receive?.()) { load.drop(); this.sound.purchase(); } return; } const at = load.deliverAt.split('.')[0] as SiteId; if (this.city.watched(at)) return this.toast(this.economy.site(at).watched); if (this.economy.deliver(load.site)) { load.drop(); this.sound.purchase(); } }
   /** Physical places, not menus: each site's spots (a cellar door, a shift board, a spring,

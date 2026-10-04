@@ -8,7 +8,7 @@ import type { SiteId } from '../simulation/economy';
  * sends it back to where it waits. Districts decide who can see it and what happens then. */
 export class Consignment {
   static all: Consignment[] = [];
-  carrying = false; /** Carried, it reads to the checkpoints as heat, and any incident takes it away. */ contraband = false; readonly waiting = new T.Group(); readonly held = new T.Group(); readonly target: T.Mesh;
+  carrying = false; /** What it is called when the arms are full of it. */ name = 'crate'; /** Carried, it reads to the checkpoints as heat, and any incident takes it away. */ contraband = false; readonly waiting = new T.Group(); readonly held = new T.Group(); readonly target: T.Mesh;
   constructor(public id: string, public site: SiteId | null, public deliverAt: string, parent: T.Object3D, at: { x: number; z: number }, build: (g: T.Group) => void,
     public ready: () => boolean, public taken: string, public refuse: () => string | null = () => null, public receive?: () => boolean) {
     build(this.waiting); this.waiting.position.set(at.x, 0, at.z); parent.add(this.waiting); build(this.held); this.held.visible = false;
@@ -20,7 +20,7 @@ export class Consignment {
   /** Shoulder it; a refusal message if it cannot be taken now. */
   take(): string | null {
     if (!this.ready() || this.carrying) return 'Nothing here needs carrying.';
-    if (Consignment.carried()) return 'Your arms are already full.';
+    if (Consignment.carried()) return `Your arms are already full: the ${Consignment.carried()!.name}.`;
     const refusal = this.refuse(); if (refusal) return refusal;
     this.carrying = true; return null;
   }

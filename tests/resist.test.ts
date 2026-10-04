@@ -24,6 +24,8 @@ test('the bookend answers the porch, and falls back to the promise', () => {
 test('what the trade holds is worded, and none of it says Steward in the Ordinance’s voice', () => {
   for (const h of Object.values(HOLD)) { for (const l of Object.values(h)) { assert.ok(l); assert.ok(!/Steward/.test(l), l); } assert.ok(!/citizen/.test(h.hand)); }
   assert.ok(HOLD.scrap);
+  // The delivery names the part and where to look; the stranger, not the toast, closes the loop.
+  assert.match(HOLD.scrap.delivered, /governors/); assert.match(HOLD.scrap.delivered, /regulator/); assert.ok(!/Now you see the point/.test(HOLD.scrap.delivered));
 });
 test('a new save starts the loop at 0; an older save without it loads with the default and keeps its opening', () => {
   assert.equal(freshSave().resist.rook, 0); assert.equal(new Economy(memory()).state.resist.rook, 0);
