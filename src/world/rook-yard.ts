@@ -16,8 +16,8 @@ import type { Presentation } from './presentation';
 const BENCH = { x: -10.7, z: 32.4 }, HAND = { x: -12.4, z: 33.9 }, STOCK = { x: -10.3, z: 47.9 }, CRATE = { x: -26.4, z: 45.9 }, CLERK = { x: -29, z: 47.6 }, CACHE = { x: -17.2, y: 14.45, z: 7.4 }, STRANGER = { x: 2.6, y: 14.3, z: 30.55 };
 /** Restored Terra's lights and metals, self-lit so they read at dawn and dusk and against the sky. */
 const aether = new T.MeshBasicMaterial({ color: ancient.aether }), gleam = new T.MeshBasicMaterial({ color: '#d2a84e' });
-/** The clerk counts the held stock, then bends to his sheet. The sheet is the window. */
-const WATCH: [yaw: number, seconds: number][] = [[2.15, 5], [Math.PI, 4.5]];
+/** The clerk counts the held stock, then bends to his sheet with his back to it. That turn must clear the yard side of the crate too. */
+const WATCH: [yaw: number, seconds: number][] = [[2.15, 5], [0, 4.5]];
 const chalk = decalMat(emberChalk, .92);
 const tick = (g: T.Object3D, x: number, y: number, z: number, size: number, yaw: number, flat = false) => { const m = new T.Mesh(new T.PlaneGeometry(size, size), chalk); if (flat) m.rotation.x = -Math.PI / 2; else m.rotation.y = yaw; m.position.set(x, y, z); g.add(m); };
 
