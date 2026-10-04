@@ -6,7 +6,7 @@ import { Consignment } from './logistics';
 import { inView, Attention } from './patrol';
 import { ancient, ancientMats, decalMat, emberChalk } from './factions';
 import { atHome } from '../simulation/home';
-import { bookendDue, bookendLine, canDivert, canNotice, HOLD } from '../simulation/resist';
+import { bookendDue, bookendLine, canDivert, canNotice, clerkContact, HOLD } from '../simulation/resist';
 import { catwalkRestored, crateHeld } from '../simulation/alignment';
 import type { Line } from '../simulation/intro';
 import type { Presentation } from './presentation';
@@ -31,7 +31,7 @@ export class RookYard {
   onSee: (point: T.Vector3) => boolean = () => false;
   /** Is the player in the world (not in a menu or the opening)? The stranger's line and his leaving wait for it. */
   inWorld: () => boolean = () => true; private spot = new T.Vector3(STRANGER.x, STRANGER.y, STRANGER.z);
-  private ticks = new T.Group(); private waiting = new T.Group(); private under = new T.Group(); private restored = new T.Group(); private steam = V(-10.3, 13.2, 29); private standing = false; private said = false; private leave = 0; private clerk: number; private hand: number; private hear = 0; private viewer = new T.Vector3(0, -99, 0);
+  private ticks = new T.Group(); private collect = new T.Group(); private waiting = new T.Group(); private under = new T.Group(); private restored = new T.Group(); private steam = V(-10.3, 13.2, 29); private standing = false; private said = false; private leave = 0; private clerk: number; private hand: number; private hear = 0; private viewer = new T.Vector3(0, -99, 0);
   constructor(private pres: Presentation) {
     const city = pres.city, root = new T.Group(); pres.root.add(root), root.add(this.ticks);
     // The manifest, always: pinned to the back board of the bench where the street can read it, three lines in a clerk's hand.
@@ -41,6 +41,9 @@ export class RookYard {
     tick(this.ticks, SX, 1.5, SZ - .3, .2, Math.PI / 2);
     // The same chalk on the stock at the mouth of the yard lane: the east face of the iron crate.
     tick(this.ticks, STOCK.x - .1 + .405, .35, STOCK.z - .082, .24, Math.PI / 2 + .2); bake(this.ticks);
+    // The Directorate's own mark beside it, from the same report: a red collection tick, for the stock it will come to collect.
+    this.collect.position.set(SX + .012, 1.5, SZ + .3); this.collect.rotation.y = Math.PI / 2; root.add(this.collect);
+    for (const [x, y, w, h, r] of [[-.02, -.02, .05, .02, -.8], [.03, .01, .09, .02, .75]]) { const b = box(this.collect, x, y, 0, w, h, .006, mats.red); b.rotation.z = r; } bake(this.collect);
     // The bench is the one legitimate thing to do here, once.
     const hit = new T.Mesh(new T.BoxGeometry(1.1, 1.6, 2.2), unseen); hit.position.set(BENCH.x, 1.2, BENCH.z); root.add(hit); hit.updateWorldMatrix(true, false);
     city.targets.push({ object: hit, id: 'rook.bench', kind: 'resist', label: 'Workbench', hint: 'CHECK THE MANIFEST', position: hit.getWorldPosition(new T.Vector3()), when: () => this.rook === 0 });
@@ -50,9 +53,13 @@ export class RookYard {
     // The held crate: the Directorate's grey, stencilled on every face, and the Embers' chalk on the lane side.
     this.crate = new Consignment('rook.crate', null, 'rook.loft', root, CRATE, g => { labeledCrate(g, 0, 0, 0, .7, HOLD.scrap!.plate, 0, '#9a9486'); tick(g, -.358, .16, .2, .2, -Math.PI / 2); bake(g); },
       () => this.held, HOLD.scrap!.taken, () => !canDivert(this.rook) ? HOLD.scrap!.held : this.watching ? HOLD.scrap!.watched : null, () => this.receive());
-    this.crate.contraband = true;
+    this.crate.covert = true; this.crate.carryLine = HOLD.scrap!.carrying; this.crate.custodyLine = HOLD.scrap!.custodyCarrying;
     this.cache(root); this.restore(root);
     pres.addWorker(STRANGER.x, STRANGER.z, 0, 'watch', { role: 'courier', mask: true, essential: true, y: 12.59, when: () => this.standing });
+    // The clerk: there for everyone while the stock is held. Not the keeper, he refuses the standing; the keeper signs for custody in his full view.
+    const clerk = new T.Mesh(new T.BoxGeometry(1.1, 2, 1.1), unseen); clerk.position.set(CLERK.x, 1, CLERK.z); root.add(clerk); clerk.updateWorldMatrix(true, false);
+    for (const [id, hint, when] of [['rook.clerk', 'SPEAK TO THE CLERK', 'refused'], ['rook.clerk', 'SIGN FOR CUSTODY', 'offer']] as const)
+      city.targets.push({ object: clerk, id, kind: 'resist', label: 'Collection clerk', hint, position: clerk.getWorldPosition(new T.Vector3()), when: () => this.contact === when && this.onDuty && !this.crate.carrying });
     city.collider(CRATE.x, CRATE.z, .8, .8, .75, undefined, () => !(this.held && !this.crate.carrying));
     this.crate.target.updateWorldMatrix(true, false);
     city.targets.push({ object: this.crate.target, id: 'rook.crate', kind: 'site', label: 'Held crate', hint: 'CARRY', position: this.crate.target.getWorldPosition(new T.Vector3()) });
@@ -91,6 +98,11 @@ export class RookYard {
   /** The crate is left under the tarp: the third step, and the toast that says what it was for. */
   private receive() { if (!canDivert(this.rook) || !this.pres.city.economy.resolve('greatMain', 'resistance', 'rook.diverted')) return false; this.pres.city.onEvent(HOLD.scrap!.delivered); return true; }
   private get rook() { return this.pres.city.economy.state.resist.rook; }
+  private get contact() { return clerkContact(this.pres.city.economy.state.properties.scrap.level, this.outcome, this.rook); }
+  /** E on the clerk: his word, and for the keeper the crate on the shoulder under signature; the toast if there is one. */
+  talk() { const c = this.contact, h = HOLD.scrap!; if (c === 'none' || !this.onDuty) return null;
+    if (c === 'refused') { this.onLine({ who: 'Collection clerk', text: h.standing }); return null; }
+    const refusal = this.crate.take(true); if (refusal) return refusal; this.onLine({ who: 'Collection clerk', text: h.offer }); return h.custodyTaken; }
   private get outcome() { return this.pres.city.economy.state.alignment.outcomes.greatMain; }
   /** The crate waits in the yard from the report until it is delivered. */
   private get held() { return crateHeld(this.rook, this.outcome); }
@@ -99,7 +111,7 @@ export class RookYard {
   private get eyes() { return this.pres.workers[this.clerk].person.group; }
   /** The clerk is facing the held stock and could see the Steward at it. */
   get watching() { return this.held && this.onDuty && inView(this.pres.city, this.eyes, this.viewer, 10, .75); }
-  sync() { const r = this.rook, done = catwalkRestored(this.outcome), o = this.pres.steamOrigins, i = o.indexOf(this.steam); this.ticks.visible = r >= 1; this.waiting.visible = this.outcome === 'base'; this.under.visible = this.restored.visible = done;
+  sync() { const r = this.rook, done = catwalkRestored(this.outcome), o = this.pres.steamOrigins, i = o.indexOf(this.steam); this.ticks.visible = r >= 1; this.collect.visible = r >= 1 && this.outcome === 'base'; this.waiting.visible = this.outcome === 'base'; this.under.visible = this.restored.visible = done;
     if (done && i < 0) o.push(this.steam); else if (!done && i >= 0) o.splice(i, 1); }
   /** Outdoors in the Great Main's street, or up on its roofs' level below the leads: not in a room, not behind a building. */
   private seen(v: T.Vector3) { return Math.abs(v.x) < 14 && v.y < 14.5 && !atHome(v.x, v.y, v.z); }
