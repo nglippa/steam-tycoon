@@ -4,7 +4,7 @@ import { V, bench, bunting } from './art-kit';
 import { occupationMats, canvasTarp, signs } from './factions';
 import { inView } from './patrol';
 import { Consignment } from './logistics';
-import { gateCrew, scrutiny, type Gate, type DistrictId, type Scrutiny, type Tone } from '../simulation/occupation';
+import { gateCrew, scrutiny, freightLane, type Gate, type DistrictId, type Scrutiny, type Tone } from '../simulation/occupation';
 import { VOICE } from '../simulation/voice';
 import { atHome } from '../simulation/home';
 import { APPROACH, approachState, stepApproach, type Approach, type ApproachEvent } from '../simulation/approach';
@@ -115,9 +115,9 @@ export class Checkpoints {
   /** A line, and the body that goes with it, for one of the crew (or all of them). */
   private speak(g: GateRecord, who: number | 'all', tone: Tone, seconds: number, time: number, palm = 0) { for (const i of who === 'all' ? g.crew : [who]) { const w = this.p.workers[i]; if (w?.person.group.visible) w.person.tone = { tone, until: time + seconds, palm: palm ? time + palm : undefined }; } }
   /** What the gate does about what the approach just did. One concise line at most; the bodies say the rest. */
-  private voice(g: GateRecord, ev: ApproachEvent, what: Scrutiny, time: number, viewer: T.Vector3) { const city = this.p.city, by = g.watcher >= 0 ? g.watcher : g.crew.find(i => this.p.workers[i].person.group.visible) ?? -1, others = g.crew.filter(i => i !== by);
+  private voice(g: GateRecord, ev: ApproachEvent, what: Scrutiny, time: number, viewer: T.Vector3, freight = false) { const city = this.p.city, by = g.watcher >= 0 ? g.watcher : g.crew.find(i => this.p.workers[i].person.group.visible) ?? -1, others = g.crew.filter(i => i !== by);
     const watch = (seconds: number) => { g.watchUntil = time + seconds; };
-    if (ev === 'notice') { g.watcher = g.seenBy; watch(4); this.speak(g, g.seenBy, what === 'challenge' ? 'suspicious' : 'neutral', 2.5, time); }
+    if (ev === 'notice') { g.watcher = g.seenBy; watch(4); this.speak(g, g.seenBy, what === 'challenge' ? 'suspicious' : 'neutral', 2.5, time); if (freight) city.onEvent(VOICE.freight); }
     else if (ev === 'resume' && g.approach.renewed > 1) { watch(5); this.speak(g, by, 'hostile', 2.5, time, 1.6); } // told twice already: a look and a palm, no more words
     else if (ev === 'challenge' || ev === 'resume') { watch(APPROACH.window + 1); this.speak(g, by, 'authoritative', ev === 'challenge' ? APPROACH.window : APPROACH.again, time, 1.8); for (const i of others) this.speak(g, i, 'suspicious', 3, time);
       city.onEvent(ev === 'challenge' ? VOICE.halt : '“I said turn back.”'); this.onAlarm?.('challenge'); }
@@ -126,7 +126,7 @@ export class Checkpoints {
     else if (ev === 'incident') { watch(4); this.speak(g, 'all', 'hostile', 6, time); city.incident(Consignment.carried()?.contraband ? 'contraband' : 'minor', viewer.x, viewer.z); this.onAlarm?.('incident'); }
     else if (ev === 'excused') { watch(2); this.speak(g, by, 'hostile', 2.5, time); city.onEvent(VOICE.excused); }
     else if (ev === 'released') { watch(2); this.speak(g, by, 'neutral', 3, time); city.onEvent(VOICE.released); }
-    else if (ev === 'cleared' && what === 'wave' && time - g.waved > 45) { g.waved = time; watch(2); this.speak(g, by, 'neutral', 3, time); city.onEvent(VOICE.papers); }
+    else if (ev === 'cleared' && what === 'wave' && !freight && time - g.waved > 45) { g.waved = time; watch(2); this.speak(g, by, 'neutral', 3, time); city.onEvent(VOICE.papers); }
   }
   /** One gate is ever near enough to matter. Walking up to an opening is what the checkpoint is for: a stranger is watched and
    * waved on, someone the patrols know is stopped short of the boom and given a moment to turn round (simulation/approach.ts),
@@ -144,12 +144,12 @@ export class Checkpoints {
       // Up on the roofs is the other way through, and nobody watches it: a challenge does not follow him up the ladder.
       const up = viewer.y > 4 || atHome(viewer.x, viewer.y, viewer.z), far = Math.abs(lz) > APPROACH.reach + APPROACH.leave + 1 || lx < s.span[0] - APPROACH.leave - 2 || lx > s.span[1] + APPROACH.leave + 2;
       if (!HELD.includes(g.state) || up || (far && g.approach.stage === 'idle')) { if (g.approach.stage !== 'idle') g.approach = { ...approachState(), lastIncident: g.approach.lastIncident }; g.seenBy = -1; g.scan = 0; continue; }
-      const what = scrutiny(g.state, city.economy.state.heat, city.social.get(s.district)!.crackdown, !!Consignment.carried()?.contraband);
+      const carried = Consignment.carried(), what = scrutiny(g.state, city.economy.state.heat, city.social.get(s.district)!.crackdown, !!carried?.contraband, !!carried?.custody && freightLane(s.id, lx));
       if (what === 'refuse') { stepApproach(g.approach, { lx, lz, span: s.span, seen: false, scrutiny: what, dt, time });
         if (Math.abs(lz) < 3.2 && lx > s.span[0] - 1 && lx < s.span[1] + 1 && time - g.refused > 20) { g.refused = time; this.speak(g, 'all', 'authoritative', 4, time); city.onEvent(VOICE.closed(s.around)); }
         continue; }
       g.scan -= dt; if (g.scan <= 0) { g.scan = .25; g.seenBy = g.crew.find(i => { const q = this.p.workers[i].person.group; return q.visible && inView(city, q, viewer, APPROACH.reach, .95, true); }) ?? -1; if (g.seenBy >= 0 && g.approach.stage !== 'idle' && g.watcher < 0) g.watcher = g.seenBy; }
       const ev = stepApproach(g.approach, { lx, lz, span: s.span, seen: g.seenBy >= 0, scrutiny: what, dt, time });
-      if (ev) this.voice(g, ev, what, time, viewer);
+      if (ev) this.voice(g, ev, what, time, viewer, !!carried?.custody && freightLane(s.id, lx));
       if (g.approach.stage === 'idle' && !watching) g.watcher = -1; } }
 }

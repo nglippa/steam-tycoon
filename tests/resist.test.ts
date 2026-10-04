@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { advance, canNotice, canDivert, bookendDue, bookendLine, HOLD, RESIST_DONE } from '../src/simulation/resist.ts';
 import { PORCH_ANSWERS } from '../src/simulation/intro.ts';
-import { scrutiny, CONTRABAND_HEAT } from '../src/simulation/occupation.ts';
+import { scrutiny, freightLane, CONTRABAND_HEAT } from '../src/simulation/occupation.ts';
 import { Economy, freshSave, decodeSave, type StorageAdapter } from '../src/simulation/economy.ts';
 const memory = (raw: string | null = null): StorageAdapter => ({ read: () => raw, write: s => { raw = s; }, clear: () => { raw = null; } });
 
@@ -53,4 +53,16 @@ test('carrying contraband reads as heat at a held gate, and changes nothing at a
   assert.equal(scrutiny('manned', 0), 'wave'); assert.equal(scrutiny('manned', 0, false, true), 'challenge'); assert.equal(scrutiny('light', 0), 'wave'); assert.equal(scrutiny('light', 0, false, true), 'challenge');
   assert.ok(CONTRABAND_HEAT > 1.75); assert.equal(scrutiny('sealed', 0, false, true), 'refuse'); assert.equal(scrutiny('open', 0, false, true), 'none'); assert.equal(scrutiny('gone', 5, true, true), 'none');
   for (const g of ['manned', 'light'] as const) for (const h of [0, 1, 2, 3]) assert.equal(scrutiny(g, h, false, false), scrutiny(g, h));
+});
+test('Directorate freight is waved through a held gate whatever the heat, and nothing else about the gate changes', () => {
+  for (const g of ['manned', 'light'] as const) for (const h of [0, 1, 2, 3, 5]) { assert.equal(scrutiny(g, h, false, false, true), 'wave'); assert.equal(scrutiny(g, h, false, false, false), scrutiny(g, h)); }
+  // A crackdown, contraband, a sealed boom and a gate with nobody at it all rule over the paperwork.
+  assert.equal(scrutiny('manned', 0, true, false, true), scrutiny('manned', 0, true)); assert.equal(scrutiny('light', 3, true, false, true), 'challenge');
+  assert.equal(scrutiny('manned', 0, false, true, true), 'challenge'); assert.equal(scrutiny('sealed', 0, false, false, true), 'refuse');
+  assert.equal(scrutiny('open', 5, false, false, true), 'none'); assert.equal(scrutiny('gone', 5, true, false, true), 'none');
+});
+test('only the Great Main has a freight lane, and it is the east opening', () => {
+  for (const x of [2.1, 4, 6.2, 1.9, 6.4]) assert.equal(freightLane('main', x), true);
+  for (const x of [-4, 0, 1.7, 6.6, 12]) assert.equal(freightLane('main', x), false);
+  for (const x of [-.9, 0, 4, 2.1]) { assert.equal(freightLane('chain', x), false); assert.equal(freightLane('nowhere', x), false); }
 });

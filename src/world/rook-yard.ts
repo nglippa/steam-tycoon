@@ -57,9 +57,9 @@ export class RookYard {
     this.cache(root); this.restore(root);
     pres.addWorker(STRANGER.x, STRANGER.z, 0, 'watch', { role: 'courier', mask: true, essential: true, y: 12.59, when: () => this.standing });
     // The clerk: there for everyone while the stock is held. Not the keeper, he refuses the standing; the keeper signs for custody in his full view.
-    const clerk = new T.Mesh(new T.BoxGeometry(1.1, 2, 1.1), unseen); clerk.position.set(CLERK.x, 1, CLERK.z); root.add(clerk); clerk.updateWorldMatrix(true, false);
-    for (const [id, hint, when] of [['rook.clerk', 'SPEAK TO THE CLERK', 'refused'], ['rook.clerk', 'SIGN FOR CUSTODY', 'offer']] as const)
-      city.targets.push({ object: clerk, id, kind: 'resist', label: 'Collection clerk', hint, position: clerk.getWorldPosition(new T.Vector3()), when: () => this.contact === when && this.onDuty && !this.crate.carrying });
+    for (const [hint, when] of [['SPEAK TO THE CLERK', 'refused'], ['SIGN FOR CUSTODY', 'offer']] as const) {
+      const clerk = new T.Mesh(new T.BoxGeometry(1.1, 2, 1.1), unseen); clerk.position.set(CLERK.x, 1, CLERK.z); root.add(clerk); clerk.updateWorldMatrix(true, false);
+      city.targets.push({ object: clerk, id: 'rook.clerk', kind: 'resist', label: 'Collection clerk', hint, position: clerk.getWorldPosition(new T.Vector3()), when: () => this.contact === when && this.onDuty && !this.crate.carrying }); }
     city.collider(CRATE.x, CRATE.z, .8, .8, .75, undefined, () => !(this.held && !this.crate.carrying));
     this.crate.target.updateWorldMatrix(true, false);
     city.targets.push({ object: this.crate.target, id: 'rook.crate', kind: 'site', label: 'Held crate', hint: 'CARRY', position: this.crate.target.getWorldPosition(new T.Vector3()) });

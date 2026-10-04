@@ -4,6 +4,7 @@ export const VOICE = {
   halt: '“Halt, citizen. Not through here today. Turn back.”',
   excused: '“Next time you stop when you are told, citizen.”',
   released: 'A word from the box. “…Never mind. Go on, citizen.”',
+  freight: '“Directorate freight. Through, citizen.”',
   papers: '“Papers.” A look, a nod. “Go on, citizen.”',
   closed: (around: string) => `“Closed. Curfew. Turn around, citizen.” The boom is down; ${around} are not watched.`,
   curfewHalt: '“Halt. It is past curfew, citizen. Go home, now.”',
