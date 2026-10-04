@@ -241,6 +241,8 @@ export function businessCrown(g:T.Group,index:number,h:number) {
 }
 
 const kindWidth=[5.5,7,9.5,8,14,11,12,8];
+/** Row neighbours overlap a little and share wall planes; each steps a few cm deeper than the last so their faces never z-fight. */
+const depthStep=(parent:T.Object3D,k:number)=>{const sub=new T.Group();sub.position.z=((k%3)-1)*.03;parent.add(sub);return sub;};
 /** Outer-city grammar: eight inexpensive silhouettes that share Terra's roof language.
  * 0 tenement, 1 stacked worker house, 2 tower house, 3 roof workshop, 4 sawtooth shed,
  * 5 merchant row, 6 courtyard block, 7 pressure house. Local +z faces the city. */
@@ -253,12 +255,12 @@ export function archetype(g:T.Object3D,kind:number,x:number,w:number,h:number,wa
     let r=0;for(let y=4.2;y<top-1.8;y+=3.1,r++)for(let xx=cx-cw/2+1.3;xx<cx+cw/2-.9;xx+=2.1)win(xx,y,z,(Math.floor(xx*5)+r)%4!==0);
     grimeSkirt(g,cx,z+.12,cw,1.6+(Math.abs(Math.sin(cx))*1.2),cx);paintedWear(g,cx,z+.09,cw,top,cx*1.3+top,0,1);if(top>8)sootStreak(g,cx+cw*.3,top-.2,z+.12,.9,2.6);};
   if(kind===0){box(g,x,h/2,0,w,h,d,wallMat);gable(x,h,w,w*.75);box(g,x+w*.25,h+w*.6,-1.5,.8,3,.8,mats.brick);rows(x,w,h);}
-  if(kind===1){const lo=h*.7;box(g,x,lo/2,0,w,lo,d,wallMat);box(g,x+.4,lo+(h-lo)/2,.5,w+.2,h-lo,d+1,wallMat);box(g,x+.4,lo+.1,.5,w+.4,.2,d+1.2,mats.wood);gable(x+.4,h,w+.2,w*.5,d+1);rows(x,w,h);}
+  if(kind===1){const lo=h*.7;box(g,x,lo/2,0,w,lo,d,wallMat);box(g,x+.4,lo+(h-lo)/2,.5,w+.2,h-lo,d+1,wallMat);box(g,x+.4,lo+.08,.5,w+.4,.2,d+1.2,mats.wood);gable(x+.4,h,w+.2,w*.5,d+1);rows(x,w,h);}
   if(kind===2){const tw=3.4,tx=x-w/2+tw/2;box(g,tx,h*.75,0,tw,h*1.5,tw,wallMat);const cap=new T.Mesh(new T.ConeGeometry(tw*.85,3.2,4),roofMat);cap.rotation.y=Math.PI/4;cap.position.set(tx,h*1.5+1.6,0);g.add(cap);
     const dw=w-tw,dx=tx+tw/2+dw/2;box(g,dx,h*.3,0,dw,h*.6,d,wallMat);gable(dx,h*.6,dw,dw*.55);rows(dx,dw,h*.6);if(detail)win(tx,h*1.2,tw/2+.02);}
   if(kind===3){box(g,x,h/2,0,w,h,d,wallMat);box(g,x,h+.3,0,w+.3,.4,d+.3,mats.stone);box(g,x-w*.15,h+1.6,-1,w*.45,2.4,3.4,mats.wood);gable(x-w*.15,h+2.8,w*.45,1.2,3.4);cyl(g,x+w*.3,h+2.5,-2,.45,5,mats.rust);rows(x,w,h);}
   if(kind===4){const lo=Math.min(h,6.5);box(g,x,lo/2,0,w,lo,d,wallMat);for(let i=0;i<3;i++){const tooth=box(g,x,lo+.9,d/2-1.3-i*2.7,w,.2,2.9,roofMat);tooth.rotation.x=-.6;}cyl(g,x+w*.35,lo+6,-2,.8,12,mats.brick);cyl(g,x+w*.35,lo+12.1,-2,1,.35,mats.iron);}
-  if(kind===5){const fw=w/3;for(let i=0;i<3;i++){const fh=h*[1,1.18,.9][i],cx=x-w/2+fw*(i+.5);box(g,cx,fh/2,0,fw,fh,d,wallMat);gable(cx,fh,fw,fw*.8);rows(cx,fw,fh);if(detail){box(g,cx,1.6,d/2+.05,fw-1,1.8,.06,windowGlass[0]);const aw=box(g,cx,2.85,d/2+.7,fw-.6,.1,1.4,[mats.red,mats.teal,artMats.ochre][i]);aw.rotation.x=.25;}}}
+  if(kind===5){const fw=w/3;for(let i=0;i<3;i++){const fh=h*[1,1.18,.9][i],cx=x-w/2+fw*(i+.5);box(g,cx,fh/2,0,fw,fh,d,wallMat);gable(cx,fh,fw,fw*.8);rows(cx,fw,fh);if(detail){box(g,cx,1.6,d/2+.09,fw-1,1.8,.08,windowGlass[0]);const aw=box(g,cx,2.85,d/2+.7,fw-.6,.1,1.4,[mats.red,mats.teal,artMats.ochre][i]);aw.rotation.x=.25;}}}
   if(kind===6){for(const [cx,cz,cw,cd] of [[x-w/2+2,0,4,d],[x+w/2-2,0,4,d],[x,-d/2+1.5,w,3]] as const){box(g,cx,h/2,cz,cw,h,cd,wallMat);}roof(g,x-w/2+2,h,0,4.6,2.4,d+.6,roofMat);roof(g,x+w/2-2,h,0,4.6,2.4,d+.6,roofMat);box(g,x,h+.3,-d/2+1.5,w,.5,3.4,mats.stone);rows(x-w/2+2,4,h);rows(x+w/2-2,4,h);}
   if(kind===7){box(g,x,h*.4,0,w,h*.8,d,wallMat);gable(x,h*.8,w,w*.35);cyl(g,x+w/2-1.2,h*.55,d/2-1.2,1.5,h*1.1,mats.copper);const dome=sphere(g,x+w/2-1.2,h*1.1,d/2-1.2,1.5,mats.teal);dome.scale.y=.8;rows(x-1,w-3,h*.8);}
 }
@@ -274,7 +276,7 @@ export function buildOuterCity(root:T.Group,walls:T.Material[]){
     const kinds=Array.from({length:count},(_,k)=>k===anchor?[2,7,4][c%3]:[0,1,5,3,6,0,1][(c+k*3)%7]);
     let total=kinds.reduce((sum,k)=>sum+kindWidth[k],0)+(count-1)*.1,x=-total/2;
     // A building that would stand where the plate is open to the sky is left out.
-    kinds.forEach((kind,k)=>{const w=kindWidth[kind],at=(lx:number)=>skyGap(px+lx*Math.cos(yaw),pz-lx*Math.sin(yaw));if(at(x)||at(x+w/2)||at(x+w)){x+=w+.1;return;}archetype(cl,kind,x+w/2,w,(8.5+((c+k)%3)*2.4)*rhythm*(k===anchor?1.4:1),k%2?walls[(c*5+2)%walls.length]:wallMat,roofMat,true);x+=w+.1;});});
+    kinds.forEach((kind,k)=>{const w=kindWidth[kind],at=(lx:number)=>skyGap(px+lx*Math.cos(yaw),pz-lx*Math.sin(yaw));if(at(x)||at(x+w/2)||at(x+w)){x+=w+.1;return;}archetype(depthStep(cl,k),kind,x+w/2,w,(8.5+((c+k)%3)*2.4)*rhythm*(k===anchor?1.4:1),k%2?walls[(c*5+2)%walls.length]:wallMat,roofMat,true);x+=w+.1;});});
   bake(g);g.traverse(o=>{if(o instanceof T.Mesh)o.castShadow=false;});return g;
 }
 /** Illustrated aerial perspective: each backdrop plane mixes toward the horizon by a
@@ -292,7 +294,7 @@ export function buildSkyline(root:T.Group) {
   // Far ring: the same archetype grammar in flat, tinted planes.
   const far2=[wall,deep];let t=0;
   for(let c=0;c<26;c++){const a=c/26*Math.PI*2+.05,r=118+(c%3)*7,rhythm=.75+.35*Math.sin(a*3+.6);if(Math.cos(a)>.5)continue;const grp=new T.Group(),gx=Math.sin(a)*r,gz=Math.cos(a)*r,yaw=a+Math.PI;grp.position.set(gx,0,gz);grp.rotation.y=yaw;near.add(grp);
-    let x=-9;for(let k=0;k<3+c%3;k++){const kind=(c*3+k*5)%8,w=kindWidth[kind],at=(lx:number)=>skyGap(gx+lx*Math.cos(yaw),gz-lx*Math.sin(yaw));if(at(x)||at(x+w/2)||at(x+w)){x+=w+.2;continue;}archetype(grp,kind,x+w/2,w,(9+((c+k)%4)*2.2)*rhythm*(k===1?1.35:1),far2[(c+k)%2],roofs,false);x+=w+.2;t++;}}
+    let x=-9;for(let k=0;k<3+c%3;k++){const kind=(c*3+k*5)%8,w=kindWidth[kind],at=(lx:number)=>skyGap(gx+lx*Math.cos(yaw),gz-lx*Math.sin(yaw));if(at(x)||at(x+w/2)||at(x+w)){x+=w+.2;continue;}archetype(depthStep(grp,k),kind,x+w/2,w,(9+((c+k)%4)*2.2)*rhythm*(k===1?1.35:1),far2[(c+k)%2],roofs,false);x+=w+.2;t++;}}
   void t;
   // Gasometers and a viaduct give the middle distance an engineered rhythm.
   for(const [x,z] of [[-70,-128],[82,-110],[-120,-40]]){cyl(far,x,11,z,10,22,deep);for(let y=4;y<22;y+=6)torus(far,x,y,z,10.2,.25,spire).rotation.x=Math.PI/2;}
