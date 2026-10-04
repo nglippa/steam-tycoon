@@ -48,7 +48,7 @@ export class Borders {
           cyl(c, 0, 2.5, .14 * s, .06, 5, O.iron); box(c, 0, .15, .14 * s, .22, .3, .22, O.iron); box(c, 0, 2.78, .72 * s, .04, .04, 1.16, O.iron); box(c, 0, 2.42, .74 * s, .02, .62, .96, O.iron);
           box(c, 0, 4.75, .8 * s, .05, .05, 1.3, O.iron);
           // Each face of the blade and each half of the wall belongs to its own side: -x looks back up the Great Main, +x into the ward.
-          for (const [k, dress] of [[-1, main], [1, ward]] as [number, Dress][]) { const face = k * .012, turn = k * Math.PI / 2, wall = (x: number) => [k * x, 1.75, .05 * s] as const;
+          for (const [k, dress] of [[-1, main], [1, ward]] as [number, Dress][]) { const face = k * .022, /* blade is .02 thick: signs sit 1.2 cm proud of its faces */ turn = k * Math.PI / 2, wall = (x: number) => [k * x, 1.75, .05 * s] as const;
             if (dress === 'held') { mesh(c, sign('INSPECTION ZONE', .9, .28), signs.material, face, 2.56, .74 * s, turn); mesh(c, sign('PAPERS ON DEMAND', .9, .2), signs.material, face, 2.28, .74 * s, turn);
               for (const x of [.75, 1.45]) mesh(c, sign('ORDINANCE NOTICE 14', .62, .42), signs.material, ...wall(x), out); }
             else if (dress === 'low') { mesh(c, sign('INSPECTION ZONE', .9, .28), signs.material, face, 2.56, .74 * s, turn); mesh(c, chalkGeo, chalk, face * 1.6, 2.5, .62 * s, turn);
