@@ -118,11 +118,11 @@ export class MarketSquare implements SiteModule {
     pres.addWorker(-11.7, -22.3, Math.PI / 2 + .4, 'read', { role: 'courier', tool: 'read', when: () => this.view.control >= 1 && this.view.control < SITE_LIBERATED });
     // 2: "WITHOUT US TERRA FALLS", in chalk on the hoarding; couriers cross the square.
     const chalk = new T.Mesh(new T.PlaneGeometry(14, 1.86), decalMat(propaganda.defaced, .92)); chalk.position.set(0, 7.25, GZ + .87); c2.add(chalk);
-    crate(c2, 12, 0, -26.1, .8); { const m = new T.Mesh(new T.PlaneGeometry(.5, .5), decalMat(emberChalk, .9)); m.position.set(11.59, .42, -26.1); m.rotation.y = -Math.PI / 2; c2.add(m); } city.collider(12, -26.1, .9, .9, .9);
+    crate(c2, 12, 0, -26.1, .8); { const m = new T.Mesh(new T.PlaneGeometry(.5, .5), decalMat(emberChalk, .9)); m.position.set(11.59, .42, -26.1); m.rotation.y = -Math.PI / 2; c2.add(m); } city.collider(12, -26.1, .9, .9, .9, undefined, () => !c2.visible);
     pres.addWorker(10.9, -19.6, -Math.PI / 2, 'carry', { role: 'courier', path: [-10.4, -19.6, .45], when: () => this.view.control >= 2 && this.view.control < SITE_LIBERATED });
     // 3: tools under a tarp beside the hatch, and turquoise ribbons on the lamps as a signal.
     box(c3, -12.95, .3, -25.9, .86, .6, 1.8, mats.wood); box(c3, -13.0, .78, -26.1, .7, .36, 1.3, mats.wood); for (const z of [-26.6, -25.2]) box(c3, -12.51, .3, z, .02, .62, .08, mats.brass);
-    const tarp = box(c3, -12.97, .99, -26.25, .96, .05, 1.2, canvasTarp); tarp.rotation.set(.06, 0, .08); const flap = box(c3, -12.5, .66, -26.3, .03, .62, 1.1, canvasTarp); flap.rotation.x = .05; city.collider(-12.95, -25.9, 1.1, 2, 1.3);
+    const tarp = box(c3, -12.97, .99, -26.25, .96, .05, 1.2, canvasTarp); tarp.rotation.set(.06, 0, .08); const flap = box(c3, -12.5, .66, -26.3, .03, .62, 1.1, canvasTarp); flap.rotation.x = .05; city.collider(-12.95, -25.9, 1.1, 2, 1.3, undefined, () => !c3.visible);
     for (const x of [-9.8, 9.8]) { const rib = fabricOf(Q); box(c3, x, 3.35, -19, .05, .55, .1, rib); box(c3, x + .03, 3.1, -19.04, .04, .4, .08, rib); torus(c3, x, 3.62, -19, .1, .025, rib).rotation.y = Math.PI / 2; }
     // LIBERATION ----------------------------------------------------------------------
     const lib = this.site.layer(when.liberated);
@@ -146,7 +146,7 @@ export class MarketSquare implements SiteModule {
     // waits by the Finch cellar, and after the square rises they lie by the plates they took off the gate.
     const cutters = this.site.layer(when.all(when.fact('cuttersDelivered'), when.occupied));
     for (let k = 0; k < 3; k++) boltCutters(cutters, -13.28, .05, -24.95 + k * .16, Math.PI / 2, .22); crate(cutters, -12.2, 0, -24.85, .62);
-    { const m = new T.Mesh(signs.plate('CINDER No. 3', .56, .2), signs.material); m.position.set(-11.88, .42, -24.85); m.rotation.y = Math.PI / 2; cutters.add(m); } city.collider(-12.2, -24.85, .7, .7, .7);
+    { const m = new T.Mesh(signs.plate('CINDER No. 3', .56, .2), signs.material); m.position.set(-11.88, .42, -24.85); m.rotation.y = Math.PI / 2; cutters.add(m); } city.collider(-12.2, -24.85, .7, .7, .7, undefined, () => !cutters.visible);
     for (let k = 0; k < 2; k++) boltCutters(lib, 12.1, .08, GZ + 2.1 + k * .35, 0, 1.5);
     this.springTarget = new T.Mesh(new T.CylinderGeometry(.8, .8, 3.2, 8), mats.dark); this.springTarget.position.set(SX, 1.9, SZ); this.springTarget.visible = false; live.add(this.springTarget);
     const restored = () => this.view.control >= SITE_RESTORED;

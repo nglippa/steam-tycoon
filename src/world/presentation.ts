@@ -50,7 +50,7 @@ export class Presentation {
   rookYard!:RookYard;marketSquare!:MarketSquare; foundryWorks!:FoundryWorks; cinderRow!:CinderRow; rationLine!:RationLine; sites:SiteModule[]=[];
   /** The Ordinance's coal furnace at Cinder No. 3: its own group, because restoration removes it. */
   foundryFurnace?:T.Group; foundryHoist?:T.Group; furnaceHammer=0;
-  cartPusher=0;shaftMat?:T.MeshBasicMaterial;shafts?:T.Group;poolMat?:T.MeshBasicMaterial;pools?:T.Group;terracePlanters:[number,number][]=[];birds!:T.InstancedMesh;capsules:T.Group[]=[];moths!:T.InstancedMesh;hoistCrate!:T.Group;skyCanal!:SkyCanal;weatherside!:Weatherside;hangway!:Hangway;roofwalk!:Roofwalk;canalWard!:CanalWard;craneJib!:T.Group;ingotCart!:T.Group;
+  cartPusher=0;stalls=2;shaftMat?:T.MeshBasicMaterial;shafts?:T.Group;poolMat?:T.MeshBasicMaterial;pools?:T.Group;terracePlanters:[number,number][]=[];birds!:T.InstancedMesh;capsules:T.Group[]=[];moths!:T.InstancedMesh;hoistCrate!:T.Group;skyCanal!:SkyCanal;weatherside!:Weatherside;hangway!:Hangway;roofwalk!:Roofwalk;canalWard!:CanalWard;craneJib!:T.Group;ingotCart!:T.Group;
   steamOrigins=[V(32.8,13,40),V(0,17.9,29),V(-9,.25,25),V(31,3,14),V(-29,2,14),V(9,.3,-25)];
   runoff: T.Vector3[]=[]; heat:T.Mesh[]=[]; lanterns:T.Mesh[]=[];
   signature='';
@@ -553,7 +553,7 @@ export class Presentation {
     if(e.stage>=2)for(const x of [-5.6,5.6]){box(g,x,4,-42.8,1.2,2.3,.04,mats.teal);crest(g,x,4.1,-42.74,.7);}
     this.marketUpgrade(marketLevel,rich);bake(g);
   }
-  marketUpgrade(level:number,rich:boolean){const g=this.market;const count=level===0?2:level<3?4:6;
+  marketUpgrade(level:number,rich:boolean){const g=this.market;const count=level===0?2:level<3?4:6;this.stalls=count;
     for(let i=0;i<count;i++){
       const side=i%2?-1:1,x=side*7.9,z=(side>0?-22:-26)-Math.floor(i/2)*6;
       for(const dx of [-.97,.97])for(const dz of [-1.52,1.52])box(g,x+dx,.71,z+dz,.10,1.32,.10,mats.wood);

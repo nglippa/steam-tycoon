@@ -84,9 +84,9 @@ export class FoundryWorks implements SiteModule {
     const door = (g: T.Group, open: boolean) => { const d = new T.Group(); d.position.set(26.8, 0, 19.2); d.rotation.y = open ? -1.9 : 0; g.add(d); for (let z = .15; z < 1.2; z += .3) cyl(d, 0, 1.2, z, .025, 2.3, O.iron); for (const y of [.3, 2.2]) box(d, 0, y, .6, .05, .05, 1.2, O.iron); if (!open) box(d, .05, 1.2, 1.1, .08, .16, .12, mats.brass); };
     door(occ, false);
     // Economic life under occupation: output stacks up, the quota climbs, nothing else changes.
-    const stock = (min: number, spots: number[][]) => { const g = this.site.layer(when.business('foundry', l => l >= min)); for (const [x, y, z] of spots) crate(g, x, y, z, .8); };
-    stock(1, [[31.5, 0, 19.7], [32.4, 0, 19.7]]); stock(2, [[31.5, 0, 20.6], [32.4, 0, 20.6]]); stock(3, [[31.5, .8, 19.7], [32.4, .8, 20.6]]);
-    city.collider(32, 20.2, 2, 2.2, 1.7);
+    const stock = (min: number, spots: number[][]) => { const g = this.site.layer(when.business('foundry', l => l >= min)); for (const [x, y, z] of spots) crate(g, x, y, z, .8); return g; };
+    const stocked = stock(1, [[31.5, 0, 19.7], [32.4, 0, 19.7]]); stock(2, [[31.5, 0, 20.6], [32.4, 0, 20.6]]); stock(3, [[31.5, .8, 19.7], [32.4, .8, 20.6]]);
+    city.collider(32, 20.2, 2, 2.2, 1.7, undefined, () => !stocked.visible);
     // THE EMBERS ------------------------------------------------------------------------
     const c1 = this.site.layer(when.covert(1)), c2 = this.site.layer(when.covert(2)), c3 = this.site.layer(when.covert(3));
     // 1: a second count chalked under the quota, and stools behind the coal bunker.
@@ -96,7 +96,7 @@ export class FoundryWorks implements SiteModule {
     // 2: a false-bottom crate among the stock; its lid only lifts when the overseer looks away.
     this.lid.position.set(30.95, .8, 21.3); c2.add(this.lid); box(c2, 31.35, .4, 21.7, .8, .8, .8, mats.wood); box(c2, 31.35, .22, 21.7, .72, .04, .72, mats.brass);
     for (let k = 0; k < 3; k++) cyl(c2, 31.2 + k * .15, .45, 21.7 + (k % 2) * .15, .06, .36, k % 2 ? mats.brass : Q);
-    box(this.lid, .4, .03, .4, .82, .06, .82, mats.wood); city.collider(31.35, 21.7, .9, .9, .9);
+    box(this.lid, .4, .03, .4, .82, .06, .82, mats.wood); city.collider(31.35, 21.7, .9, .9, .9, undefined, () => !c2.visible);
     // 3: cutters and pressure keys racked behind the furnace, half under a tarp.
     box(c3, 25, .9, 16.6, .12, 1.8, 1.2, mats.wood); for (let k = 0; k < 3; k++) boltCutters(c3, 25.2, .05, 16.15 + k * .4, Math.PI / 2, -.18);
     for (let k = 0; k < 3; k++) { const y = 1.55 - k * .3; box(c3, 25.18, y, 16.9, .05, .05, .6, mats.brass); box(c3, 25.18, y, 17.2, .05, .22, .05, mats.brass); }
