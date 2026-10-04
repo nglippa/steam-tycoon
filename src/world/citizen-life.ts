@@ -118,7 +118,7 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
   // so the hands clear the hips (figure-construction: motion).
   n.arms.forEach((arm,k)=>{const z=Math.max(-1.3,Math.min(1.3,gait.thigh[k]/Math.max(.12,m.latch[k]/.9)))*w*clamp01((m.latch[k]-MIN)/.1),drag=legZ(c/(Math.PI*2)+k*.5-.095,gp.s),out=k?1:-1;arm.rotation.set(pr.arm*gp.arm*z-.05+breath*.008,0,out*(.06+tired*.03+g*.05*Math.max(0,z)));n.elbows[k].rotation.x=-.16-g*(.1+.3*Math.max(0,-drag))-(1-g)*.03*Math.sin(phase*.7+k);});
   let expression=m.mood.mood as Expression;
-  let nod=0,tilt=0;
+  let nod=0,tilt=0,sip=0;
   if(activity==='talk'||activity==='browse'||activity==='argue'){
     // Listen → react → gesture → settle. Gestures come in bursts, not on a beat.
     const burst=Math.max(0,Math.sin(phase*.55))*pr.gesture*cd.gesture,gesture=Math.pow(Math.max(0,Math.sin(phase*2.3)),2)*burst;
@@ -164,7 +164,9 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
   if(activity==='watch'){if((phase%10)<3)expression='startled';for(let k=0;k<2;k++){n.arms[k].rotation.set(.2,0,(k?1:-1)*-.15);n.elbows[k].rotation.x=-.5;}if((phase%10)<3){n.arms[0].rotation.set(-2.2,0,.2);n.elbows[0].rotation.x=-.1;}}
   if(seated){for(let k=0;k<2;k++){n.arms[k].rotation.set(-.35,0,(k?-1:1)*.05);n.elbows[k].rotation.x=-.6;}
     // The bite: the mouth is level with the crown of the shoulder, so the upper arm comes up and across and the elbow closes until the food is at the lips (solved against the rig: the grip's food point lands within 1 cm of the mouth).
-    if(activity==='eat'){const bite=ease(clamp01(Math.max(0,Math.sin(phase*.9))*1.25));n.arms[0].rotation.set(-.4-1.24*bite,.21*bite,.05+.49*bite);n.elbows[0].rotation.x=-.8-.49*bite;if(bite>.8)expression='smiling';}}
+    // A mug is raised with the same stroke, its rim to the lips (the wrist then keeps it level, below).
+    if(activity==='eat'){const bite=ease(clamp01(Math.max(0,Math.sin(phase*.9))*1.25)),mug=n.group.userData.upright;sip=bite;
+      n.arms[0].rotation.set(-.4-(mug?1.01:1.24)*bite,.21*bite,.05+(mug?.3:.49)*bite);n.elbows[0].rotation.x=-.8-(mug?.84:.49)*bite;if(bite>.8)expression='smiling';}}
   const umbrella=n.group.userData.umbrella as T.Object3D|undefined;
   if(umbrella){umbrella.visible=raining;if(raining){n.arms[1].rotation.set(-.55,0,-.1);n.elbows[1].rotation.x=-1.3;}}
   // Secondary motion: damped springs driven by gait, acceleration and turning.
@@ -238,6 +240,8 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
     const p=m.pose??=Float32Array.from(want),ka=1-Math.exp(-dt*(activity==='hammer'?34:occupier&&spoken?26:11+g*9)),kb=1-Math.exp(-dt*9);
     for(let i=0;i<9;i++)p[i]+=(want[i]-p[i])*(i<6?ka:kb);
     n.arms[0].rotation.x=p[0];n.arms[0].rotation.z=p[1];n.arms[1].rotation.x=p[2];n.arms[1].rotation.z=p[3];n.elbows[0].rotation.x=p[4];n.elbows[1].rotation.x=p[5]; }
+  // A held mug is kept level through whatever the forearm does, and tipped to the lips on a sip (the wrist is the grip socket).
+  if(n.group.userData.upright)n.grips[0].rotation.x=-(n.arms[0].rotation.x+n.elbows[0].rotation.x)-.44*sip;
   // Last word on the face: nobody smiles under the Ordinance's eye, and the Ordinance does not smile at all.
   if(!faceAllowed(n.archetype,expression))expression='cold';else if(!cd.smile&&(expression==='happy'||expression==='smiling'||expression==='hopeful'))expression='neutral';
   // Only the blink and, near the camera, a speaking mouth move between decisions; the Ordinance blinks less.

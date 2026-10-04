@@ -487,12 +487,14 @@ export class Presentation {
   get authority(){return this.actors??=this.posts.filter(q=>canAct(q.role)).map(q=>q.index).concat(this.ordinance);}private actors?:number[];
   get ordinance(){return this.staticOrdinance??=this.workers.map((w,i)=>isOccupier(w.person.archetype)&&!this.garrisonPosts.includes(i)&&!w.path?i:-1).filter(i=>i>=0);}private staticOrdinance?:number[];
   addWorker(x:number,z:number,yaw:number,kind:Activity,o:{y?:number;role?:Archetype;minStage?:number;maxStage?:number;time?:'any'|'day'|'night';scale?:number;partner?:number;path?:[number,number,number];tool?:string;when?:()=>boolean;essential?:boolean;mask?:boolean}={}) {
+    if(kind==='sit'&&o.tool==='mug')kind='eat';// whoever sits with a mug drinks from it
     const role=o.role??(kind==='gauge'||kind==='valve'||kind==='clipboard'?'engineer':kind==='browse'||(z<0&&kind==='read')?'merchant':kind==='read'||kind==='watch'||kind==='lean'?'resident':'worker');
     const person=citizen(mats.rust,this.workers.length+43,role,o.mask?{mask:true}:undefined);const y=o.y!==undefined?o.y+.18:this.city.groundHeight(x,z);person.group.position.set(x,y,z);person.group.rotation.y=yaw;if(o.scale)person.group.scale.multiplyScalar(o.scale);this.root.add(person.group);
     // Held things sit in the right hand's grip socket, authored grip-first: the handle runs through
     // the fist along z and the rest hangs off it (figure-construction: arms-hands). Crates are
     // carried against the body between both palms.
     const tool=new T.Group();person.grips[0].add(tool);const t=o.tool??kind,inward=.03;
+    if(t==='mug')person.group.userData.upright=true;
     if(t==='hammer'){cyl(tool,0,0,.1,.021,.36,mats.wood).rotation.x=Math.PI/2;box(tool,0,0,.29,.08,.2,.08,mats.iron);}
     if(t==='sweep'){const broom=new T.Group();broom.rotation.x=1.1;tool.add(broom);cyl(broom,0,0,.36,.02,1.3,mats.wood).rotation.x=Math.PI/2;box(broom,0,0,1.02,.4,.08,.13,mats.wood);box(broom,0,-.08,1.02,.42,.1,.1,mats.cream);}
     if(t==='read'){const sheet=box(tool,inward+.13,-.03,.02,.26,.2,.012,artMats.paper);sheet.rotation.x=.9;}
