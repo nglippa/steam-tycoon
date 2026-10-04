@@ -8,7 +8,7 @@ import type { Presentation } from './presentation';
  * to a landing, and one steep stair in a lean-to stair-house on the pier's west flank (it narrows the Finch Yard mouth to
  * 3.3 m) comes out at a vestibule and a street door facing west, with a two-step stoop. Nothing here is on a cart lane or a
  * civilian route, and the checkpoint crew cannot see it: the house's east wall stands in their way. */
-const F = 8.45, V = .4, X0 = -15.5, X1 = -13.5, ZN = -4, ZS = 5.35, DZ0 = -3.3, DZ1 = -2, slope = .9875;
+const F = 8.45, C = 11.4, V = .4, X0 = -15.5, X1 = -13.5, ZN = -4, ZS = 5.35, DZ0 = -3.3, DZ1 = -2, slope = .9875;
 /** The lean-to roof: low over the street door, rising along the stair to meet Finch Mechanical's wall. */
 const roof = (z: number) => 2.9 + (z - ZN - .1) * slope;
 export function bridgeHouse(p: Presentation, root: T.Group, live: T.Group) {
@@ -17,8 +17,8 @@ export function bridgeHouse(p: Presentation, root: T.Group, live: T.Group) {
   // A wall of the stair-house: its top follows the roof, so it is cut as a profile in z/y and pushed along x.
   const wall = (x: number, z0: number, z1: number, y0 = 0) => { const s = new T.Shape([new T.Vector2(z0, y0), new T.Vector2(z1, y0), new T.Vector2(z1, roof(z1)), new T.Vector2(z0, roof(z0))]);
     const geo = new T.ExtrudeGeometry(s, { depth: .1, bevelEnabled: false }); geo.rotateY(-Math.PI / 2); geo.translate(x + .05, 0, 0); const m = new T.Mesh(geo, W); g.add(m); };
-  // corridor: thin walls like the room's, a floor, a low ceiling
-  box(g, -9.9, F - .05, 5, 6.7, .1, 1.5, mats.wood); box(g, -9.88, F + 1, 4.3, 7.26, 2, .1, P); box(g, -9.88, F + 1, 5.7, 7.26, 2, .1, P); box(g, -9.88, F + 2.05, 5, 7.26, .1, 1.5, P);
+  // corridor: thin walls like the room's, a floor, and the room's own ceiling height (the Ordinance walk it with their caps on)
+  box(g, -9.9, F - .05, 5, 6.7, .1, 1.5, mats.wood); box(g, -9.88, (F + C) / 2, 4.3, 7.26, C - F, .1, P); box(g, -9.88, (F + C) / 2, 5.7, 7.26, C - F, .1, P); box(g, -9.88, C + .05, 5, 7.26, .1, 1.5, P);
   for (const z of [4.3, 5.7]) solid(-9.88, z, 7.26, .1); city.deck(-12.8, -6.2, 4.4, 5.6, F);
   // landing over the pier, and the solid block under it
   box(g, -14.15, F - .05, 4.9, 2.7, .1, 1.05, mats.wood); box(g, -14.5, (F - .1) / 2, 4.9, 2, F - .1, .95, W); city.deck(-15.4, -12.7, 4.4, 5.3, F);
