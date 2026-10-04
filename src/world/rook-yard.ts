@@ -7,6 +7,7 @@ import { inView, Attention } from './patrol';
 import { ancient, ancientMats, decalMat, emberChalk } from './factions';
 import { atHome } from '../simulation/home';
 import { bookendDue, bookendLine, canDivert, canNotice, HOLD } from '../simulation/resist';
+import { catwalkRestored, crateHeld } from '../simulation/alignment';
 import type { Line } from '../simulation/intro';
 import type { Presentation } from './presentation';
 
@@ -72,7 +73,7 @@ export class RookYard {
    * colliders that exist only then, a ladder at each end), the cabinets' gauges burn aether-blue, the pipe is banded in clean brass, steam
    * leaves the valve, and the Embers have marked the west ladder's foot. All of it is built once and shown, never rebuilt. */
   private restore(root: T.Group) {
-    const g = this.restored, live = new T.Group(), city = this.pres.city, on = () => this.rook >= 3, off = () => this.rook < 3, Z = 29; root.add(g, live);
+    const g = this.restored, live = new T.Group(), city = this.pres.city, on = () => catwalkRestored(this.outcome), off = () => !catwalkRestored(this.outcome), Z = 29; root.add(g, live);
     city.decks.push({ minX: -10.1, maxX: 10.1, minZ: 29.9, maxZ: 31.2, y: 12.77, when: on });
     for (const [x, z, w, d] of [[0, 29.86, 20.2, .1], [-9.65, 31.15, .9, .1], [0, 31.15, 15.6, .1], [9.65, 31.15, .9, .1], [-10.2, 30.55, .1, 1.3], [10.2, 30.55, .1, 1.3]]) city.collider(x, z, w, d, 13.87, undefined, off, 12.57);
     ladder(g, live, city, 'ladder.main.west', 'Regulator ladder', -8.5, 31.3, .18, 12.77, 0, 1, gleam, [0, -.75], on); ladder(g, live, city, 'ladder.main.east', 'Regulator ladder', 8.5, 31.3, .18, 12.77, 0, 1, gleam, [0, -.75], on);
@@ -88,24 +89,25 @@ export class RookYard {
     tick(g, -9.9, 1.1, 29.56, .26, 0); tick(g, -8.5, .2, 32.55, .5, 0, true); cyl(g, -7.3, .95, 32.4, .03, 1.8, mats.iron); sphere(g, -7.3, 1.9, 32.4, .09, aether); bake(g);
   }
   /** The crate is left under the tarp: the third step, and the toast that says what it was for. */
-  private receive() { if (!this.pres.city.economy.advanceResist(3)) return false; this.pres.city.onEvent(HOLD.scrap!.delivered); return true; }
+  private receive() { if (!canDivert(this.rook) || !this.pres.city.economy.resolve('greatMain', 'resistance', 'rook.diverted')) return false; this.pres.city.onEvent(HOLD.scrap!.delivered); return true; }
   private get rook() { return this.pres.city.economy.state.resist.rook; }
+  private get outcome() { return this.pres.city.economy.state.alignment.outcomes.greatMain; }
   /** The crate waits in the yard from the report until it is delivered. */
-  private get held() { return this.rook >= 1 && this.rook < 3; }
+  private get held() { return crateHeld(this.rook, this.outcome); }
   /** The clerk is a day clerk: at an enforced curfew he has gone home, and the curfew watch is the only watch there is. */
   private get onDuty() { return this.pres.city.here(CLERK.x, CLERK.z).enforcement === 'none'; }
   private get eyes() { return this.pres.workers[this.clerk].person.group; }
   /** The clerk is facing the held stock and could see the Steward at it. */
   get watching() { return this.held && this.onDuty && inView(this.pres.city, this.eyes, this.viewer, 10, .75); }
-  sync() { const r = this.rook, o = this.pres.steamOrigins, i = o.indexOf(this.steam); this.ticks.visible = r >= 1; this.waiting.visible = r < 3; this.under.visible = this.restored.visible = r >= 3;
-    if (r >= 3 && i < 0) o.push(this.steam); else if (r < 3 && i >= 0) o.splice(i, 1); }
+  sync() { const r = this.rook, done = catwalkRestored(this.outcome), o = this.pres.steamOrigins, i = o.indexOf(this.steam); this.ticks.visible = r >= 1; this.waiting.visible = this.outcome === 'base'; this.under.visible = this.restored.visible = done;
+    if (done && i < 0) o.push(this.steam); else if (!done && i >= 0) o.splice(i, 1); }
   /** Outdoors in the Great Main's street, or up on its roofs' level below the leads: not in a room, not behind a building. */
   private seen(v: T.Vector3) { return Math.abs(v.x) < 14 && v.y < 14.5 && !atHome(v.x, v.y, v.z); }
   update(dt: number, time: number, viewer: T.Vector3) {
     this.viewer.copy(viewer); this.crate.update();
     if (this.held && this.onDuty) { this.attention.update(dt, time, this.eyes); this.pres.workers[this.clerk].kind = this.attention.facing(WATCH[0][0], .5) ? 'guard' : 'clipboard'; }
     // The stranger of the porch stands on the restored catwalk the first time it is in view, says one line, and is gone.
-    if (bookendDue(this.rook)) { const d = Math.hypot(viewer.x - STRANGER.x, viewer.z - STRANGER.z);
+    if (bookendDue(this.rook, this.outcome)) { const d = Math.hypot(viewer.x - STRANGER.x, viewer.z - STRANGER.z);
       if (!this.standing && !this.said && d < 40) this.standing = true; else if (this.standing && !this.said && d > 46) this.standing = false;
       if (this.standing && !this.said && d < 30 && this.seen(viewer) && this.inWorld() && this.onSee(this.spot) && this.onLine({ who: 'Stranger', text: bookendLine(this.pres.city.economy.state.intro.answer) })) { this.said = true; this.leave = 6; }
       if (this.said && this.inWorld() && (this.leave -= dt) <= 0) { this.standing = false; this.pres.city.economy.advanceResist(4); } }

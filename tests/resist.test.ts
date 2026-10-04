@@ -14,7 +14,7 @@ test('the loop moves one step at a time, never back, and never replays after the
 test('what is on offer at each stage', () => {
   assert.deepEqual([0, 1, 2, 3, 4].map(canNotice), [false, true, false, false, false]);
   assert.deepEqual([0, 1, 2, 3, 4].map(canDivert), [false, false, true, false, false]);
-  assert.deepEqual([0, 1, 2, 3, 4].map(bookendDue), [false, false, false, true, false]);
+  assert.deepEqual([0, 1, 2, 3, 4].map(s => bookendDue(s, 'resistance')), [false, false, false, true, false]); assert.deepEqual([0, 1, 2, 3, 4].map(s => bookendDue(s, 'ordinance')), [false, false, false, false, false]);
 });
 test('the bookend answers the porch, and falls back to the promise', () => {
   const lines = PORCH_ANSWERS.map(bookendLine); assert.equal(new Set(lines).size, PORCH_ANSWERS.length);

@@ -75,7 +75,7 @@ export class Review {
     // No roof lets a walker off its edge: push at all four sides of the high places.
     results.edgesHold=([[-71,-28,32.85],[-71,-23.9,19.85],[-70,-18,7.85],[-70,18,7.85],[-69,-63,7.85],[-70.5,54,8.85],[-68,96.5,10.85],[6,4.2,15.75],[-19,8,16.2],[-15.9,14,21.6],[-19,20,16.2],[57.5,-41.5,13.85],[60,-44,25.85]] as const).every(([x,z,eye])=>[0,S,W,-W].every(yaw=>near(walk(x,z,yaw,2.6,eye).y,eye)));
     // The restored Great Main catwalk: end to end along the deck, held by both rails and both end rails, and its rail gaps are the ladders.
-    if(city.economy.state.resist.rook>=3)results.catwalk=(e=>{const east=walk(-9,30.55,-W,6,e),west=walk(9,30.55,W,6,e);return near(east.y,e)&&east.x>9&&east.x<10.2&&near(west.y,e)&&west.x<-9&&west.x>-10.2&&[0,S].every(yaw=>near(walk(0,30.55,yaw,2.6,e).y,e));})(14.52);
+    if(city.economy.state.alignment.outcomes.greatMain==='resistance')results.catwalk=(e=>{const east=walk(-9,30.55,-W,6,e),west=walk(9,30.55,W,6,e);return near(east.y,e)&&east.x>9&&east.x<10.2&&near(west.y,e)&&west.x<-9&&west.x>-10.2&&[0,S].every(yaw=>near(walk(0,30.55,yaw,2.6,e).y,e));})(14.52);
     // Every ladder, up and then down again, ending where a walker can move off.
     results.ladders=Object.fromEntries(city.ladders.filter(l=>(l.active?.()??true)&&!city.blocked(l.bottom.x,l.bottom.z,l.bottom.y)).map(l=>{const ride=()=>{player.climb(l);let n=0;while(player.climbing&&n++<1500)player.update(1/60,n/60);return n;};
       player.teleport(l.bottom.x,l.bottom.z,0,l.bottom.y+1.75);const up=ride(),top=near(player.position.y-1.75,l.top.y)&&!city.blocked(player.position.x,player.position.z,l.top.y);

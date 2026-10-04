@@ -150,6 +150,7 @@ export interface PropertyState { level: number; automated: boolean; stored: numb
 import { HOME_TIERS } from './home';
 import { PORCH_ANSWERS } from './intro';
 import { advance, RESIST_DONE } from './resist';
+import { freshAlignment, resolve, DEEDS, SIDES, CONTESTED, type Alignment, type ContestedId, type DeedId, type Side } from './alignment';
 import { occupation, bandOf, BANDS, curfewIn, curfewHour, caught, cooled, clock, dayAt, districtAt, DISTRICTS, HEAT, type DistrictId, type Band, type Effects, type Enforcement, type Incident, type Outcome } from './occupation';
 /** One day in Terra, in seconds of play. */
 export const DAY_SECONDS = 720;
@@ -161,11 +162,13 @@ export interface Save { version: 3; crowns: number; earned: number; properties: 
   /** The opening scene: played once per new save (older saves never see it), and the porch answer, kept for later. The home tier is not read by anything yet. */
   intro: { played: boolean; answer: string | null }; home: { level: number };
   /** How far the first resistance loop has come (simulation/resist.ts). Carrying is never saved: only the stage. */
-  resist: { rook: number } }
+  resist: { rook: number };
+  /** Deeds done and the outcome of each contested site (simulation/alignment.ts). Invariant: `resist.rook >= 3` exactly when the Great Main's outcome is not base. */
+  alignment: Alignment }
 export interface StorageAdapter { read(): string | null; write(value: string): void; clear(): void }
 export const SAVE_KEY = 'locke.terra.save';
 export function freshSave(now = Date.now()): Save {
-  return { version: 3, crowns: 35, earned: 0, properties: Object.fromEntries(PROPERTIES.map(p => [p.id, { level: 0, automated: false, stored: 0, progress: 0 }])) as Save['properties'], infrastructure: { lamps: 0, roads: 0, steam: 0, gardens: 0, housing: 0 }, districts: [], research: [], knowledge: [], discoveries: [], sites: { market: 0, foundry: 0, row: 0, gauge: 0 }, objective: 0, playtime: 0, day: .72, lastSave: now, settings: { master: .55, ambience: .45, sfx: .7, music: 0, sensitivity: 1, reducedMotion: false, quality: 'high' }, heat: 0, crackdown: null, quietUntil: 0, signalAt: -1e9, intro: { played: false, answer: null }, home: { level: 0 }, resist: { rook: 0 } };
+  return { version: 3, crowns: 35, earned: 0, properties: Object.fromEntries(PROPERTIES.map(p => [p.id, { level: 0, automated: false, stored: 0, progress: 0 }])) as Save['properties'], infrastructure: { lamps: 0, roads: 0, steam: 0, gardens: 0, housing: 0 }, districts: [], research: [], knowledge: [], discoveries: [], sites: { market: 0, foundry: 0, row: 0, gauge: 0 }, objective: 0, playtime: 0, day: .72, lastSave: now, settings: { master: .55, ambience: .45, sfx: .7, music: 0, sensitivity: 1, reducedMotion: false, quality: 'high' }, heat: 0, crackdown: null, quietUntil: 0, signalAt: -1e9, intro: { played: false, answer: null }, home: { level: 0 }, resist: { rook: 0 }, alignment: freshAlignment() };
 }
 const finite = (v: unknown, fallback: number, max = 1e15) => typeof v === 'number' && Number.isFinite(v) ? Math.min(max, Math.max(0, v)) : fallback;
 export function decodeSave(raw: string | null): Save | null {
@@ -186,6 +189,14 @@ export function decodeSave(raw: string | null): Save | null {
     s.crackdown = data.crackdown && DISTRICTS.some(d => d.id === data.crackdown.district) && Number.isFinite(data.crackdown.until) ? { district: data.crackdown.district, until: data.crackdown.until } : null;
     s.home.level = Math.floor(finite(data.home?.level, 0, HOME_TIERS.length - 1));
     s.resist.rook = Math.floor(finite(data.resist?.rook, 0, RESIST_DONE));
+    const al = data.alignment, a = s.alignment, at = (v: unknown) => finite(v, 0), side = (v: unknown) => SIDES.find(x => x === v);
+    for (const id of Object.keys(DEEDS) as DeedId[]) if (typeof al?.deeds?.[id] === 'number') a.deeds[id] = at(al.deeds[id]);
+    for (const id of CONTESTED) a.outcomes[id] = side(al?.outcomes?.[id]) ?? 'base';
+    if (side(al?.commit?.side)) a.commit = { side: side(al.commit.side)!, at: at(al.commit.at), by: String(al.commit.by ?? '') };
+    if (side(al?.broke?.from)) a.broke = { from: side(al.broke.from)!, at: at(al.broke.at), by: String(al.broke.by ?? '') };
+    // An older finished loop was the Embers' win; an outcome with the stage behind it lifts the stage. Neither locks the player in.
+    if (s.resist.rook >= 3 && a.outcomes.greatMain === 'base') { a.outcomes.greatMain = 'resistance'; a.deeds['rook.diverted'] ??= 0; }
+    if (a.outcomes.greatMain !== 'base' && s.resist.rook < 3) s.resist.rook = 3;
     s.intro = data.intro ? { played: Boolean(data.intro.played), answer: PORCH_ANSWERS.includes(data.intro.answer) ? data.intro.answer : null } : { played: true, answer: null };
     s.settings.reducedMotion = Boolean(data.settings?.reducedMotion); s.settings.quality = data.settings?.quality === 'low' ? 'low' : 'high'; return s;
   } catch { return null; }
@@ -289,6 +300,11 @@ export class Economy {
   save(now = Date.now()) { this.state.lastSave = now; try { this.storage.write(JSON.stringify(this.state)); } catch { this.onChange('save-error', ''); } }
   /** The opening is over (or skipped): it never plays again for this save. */
   finishIntro(answer: string | null = this.state.intro.answer) { this.state.intro = { played: true, answer }; this.save(); }
+  /** The only writer of a site's outcome: false, and nothing changes, unless the site is still base and the deed is that side's for it. The stage is lifted to delivered. */
+  resolve(site: ContestedId, side: Side, deed: DeedId) {
+    const next = resolve(this.state.alignment, site, side, deed, this.state.playtime); if (!next) return false;
+    this.state.alignment = next; if (this.state.resist.rook < 3) this.state.resist.rook = 3; this.onChange('alignment', site); this.save(); return true;
+  }
   reset() { this.state = freshSave(); this.offlineAward = 0; this.storage.clear(); this.save(); }
 }
 export function format(n: number) { return n >= 1e6 ? (n / 1e6).toFixed(2) + 'm' : n >= 1e4 ? (n / 1000).toFixed(1) + 'k' : Math.floor(n).toLocaleString('en-US'); }
