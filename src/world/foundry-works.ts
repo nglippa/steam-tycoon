@@ -85,8 +85,9 @@ export class FoundryWorks implements SiteModule {
     door(occ, false);
     // Economic life under occupation: output stacks up, the quota climbs, nothing else changes.
     const stock = (min: number, spots: number[][]) => { const g = this.site.layer(when.business('foundry', l => l >= min)); for (const [x, y, z] of spots) crate(g, x, y, z, .8); return g; };
-    const stocked = stock(1, [[31.5, 0, 19.7], [32.4, 0, 19.7]]); stock(2, [[31.5, 0, 20.6], [32.4, 0, 20.6]]); stock(3, [[31.5, .8, 19.7], [32.4, .8, 20.6]]);
-    city.collider(32, 20.2, 2, 2.2, 1.7, undefined, () => !stocked.visible);
+    const row1 = stock(1, [[31.5, 0, 19.7], [32.4, 0, 19.7]]), row2 = stock(2, [[31.5, 0, 20.6], [32.4, 0, 20.6]]); stock(3, [[31.5, .8, 19.7], [32.4, .8, 20.6]]);
+    // Each drawn row blocks only while its own layer is shown (the level-3 crates sit on these rows).
+    city.collider(31.95, 19.7, 1.7, .8, 1.7, undefined, () => !row1.visible); city.collider(31.95, 20.6, 1.7, .8, 1.7, undefined, () => !row2.visible);
     // THE EMBERS ------------------------------------------------------------------------
     const c1 = this.site.layer(when.covert(1)), c2 = this.site.layer(when.covert(2)), c3 = this.site.layer(when.covert(3));
     // 1: a second count chalked under the quota, and stools behind the coal bunker.
