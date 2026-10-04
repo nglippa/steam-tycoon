@@ -220,11 +220,11 @@ export class City {
   private deckAt(x: number, z: number, feet: number) { let best = -Infinity; for (const d of this.decks) if (d.when?.() !== false && x >= d.minX && x <= d.maxX && z >= d.minZ && z <= d.maxZ) { const h = deckHeight(d, x, z); if (h <= feet + .4 && h > best) best = h; } return best; }
   target(g: T.Group, id: string, kind: Target['kind'], label: string, x: number, y: number, z: number) { const board = box(g, x, y, z, 1.05, .8, .18, mats.brass); const panel = sign(g, kind === 'property' ? 'LEDGER' : label, kind === 'property' ? 'Accounts & improvements' : 'Terra • Locke', x, y, z + .101, .96, .62); box(g, x, y - .85, z, .12, 1.1, .12, mats.iron); board.updateWorldMatrix(true, false); const pos = board.getWorldPosition(new T.Vector3()); this.targets.push({ object: board, id, kind, label, position: pos }); panel.userData.interaction = id; }
   buildGround() { const g = new T.Group(); this.root.add(g); // The ground stops at the cleft: the Lowworks canal is a chasm open to the sky beneath.
-    box(g, (-79 + CHASM.x0) / 2, -.5, -5.5, 79 + CHASM.x0, 1, 179, mats.dirt); box(g, (CHASM.x1 + 79) / 2, -.5, -5.5, 79 - CHASM.x1, 1, 179, mats.dirt); box(g, (CHASM.x0 + CHASM.x1) / 2, -.5, (CHASM.z1 + 84) / 2, CHASM.x1 - CHASM.x0, 1, 84 - CHASM.z1, mats.dirt); box(g, 0, .018, 9, 12.6, .06, 139, mats.road);
+    /* each slab stops 3 cm short of the rock plate's walls so their faces never share a plane */ box(g, (-79 + CHASM.x0 - .03) / 2, -.5, -5.515, 79 + CHASM.x0 - .03, 1, 178.97, mats.dirt); box(g, (CHASM.x1 + .03 + 79) / 2, -.5, -5.515, 79 - CHASM.x1 - .03, 1, 178.97, mats.dirt); box(g, (CHASM.x0 + CHASM.x1) / 2, -.5, (CHASM.z1 + 84) / 2, CHASM.x1 - CHASM.x0, 1, 84 - CHASM.z1 - .06, mats.dirt); box(g, 0, .018, 9, 12.6, .06, 139, mats.road);
     for (const x of [-9.2, 9.2]) { box(g, x, .065, 10, 5.6, .13, 139, mats.stone); for (let z = -59; z < 74; z += 3) box(g, x + (x < 0 ? 2.85 : -2.85), .1, z, .17, .2, 2.94, mats.warmStone); }
     for (const z of [27, 1, -31, -57]) box(g, 0, .025, z, 78, .06, 7, mats.road);
     for (const x of [-34, 34]) box(g, x, .02, 6, 7, .06, 125, mats.road);
-    box(g, 0, .04, -44, 28, .1, 23, mats.road);
+    box(g, 0, .035, -44, 28, .09, 23, mats.road);
     // The cleft's kerb and rail. The rail is left open at z 32..36 for the Chain Bridge.
     for (const x of [40, 49]) { box(g, x, .25, -15.5, 1, .5, 159, mats.stone); for (let z = -92; z < 64; z += 4) { cyl(g, x, 1, z, .06, 1.4); if ((z < -12 || z > 0) && z !== 32) box(g, x, 1.5, z + 2, .06, .08, 4); } }
     box(g, 44.5, .25, CHASM.z1, 8, .5, 1, mats.stone);
@@ -234,7 +234,7 @@ export class City {
     for (const x of [-36.2, -31.8]) { beam(g, new T.Vector3(x, 1.3, -29), new T.Vector3(x, 7.3, -51), .065, mats.brass); box(g, x, 7.2, -56, .08, .08, 10, mats.iron); for (let z = -30; z > -61; z -= 4) { const h = z < -51 ? 6.2 : (-z - 29) / 22 * 6 + .2; box(g, x, h + .65, z, .1, 1.3, .1); } }
     const puddleMaterial=new T.MeshStandardMaterial({color:'#6b8e8e',metalness:.2,roughness:.55,transparent:true,opacity:.24});
     for(const [x,z,s] of [[-4.8,53,1.1],[4.3,34,.8],[-3.8,8,1.4],[4.7,-10,.9],[-4.1,-26,.8]]){const puddle=new T.Mesh(new T.CircleGeometry(s,10),puddleMaterial);puddle.rotation.x=-Math.PI/2;puddle.scale.x=1.9;puddle.position.set(x,.065,z);g.add(puddle);}
-    for(const x of [-2.15,2.15]){box(g,x,.075,9,.24,.035,139,mats.dark);box(g,x,.099,9,.07,.014,139,mats.rust);}
+    for(const x of [-2.15,2.15]){box(g,x,.082,9,.24,.036,139,mats.dark);box(g,x,.099,9,.07,.014,139,mats.rust);}
     bake(g);
   }
   facade(g: T.Group, width: number, height: number, depth: number, type: number, clean = false, business = false) { const composed = business && type !== 4;

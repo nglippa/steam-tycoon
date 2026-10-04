@@ -32,7 +32,7 @@ export class MarketSquare implements SiteModule {
     const base = this.site.layer(when.always), live = this.site.layer(when.always, false);
     // ANCIENT TERRA ------------------------------------------------------------------
     const I = ancientMats.ivory, G = ancientMats.gold, Q = ancientMats.turquoise;
-    const med = new T.Mesh(new T.CircleGeometry(5.2, 64), printedMat(medallion)); med.rotation.x = -Math.PI / 2; med.position.set(SX, .097, SZ); base.add(med);
+    const med = new T.Mesh(new T.CircleGeometry(5.2, 64), printedMat(medallion)); med.rotation.x = -Math.PI / 2; med.position.set(SX, .112, SZ); base.add(med);
     const basin = new T.Mesh(new T.LatheGeometry([[1.55, .12], [1.55, .5], [1.63, .58], [1.98, .58], [2.03, .52], [1.94, .44], [1.96, .1], [2.06, 0]].map(([r, y]) => new T.Vector2(r, y)), 40), I); basin.position.set(SX, .05, SZ); base.add(basin);
     torus(base, SX, .64, SZ, 1.8, .035, G).rotation.x = Math.PI / 2;
     const floor = new T.Mesh(new T.CircleGeometry(1.56, 32), ancientMats.tile); floor.rotation.x = -Math.PI / 2; floor.position.set(SX, .17, SZ); const fuv = floor.geometry.attributes.uv; for (let i = 0; i < fuv.count; i++) fuv.setXY(i, fuv.getX(i) * 3, fuv.getY(i) * 3); base.add(floor);
@@ -70,7 +70,7 @@ export class MarketSquare implements SiteModule {
     // ECONOMIC CONDITION -------------------------------------------------------------
     // The merchants wash the square once trade returns; soot is a Lowworks problem, not a political one.
     const dirty = this.site.layer(when.business('market', l => l < 2));
-    const soot = new T.Mesh(new T.CircleGeometry(5.6, 40), decalMat(grime, 1)); soot.rotation.x = -Math.PI / 2; soot.position.set(SX, .1, SZ); dirty.add(soot);
+    const soot = new T.Mesh(new T.CircleGeometry(5.6, 40), decalMat(grime, 1)); soot.rotation.x = -Math.PI / 2; soot.position.set(SX, .118, SZ); dirty.add(soot);
     for (const s of [-1, 1]) for (const f of [-1, 1]) box(dirty, s * PX, 6.2, GZ + f * .661, .9, 3.6, .01, pres.soot);
     // OCCUPATION ---------------------------------------------------------------------
     const occ = this.site.layer(when.occupied), occLive = this.site.layer(when.occupied, false), O = occupationMats;
