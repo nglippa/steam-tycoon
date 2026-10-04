@@ -7,7 +7,7 @@ import type { Archetype } from './palette';
 import { animateLife, turnTaking, eased, type Activity } from './citizen-life';
 import { reducedMotion } from '../motion';
 import type { City } from './city';
-import { districtAt, standingOf, seedOf, isOccupier, canAct, AUTHORITY_BUDGET, type DistrictId, type Standing, type Importance, type PostRole } from '../simulation/occupation';
+import { districtAt, standingOf, seedOf, isOccupier, canAct, AUTHORITY_BUDGET, transitHolds, type DistrictId, type Standing, type Importance, type PostRole } from '../simulation/occupation';
 import { VOICE } from '../simulation/voice';
 import { atHome } from '../simulation/home';
 import { Checkpoints } from './checkpoints';
@@ -27,6 +27,7 @@ import { CanalWard } from './canal-ward';
 import { WEST_EDGE } from './geography';
 import { RationLine } from './ration-line';
 import { RookYard } from './rook-yard';
+import { Consignment } from './logistics';
 import type { SiteModule } from './layers';
 import { SITE_RESTORED } from '../simulation/economy';
 
@@ -44,7 +45,8 @@ export class Presentation {
   /** Every Ordinance post and what it is for. */
   posts:{index:number;role:PostRole;rank:number;district:DistrictId}[]=[];checkpoints!:Checkpoints;borders!:Borders;
   /** The Ordinance's extra people: decorative, staged by district. Only the nearest few are ever asked whether they can see the Steward. */
-  garrisonPosts:number[]=[];private watch={suspicion:0,stage:'none' as 'none'|'noticed'|'challenged',grace:0,unseen:0,by:-1,cooldown:0,scan:0,near:[] as number[]};
+  /** Until when the curfew watch lets the Steward be: set by the Directorate's clear lane at the Great Main (checkpoints.ts), nowhere else. */
+  transitUntil=-99;garrisonPosts:number[]=[];private watch={suspicion:0,stage:'none' as 'none'|'noticed'|'challenged',grace:0,unseen:0,by:-1,cooldown:0,scan:0,near:[] as number[]};
   rookYard!:RookYard;marketSquare!:MarketSquare; foundryWorks!:FoundryWorks; cinderRow!:CinderRow; rationLine!:RationLine; sites:SiteModule[]=[];
   /** The Ordinance's coal furnace at Cinder No. 3: its own group, because restoration removes it. */
   foundryFurnace?:T.Group; foundryHoist?:T.Group; furnaceHammer=0;
@@ -467,6 +469,7 @@ export class Presentation {
    * and only while a curfew is being enforced where the Steward stands. Notice, challenge, order home, then a grace to get
    * out of sight; being seen when it runs out is an incident. Roofs and rooms are out of their sight. */
   watchCurfew(dt:number,time:number,viewer:T.Vector3){const w=this.watch,city=this.city,here=city.here(viewer.x,viewer.z);w.cooldown=Math.max(0,w.cooldown-dt);
+    if(transitHolds(time,this.transitUntil,here.crackdown,!!Consignment.carried()?.contraband)){w.stage='none';w.suspicion=0;w.unseen=0;return;}
     const indoors=viewer.y>=4.6||atHome(viewer.x,viewer.y,viewer.z),enforced=here.enforcement!=='none'&&!indoors&&w.cooldown<=0;
     if(!enforced){w.suspicion=Math.max(0,w.suspicion-dt*.5);if(w.stage!=='none'&&here.enforcement==='none'){w.stage='none';}if(w.stage==='challenged'&&indoors){w.unseen+=dt;if(w.unseen>4){w.stage='none';w.suspicion=0;city.onEvent('The street below loses sight of you.');}}return;}
     w.scan-=dt;if(w.scan<=0){w.scan=.25;w.near=this.authority.filter(i=>this.workers[i].person.group.visible).map(i=>[i,this.workers[i].person.group.position.distanceToSquared(viewer)] as const).filter(([,d])=>d<256).sort((a,b)=>a[1]-b[1]).slice(0,AUTHORITY_BUDGET).map(([i])=>i);}

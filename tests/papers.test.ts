@@ -1,13 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { clerkContact, custodyAllowed, HOLD } from '../src/simulation/resist.ts';
-import { laneClear, scrutiny, freightLane, type Gate } from '../src/simulation/occupation.ts';
+import { laneClear, scrutiny, freightLane, transitSet, transitHolds, TRANSIT, type Gate } from '../src/simulation/occupation.ts';
 import { Economy, type StorageAdapter } from '../src/simulation/economy.ts';
 import { catwalkRestored, crateHeld, strangerDue } from '../src/simulation/alignment.ts';
 const memory = (raw: string | null = null): StorageAdapter => ({ read: () => raw, write: s => { raw = s; }, clear: () => { raw = null; } });
 const GATES: Gate[] = ['open', 'gone', 'light', 'manned', 'sealed'];
 import * as T from 'three';
-// The world modules paint canvases when loaded; a blank stand-in is enough to load them in node.
+// The world modules paint canvases when loaded; a blank stand-in is enough to load them in node. (node:test runs each file in its own process, so this does not leak.)
 const blank: unknown = new Proxy(function () {}, { get: (_, k) => k === Symbol.toPrimitive ? () => 0 : blank, apply: () => blank, set: () => true });
 (globalThis as { document?: unknown }).document ??= { createElement: () => blank };
 const { Consignment } = await import('../src/world/logistics.ts');
@@ -66,4 +66,16 @@ test('signing in at the desk settles the Great Main, persists, closes the other 
   // And the other way round: the Embers' win shuts the desk.
   const r2 = new Economy(memory()); r2.advanceResist(1); r2.advanceResist(2); assert.equal(r2.resolve('greatMain', 'resistance', 'rook.diverted'), true);
   assert.equal(r2.resolve('greatMain', 'ordinance', 'rook.custody'), false); assert.equal(laneClear(r2.state.alignment.outcomes.greatMain, 'sealed', false, false), false);
+});
+test('the curfew watch stands down only for a transit set at the clear lane, and never under a crackdown or with contraband', () => {
+  const near = TRANSIT.reach - 1, far = TRANSIT.reach + 14;
+  for (const g of GATES) for (const o of ['base', 'resistance', 'ordinance']) for (const contra of [false, true]) for (const crack of [false, true]) for (const lane of [false, true]) for (const along of [near, far]) {
+    const pass = laneClear(o, g, crack, contra), set = transitSet(pass, lane, along);
+    assert.equal(set, o === 'ordinance' && ['light', 'manned', 'sealed'].includes(g) && !crack && !contra && lane && along === near, `${o} ${g} ${crack} ${contra} ${lane} ${along}`);
+  }
+  assert.equal(transitHolds(10, 25, false, false), true); assert.equal(transitHolds(25, 25, false, false), false); assert.equal(transitHolds(10, -99, false, false), false);
+  assert.equal(transitHolds(10, 25, true, false), false); assert.equal(transitHolds(10, 25, false, true), false);
+});
+test('the clerk’s lines are short enough to be gone by the time the gate is reached, and the offer says no more than the sign-in', () => {
+  const h = HOLD.scrap!; assert.ok(h.offer.length <= 85, String(h.offer.length)); assert.ok(h.standing.length <= 100, String(h.standing.length)); assert.match(h.offer, /citizen/); assert.ok(!/Steward/.test(h.offer));
 });

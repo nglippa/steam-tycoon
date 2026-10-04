@@ -35,7 +35,7 @@ export const HOLD: Partial<Record<PropertyId, Hold>> = {
   scrap: { signed: 'Day’s manifest signed. Beside it on the board, someone has chalked a small ember.', hand: 'Not everything on their manifests arrives where they think it does.',
     plate: 'HELD/BY ORDER', taken: 'You shoulder the crate. Regulator governors, by the weight: confiscated, listed, and not yours.', held: 'HELD BY ORDER of the Directorate of Labour. Nothing says it is yours to move.', watched: 'The Directorate’s clerk is counting the held stock. Wait until he bends to his sheet.',
     carrying: 'Get the crate to Finch’s pigeon loft. The gate will want to look inside.', delivered: 'The crate goes under the tarp. Finch’s hands will know what to do with governors. The Great Main’s regulator is the place to look.',
-    standing: '“Held stock is signed for by the keeper of Rook & Son, citizen. You are not on this sheet.”', offer: '“The keeper. Good. The held governors are yours to sign for, in the Directorate’s custody. Take them to the collection at the Great Main gate.”',
+    standing: '“Held stock is signed for by the keeper of Rook & Son, citizen. You are not on this sheet.”', offer: '“The keeper. Sign here, and the held governors are in your custody, citizen.”',
     custodyTaken: 'You sign the sheet and shoulder the crate, with the clerk looking on. Directorate custody: nothing is hidden about it.', custodyCarrying: 'Take the crate to the Directorate collection at the Great Main gate.',
     signedIn: 'You sign the crate in. The stamp comes down on the sheet, and the governors go into the east lane’s booms.' },
 };

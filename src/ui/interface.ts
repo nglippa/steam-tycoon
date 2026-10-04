@@ -51,8 +51,9 @@ export class Interface {
   rest() { const r = this.economy.sleep(); if (!r) return this.toast('Too early to sleep. The room is yours all the same: nobody watches a Steward at home.', 6000);
     this.sound.collect(); this.toast(`You sleep ${r.hours} hours. Six in the morning; the curfew is lifted.${r.award >= 1 ? ` The trades brought in ${format(r.award)} Crowns overnight.` : ''}`, 9000); }
   answer() { const got = this.economy.signal(); if (!got) return; this.sound.purchase(); this.toast(`You turn the lamp up, twice. The Weathervane answers, and something crosses the roofs toward the cellar. +${format(got)} Crowns by morning.`, 9500); }
-  /** The bench at Rook & Son: the day's work, signed. It counts as reporting, exactly as the ledger does. */
+  /** E on the collection clerk: his word, and for the keeper the crate signed for. */
   clerk() { const say = this.city.presentation.rookYard.talk(); if (say) this.toast(say, 8000); }
+  /** The bench at Rook & Son: the day's work, signed. It counts as reporting, exactly as the ledger does. */
   work() { this.economy.inspect('scrap'); this.sound.collect(); this.toast(HOLD.scrap!.signed, 8000); }
   onDoor: () => void = () => {};
   interact(t: Target) { if (t.kind === 'door') return this.onDoor(); if (t.kind === 'home') return this.rest(); if (t.kind === 'signal') return this.answer(); if (t.kind === 'resist') return t.id === 'rook.clerk' ? this.clerk() : this.work(); if (t.kind === 'property') { this.economy.inspect(t.id); this.selected = t.id as PropertyId; this.panel = 'property'; this.player.release(); this.render(); } else if (t.kind === 'lift') this.city.edge.startRide(this.player, t.id === 'lift.down'); else if (t.kind === 'ladder') { const l = this.city.ladders.find(l => l.id === t.id); if (l) this.player.climb(l); } else if (t.kind === 'ledger') this.openLedger(); else if (t.kind === 'district') this.openLedger('Districts'); else if (t.kind === 'site') { const load = Consignment.all.find(c => c.id === t.id), held = Consignment.carried(); if (load) this.carry(load); else if (held?.dest === t.id) this.deliver(held); else this.openSite(t.id); } else { const text = LORE[t.id] ?? '';

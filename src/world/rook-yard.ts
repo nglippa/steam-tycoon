@@ -6,7 +6,7 @@ import { Consignment } from './logistics';
 import { inView, Attention } from './patrol';
 import { ancient, ancientMats, decalMat, emberChalk } from './factions';
 import { atHome } from '../simulation/home';
-import { bookendDue, bookendLine, canDivert, canNotice, clerkContact, HOLD } from '../simulation/resist';
+import { bookendDue, bookendLine, canDivert, canNotice, clerkContact, custodyAllowed, HOLD } from '../simulation/resist';
 import { catwalkRestored, crateHeld } from '../simulation/alignment';
 import type { Line } from '../simulation/intro';
 import type { Presentation } from './presentation';
@@ -101,7 +101,7 @@ export class RookYard {
   private get contact() { return clerkContact(this.pres.city.economy.state.properties.scrap.level, this.outcome, this.rook); }
   /** E on the clerk: his word, and for the keeper the crate on the shoulder under signature; the toast if there is one. */
   talk() { const c = this.contact, h = HOLD.scrap!; if (c === 'none' || !this.onDuty) return null;
-    if (c === 'refused') { this.onLine({ who: 'Collection clerk', text: h.standing }); return null; }
+    if (!custodyAllowed(this.pres.city.economy.state.properties.scrap.level, this.outcome, this.rook)) { this.onLine({ who: 'Collection clerk', text: h.standing }); return null; }
     const refusal = this.crate.take(true); if (refusal) return refusal; this.onLine({ who: 'Collection clerk', text: h.offer }); return h.custodyTaken; }
   private get outcome() { return this.pres.city.economy.state.alignment.outcomes.greatMain; }
   /** The crate waits in the yard from the report until it is delivered. */

@@ -260,6 +260,11 @@ export const freightLane = (gate: string, lx: number) => { const l = FREIGHT_LAN
 /** The reward for the Directorate's side at the Great Main: once the Steward has signed the freight in (outcome ordinance), its freight lane is clear to him at any heat and
  * through a sealed curfew, while the gate still stands (not abandoned or reclaimed). A crackdown in the district and contraband in the arms still rule. Lane and gate are the caller's to match. */
 export const laneClear = (outcome: string, gate: Gate, crackdown: boolean, contraband: boolean) => outcome === 'ordinance' && (gate === 'light' || gate === 'manned' || gate === 'sealed') && !crackdown && !contraband;
+/** The curfew watch stands down for a short transit once the Steward is at the clear Directorate lane's boom, so being waved through is not then a curfew offence a few metres on.
+ * Set only at the lane (`along` metres from the boom line), and never honoured under a crackdown or with contraband. */
+export const TRANSIT = { seconds: 15, reach: 6 };
+export const transitSet = (pass: boolean, lane: boolean, along: number) => pass && lane && along < TRANSIT.reach;
+export const transitHolds = (now: number, until: number, crackdown: boolean, contraband: boolean) => now < until && !crackdown && !contraband;
 /** `freight`: lawful Directorate custody, in that lane. A held gate waves it through whatever the Steward's record; a crackdown, a sealed boom and contraband still rule. */
 export function scrutiny(gate: Gate, heat: number, crackdown = false, carrying = false, freight = false, clear = false): Scrutiny {
   if (gate === 'gone' || gate === 'open') return 'none'; if (clear) return 'wave'; if (gate === 'sealed') return 'refuse'; if (freight && !crackdown && !carrying) return 'wave';
