@@ -257,9 +257,12 @@ export const CONTRABAND_HEAT = 2;
 /** The one opening at a gate that Directorate freight goes through, in the gate's own local x: only the Great Main has one so far. */
 const FREIGHT_LANES: Record<string, [number, number]> = { main: [2.1, 6.2] };
 export const freightLane = (gate: string, lx: number) => { const l = FREIGHT_LANES[gate]; return !!l && lx > l[0] - .3 && lx < l[1] + .3; };
+/** The reward for the Directorate's side at the Great Main: once the Steward has signed the freight in (outcome ordinance), its freight lane is clear to him at any heat and
+ * through a sealed curfew, while the gate still stands (not abandoned or reclaimed). A crackdown in the district and contraband in the arms still rule. Lane and gate are the caller's to match. */
+export const laneClear = (outcome: string, gate: Gate, crackdown: boolean, contraband: boolean) => outcome === 'ordinance' && (gate === 'light' || gate === 'manned' || gate === 'sealed') && !crackdown && !contraband;
 /** `freight`: lawful Directorate custody, in that lane. A held gate waves it through whatever the Steward's record; a crackdown, a sealed boom and contraband still rule. */
-export function scrutiny(gate: Gate, heat: number, crackdown = false, carrying = false, freight = false): Scrutiny {
-  if (gate === 'gone' || gate === 'open') return 'none'; if (gate === 'sealed') return 'refuse'; if (freight && !crackdown && !carrying) return 'wave';
+export function scrutiny(gate: Gate, heat: number, crackdown = false, carrying = false, freight = false, clear = false): Scrutiny {
+  if (gate === 'gone' || gate === 'open') return 'none'; if (clear) return 'wave'; if (gate === 'sealed') return 'refuse'; if (freight && !crackdown && !carrying) return 'wave';
   const limit = crackdown ? .25 : gate === 'light' ? 1.75 : .75; return heat + (carrying ? CONTRABAND_HEAT : 0) >= limit ? 'challenge' : 'wave';
 }
 // ---------------------------------------------------------------- borders

@@ -1,13 +1,16 @@
 import * as T from 'three';
 import { box, cyl, sphere, beam, sign, bake, mats } from './assets';
-import { V, bench, bunting } from './art-kit';
+import { V, bench, bunting, artMats } from './art-kit';
 import { occupationMats, canvasTarp, signs } from './factions';
 import { inView } from './patrol';
+import { unseen } from './routes';
 import { Consignment } from './logistics';
-import { gateCrew, scrutiny, freightLane, type Gate, type DistrictId, type Scrutiny, type Tone } from '../simulation/occupation';
+import { gateCrew, scrutiny, freightLane, laneClear, type Gate, type DistrictId, type Scrutiny, type Tone } from '../simulation/occupation';
 import { VOICE } from '../simulation/voice';
 import { atHome } from '../simulation/home';
 import { APPROACH, approachState, stepApproach, type Approach, type ApproachEvent } from '../simulation/approach';
+import type { SiteOutcome } from '../simulation/alignment';
+import { HOLD } from '../simulation/resist';
 import type { Presentation } from './presentation';
 
 /** CHECKPOINTS. A district's band made into a barrier across an obvious route. The same spot tells the whole story:
@@ -29,10 +32,12 @@ const SITES: Site[] = [
 const O = occupationMats, HELD: Gate[] = ['light', 'manned', 'sealed'];
 /** The sealed gate's lamp: red, lit, the one colour on the barrier that means stop. */
 const stopLamp = new T.MeshStandardMaterial({ color: '#d0402e', emissive: '#e0442c', emissiveIntensity: 1.4, roughness: .45 });
+/** The Directorate's colours at the Great Main once the freight is signed in: green lane lamps, brass governors. */
+const laneLamp = new T.MeshStandardMaterial({ color: '#4f9a62', emissive: '#58b070', emissiveIntensity: 1.2, roughness: .45 });
 const wrap = (a: number) => Math.atan2(Math.sin(a), Math.cos(a));
 type Alarm = 'challenge' | 'refuse' | 'incident';
 type GateRecord = { site: Site; state: Gate; held: T.Group; full: T.Group; lit: T.Group; sealed: T.Group; abandoned: T.Group; civic: T.Group; booms: T.Group[]; root: T.Group; crew: number[]; yaw: number[];
-  /** A cart is under the boom while the gate is sealed: the boom waits for it. */ cart: boolean; /** Until when each opening is taken up with someone being looked over. */ busy: number[]; waved: number; refused: number; approach: Approach; scan: number; seenBy: number; watcher: number; watchUntil: number };
+  /** A cart is under the boom while the gate is sealed: the boom waits for it. */ cart: boolean; /** Until when each opening is taken up with someone being looked over. */ busy: number[]; /** The Directorate's lane at this gate (index into the openings, or -1), what the Steward's freight has made of it, and whether it is clear to him now. */ lane: number; live: boolean; outcome: SiteOutcome; pass: boolean; ordinance: T.Group; desk: T.Group; sealedF: T.Group; steam: T.Vector3; waved: number; refused: number; approach: Approach; scan: number; seenBy: number; watcher: number; watchUntil: number };
 
 export class Checkpoints {
   gates: GateRecord[] = [];
@@ -42,7 +47,8 @@ export class Checkpoints {
     for (const site of SITES) { const root = new T.Group(); root.position.set(site.x, 0, site.z); root.rotation.y = site.quarter ? Math.PI / 2 : 0; p.root.add(root);
       const world = (lx: number, lz: number): [number, number] => site.quarter ? [site.x + lz, site.z - lx] : [site.x + lx, site.z + lz];
       const held = new T.Group(), full = new T.Group(), lit = new T.Group(), sealed = new T.Group(), abandoned = new T.Group(), civic = new T.Group(); root.add(held, full, lit, sealed, abandoned, civic);
-      const gate: GateRecord = { site, state: 'manned', held, full, lit, sealed, abandoned, civic, booms: [], root, crew: [], yaw: [], cart: false, busy: site.openings.map(() => -99), waved: -99, refused: -99, approach: approachState(), scan: 0, seenBy: -1, watcher: -1, watchUntil: -99 }; this.gates.push(gate);
+      const li = site.openings.findIndex(([a, b]) => freightLane(site.id, (a + b) / 2)), ordinance = new T.Group(), desk = new T.Group(), sealedF = new T.Group(); root.add(ordinance, desk, sealedF); ordinance.visible = desk.visible = sealedF.visible = false;
+      const gate: GateRecord = { site, state: 'manned', held, full, lit, sealed, abandoned, civic, booms: [], root, crew: [], yaw: [], cart: false, busy: site.openings.map(() => -99), lane: li, live: false, outcome: 'base', pass: false, ordinance, desk, sealedF, steam: V(site.x + 2.1, 1.75, site.z + .32), waved: -99, refused: -99, approach: approachState(), scan: 0, seenBy: -1, watcher: -1, watchUntil: -99 }; this.gates.push(gate);
       const available = () => !site.chartered || city.economy.state.districts.includes(site.chartered);
       // What is left lying about an abandoned gate is solid only while it lies there (and too low to hide anyone).
       const litter = (lx: number, lz: number, w: number, d: number, h: number) => { const [x, z] = world(lx, lz); city.collider(x, z, site.quarter ? d : w, site.quarter ? w : d, h, undefined, () => !available() || gate.state !== 'open'); };
@@ -85,26 +91,45 @@ export class Checkpoints {
         for (const s of [-1, 1]) { box(civic, s * (site.span[1] - .4), .25, 0, .7, .5, .7, mats.wood); sphere(civic, s * (site.span[1] - .4), .68, 0, .3, mats.leaf); sphere(civic, s * (site.span[1] - .4) + .12, .9, .1, .09, mats.red); }
         { const m = new T.Mesh(signs.plate('FREE PASSAGE', 1, .24, 'ivory'), signs.material); m.position.set(site.span[0] - .02, .9, 0); m.rotation.y = -Math.PI / 2; civic.add(m); } }
       // Booms: one across each opening, pivoting at the box side. Up, people walk under the Ordinance's eyes; down, nobody walks.
-      for (const [a, b] of site.openings) { const pivot = Math.abs(a) < Math.abs(b) ? a : b, far = pivot === a ? b : a, len = Math.abs(far - pivot), dir = Math.sign(far - pivot), mid = (a + b) / 2;
+      for (const [k, [a, b]] of site.openings.entries()) { const sd = k === li ? sealedF : sealed, pivot = Math.abs(a) < Math.abs(b) ? a : b, far = pivot === a ? b : a, len = Math.abs(far - pivot), dir = Math.sign(far - pivot), mid = (a + b) / 2;
         box(held, pivot, .6, 0, .16, 1.2, .16, O.iron); const boom = new T.Group(); boom.position.set(pivot, 1.08, 0); boom.userData.dir = dir; root.add(boom); box(boom, dir * len / 2, 0, 0, len, .09, .09, O.bone); for (let x = .4; x < len; x += .9) box(boom, dir * x, 0, 0, .35, .095, .095, O.oxblood); box(boom, -dir * .35, 0, 0, .5, .2, .2, O.iron); gate.booms.push(boom);
         // Sealed: a rest post at the far end, a second bar under the boom, a HALT plate hung on it, red lamps on both posts.
-        box(sealed, far - dir * .05, .5, 0, .14, 1, .14, O.iron); box(sealed, mid, .45, 0, len, .11, .11, O.oxblood); for (let x = .3; x < len; x += .9) box(sealed, pivot + dir * x, .45, 0, .3, .115, .115, O.bone);
-        box(sealed, mid, .78, 0, 1.4, .66, .05, O.oxblood); for (const s of [-1, 1]) { const m = new T.Mesh(signs.plate('HALT', 1.2, .5), signs.material); m.position.set(mid, .78, s * .03); m.rotation.y = s > 0 ? 0 : Math.PI; sealed.add(m); }
-        for (const x of [pivot, far - dir * .05]) { box(sealed, x, 1.25, 0, .2, .1, .2, O.iron); sphere(sealed, x, 1.38, 0, .13, stopLamp); }
+        box(sd, far - dir * .05, .5, 0, .14, 1, .14, O.iron); box(sd, mid, .45, 0, len, .11, .11, O.oxblood); for (let x = .3; x < len; x += .9) box(sd, pivot + dir * x, .45, 0, .3, .115, .115, O.bone);
+        box(sd, mid, .78, 0, 1.4, .66, .05, O.oxblood); for (const s of [-1, 1]) { const m = new T.Mesh(signs.plate('HALT', 1.2, .5), signs.material); m.position.set(mid, .78, s * .03); m.rotation.y = s > 0 ? 0 : Math.PI; sd.add(m); }
+        for (const x of [pivot, far - dir * .05]) { box(sd, x, 1.25, 0, .2, .1, .2, O.iron); sphere(sd, x, 1.38, 0, .13, stopLamp); }
         // Abandoned: the boom unbolted and dropped out of the way beyond the opening, along the street; its post cut down to a stump.
         { const lying = new T.Group(); lying.position.set(far + dir * .55, .06, 1.3); lying.rotation.y = Math.PI / 2 + .14 * dir; abandoned.add(lying); box(lying, 0, 0, 0, len, .09, .09, O.bone); for (let x = -len / 2 + .4; x < len / 2; x += .9) box(lying, x, 0, 0, .35, .095, .095, O.oxblood); }
         box(abandoned, pivot, .2, 0, .16, .4, .16, O.iron);
-        const [cx, cz] = world(mid, 0); city.collider(cx, cz, site.quarter ? .3 : len, site.quarter ? len : .3, 1.3, undefined, () => !available() || gate.state !== 'sealed' || gate.cart); }
-      for (const g of [held, full, lit, sealed, abandoned, civic]) bake(g);
+        const [cx, cz] = world(mid, 0); city.collider(cx, cz, site.quarter ? .3 : len, site.quarter ? len : .3, 1.3, undefined, () => !available() || gate.state !== 'sealed' || gate.cart || (k === li && gate.pass)); }
+      for (const g of [held, full, lit, sealed, abandoned, civic, sealedF]) bake(g);
+      if (li >= 0) this.directorate(gate, li, world);
       // The crew: two men at the box, one watching each way. Posted by the gate's state, not by the ward's general rank.
       const stand: [number, number, number][] = site.hut ? [[1.55, .9, 0], [-1.55, -.9, Math.PI]] : [[1.45, -1.1, -Math.PI / 2], [-1.45, 1.1, Math.PI / 2]];
       stand.forEach(([lx, lz, yaw], k) => { const [x, z] = world(lx, lz), i = p.addWorker(x, z, yaw, 'guard', { role: 'guard', when: () => available() && gateCrew(gate.state) > k }); gate.crew.push(i); gate.yaw.push(p.workers[i].person.group.rotation.y); p.posts.push({ index: i, role: 'checkpoint', rank: 0, district: site.district }); p.garrisonPosts.push(i); });
     }
     this.sync(true);
   }
-  private sync(force = false) { for (const g of this.gates) { const state = this.p.city.social.get(g.site.district)!.gate; if (!force && state === g.state) continue; g.state = state;
+  private sync(force = false) { for (const g of this.gates) { const state = this.p.city.social.get(g.site.district)!.gate, outcome = this.outcomeAt(g), live = this.p.city.economy.state.resist.rook >= 1; if (!force && state === g.state && outcome === g.outcome && live === g.live) continue; g.state = state; g.outcome = outcome; g.live = live;
       const on = !g.site.chartered || this.p.city.economy.state.districts.includes(g.site.chartered); g.root.visible = on;
-      g.held.visible = HELD.includes(state); g.full.visible = state === 'manned' || state === 'sealed'; g.lit.visible = HELD.includes(state); g.sealed.visible = state === 'sealed'; g.abandoned.visible = state === 'open'; g.civic.visible = state === 'gone'; for (const b of g.booms) b.visible = HELD.includes(state); } }
+      g.held.visible = HELD.includes(state); g.full.visible = state === 'manned' || state === 'sealed'; g.lit.visible = HELD.includes(state); g.sealed.visible = state === 'sealed'; g.abandoned.visible = state === 'open'; g.civic.visible = state === 'gone'; for (const b of g.booms) b.visible = HELD.includes(state);
+      // The Directorate's side: the desk while the freight can be signed in or has been, the lamps, housing, plate and steam once it has, and only while the gate stands.
+      const held = HELD.includes(state), steam = this.p.steamOrigins, i = steam.indexOf(g.steam); g.desk.visible = held && (outcome === 'ordinance' || (outcome === 'base' && live)); g.ordinance.visible = held && outcome === 'ordinance';
+      if (g.ordinance.visible && i < 0) steam.push(g.steam); else if (!g.ordinance.visible && i >= 0) steam.splice(i, 1); } }
+  private outcomeAt(g: GateRecord): SiteOutcome { return g.lane >= 0 ? this.p.city.economy.state.alignment.outcomes.greatMain : 'base'; }
+  /** The Great Main's Directorate side, built once and shown by state: the desk by the east lane, and green lane lamps, the brass governor housing on the boom's pivot, a freight plate. */
+  private directorate(g: GateRecord, li: number, world: (lx: number, lz: number) => [number, number]) { const city = this.p.city, [a, b] = g.site.openings[li], pivot = Math.abs(a) < Math.abs(b) ? a : b, far = pivot === a ? b : a, dir = Math.sign(far - pivot), o = g.ordinance, plate = (x: number, y: number, w: number, h: number, text: string) => { for (const s of [-1, 1]) { const m = new T.Mesh(signs.plate(text, w, h, 'ivory'), signs.material); m.position.set(x, y, .5 + s * .03); m.rotation.y = s > 0 ? 0 : Math.PI; o.add(m); } };
+    // The gantry over the lane: two posts with green lamps, a bar between, and the freight plate hung under it.
+    for (const x of [pivot - dir * .1, far + dir * .25]) { cyl(o, x, 1.45, .5, .05, 2.9, O.iron); sphere(o, x, 2.95, .5, .11, laneLamp); }
+    box(o, (pivot + far) / 2 + dir * .075, 2.8, .5, Math.abs(far - pivot) + .5, .1, .08, O.iron); plate((pivot + far) / 2 + dir * .075, 2.45, 2.7, .42, 'PRIORITY · DIRECTORATE FREIGHT');
+    // The governor housing on a short stand at the boom's pivot, with its pipe and a green lamp on the near side of the boom.
+    box(o, pivot, .28, .32, .34, .56, .34, O.iron); cyl(o, pivot, .85, .32, .15, .6, mats.brass); cyl(o, pivot, 1.25, .32, .1, .2, mats.brass); cyl(o, pivot, 1.55, .32, .035, .45, mats.brass); sphere(o, pivot, 1.5, .5, .06, laneLamp);
+    bake(o);
+    // The collection desk: a lectern on the approach side, off the lane and the street, with the stamp and the sheet on it.
+    const dx = far + dir * 1.15, dz = 1.7, lectern = g.desk; lectern.position.set(dx, 0, dz); lectern.rotation.y = -dir * .5;
+    box(lectern, 0, .5, 0, .8, 1, .5, O.iron); const top = box(lectern, 0, 1.06, 0, .95, .07, .62, O.oxblood); top.rotation.x = -.2; box(lectern, 0, 1.13, -.04, .5, .01, .36, artMats.paper).rotation.x = -.2; box(lectern, .25, 1.18, .04, .12, .1, .12, O.iron); cyl(lectern, .25, 1.26, .04, .03, .1, mats.brass); box(lectern, 0, 1.86, .22, .06, 1.7, .06, O.iron); bake(lectern);
+    const [wx, wz] = world(dx, dz); city.collider(wx, wz, .9, .6, 1.2, undefined, () => !g.desk.visible);
+    const hit = new T.Mesh(new T.BoxGeometry(1.4, 1.4, 1.2), unseen); hit.position.set(dx, .8, dz); g.root.add(hit); hit.updateWorldMatrix(true, false);
+    city.targets.push({ object: hit, id: 'gate.desk', kind: 'site', label: 'Collection desk', hint: 'SIGN IT IN', position: hit.getWorldPosition(new T.Vector3()), when: () => g.desk.visible && !!Consignment.carried()?.custody }); }
   private hit = { gate: undefined as unknown as GateRecord, lane: 0, d: 0 };
   /** The held gate someone at (x, z) walking along (hx, hz) is about to walk into through one of its openings: which gate, which
    * opening, and how far off the boom line is. For the street's civilians, a few times a second each; the answer is one reused object. */
@@ -115,9 +140,9 @@ export class Checkpoints {
   /** A line, and the body that goes with it, for one of the crew (or all of them). */
   private speak(g: GateRecord, who: number | 'all', tone: Tone, seconds: number, time: number, palm = 0) { for (const i of who === 'all' ? g.crew : [who]) { const w = this.p.workers[i]; if (w?.person.group.visible) w.person.tone = { tone, until: time + seconds, palm: palm ? time + palm : undefined }; } }
   /** What the gate does about what the approach just did. One concise line at most; the bodies say the rest. */
-  private voice(g: GateRecord, ev: ApproachEvent, what: Scrutiny, time: number, viewer: T.Vector3, freight = false) { const city = this.p.city, by = g.watcher >= 0 ? g.watcher : g.crew.find(i => this.p.workers[i].person.group.visible) ?? -1, others = g.crew.filter(i => i !== by);
+  private voice(g: GateRecord, ev: ApproachEvent, what: Scrutiny, time: number, viewer: T.Vector3, freight = false, pass = false) { const city = this.p.city, by = g.watcher >= 0 ? g.watcher : g.crew.find(i => this.p.workers[i].person.group.visible) ?? -1, others = g.crew.filter(i => i !== by);
     const watch = (seconds: number) => { g.watchUntil = time + seconds; };
-    if (ev === 'notice') { g.watcher = g.seenBy; watch(4); this.speak(g, g.seenBy, what === 'challenge' ? 'suspicious' : 'neutral', 2.5, time); if (freight) city.onEvent(VOICE.freight); }
+    if (ev === 'notice') { g.watcher = g.seenBy; watch(4); this.speak(g, g.seenBy, what === 'challenge' ? 'suspicious' : 'neutral', 2.5, time); if (freight) city.onEvent(VOICE.freight); else if (pass && time - g.waved > 45) { g.waved = time; city.onEvent(VOICE.lane); } }
     else if (ev === 'resume' && g.approach.renewed > 1) { watch(5); this.speak(g, by, 'hostile', 2.5, time, 1.6); } // told twice already: a look and a palm, no more words
     else if (ev === 'challenge' || ev === 'resume') { watch(APPROACH.window + 1); this.speak(g, by, 'authoritative', ev === 'challenge' ? APPROACH.window : APPROACH.again, time, 1.8); for (const i of others) this.speak(g, i, 'suspicious', 3, time);
       city.onEvent(ev === 'challenge' ? VOICE.halt : '“I said turn back.”'); this.onAlarm?.('challenge'); }
@@ -126,7 +151,7 @@ export class Checkpoints {
     else if (ev === 'incident') { watch(4); this.speak(g, 'all', 'hostile', 6, time); city.incident(Consignment.carried()?.contraband ? 'contraband' : 'minor', viewer.x, viewer.z); this.onAlarm?.('incident'); }
     else if (ev === 'excused') { watch(2); this.speak(g, by, 'hostile', 2.5, time); city.onEvent(VOICE.excused); }
     else if (ev === 'released') { watch(2); this.speak(g, by, 'neutral', 3, time); city.onEvent(VOICE.released); }
-    else if (ev === 'cleared' && what === 'wave' && !freight && time - g.waved > 45) { g.waved = time; watch(2); this.speak(g, by, 'neutral', 3, time); city.onEvent(VOICE.papers); }
+    else if (ev === 'cleared' && what === 'wave' && !freight && !pass && time - g.waved > 45) { g.waved = time; watch(2); this.speak(g, by, 'neutral', 3, time); city.onEvent(VOICE.papers); }
   }
   /** One gate is ever near enough to matter. Walking up to an opening is what the checkpoint is for: a stranger is watched and
    * waved on, someone the patrols know is stopped short of the boom and given a moment to turn round (simulation/approach.ts),
@@ -135,7 +160,9 @@ export class Checkpoints {
     for (const g of this.gates) { if (!g.root.visible) continue; const s = g.site, sealed = g.state === 'sealed';
       // Nothing comes down on a cart: while one is in the crossing the boom stays up and the second bar, the plate and the collider stay off.
       g.cart = sealed && city.traffic.occupying(s.z, .5); const down = sealed && !g.cart; g.sealed.visible = down;
-      for (const b of g.booms) { const want = down ? 0 : b.userData.dir * 1.28; b.rotation.z += (want - b.rotation.z) * Math.min(1, dt * 2.2); }
+      // The Directorate's lane, once the freight is signed in, stays open through the curfew for the Steward (his crackdown or contraband shuts it).
+      const carried = Consignment.carried(); g.pass = g.lane >= 0 && laneClear(g.outcome, g.state, city.social.get(s.district)!.crackdown, !!carried?.contraband); g.sealedF.visible = down && !g.pass;
+      g.booms.forEach((b, k) => { const want = down && !(g.pass && k === g.lane) ? 0 : b.userData.dir * 1.28; b.rotation.z += (want - b.rotation.z) * Math.min(1, dt * 2.2); });
       // The man watching the Steward turns to keep him in sight; the rest of the time each faces his own way.
       // (Long after, they are left alone: the curfew watch turns the same men.)
       const watching = time < g.watchUntil;
@@ -144,12 +171,12 @@ export class Checkpoints {
       // Up on the roofs is the other way through, and nobody watches it: a challenge does not follow him up the ladder.
       const up = viewer.y > 4 || atHome(viewer.x, viewer.y, viewer.z), far = Math.abs(lz) > APPROACH.reach + APPROACH.leave + 1 || lx < s.span[0] - APPROACH.leave - 2 || lx > s.span[1] + APPROACH.leave + 2;
       if (!HELD.includes(g.state) || up || (far && g.approach.stage === 'idle')) { if (g.approach.stage !== 'idle') g.approach = { ...approachState(), lastIncident: g.approach.lastIncident }; g.seenBy = -1; g.scan = 0; continue; }
-      const carried = Consignment.carried(), what = scrutiny(g.state, city.economy.state.heat, city.social.get(s.district)!.crackdown, !!carried?.contraband, !!carried?.custody && freightLane(s.id, lx));
+      const lane = freightLane(s.id, lx), what = scrutiny(g.state, city.economy.state.heat, city.social.get(s.district)!.crackdown, !!carried?.contraband, !!carried?.custody && lane, g.pass && lane);
       if (what === 'refuse') { stepApproach(g.approach, { lx, lz, span: s.span, seen: false, scrutiny: what, dt, time });
         if (Math.abs(lz) < 3.2 && lx > s.span[0] - 1 && lx < s.span[1] + 1 && time - g.refused > 20) { g.refused = time; this.speak(g, 'all', 'authoritative', 4, time); city.onEvent(VOICE.closed(s.around)); }
         continue; }
       g.scan -= dt; if (g.scan <= 0) { g.scan = .25; g.seenBy = g.crew.find(i => { const q = this.p.workers[i].person.group; return q.visible && inView(city, q, viewer, APPROACH.reach, .95, true); }) ?? -1; if (g.seenBy >= 0 && g.approach.stage !== 'idle' && g.watcher < 0) g.watcher = g.seenBy; }
       const ev = stepApproach(g.approach, { lx, lz, span: s.span, seen: g.seenBy >= 0, scrutiny: what, dt, time });
-      if (ev) this.voice(g, ev, what, time, viewer, !!carried?.custody && freightLane(s.id, lx));
+      if (ev) this.voice(g, ev, what, time, viewer, !!carried?.custody && lane, g.pass && lane);
       if (g.approach.stage === 'idle' && !watching) g.watcher = -1; } }
 }

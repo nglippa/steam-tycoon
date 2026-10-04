@@ -30,11 +30,12 @@ export const bookendLine = (answer: string | null) => (answer && PORCH_ANSWERS.i
 export interface Hold { /** The toast when the work is done at the bench. */ signed: string; /** The one line a hand says, unprompted. */ hand: string;
   /** The held crate: what its plate says, the toast on shouldering it, why it will not be touched before it is noticed, and the clerk's eye. */ plate: string; taken: string; held: string; watched: string;
   /** The objective line while the crate is in the arms, and the toast when it is left under the tarp. */ carrying: string; delivered: string;
-  /** The clerk's word to someone who is not the keeper, and to the keeper; the toast on signing; the objective line while carrying lawful custody. */ standing: string; offer: string; custodyTaken: string; custodyCarrying: string }
+  /** The clerk's word to someone who is not the keeper, and to the keeper; the toast on signing; the objective line while carrying lawful custody. */ standing: string; offer: string; custodyTaken: string; custodyCarrying: string; /** The toast on signing the crate in at the gate's desk. */ signedIn: string }
 export const HOLD: Partial<Record<PropertyId, Hold>> = {
   scrap: { signed: 'Day’s manifest signed. Beside it on the board, someone has chalked a small ember.', hand: 'Not everything on their manifests arrives where they think it does.',
     plate: 'HELD/BY ORDER', taken: 'You shoulder the crate. Regulator governors, by the weight: confiscated, listed, and not yours.', held: 'HELD BY ORDER of the Directorate of Labour. Nothing says it is yours to move.', watched: 'The Directorate’s clerk is counting the held stock. Wait until he bends to his sheet.',
     carrying: 'Get the crate to Finch’s pigeon loft. The gate will want to look inside.', delivered: 'The crate goes under the tarp. Finch’s hands will know what to do with governors. The Great Main’s regulator is the place to look.',
     standing: '“Held stock is signed for by the keeper of Rook & Son, citizen. You are not on this sheet.”', offer: '“The keeper. Good. The held governors are yours to sign for, in the Directorate’s custody. Take them to the collection at the Great Main gate.”',
-    custodyTaken: 'You sign the sheet and shoulder the crate, with the clerk looking on. Directorate custody: nothing is hidden about it.', custodyCarrying: 'Take the crate to the Directorate collection at the Great Main gate.' },
+    custodyTaken: 'You sign the sheet and shoulder the crate, with the clerk looking on. Directorate custody: nothing is hidden about it.', custodyCarrying: 'Take the crate to the Directorate collection at the Great Main gate.',
+    signedIn: 'You sign the crate in. The stamp comes down on the sheet, and the governors go into the east lane’s booms.' },
 };

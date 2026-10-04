@@ -43,7 +43,7 @@ export class RookYard {
     tick(this.ticks, STOCK.x - .1 + .405, .35, STOCK.z - .082, .24, Math.PI / 2 + .2); bake(this.ticks);
     // The Directorate's own mark beside it, from the same report: a red collection tick, for the stock it will come to collect.
     this.collect.position.set(SX + .012, 1.5, SZ + .3); this.collect.rotation.y = Math.PI / 2; root.add(this.collect);
-    for (const [x, y, w, h, r] of [[-.02, -.02, .05, .02, -.8], [.03, .01, .09, .02, .75]]) { const b = box(this.collect, x, y, 0, w, h, .006, mats.red); b.rotation.z = r; } bake(this.collect);
+    for (const [x, y, w, h, r] of [[-.05, -.05, .1, .04, -.8], [.06, .02, .22, .04, .75]]) { const b = box(this.collect, x, y, 0, w, h, .006, mats.red); b.rotation.z = r; } bake(this.collect);
     // The bench is the one legitimate thing to do here, once.
     const hit = new T.Mesh(new T.BoxGeometry(1.1, 1.6, 2.2), unseen); hit.position.set(BENCH.x, 1.2, BENCH.z); root.add(hit); hit.updateWorldMatrix(true, false);
     city.targets.push({ object: hit, id: 'rook.bench', kind: 'resist', label: 'Workbench', hint: 'CHECK THE MANIFEST', position: hit.getWorldPosition(new T.Vector3()), when: () => this.rook === 0 });
@@ -53,7 +53,7 @@ export class RookYard {
     // The held crate: the Directorate's grey, stencilled on every face, and the Embers' chalk on the lane side.
     this.crate = new Consignment('rook.crate', null, 'rook.loft', root, CRATE, g => { labeledCrate(g, 0, 0, 0, .7, HOLD.scrap!.plate, 0, '#9a9486'); tick(g, -.358, .16, .2, .2, -Math.PI / 2); bake(g); },
       () => this.held, HOLD.scrap!.taken, () => !canDivert(this.rook) ? HOLD.scrap!.held : this.watching ? HOLD.scrap!.watched : null, () => this.receive());
-    this.crate.covert = true; this.crate.carryLine = HOLD.scrap!.carrying; this.crate.custodyLine = HOLD.scrap!.custodyCarrying;
+    this.crate.covert = true; this.crate.carryLine = HOLD.scrap!.carrying; this.crate.custodyLine = HOLD.scrap!.custodyCarrying; this.crate.custodyAt = 'gate.desk';
     this.cache(root); this.restore(root);
     pres.addWorker(STRANGER.x, STRANGER.z, 0, 'watch', { role: 'courier', mask: true, essential: true, y: 12.59, when: () => this.standing });
     // The clerk: there for everyone while the stock is held. Not the keeper, he refuses the standing; the keeper signs for custody in his full view.
@@ -74,7 +74,7 @@ export class RookYard {
     box(before, x - 1.15, y + .1, z + .2, .7, .2, .5, ancientMats.ivory); sphere(before, x + .9, y + 1.7, z - .5, .1, mats.glow); tick(before, x - .1, y + .09, z + .401, .2, 0); bake(before);
     labeledCrate(after, x, y + .14, z, .7, HOLD.scrap!.plate, 0, '#9a9486'); box(after, x, y + .88, z, .95, .05, .85, ancientMats.ivory); sphere(after, x + .9, y + 1.7, z - .5, .14, aether); for (const d of [-1, 1]) { const f = box(after, x + d * .5, y + .6, z, .05, .6, .85, ancientMats.ivory); f.rotation.z = d * .35; } tick(after, x, y + .5, z + .43, .2, 0); bake(after);
     const hit = new T.Mesh(new T.BoxGeometry(1.5, 1.4, 1.3), unseen); hit.position.set(x, y + .7, z); root.add(hit); hit.updateWorldMatrix(true, false);
-    this.pres.city.targets.push({ object: hit, id: 'rook.loft', kind: 'site', label: 'Finch’s cache', hint: 'LEAVE THE CRATE', position: hit.getWorldPosition(new T.Vector3()), when: () => this.crate.carrying });
+    this.pres.city.targets.push({ object: hit, id: 'rook.loft', kind: 'site', label: 'Finch’s cache', hint: 'LEAVE THE CRATE', position: hit.getWorldPosition(new T.Vector3()), when: () => this.crate.carrying && !this.crate.custody });
   }
   /** The Great Main's regulator, put back to work once the governors are delivered: the maintenance catwalk becomes a way across (decks and
    * colliders that exist only then, a ladder at each end), the cabinets' gauges burn aether-blue, the pipe is banded in clean brass, steam
@@ -96,7 +96,7 @@ export class RookYard {
     tick(g, -9.9, 1.1, 29.56, .26, 0); tick(g, -8.5, .2, 32.55, .5, 0, true); cyl(g, -7.3, .95, 32.4, .03, 1.8, mats.iron); sphere(g, -7.3, 1.9, 32.4, .09, aether); bake(g);
   }
   /** The crate is left under the tarp: the third step, and the toast that says what it was for. */
-  private receive() { if (!canDivert(this.rook) || !this.pres.city.economy.resolve('greatMain', 'resistance', 'rook.diverted')) return false; this.pres.city.onEvent(HOLD.scrap!.delivered); return true; }
+  private receive() { if (this.crate.custody) { if (!this.pres.city.economy.resolve('greatMain', 'ordinance', 'rook.custody')) return false; this.pres.city.onEvent(HOLD.scrap!.signedIn); return true; } if (!canDivert(this.rook) || !this.pres.city.economy.resolve('greatMain', 'resistance', 'rook.diverted')) return false; this.pres.city.onEvent(HOLD.scrap!.delivered); return true; }
   private get rook() { return this.pres.city.economy.state.resist.rook; }
   private get contact() { return clerkContact(this.pres.city.economy.state.properties.scrap.level, this.outcome, this.rook); }
   /** E on the clerk: his word, and for the keeper the crate on the shoulder under signature; the toast if there is one. */
@@ -111,7 +111,7 @@ export class RookYard {
   private get eyes() { return this.pres.workers[this.clerk].person.group; }
   /** The clerk is facing the held stock and could see the Steward at it. */
   get watching() { return this.held && this.onDuty && inView(this.pres.city, this.eyes, this.viewer, 10, .75); }
-  sync() { const r = this.rook, done = catwalkRestored(this.outcome), o = this.pres.steamOrigins, i = o.indexOf(this.steam); this.ticks.visible = r >= 1; this.collect.visible = r >= 1 && this.outcome === 'base'; this.waiting.visible = this.outcome === 'base'; this.under.visible = this.restored.visible = done;
+  sync() { const r = this.rook, done = catwalkRestored(this.outcome), o = this.pres.steamOrigins, i = o.indexOf(this.steam); this.ticks.visible = r >= 1 && this.outcome !== 'ordinance'; this.collect.visible = r >= 1 && this.outcome !== 'resistance'; this.waiting.visible = this.outcome === 'base'; this.under.visible = this.restored.visible = done;
     if (done && i < 0) o.push(this.steam); else if (!done && i >= 0) o.splice(i, 1); }
   /** Outdoors in the Great Main's street, or up on its roofs' level below the leads: not in a room, not behind a building. */
   private seen(v: T.Vector3) { return Math.abs(v.x) < 14 && v.y < 14.5 && !atHome(v.x, v.y, v.z); }
