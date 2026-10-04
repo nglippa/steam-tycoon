@@ -139,7 +139,7 @@ export function businessBody(g:T.Group,index:number){const paint=facadePaints[in
     pressureRing(g,0,5.3,f+.18,.9,mats.brass);}
   if(index===2){// Engineered: symmetric stepped mass around a braced instrument tower.
     for(const side of [-1,1]){const cx=side*5.85;box(g,cx,6.5,0,5.3,4.2,11,paint);cornice(cx,8.65,0,5.3,11);railing(g,cx,8.75,f+.1,5);windowUnit(g,side*4.9,5,f+.03,true,1.2,2.2,'grid');
-      box(g,side*7.1,6.2,f+.08,1.1,3.2,.08,mats.cream);box(g,side*7.1,6.2,f+.1,1.25,3.35,.04,mats.brass);wingedValve(g,side*7.1,7,f+.16,.9);
+      box(g,side*7.1,6.2,f+.08,1.1,3.2,.08,mats.cream);box(g,side*7.1,6.2,f+.12,1.25,3.35,.04,mats.brass);wingedValve(g,side*7.1,7,f+.16,.9);
       pipe(g,[[side*8,9.3,f-.4],[side*3.4,9.3,f-.4],[side*3.4,12.6,f-.4]],.08,mats.brass);}
     box(g,0,9.2,0,6.4,9.6,11,paint);cornice(0,14.05,0,6.4,11);for(const x of [-3.2,3.2])box(g,x,9.2,f+.12,.4,9.6,.3,mats.stone);
     for(const y of [5,8.4])for(const x of [-1.6,1.6])windowUnit(g,x,y,f+.03,true,1.1,2.3,'grid');

@@ -90,7 +90,7 @@ export class Presentation {
     for(const side of [-1,1])for(const z of [28,2,-30]){
 
       const label=new T.Group();label.position.set(side*11.9,3.7,z+3);label.rotation.y=side<0?Math.PI/2:-Math.PI/2;g.add(label);
-      box(label,0,0,0,2,.9,.15,mats.iron);sign(label,z===28?'BOILER ROW':z===2?'FINCH YARD':'BELLWEATHER','LOWWORKS • 07',0,0,.1,1.8,.75);
+      box(label,0,0,.04,2,.9,.16,mats.iron);sign(label,z===28?'BOILER ROW':z===2?'FINCH YARD':'BELLWEATHER','LOWWORKS • 07',0,0,.13,1.8,.75);
     }
     // Foreground pockets are outside the central walking and cart lanes.
     for(const [x,z] of [[-8,59],[8,7]] as number[][]){
