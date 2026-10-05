@@ -1,5 +1,5 @@
 import * as T from 'three';
-import { box, cyl, sphere, torus, beam, bake, sign, mats, crate, type Material } from './assets';
+import { box, holed, cyl, sphere, torus, beam, bake, sign, mats, crate, type Material } from './assets';
 import { V, cable, artMats, labeledCrate, canopy, poster } from './art-kit';
 import { emberChalk, decalMat, occupationMats, ancientMats, lightCone } from './factions';
 import { Staged, shown, type Shown } from './layers';
@@ -23,6 +23,9 @@ const W = { x0: -24.7, x1: -13.3, z0: 5.3, zN: 10.6, zS: 17.4, z1: 22.6, tower: 
 const chalk = decalMat(emberChalk, .92), unseenMat = new T.MeshBasicMaterial({ visible: false });
 /** Where the Steward lives: the room's floor, and where they stand when they wake or are walked home. */
 export const HOME = { floor: 8.45, x: -3.2, z: 5.6, yaw: Math.PI };
+/** The shaft from the room's ceiling trap up to the Leads: the ladder (rails on its north side, the climb line 0.4 m off them) runs down it, and it is cut through
+ * everything between (the ceiling, the span's cornice and roof in presentation.ts, the duckboards), along the middle of its lining. */
+export const HATCH = { x: -5.5, z: 4.75, cut: [-5.98, -5.02, 4.27, 5.23] } as const;
 
 export class Roofwalk {
   /** The room's west door, hung only for the opening scene: shut while someone knocks, thrown open for the guards. */
@@ -33,7 +36,7 @@ export class Roofwalk {
   constructor(p: Presentation) { const city = this.city = p.city, s = new T.Group(), d = new T.Group(); p.root.add(this.root); this.root.add(s, d, this.live, this.governors, this.pennants);
     city.roofAt(-19, 14, LAND - .05); for (const x of [-12.6, 12.6]) city.roofAt(x, 5.6, LEADS - .1);
     // The duckboards: timber on iron saddles over the ridge, a rail each side, the chimneys alongside.
-    box(s, .7, LEADS - .06, 4.2, 24.6, .12, 2, mats.wood); for (let x = -11; x <= 13; x += 3) { box(s, x, LEADS - .2, 4.2, .12, .16, 2.1, mats.iron); box(s, x, 13.2, 3.4, .1, 1.5, .1, mats.iron); }
+    holed(s, .7, LEADS - .06, 4.2, 24.6, .12, 2, HATCH.cut, mats.wood); for (let x = -11; x <= 13; x += 3) { holed(s, x, LEADS - .2, 4.2, .12, .16, 2.1, HATCH.cut, mats.iron); box(s, x, 13.2, 3.4, .1, 1.5, .1, mats.iron); }
     // The ladders come up through gaps in the north rail, as the Great Main catwalk's do.
     city.deck(-11.6, 13, 3.2, 5.2, LEADS); for (const [x0, x1] of [[-13.3, -12.95], [-11.85, 11.65], [12.75, 13]]) parapet(s, city, x0, 3.2, x1, 3.2, LEADS, mats.iron, false); parapet(s, city, -11.6, 5.2, 13, 5.2, LEADS, mats.iron, false); parapet(s, city, 13, 3.2, 13, 5.2, LEADS, mats.iron, false);
     // The landing where the walk meets the workshop: one step up, then one more onto the terrace.
@@ -64,7 +67,7 @@ export class Roofwalk {
     // HOME. A rented room over the street in the Market Bridge-house, reached by a hatch in the Leads. Two windows:
     // north to the clock and the square, south down the Great Main. Nobody watches a Steward at home.
     { const h = new T.Group(); this.root.add(h); const F = HOME.floor, C = 11.4, X0 = -6.2, X1 = -.2, cx = (X0 + X1) / 2, P2 = mats.cream, mid = (F + C) / 2;
-      box(h, cx, F - .05, 5.6, 6.2, .1, 3.1, mats.wood); box(h, cx, C + .05, 5.6, 6.2, .1, 3.1, P2); box(h, X1 + .05, mid, 5.6, .1, C - F, 3.1, P2);
+      box(h, cx, F - .05, 5.6, 6.2, .1, 3.1, mats.wood); holed(h, cx, C + .05, 5.6, 6.2, .1, 3.1, HATCH.cut, P2); box(h, X1 + .05, mid, 5.6, .1, C - F, 3.1, P2);
       // The west wall has the door: 1.3 m between jambs (the player needs a metre and a bit), z 4.35..5.65, 2.1 m high, and the corridor behind it.
       box(h, X0 - .05, mid, 4.2, .1, C - F, .3, P2); box(h, X0 - .05, mid, 6.4, .1, C - F, 1.5, P2); box(h, X0 - .05, (F + 2.1 + C) / 2, 5, .1, C - F - 2.1, 1.3, P2);
       for (const z of [4.35, 5.65]) box(h, X0 - .05, F + 1.05, z, .14, 2.1, .08, mats.wood); box(h, X0 - .05, F + 2.14, 5, .14, .08, 1.38, mats.wood);
@@ -78,20 +81,22 @@ export class Roofwalk {
       box(h, -4.4, F + .22, 6.62, .9, .44, .5, mats.wood); for (const dx of [-.3, .3]) box(h, -4.4 + dx, F + .22, 6.36, .06, .46, .02, mats.iron);
       shelves(h, -5.95, F + .9, 6.2, 1.2, false, 2, .8); box(h, -.28, F + 1.75, 5.2, .04, .9, .5, artMats.fadedPaint); box(h, -.3, F + 2.2, 5.2, .08, .05, .05, mats.iron); poster(h, -.27, F + 1.7, 6.2, 0, -Math.PI / 2);
       box(h, -3.1, F + .01, 5.75, 2.2, .02, 1.2, artMats.wine);
-      // THE HATCH. A proper roof scuttle: a timber coaming round a dark well, the lid thrown back on its strap hinges and held by a stay,
-      // the ladder's rails standing up out of it. Below, the same opening is a framed trap in the room's ceiling.
-      { const hx = -5.5, hz = 4.4, W2 = .5; box(h, hx, LEADS + .012, hz, .86, .02, .86, mats.dark);
+      // THE HATCH. A proper roof scuttle: a timber coaming round an open well, the lid thrown back on its strap hinges and held by a stay,
+      // the ladder's rails standing up out of it. Below, the same opening is a framed trap in the room's ceiling, and between them
+      // a boarded shaft lines the cut through the span's roof, so the climb is down a clear 0.9 m well with nothing to pass through.
+      { const hx = HATCH.x, hz = HATCH.z, W2 = .5;
         for (const [x, z, w, d] of [[hx, hz - W2, 1.1, .1], [hx, hz + W2, 1.1, .1], [hx - W2, hz, .1, 1.1], [hx + W2, hz, .1, 1.1]]) { box(h, x, LEADS + .15, z, w, .3, d, mats.wood); box(h, x, LEADS + .31, z, w + .04, .03, d + .04, mats.iron); }
-        const lid = new T.Group(); lid.position.set(hx - W2 - .06, LEADS + .32, hz); lid.rotation.z = 1.32; h.add(lid); box(lid, .5, 0, 0, 1.02, .07, 1.06, mats.wood); for (const dz of [-.34, .34]) box(lid, .5, .04, dz, 1.04, .02, .09, mats.iron); box(lid, .92, .08, 0, .05, .06, .3, mats.iron);
-        beam(h, V(hx - W2 - .3, LEADS + 1.02, hz + .45), V(hx - .1, LEADS + .32, hz + W2), .014, mats.iron); for (const dz of [-.3, .3]) box(h, hx - W2 - .05, LEADS + .32, hz + dz, .14, .06, .12, mats.iron);
-        box(h, hx, C - .012, 4.66, .92, .03, .8, mats.dark); for (const [x, z, w, d] of [[hx, 4.24, 1.1, .08], [hx, 5.08, 1.1, .08], [hx - .5, 4.66, .08, .9], [hx + .5, 4.66, .08, .9]]) box(h, x, C - .05, z, w, .1, d, mats.wood); }
+        const lid = new T.Group(); lid.position.set(hx - W2 - .06, LEADS + .32, hz); lid.rotation.z = 1.82; h.add(lid); box(lid, .5, 0, 0, 1.02, .07, .86, mats.wood); for (const dz of [-.3, .3]) box(lid, .5, .04, dz, 1.04, .02, .09, mats.iron); box(lid, .92, .08, 0, .05, .06, .3, mats.iron);
+        beam(h, V(hx - W2 - .3, LEADS + 1.02, hz - .45), V(hx - .1, LEADS + .32, hz - W2), .014, mats.iron); for (const dz of [-.3, .3]) box(h, hx - W2 - .05, LEADS + .32, hz + dz, .14, .06, .12, mats.iron);
+        for (const [x, z, w, d] of [[hx, hz - .48, 1.02, .06], [hx, hz + .48, 1.02, .06], [hx - .48, hz, .06, .9], [hx + .48, hz, .06, .9]]) box(h, x, (C + LEADS) / 2, z, w, LEADS - C, d, mats.wood);
+        for (const [x, z, w, d] of [[hx, hz - .49, 1.06, .08], [hx, hz + .49, 1.06, .08], [hx - .49, hz, .08, .9], [hx + .49, hz, .08, .9]]) box(h, x, C - .05, z, w, .1, d, mats.wood); }
       // Enough to say whose room it is: a mug and the ledger on the table, boots by the bed, a second blanket folded at its foot.
       cyl(h, -3.42, F + .88, 4.86, .045, .1, mats.copper); box(h, -2.95, F + .84, 4.8, .3, .05, .22, artMats.wine); for (const dx of [0, .16]) { box(h, -2.7 + dx, F + .1, 6.05, .11, .2, .26, mats.dark); box(h, -2.7 + dx, F + .26, 5.96, .11, .16, .1, mats.dark); }
       box(h, -2.05, F + .53, 6.4, .34, .08, .8, artMats.ochre); box(h, -.3, F + 1.5, 4.7, .03, .4, .3, mats.wood); box(h, -.31, F + 1.5, 4.7, .02, .3, .22, artMats.fadedPaint);
       bake(h); city.deck(X0 - .25, X1 + .25, 4, 7.2, F); this.chalkMark = bridgeHouse(p, this.root, this.live);
       for (const [x, z, w, d] of [[cx, 3.95, 6.6, .1], [cx, 7.25, 6.6, .1], [X0 - .3, 4.125, .1, .45], [X0 - .3, 6.475, .1, 1.65], [X1 + .3, 5.6, .1, 3.4]]) city.collider(x, z, w, d, C + .2, undefined, undefined, F - .25);
       city.collider(X0 - .3, 5, .1, 1.3, C + .2, undefined, () => !this.door.shut, F - .25); this.door.leaf.position.set(X0 - .05, F, 4.35); this.door.leaf.visible = false; box(this.door.leaf, 0, 1.03, .65, .07, 2.06, 1.28, mats.wood); box(this.door.leaf, -.05, 1.0, 1.1, .03, .1, .1, mats.brass); this.live.add(this.door.leaf);
-      ladder(h, this.live, city, 'ladder.home', 'The hatch to your room', -5.5, 4.32, F, LEADS, 0, 1, mats.iron, [0, .1]);
+      ladder(h, this.live, city, 'ladder.home', 'The hatch to your room', HATCH.x, HATCH.z - .43, F, LEADS, 0, 1, mats.iron, [0, -.6]);
       p.interiors.push({ x: -3.2, y: F + 2.2, z: 5.6, color: '#ffd9a0', reach: 4.4, power: 26 });
       const spot = (id: string, kind: 'home' | 'signal' | 'door', label: string, hint: string, x: number, y: number, z: number, w: number, hh: number, d: number, when?: () => boolean) => { const hit = new T.Mesh(new T.BoxGeometry(1, 1, 1), unseenMat); hit.position.set(x, y, z); hit.scale.set(w, hh, d); this.live.add(hit); hit.updateWorldMatrix(true, false); city.targets.push({ object: hit, id, kind, label, hint, position: hit.getWorldPosition(new T.Vector3()), when }); };
       // The door only answers during the opening, while somebody is knocking.

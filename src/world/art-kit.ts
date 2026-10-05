@@ -66,10 +66,14 @@ export function lampHead(g:T.Object3D,x:number,y:number,z:number,rich=false) {
     const cap=new T.Mesh(new T.ConeGeometry(.27,.23,4),rich?mats.brass:mats.iron);cap.position.set(x+dx,y+height+.55,z);cap.rotation.y=Math.PI/4;g.add(cap);
   }
 }
-export function roof(g:T.Object3D,x:number,y:number,z:number,width:number,height:number,depth:number,mat:Material=mats.roof) {
-  const shape=new T.Shape();shape.moveTo(-width/2,0);shape.lineTo(0,height);shape.lineTo(width/2,0);shape.closePath();
-  const geo=new T.ExtrudeGeometry(shape,{depth,bevelEnabled:false});geo.translate(0,0,-depth/2);
-  const mesh=new T.Mesh(geo,mat);mesh.position.set(x,y,z);g.add(mesh);
+/** A gable roof. `hole` ([across0, across1, along0, along1] in the roof's own frame) leaves a vertical opening through it, for a hatch. */
+export function roof(g:T.Object3D,x:number,y:number,z:number,width:number,height:number,depth:number,mat:Material=mats.roof,hole?:readonly number[]) {
+  const V2=(u:number,v:number)=>new T.Vector2(u,v),half=width/2,rise=(u:number)=>height*(1-Math.abs(u)/half);
+  // the gable's cross-section between u0 and u1, pushed from d0 to d1 along the roof
+  const part=(u0:number,u1:number)=>new T.Shape([V2(u0,0),V2(u1,0),V2(u1,rise(u1)),...(u0<0&&u1>0?[V2(0,height)]:[]),V2(u0,rise(u0))].filter((p,i,a)=>!i||!p.equals(a[i-1])&&!p.equals(a[0])));
+  const run=(shapes:T.Shape[],d0:number,d1:number)=>{const geo=new T.ExtrudeGeometry(shapes,{depth:d1-d0,bevelEnabled:false});geo.translate(0,0,d0);const mesh=new T.Mesh(geo,mat);mesh.position.set(x,y,z);g.add(mesh);};
+  if(!hole)run([part(-half,half)],-depth/2,depth/2);
+  else{const [u0,u1,d0,d1]=hole;run([part(-half,half)],-depth/2,d0);run([part(-half,half)],d1,depth/2);run([part(-half,u0),part(u1,half)],d0,d1);}
   for(const dz of [-depth/2,depth/2]) {beam(g,V(x-width/2,y,z+dz),V(x,y+height,z+dz),.055,mats.iron);beam(g,V(x,y+height,z+dz),V(x+width/2,y,z+dz),.055,mats.iron);}
   box(g,x,y+height,z,.12,.14,depth+.4,mats.brass);
 }

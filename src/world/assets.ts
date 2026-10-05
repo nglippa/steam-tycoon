@@ -106,6 +106,11 @@ export const displayGlass = new T.MeshBasicMaterial({ color: '#cfe7ea', transpar
 export type Material = T.Material;
 const boxGeo = new T.BoxGeometry(1, 1, 1); const cylinderGeo = new T.CylinderGeometry(1, 1, 1, 12); const sphereGeo = new T.SphereGeometry(1, 12, 8);
 export function box(g: T.Object3D, x: number, y: number, z: number, w: number, h: number, d: number, m: Material = mats.iron) { let geometry = boxGeo; if (m instanceof T.MeshStandardMaterial && m.map) { geometry = boxGeo.clone(); const uv = geometry.attributes.uv; for (let i = 0; i < uv.count; i++) { const face = Math.floor(i / 4); const sx = face < 2 ? d / 2 : w / 2; const sy = face === 2 || face === 3 ? d / 2 : h / 2; uv.setXY(i, uv.getX(i) * sx, uv.getY(i) * sy); } } const mesh = new T.Mesh(geometry, m); mesh.position.set(x, y, z); mesh.scale.set(w, h, d); mesh.castShadow = mesh.receiveShadow = true; g.add(mesh); return mesh; }
+/** A box with a vertical hole `[x0, x1, z0, z1]` through it, built as the boxes round the hole: a hatch through a slab. */
+export function holed(g: T.Object3D, x: number, y: number, z: number, w: number, h: number, d: number, [hx0, hx1, hz0, hz1]: readonly number[], m: Material = mats.iron) {
+  const x0 = x - w / 2, x1 = x + w / 2, z0 = z - d / 2, z1 = z + d / 2, a = Math.max(x0, hx0), b = Math.min(x1, hx1);
+  for (const [l, r, n, s] of [[x0, Math.min(x1, hx0), z0, z1], [Math.max(x0, hx1), x1, z0, z1], [a, b, z0, Math.min(z1, hz0)], [a, b, Math.max(z0, hz1), z1]]) if (r > l && s > n) box(g, (l + r) / 2, y, (n + s) / 2, r - l, h, s - n, m);
+}
 export function cyl(g: T.Object3D, x: number, y: number, z: number, r: number, h: number, m: Material = mats.iron) { const mesh = new T.Mesh(cylinderGeo, m); mesh.position.set(x, y, z); mesh.scale.set(r, h, r); mesh.castShadow = mesh.receiveShadow = true; g.add(mesh); return mesh; }
 export function sphere(g: T.Object3D, x: number, y: number, z: number, r: number, m: Material = mats.brass) { const mesh = new T.Mesh(sphereGeo, m); mesh.position.set(x, y, z); mesh.scale.setScalar(r); g.add(mesh); return mesh; }
 export function torus(g: T.Object3D, x: number, y: number, z: number, r: number, tube: number, m: Material = mats.brass) { const mesh = new T.Mesh(new T.TorusGeometry(r, tube, 6, 20), m); mesh.position.set(x, y, z); g.add(mesh); return mesh; }
