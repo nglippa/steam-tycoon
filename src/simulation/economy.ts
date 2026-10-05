@@ -149,7 +149,7 @@ export type CityFacts = ReturnType<typeof cityFacts>;
 export interface PropertyState { level: number; automated: boolean; stored: number; progress: number }
 import { HOME_TIERS } from './home';
 import { PORCH_ANSWERS } from './intro';
-import { advance, advanceFinch as advanceFinchStage, advanceCall as advanceCallStage, RESIST_DONE, FINCH_DONE, CALL_DONE } from './resist';
+import { advance, advanceFinch as advanceFinchStage, advanceCall as advanceCallStage, RESIST_DONE, FINCH_DONE, CALL_DONE, CALL_SENDING, callHour } from './resist';
 import { freshAlignment, resolve, commit, callOffered, COMMITS, DEEDS, SIDES, CONTESTED, type Alignment, type ContestedId, type DeedId, type Side } from './alignment';
 import { occupation, bandOf, BANDS, curfewIn, curfewHour, caught, cooled, clock, dayAt, districtAt, DISTRICTS, HEAT, type DistrictId, type Band, type Effects, type Enforcement, type Incident, type Outcome } from './occupation';
 /** One day in Terra, in seconds of play. */
@@ -315,6 +315,8 @@ export class Economy {
     const s = this.state, next = callOffered(s.alignment, s.sites.market, SITE_LIBERATED) ? commit(s.alignment, side, by, s.playtime) : null; if (!next) return false;
     s.alignment = next; s.resist.call = CALL_DONE; this.onChange('alignment', 'commit'); this.save(); return true;
   }
+  /** Keep watch until dusk, for the ward call only: the one canonical clock moves forward to the start of the sending window (19:00) and nothing else does. It pays nothing, cools nothing, is not sleep (no award, no heat change, no 'sleep' event) and is refused unless the call is offered and it is day. Income, the away and offline awards, heat, the playtime that the crackdown, quiet and nightly-lamp timers run on, and `signalAt` are all untouched. */
+  watchUntilDusk(now = Date.now()) { const s = this.state; if (!callOffered(s.alignment, s.sites.market, SITE_LIBERATED) || callHour(s.day)) return false; s.day = dayAt(CALL_SENDING); this.save(now); return true; }
   reset() { this.state = freshSave(); this.offlineAward = 0; this.storage.clear(); this.save(); }
 }
 export function format(n: number) { return n >= 1e6 ? (n / 1e6).toFixed(2) + 'm' : n >= 1e4 ? (n / 1000).toFixed(1) + 'k' : Math.floor(n).toLocaleString('en-US'); }

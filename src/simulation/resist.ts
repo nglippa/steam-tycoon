@@ -77,7 +77,8 @@ export const acknowledgement = (side: Side | null) => side ? ACK[side] : null;
 export const CALL_DONE = 2;
 export const advanceCall = (stage: number, to: number) => to === stage + 1 && to < CALL_DONE ? to : stage;
 /** After dusk: the relay only speaks from seven in the evening to five in the morning. */
-export const callHour = (day: number) => { const h = clock(day).hour; return h >= 19 || h < 5; };
+export const CALL_SENDING = 19;
+export const callHour = (day: number) => { const h = clock(day).hour; return h >= CALL_SENDING || h < 5; };
 /** The ward call (the Weathervane's relay against the Sael Gate's sill): every word of it, in one place. The regime says "citizen" and never "Steward"; only Finch's hand, after a resistance commitment, says "Steward". The stage-V lines (the hand's and the officer's aftermath, the plates) are written here now and spoken by nothing yet. */
 export const CALL = {
   plate: 'DIRECTORATE • MOVEMENT ORDER 12 • A column is ordered into Market Square by the Great Main. Lamps, mirrors and pattern cards are to be surrendered to the officer at the Sael Gate. Keyholders will report.',
@@ -100,3 +101,15 @@ export const CALL = {
 } as const;
 /** What Finch's hand says of the order while it stands: by the side the deeds lean to, or the open offer. */
 export const handOfferLine = (side: Side | null) => CALL.handOffer[side ?? 'open'];
+/** The send-and-answer sequence, in seconds after the lamp is turned up (about 35 s; the player keeps full control throughout and nothing depends on where they look). The lens flashes, long and short (on, off, on, off ... in seconds, repeating) until `flash`; the answering lamps light one by one at `lamps`; the answer is announced at `answered`; the roofs have stirred from `stirred` and the Directorate has taken notice from `alerted`. None of it is saved: the commitment is the whole of the durable state, and a reload shows the end of it. */
+export const CALL_PACE = { flash: 25, pattern: [1.2, .5, .4, .5, .4, .5, 1.2, .9], lamps: [5, 9, 13, 17, 21, 24, 27], answered: 29, stirred: 29, alerted: 32 } as const;
+const PERIOD = CALL_PACE.pattern.reduce((a, b) => a + b, 0);
+/** Whether the lens is lit `t` seconds after sending: flashing to the pattern, then steadily. */
+export function lensOn(t: number) { if (t >= CALL_PACE.flash) return true; let u = t % PERIOD; for (let i = 0; i < CALL_PACE.pattern.length; i++) { u -= CALL_PACE.pattern[i]; if (u < 0) return i % 2 === 0; } return true; }
+/** How many of the answering lamps are lit `t` seconds after sending. */
+export function lampsLit(t: number) { let n = 0; for (const s of CALL_PACE.lamps) if (t >= s) n++; return n; }
+/** What the relay's hint says: the sequence of the shutter, the card, the dusk and the lamp, and after a commitment only what is left to look at. */
+export function relayHint(commit: Side | null, open: boolean, seated: boolean, carrying: boolean, day: number) {
+  if (commit) return commit === 'resistance' ? 'LOOK CLOSER' : 'SEALED';
+  if (!open) return 'OPEN THE SHUTTER'; if (!seated) return carrying ? 'SET THE CARD' : 'CLOSE THE SHUTTER'; return callHour(day) ? 'SEND THE CALL' : 'AFTER DUSK';
+}
