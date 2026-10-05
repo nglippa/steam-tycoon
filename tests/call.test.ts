@@ -11,13 +11,14 @@ const blank: unknown = new Proxy(function () {}, { get: (_, k) => k === Symbol.t
 (globalThis as { document?: unknown }).document ??= { createElement: () => blank };
 const { WardCall } = await import('../src/world/ward-call.ts');
 const { Consignment } = await import('../src/world/logistics.ts');
+type Collider = { x: number; z: number; w: number; d: number; h: number; open?: () => boolean }; type Person = { x: number; z: number; yaw: number; kind: string; when?: () => boolean };
 /** A world with the two sites settled (any mix) and the square held: the call is on offer. */
 function world(settled = true) {
-  const hand = new T.Group(); hand.position.set(-16.4, 0, 25); const officer = new T.Group(); officer.position.set(5.75, 0, -34.55);
-  const pres = { city: { economy: new Economy(memory()), deck() {}, collider() {}, targets: [] as { id: string; when?: () => boolean; hint?: string }[], ladders: [], onEvent() {} }, root: new T.Group(), workers: [{ person: { group: hand } }, { person: { group: officer } }], addWorker: () => 0, finchRun: { hand: 0 }, marketSquare: { officer: 1 } };
+  const colliders: Collider[] = [], people: Person[] = []; const hand = new T.Group(); hand.position.set(-16.4, 0, 25); const officer = new T.Group(); officer.position.set(5.75, 0, -34.55);
+  const pres = { city: { economy: new Economy(memory()), deck() {}, collider: (x: number, z: number, w: number, d: number, h: number, _gate?: string, open?: () => boolean) => { colliders.push({ x, z, w, d, h, open }); }, targets: [] as { id: string; when?: () => boolean; hint?: string }[], ladders: [], onEvent() {} }, root: new T.Group(), workers: [{ person: { group: hand } }, { person: { group: officer } }], addWorker: (x: number, z: number, yaw: number, kind: string, o?: { when?: () => boolean }) => { people.push({ x, z, yaw, kind, when: o?.when }); return 0; }, finchRun: { hand: 0 }, marketSquare: { officer: 1 } };
   const call = new WardCall(pres as never), e = pres.city.economy; if (settled) { e.state.alignment = freshAlignment(); e.state.alignment.outcomes.greatMain = 'resistance'; e.state.alignment.outcomes.finchRun = 'ordinance'; } call.sync();
   const done = () => { Consignment.all = Consignment.all.filter(c => c !== call.card); };
-  return { call, e, pres, hand, done };
+  return { call, e, pres, hand, done, colliders, people };
 }
 test('reading the order and hearing the hand only move the stage; the card and the alignment are untouched', () => {
   const { call, e, hand, done } = world(); const before = JSON.stringify(e.state.alignment); const lines: string[] = []; call.onLine = l => { lines.push(l.text); return true; };
@@ -206,4 +207,26 @@ test('only SEND (call.lamp) and SIGN (call.ledger) ever reach Economy.commit, th
   for (let k = 0; k < 800; k++) c2.update(.05, 0, FAR); for (const id of ['call.order', 'call.relay', 'call.frame', 'call.watch', 'call.report', 'call.sill', 'call.lamp']) c2.use(id); assert.deepEqual(by, ['call.sent']); x.done();
   const o = world(), by2: string[] = []; const was2 = o.e.commit.bind(o.e); o.e.commit = (side, id) => { by2.push(id); return was2(side, id); }; o.call.update(.1, 0, AT_BOX); o.call.card.take(); o.call.use('call.report'); for (let k = 0; k < 60; k++) o.call.update(.1, 0, AT_BOX); o.call.use('call.sill'); o.call.use('call.lamp'); assert.deepEqual(by2, []);
   o.call.use('call.report'); o.call.use('call.ledger'); for (let k = 0; k < 400; k++) o.call.update(.05, 0, FAR); for (const id of ['call.order', 'call.relay', 'call.frame', 'call.report', 'call.sill', 'call.lamp']) o.call.use(id); assert.deepEqual(by2, ['call.reported']); o.done();
+});
+type Square = Inner & { lanternHalos: T.Mesh[] };
+/** The Steward's own ground: is a point on the street blocked by one of the call's colliders (the same test as City.blocked, with its .32 margin)? */
+const walled = (cs: Collider[], x: number, z: number) => cs.some(c => !c.open?.() && x > c.x - c.w / 2 - .32 && x < c.x + c.w / 2 + .32 && z > c.z - c.d / 2 - .32 && z < c.z + c.d / 2 + .32);
+test('the Directorate’s cordon and Order 12’s stand wait behind the latch, are passable while hidden, never close the 4 m gap across the south approach, and nothing of the answer is on the banner', () => {
+  const w = committed('ordinance', true), i = inner(w.call), cs = w.colliders.filter(c => c.open), line: [number, number][] = []; for (let z = -18; z >= -29; z -= .25) line.push([0, z]);
+  assert.ok(cs.some(c => c.z === -24.5 && c.x === -4 && c.w === 4) && cs.some(c => c.z === -24.5 && c.x === 4 && c.w === 4)); assert.equal(i.placed.visible, false); assert.ok(cs.every(c => c.open!())); for (let x = -7; x <= 7; x += .25) assert.equal(walled(cs, x, -24.5), false); assert.ok(line.every(([x, z]) => !walled(cs, x, z)));
+  while (w.call.seq >= 0) w.call.update(.05, 0, AT_BOX); w.call.update(.1, 0, new T.Vector3(0, 1.75, -31 + 46)); assert.equal(i.placed.visible, true); assert.ok(cs.every(c => !c.open!()));
+  assert.equal(walled(cs, -4, -24.5), true); assert.equal(walled(cs, 4, -24.5), true); assert.equal(walled(cs, 2.6, -26.2), true); for (let x = -1.6; x <= 1.6; x += .1) assert.equal(walled(cs, x, -24.5), false, `gap at ${x.toFixed(1)}`); assert.ok(line.every(([x, z]) => !walled(cs, x, z)));
+  assert.ok(new T.Box3().setFromObject(i.placed).max.y < 2.5, 'nothing of the placed answer stands on the gallery banner (y 6.3-8.2)'); i.placed.visible = false; assert.ok(cs.every(c => c.open!())); w.done();
+});
+test('the Embers’ watchers stand in the open square facing the gate, off the central line, and are the people of a stirred resistance commit; the lanterns are the risen group’s own, three, with halos put away close up', () => {
+  const w = committed('resistance', true), sq = w.call as unknown as Square, watchers = w.people.filter(p => p.kind === 'watch');
+  assert.deepEqual(watchers.map(p => [p.x, p.z]), [[-5.2, -25.6], [-4.4, -26.3], [5, -26], [4.3, -26.8]]); assert.ok(watchers.every(p => Math.abs(p.x) > 1.5 && Math.abs(p.yaw - Math.PI) < 1e-9)); assert.ok(watchers.every(p => !p.when!())); const v = new T.Vector3(); for (let k = 0; k < 800 && !sq.alerted; k++) w.call.update(.05, 0, v);
+  assert.ok(watchers.every(p => p.when!())); assert.equal(sq.lanternHalos.length, 3); assert.ok(sq.lanternHalos.every(h => sq.risen.children.includes(h.parent!) && h.parent!.parent === sq.risen));
+  const lamp = sq.lanternHalos[0].parent!.position; w.call.update(1.1, 0, new T.Vector3(lamp.x - 1.5, 1.75, lamp.z)); assert.equal(sq.lanternHalos[0].visible, false); assert.equal(sq.lanternHalos[1].visible, true); w.call.update(1.1, 0, new T.Vector3(0, 1.75, -18)); assert.ok(sq.lanternHalos.every(h => h.visible));
+  sq.risen.visible = false; assert.ok(sq.lanternHalos.every(h => { let o: T.Object3D | null = h; while (o && o !== sq.risen) o = o.parent; return o === sq.risen; })); w.done();
+});
+test('liberating the square while the send sequence is live ends it at once: the lit lens and every answering lamp stand, they are not square dressing', () => {
+  const w = committed('resistance', true), { call, e } = w, i = inner(call); assert.ok(call.seq >= 0); assert.ok(call.lamps.every(l => !l.visible));
+  call.update(2, 0, new T.Vector3()); assert.ok(call.lamps.some(l => !l.visible)); assert.ok(call.seq >= 0); e.state.sites.market = SITE_LIBERATED; call.update(.05, 0, new T.Vector3()); assert.equal(call.seq, -1); assert.equal(call.lens.visible, true); assert.ok(call.lamps.every(l => l.visible)); assert.deepEqual([i.risen.visible, i.peopleOn], [false, false]); assert.equal(e.state.alignment.commit?.side, 'resistance'); w.done();
+  const s = committed('resistance', true); s.call.update(.5, 0, new T.Vector3()); s.e.state.sites.market = SITE_LIBERATED; s.call.sync(); assert.equal(s.call.seq, -1); assert.equal(s.call.lens.visible, true); assert.ok(s.call.lamps.every(l => l.visible)); s.done();
 });
