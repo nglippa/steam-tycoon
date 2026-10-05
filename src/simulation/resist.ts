@@ -1,6 +1,6 @@
 import { PORCH_ANSWERS } from './intro';
 import type { PropertyId } from './economy';
-import { crateHeld, strangerDue, runOpen, type SiteOutcome } from './alignment';
+import { crateHeld, strangerDue, runOpen, type Side, type SiteOutcome } from './alignment';
 /** The first resistance loop, as rules. One number per saved game (`Save.resist.rook`) says how far the Steward has come:
  * 0 untouched, 1 reported for work, 2 noticed the chalk, 3 delivered (the city shows it), 4 the stranger has been and gone.
  * It only moves forward, one step at a time, and never replays once it has reached 4. The world reads it; nothing here draws. */
@@ -59,9 +59,17 @@ export const FINCH = {
   pawl: 'The pawl is worn to a hook. The winch will not hold a load without the governor, and the governor is stamped for the Directorate’s own count. Pull the pawl pin and the chain simply lets go.',
   released: 'You take the release off the bench: a pawl pin, a hand’s weight of steel.', governor: 'You take the governor off the bench. Directorate stamp on the housing, oxblood seal on the pin.',
   releaseCarrying: 'Get the release to the winch on Finch’s south roof.', governorCarrying: 'Take the governor up to Service Run 7’s winch.',
-  bypassed: 'The pin comes out and the chain runs. The lower flight comes down on its own weight and hangs from the gantry.', certified: 'You fit the governor and sign the plate. The winch takes the load and the grilles go back on their hooks.',
+  bypassed: 'The pin comes out and the chain runs. The lower flight comes down on its own weight and hangs from the gantry.', certified: 'You fit the governor and sign the plate. The winch takes the load; the grilles come off their hooks and the lower flight runs down.',
   crew: ['Finch contract. Go on.', 'Your name’s on the sheet.'],
+  /** At the bench before the pawl is understood. */ wait: 'Look at their winch first. I can’t cut a tooth I haven’t seen described.',
+  /** The certified plate and the ordinance dressing's brass. */ certifiedPlate: 'SERVICE RUN 7 • CERTIFIED • FINCH MECHANICAL',
   plate: 'SERVICE RUN 7 • DIRECTORATE MAINTENANCE • KEEP OFF',
 } as const;
 /** What Finch's hand says, once: the run, and after a lawful Rook crate the bench's owner too. */
 export const handLine = (signedCrate: boolean) => signedCrate ? `${FINCH.handCustody} ${FINCH.hand}` : FINCH.hand;
+/** What the bench offers at this stage: the hand's pawl release (covert) is 'ready' once the pawl is understood and 'wait' before; the Directorate's governor (signed for) from the first word of the run. */
+export const benchOffer = (stage: number, greatMain: SiteOutcome, finchLevel: number, run: SiteOutcome): { release: 'ready' | 'wait' | null; governor: boolean } =>
+  ({ release: canBypass(stage, greatMain, finchLevel, run) ? 'ready' : finchOffered(greatMain, finchLevel, run) ? 'wait' : null, governor: canCertify(stage, greatMain, finchLevel, run) });
+/** The one acknowledgement a leaning Steward gets, once per approach: the Embers' warmth at Finch's yard, the Directorate's recognition at the gate desk. Mixed or uncommitted histories get none. */
+export const ACK: Record<Side, string> = { resistance: 'Kettle’s on, if anyone asks. Nobody will.', ordinance: 'Finch Mechanical. You’re on two of our sheets now.' };
+export const acknowledgement = (side: Side | null) => side ? ACK[side] : null;
