@@ -44,7 +44,7 @@ export class WardCall {
   /** Transient, in memory only (a reload or a New Game puts the card back on the bench and shuts the shutter): the shutter is open, the card is seated in the relay's frame. */
   private open = false; private seated = false;
   /** The gate's own props (a ledge, a ledger and a pen under the sentry box's window while the order stands), the card lying on the sill, and the card pinned to the box's board once it is signed in; the card is on the sill (transient), the officer's approach line was said, and the seconds until the officer asks if you are certain (0 when not waiting). */
-  private sillProps = new T.Group(); private onSill = new T.Group(); private pinned = new T.Group(); private sill = false; private hailed = false; private certain = 0; private near = false;
+  private sillProps = new T.Group(); private onSill = new T.Group(); private pinned = new T.Group(); private sill = false; private hailed = false; private certain = 0; private near = false; private spoken = false;
   /** Seconds since the lamp was turned up while the sequence is live, else -1 (nothing live: after a reload, or once it is over); the answered toast is given once; the lamps' shade is refreshed once a second. */
   seq = -1; private told = false; private shade = 0;
   constructor(private pres: Presentation) {
@@ -68,7 +68,7 @@ export class WardCall {
     const disc = new T.Mesh(new T.CircleGeometry(.68, 28), lampCore); disc.position.set(TX + .035, LY, TZ); disc.rotation.y = Math.PI / 2; this.lens.add(disc); sphere(this.lens, TX + .2, LY, TZ, 1.3, lampHalo);
     sphere(this.sealed, TX + .16, LY + .62, TZ - 1.02, .09, O.oxblood).scale.y = .6; box(this.sealed, TX + .22, LY + .62, TZ - 1.02, .015, .12, .1, mats.brass); for (const [dx, dz, ry] of [[1.5, .5, .3], [1.9, -.2, -.2], [1.1, -.9, .6]]) box(this.sealed, TX + dx, TOP + .008, TZ + dz, .16, .012, .38, mats.dark).rotation.y = ry;
     this.relayTarget = spot('call.relay', 'Relay shutter', 'OPEN THE SHUTTER', TX + .35, TZ, .3, 1.9, () => this.shown, LY, 1.9);
-    spot('call.frame', 'Pattern card in the frame', 'TAKE THE CARD BACK', TX + .5, TZ, .1, .7, () => this.offered && this.seated, LY, .55);
+    spot('call.frame', 'Pattern card in the frame', 'TAKE THE CARD BACK', TX + .5, TZ, .1, .5, () => this.offered && this.seated, LY, .34);
     spot('call.watch', 'The Embers’ lookout', 'KEEP WATCH UNTIL DUSK', LOOKOUT.x, LOOKOUT.z, 1.4, 1.9, () => this.offered && !callHour(this.economy.state.day) && (this.card.carrying || this.seated), GAL + .55, .8);
     // THE SAEL GATE'S SILL. A ledge under the sentry box's window with a ledger and a pen on it while the order stands; the card lies on the ledge once it is reported, and is pinned to a small board on the box's face once it is signed in.
     const sp = this.sillProps; box(sp, SILL.x + .1, SILL.y - .025, SILL.z, .95, .045, .22, O.iron); box(sp, LEDGER.x, SILL.y + .02, SILL.z, .26, .04, .18, mats.dark); box(sp, LEDGER.x - .12, SILL.y + .02, SILL.z, .02, .042, .18, O.oxblood); box(sp, LEDGER.x, SILL.y + .042, SILL.z, .2, .004, .14, artMats.paper); cyl(sp, LEDGER.x + .06, SILL.y + .06, SILL.z + .02, .008, .16, mats.brass).rotation.z = 1.2; bake(sp);
@@ -143,9 +143,11 @@ export class WardCall {
     if (this.sill && this.certain > 0) { this.certain -= dt; if (this.certain <= 0) { this.certain = 0; this.say(CALL.officer.certain); } }
     if (this.offered && here) { if (dist > 16) this.hailed = false; else if (this.near && viewer.y < 4 && !this.hailed && this.onLine({ who: 'Gate officer', text: CALL.officer.approach })) this.hailed = true; } else this.hailed = false;
     // The hand says it once, to someone standing at the bench who is not in a menu, and after Finch's own greeting (the hover line of the yard) has had its moment.
-    if (!this.offered || this.economy.state.resist.call !== 0) { this.hear = 0; return; }
+    if (!this.offered || this.economy.state.resist.call !== 0) { this.hear = 0; this.spoken = false; return; }
     const hand = this.pres.workers[this.pres.finchRun.hand].person.group, near = hand.visible ? Math.hypot(viewer.x - hand.position.x, viewer.z - hand.position.z) : 99;
+    // Heard, the stage moves on only once the Steward has walked away from the hand: any resist event re-arms Finch's own greeting (FinchRun.sync), which would otherwise talk over this line.
+    if (this.spoken) { if (near > 6) { this.spoken = false; this.economy.advanceCall(1); } return; }
     this.hear = near < 4 ? this.hear + dt : 0;
-    if (this.hear > 3 && this.onLine({ who: 'Finch’s hand', text: handOfferLine(leaning(this.alignment)) })) { this.hear = 0; this.economy.advanceCall(1); }
+    if (this.hear > 3 && this.onLine({ who: 'Finch’s hand', text: handOfferLine(leaning(this.alignment)) })) { this.hear = 0; this.spoken = true; }
   }
 }

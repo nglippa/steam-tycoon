@@ -23,7 +23,7 @@ test('reading the order and hearing the hand only move the stage; the card and t
   const { call, e, hand, done } = world(); const before = JSON.stringify(e.state.alignment); const lines: string[] = []; call.onLine = l => { lines.push(l.text); return true; };
   assert.equal(e.state.resist.call, 0); assert.equal(call.use('call.order'), CALL.orderToast); assert.equal(e.state.resist.call, 1); assert.equal(call.use('call.order'), CALL.orderToast); assert.equal(e.state.resist.call, 1); assert.equal(JSON.stringify(e.state.alignment), before);
   e.state.resist.call = 0; const viewer = new T.Vector3(hand.position.x, 1.7, hand.position.z - 2); for (let k = 0; k < 8; k++) call.update(.5, 0, viewer);
-  assert.deepEqual(lines, [handOfferLine(null)]); assert.equal(e.state.resist.call, 1); assert.equal(JSON.stringify(e.state.alignment), before); assert.equal(e.state.alignment.commit, null); done();
+  assert.deepEqual(lines, [handOfferLine(null)]); assert.equal(e.state.resist.call, 0); call.update(.1, 0, new T.Vector3(hand.position.x, 1.7, hand.position.z - 9)); assert.equal(e.state.resist.call, 1); assert.equal(JSON.stringify(e.state.alignment), before); assert.equal(e.state.alignment.commit, null); done();
 });
 test('taking, carrying, putting back and taking the card again changes neither the alignment nor the stage, and it is never contraband', () => {
   const { call, e, done } = world(); const before = JSON.stringify(e.state), card = call.card;
