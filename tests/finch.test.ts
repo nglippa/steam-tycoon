@@ -29,7 +29,8 @@ test('the part is one consignment: taken covertly it is contraband and the winch
   assert.equal(run.part.receive!(), true); assert.equal(e.state.alignment.outcomes.finchRun, 'resistance'); assert.ok(e.state.alignment.deeds['finch.bypassed'] !== undefined); assert.equal(e.state.resist.finch, 3);
   reset(1); assert.equal(run.use('finch.order'), FINCH.governor); assert.equal(run.part.custody, true); assert.equal(run.part.contraband, false); assert.equal(run.part.line, FINCH.governorCarrying);
   assert.equal(run.part.receive!(), true); assert.equal(e.state.alignment.outcomes.finchRun, 'ordinance'); assert.ok(e.state.alignment.deeds['finch.certified'] !== undefined);
-  assert.equal(run.part.receive!(), false); assert.equal(run.use('finch.order'), 'Nothing here needs carrying.');
+  assert.equal(run.part.receive!(), false); run.part.drop(); assert.equal(run.use('finch.order'), 'Nothing here needs carrying.');
+  reset(2); run.part.take(); assert.equal(run.use('finch.order'), 'You set the release back where it was.'); assert.equal(run.part.carrying, false); assert.equal(e.state.alignment.outcomes.finchRun, 'base');
   reset(0); e.state.properties.workshop.level = 0; assert.equal(run.part.take(true), 'Nothing here needs carrying.');
   Consignment.all = Consignment.all.filter(x => x !== run.part);
 });
