@@ -2,6 +2,7 @@ import type { Settings } from '../simulation/economy';
 export class Soundscape {
   context?: AudioContext; master?: GainNode; ambient?: GainNode; sfx?: GainNode; music?: GainNode; rainGain?: GainNode; machine?: PannerNode; nextBell = 0; nextClang = 0; nextVoice = 0; zones: {gain:GainNode;kind:string}[]=[];
   constructor(public settings: () => Settings) {}
+  pause() { void this.context?.suspend(); }
   start() { if (this.context) { void this.context.resume(); return; } const c = this.context = new AudioContext(); this.master = c.createGain(); this.master.connect(c.destination); this.ambient = c.createGain(); this.ambient.connect(this.master); this.sfx = c.createGain(); this.sfx.connect(this.master); this.music = c.createGain(); this.music.connect(this.master);
     const buffer = c.createBuffer(1, c.sampleRate * 4, c.sampleRate); const samples = buffer.getChannelData(0); let last = 0; for (let i = 0; i < samples.length; i++) { last = (last + (Math.random() * 2 - 1) * .03) / 1.02; samples[i] = last * 3; }
     const noise = c.createBufferSource(); noise.buffer = buffer; noise.loop = true; const filter = c.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.value = 750; this.rainGain = c.createGain(); this.rainGain.gain.value = .17; noise.connect(filter); filter.connect(this.rainGain); this.rainGain.connect(this.ambient); noise.start();
