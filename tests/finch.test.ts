@@ -18,7 +18,7 @@ test('the bench offers the release only once the pawl is understood, and the gov
 test('the acknowledgement is for a leaning Steward only, one line each, and never says Steward', () => {
   assert.equal(acknowledgement(null), null); assert.equal(acknowledgement('resistance'), ACK.resistance); assert.equal(acknowledgement('ordinance'), ACK.ordinance);
   const a = resolve(resolve(freshAlignment(), 'greatMain', 'resistance', 'rook.diverted', 1)!, 'finchRun', 'ordinance', 'finch.certified', 2)!; assert.equal(acknowledgement(leaning(a)), null);
-  for (const l of [...Object.values(ACK), ...FINCH.crew, FINCH.wait, FINCH.hand, FINCH.handCustody]) assert.ok(!/Steward/.test(l), l);
+  for (const l of [...Object.values(ACK), FINCH.wait, FINCH.hand, FINCH.handCustody]) assert.ok(!/Steward/.test(l), l);
 });
 test('the part is one consignment: taken covertly it is contraband and the winch records the bypass; signed for it is lawful and the winch records the certification', () => {
   const pres = { city: { economy: new Economy(memory()), deck() {}, collider() {}, targets: [] as { id: string }[], ladders: [], onEvent() {} }, root: new T.Group(), workers: [{ person: { group: new T.Group() } }], addWorker: () => 0 };
@@ -33,4 +33,11 @@ test('the part is one consignment: taken covertly it is contraband and the winch
   reset(2); run.part.take(); assert.equal(run.use('finch.order'), 'You set the release back where it was.'); assert.equal(run.part.carrying, false); assert.equal(e.state.alignment.outcomes.finchRun, 'base');
   reset(0); e.state.properties.workshop.level = 0; assert.equal(run.part.take(true), 'Nothing here needs carrying.');
   Consignment.all = Consignment.all.filter(x => x !== run.part);
+});
+test('the certified run opens without a word: nobody is posted at the ladder foot, so nothing is said there', () => {
+  const pres = { city: { economy: new Economy(memory()), deck() {}, collider() {}, targets: [] as { id: string }[], ladders: [], onEvent() {} }, root: new T.Group(), workers: [{ person: { group: new T.Group() } }], addWorker: () => 0 };
+  const run = new FinchRun(pres as never), e = pres.city.economy, said: unknown[] = []; e.state.properties.workshop.level = 1;
+  e.state.alignment = freshAlignment(); e.state.alignment.outcomes.greatMain = 'ordinance'; e.state.resist.finch = 1; run.use('finch.order'); assert.equal(run.part.receive!(), true); assert.equal(e.state.alignment.outcomes.finchRun, 'ordinance');
+  run.sync(); run.onLine = l => { said.push(l); return true; }; for (let i = 0; i < 5; i++) run.update(.1, i * .1, new T.Vector3(-12.4, 1.75, 20.85));
+  assert.equal(said.length, 0); Consignment.all = Consignment.all.filter(x => x !== run.part);
 });

@@ -39,9 +39,9 @@ export class FinchRun {
   private shut = new T.Group(); private lowered = new T.Group(); private resistance = new T.Group(); private ordinance = new T.Group(); private yard = new T.Group(); private offer = new T.Group();
   /** The one part the bench gives: the hand's release taken covertly, or the Directorate's governor signed for. */
   part!: Consignment; private winchTarget!: Target; private releaseTarget!: Target; private orderTarget!: Target;
-  /** What sync() works out once: the side the Steward leans to and the line it earns, the gate desk's place, the crew's line. Nothing in update() searches or allocates. */
-  private side: Side | null = null; private ack: string | null = null; private desk: T.Vector3 | null = null; private ordinanceRun = false; private crewLine = ''; private foot = new T.Vector3(XC, G, Z1 + .95);
-  private hand: number; private hear = 0; private warm = false; private recognised = false; private crewSaid = false;
+  /** What sync() works out once: the side the Steward leans to and the line it earns, the gate desk's place. Nothing in update() searches or allocates. */
+  private side: Side | null = null; private ack: string | null = null; private desk: T.Vector3 | null = null;
+  private hand: number; private hear = 0; private warm = false; private recognised = false;
   constructor(private pres: Presentation) {
     const city = pres.city, root = new T.Group(); pres.root.add(root); root.add(this.shut, this.lowered, this.resistance, this.ordinance, this.yard, this.offer);
     const gantry = new T.Group(); root.add(gantry);
@@ -135,7 +135,7 @@ export class FinchRun {
     return null;
   }
   sync() { const open = runOpen(this.outcome), a = this.economy.state.alignment; this.side = leaning(a); this.ack = acknowledgement(this.side); this.desk = this.side === 'ordinance' ? this.pres.city.targets.find(t => t.id === 'gate.desk')?.position ?? null : null;
-    this.ordinanceRun = this.outcome === 'ordinance'; this.crewLine = FINCH.crew[Math.floor(a.deeds['finch.certified'] ?? 0) % 2]; this.warm = this.recognised = this.crewSaid = false; this.offer.visible = this.offered; this.shut.visible = !open; this.lowered.visible = open; this.resistance.visible = this.outcome === 'resistance'; this.ordinance.visible = this.outcome === 'ordinance'; }
+    this.warm = this.recognised = false; this.offer.visible = this.offered; this.shut.visible = !open; this.lowered.visible = open; this.resistance.visible = this.outcome === 'resistance'; this.ordinance.visible = this.outcome === 'ordinance'; }
   update(dt: number, _time: number, viewer: T.Vector3) {
     const part = this.part; part.update(); const carrying = part.carrying; part.name = part.custody ? 'governor' : 'release';
     this.winchTarget.hint = carrying ? (part.custody ? 'FIT THE GOVERNOR' : 'PULL THE PIN') : 'EXAMINE'; this.releaseTarget.hint = carrying ? 'PUT IT BACK' : 'TAKE THE RELEASE'; this.orderTarget.hint = carrying ? 'PUT IT BACK' : 'SIGN FOR THE GOVERNOR';
@@ -143,8 +143,6 @@ export class FinchRun {
     // A Steward leaning to the Embers is greeted at the yard once per approach, and one leaning to the Directorate is known at the gate desk. Mixed histories get neither.
     if (this.side === 'resistance' && this.present) { if (near > 14) this.warm = false; else if (near < 4.5 && !this.warm && this.onLine({ who: 'Finch’s hand', text: this.ack! })) this.warm = true; }
     const desk = this.desk; if (desk) { const d = Math.hypot(viewer.x - desk.x, viewer.z - desk.z); if (d > 16) this.recognised = false; else if (d < 6 && viewer.y < 4 && !this.recognised && this.onLine({ who: 'Gate desk', text: this.ack! })) this.recognised = true; }
-    // The Directorate's contract has a crew who remember it: one line at the ladder's foot, once per visit.
-    if (this.ordinanceRun) { const d = Math.hypot(viewer.x - this.foot.x, viewer.z - this.foot.z); if (d > 9) this.crewSaid = false; else if (d < 3.5 && viewer.y < 4 && !this.crewSaid && this.onLine({ who: 'Gate crew', text: this.crewLine })) this.crewSaid = true; }
     // The hand says it once, to someone standing at the bench who is not in a menu.
     if (!this.offered || this.stage !== 0) { this.hear = 0; return; }
     const g = hand; this.hear = near < 5.5 ? this.hear + dt : 0;

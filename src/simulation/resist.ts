@@ -60,7 +60,6 @@ export const FINCH = {
   released: 'You take the release off the bench: a pawl pin, a hand’s weight of steel.', governor: 'You take the governor off the bench. Directorate stamp on the housing, oxblood seal on the pin.',
   releaseCarrying: 'Get the release to the winch on Finch’s south roof.', governorCarrying: 'Take the governor up to Service Run 7’s winch.',
   bypassed: 'The pin comes out and the chain runs. The lower flight comes down on its own weight and hangs from the gantry.', certified: 'You fit the governor and sign the plate. The winch takes the load; the grilles come off their hooks and the lower flight runs down.',
-  crew: ['Finch contract. Go on.', 'Your name’s on the sheet.'],
   /** At the bench before the pawl is understood. */ wait: 'Look at their winch first. I can’t cut a tooth I haven’t seen described.',
   /** The certified plate and the ordinance dressing's brass. */ certifiedPlate: 'SERVICE RUN 7 • CERTIFIED • FINCH MECHANICAL',
   plate: 'SERVICE RUN 7 • DIRECTORATE MAINTENANCE • KEEP OFF',
