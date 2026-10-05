@@ -55,22 +55,22 @@ test('the relay walks OPEN THE SHUTTER, SET THE CARD or CLOSE THE SHUTTER, AFTER
   const w = world(), { call, e } = w, seen = commits(e); e.state.day = NOON;
   assert.equal(relayHint(null, false, false, false, NOON), 'OPEN THE SHUTTER'); assert.equal(relayHint(null, true, false, true, NOON), 'SET THE CARD'); assert.equal(relayHint(null, true, false, false, NOON), 'CLOSE THE SHUTTER'); assert.equal(relayHint(null, true, true, false, NOON), 'AFTER DUSK'); assert.equal(relayHint(null, true, true, false, NIGHT), 'SEND THE CALL'); assert.equal(relayHint('resistance', true, true, false, NIGHT), 'LOOK CLOSER'); assert.equal(relayHint('ordinance', false, false, false, NIGHT), 'SEALED');
   e.state.day = NIGHT; assert.equal(call.use('call.relay'), CALL.shutterOpen); assert.equal(call.use('call.relay'), CALL.shutterClosed); assert.equal(call.use('call.relay'), CALL.shutterOpen); assert.equal(e.state.alignment.commit, null);
-  assert.equal(call.use('call.relay'), CALL.shutterClosed); call.use('call.relay'); call.card.take(); assert.equal(call.use('call.relay'), CALL.seated); e.state.day = NOON; assert.equal(call.use('call.relay'), CALL.byDay); assert.equal(e.state.alignment.commit, null);
+  assert.equal(call.use('call.relay'), CALL.shutterClosed); call.use('call.relay'); call.card.take(); assert.equal(call.use('call.relay'), CALL.seated); e.state.day = NOON; assert.equal(call.use('call.lamp'), CALL.byDay); assert.equal(e.state.alignment.commit, null);
   assert.equal(call.use('call.frame'), CALL.lifted); assert.equal(call.card.carrying, true); assert.equal(call.use('call.frame'), null); call.card.drop(); assert.deepEqual(seen, []); assert.equal(e.state.resist.call, 0); w.done();
 });
 test('after dusk SEND commits the Embers exactly once; a second SEND, the other side, and the frame afterwards change nothing', () => {
   const w = world(), { call, e } = w, seen = commits(e); seated(w); const deeds = JSON.stringify(e.state.alignment.deeds), outcomes = JSON.stringify(e.state.alignment.outcomes);
-  assert.equal(call.use('call.relay'), CALL.sent); assert.equal(e.state.alignment.commit?.side, 'resistance'); assert.equal(e.state.alignment.commit?.by, 'call.sent'); assert.equal(e.state.resist.call, 2); assert.deepEqual(seen, ['commit']); assert.equal(JSON.stringify(e.state.alignment.deeds), deeds); assert.equal(JSON.stringify(e.state.alignment.outcomes), outcomes);
+  assert.equal(call.use('call.lamp'), CALL.sent); assert.equal(e.state.alignment.commit?.side, 'resistance'); assert.equal(e.state.alignment.commit?.by, 'call.sent'); assert.equal(e.state.resist.call, 2); assert.deepEqual(seen, ['commit']); assert.equal(JSON.stringify(e.state.alignment.deeds), deeds); assert.equal(JSON.stringify(e.state.alignment.outcomes), outcomes);
   const at = e.state.alignment.commit!.at; assert.equal(call.use('call.relay'), CALL.relayAfter); assert.equal(call.use('call.frame'), null); assert.equal(e.commit('ordinance', 'call.reported'), false); assert.equal(e.commit('resistance', 'call.sent'), false); assert.deepEqual(seen, ['commit']); assert.equal(e.state.alignment.commit?.at, at); assert.equal(e.state.alignment.commit?.side, 'resistance'); assert.equal(call.card.take(), 'Nothing here needs carrying.'); w.done();
 });
 test('a 2-0 ordinance tilt can still send: the commit is crossed and the deeds are intact', () => {
   const w = world(), { call, e } = w; e.state.alignment = freshAlignment(); e.state.alignment.outcomes.greatMain = 'ordinance'; e.state.alignment.outcomes.finchRun = 'ordinance'; for (const d of ['rook.custody', 'finch.certified'] as DeedId[]) e.state.alignment.deeds[d] = 1; call.sync(); const deeds = JSON.stringify(e.state.alignment.deeds);
-  seated(w); assert.equal(call.use('call.relay'), CALL.sent); assert.equal(crossing(e.state.alignment), 'crossed'); assert.equal(JSON.stringify(e.state.alignment.deeds), deeds); assert.ok(Object.keys(e.state.alignment.deeds).every(d => d in DEEDS)); w.done();
+  seated(w); assert.equal(call.use('call.lamp'), CALL.sent); assert.equal(crossing(e.state.alignment), 'crossed'); assert.equal(JSON.stringify(e.state.alignment.deeds), deeds); assert.ok(Object.keys(e.state.alignment.deeds).every(d => d in DEEDS)); w.done();
 });
 test('being caught before the lamp is turned up commits nothing and leaves the event finishable; taking the card back and walking away commits nothing', () => {
   const w = world(), { call, e } = w; e.onChange = k => { if (k === 'caught') { const c = Consignment.carried(); if (c?.contraband) c.drop(); } }; seated(w); e.caught('contraband', 'market'); assert.equal(e.state.alignment.commit, null); assert.equal(e.state.resist.call, 0);
   e.state.day = NIGHT; assert.equal(call.use('call.frame'), CALL.lifted); assert.equal(call.card.carrying, true); call.sync(); assert.equal(call.card.carrying, true); call.card.drop(); call.sync(); assert.equal(e.state.alignment.commit, null); assert.equal(e.state.resist.call, 0);
-  assert.equal(call.card.take(), null); e.state.day = NIGHT; assert.equal(call.use('call.relay'), CALL.seated); assert.equal(call.use('call.relay'), CALL.sent); assert.equal((e.state.alignment as { commit: { side: string } | null }).commit?.side, 'resistance'); w.done();
+  assert.equal(call.card.take(), null); e.state.day = NIGHT; assert.equal(call.use('call.relay'), CALL.seated); assert.equal(call.use('call.lamp'), CALL.sent); assert.equal((e.state.alignment as { commit: { side: string } | null }).commit?.side, 'resistance'); w.done();
 });
 test('the square liberated mid-event shuts the relay and resets the shutter and the seated card; nothing is committed and nothing can be sent', () => {
   const w = world(), { call, e, pres } = w; seated(w); e.state.sites.market = SITE_LIBERATED; call.sync(); call.update(.1, 0, new T.Vector3());
@@ -79,7 +79,7 @@ test('the square liberated mid-event shuts the relay and resets the shutter and 
 });
 test('the send-and-answer sequence is paced, takes no part in the commitment, and ends with both flags true; with nothing live (a reload) the lens is steady, every lamp is on and both flags are true', () => {
   assert.equal(lensOn(0.1), true); assert.equal(lensOn(1.5), false); assert.equal(lensOn(CALL_PACE.flash), true); assert.equal(lensOn(60), true); assert.deepEqual([4.9, 5, 9, 27, 99].map(lampsLit), [0, 1, 2, 7, 7]);
-  const w = world(), { call, e } = w; seated(w); assert.equal(call.stirred, false); assert.equal(call.alerted, false); assert.equal(call.use('call.relay'), CALL.sent); assert.equal(call.seq, 0); assert.equal(call.stirred, false);
+  const w = world(), { call, e } = w; seated(w); assert.equal(call.stirred, false); assert.equal(call.alerted, false); assert.equal(call.use('call.lamp'), CALL.sent); assert.equal(call.seq, 0); assert.equal(call.stirred, false);
   const told: string[] = []; (e as unknown as { onChange: unknown }).onChange = () => {}; const city = (w.pres.city as unknown as { onEvent: (m: string) => void }); city.onEvent = m => told.push(m); const v = new T.Vector3(); const lit: number[] = [];
   for (let k = 0; k < 800; k++) { call.update(.05, 0, v); if (k % 20 === 19) lit.push(call.lamps.filter(l => l.visible).length); if (call.seq < 0) break; }
   assert.deepEqual(told, [CALL.answered]); assert.equal(call.stirred, true); assert.equal(call.alerted, true); assert.equal(call.seq, -1); assert.equal(call.lamps.length, 7); assert.ok(call.lamps.every(l => l.visible)); assert.equal(call.lens.visible, true); assert.ok(lit.length > 5 && lit[0] <= 1 && lit.every((n, i) => i === 0 || n >= lit[i - 1]));
@@ -88,8 +88,8 @@ test('the send-and-answer sequence is paced, takes no part in the commitment, an
 });
 test('keeping watch until dusk moves only the clock to 19:00: no crowns, earned, heat, playtime, signalAt, nor offline award changes; it is refused outside its conditions', () => {
   const w = world(), { call, e } = w; e.state.day = NOON; e.state.heat = 1.5; e.state.crowns = 500; e.state.earned = 900; e.state.playtime = 321; e.state.signalAt = 100; e.state.properties.scrap.level = 2;
-  assert.equal(call.use('call.watch'), null); assert.equal(e.state.day, NOON); call.card.take(); const before = JSON.stringify({ ...e.state, day: 0, lastSave: 0 });
-  assert.equal(call.use('call.watch'), CALL.watch); assert.equal(e.state.day, dayAt(19)); assert.equal(callHour(e.state.day), true); assert.equal(JSON.stringify({ ...e.state, day: 0, lastSave: 0 }), before); assert.equal(call.use('call.watch'), null);
+  assert.equal(call.use('call.watch'), null); assert.equal(e.state.day, NOON); call.card.take(); const before = JSON.stringify({ ...e.state, day: 0, lastSave: 0, resist: { ...e.state.resist, watch: 0 } });
+  assert.equal(call.use('call.watch'), CALL.watch); assert.equal(e.state.day, dayAt(19)); assert.equal(callHour(e.state.day), true); assert.equal(JSON.stringify({ ...e.state, day: 0, lastSave: 0, resist: { ...e.state.resist, watch: 0 } }), before); assert.equal(call.use('call.watch'), null); assert.equal(e.state.resist.watch, 1);
   // The same save, with or without the watch, pays the same away award on the next load: the watch took none of the time away and gave none.
   const away = (watch: boolean) => { const x = world(); x.e.state.day = NOON; x.e.state.properties.scrap.level = 3; x.e.save(1000); if (watch) assert.equal(x.e.watchUntilDusk(1000), true); const r = x.e.storage.read(); x.done(); return new Economy(memory(r), 1000 + 7200e3); };
   const plain = away(false), watched = away(true); assert.ok(plain.offlineAward > 0); assert.equal(watched.offlineAward, plain.offlineAward); assert.equal(watched.state.crowns, plain.state.crowns); assert.equal(watched.state.earned, plain.state.earned); assert.equal(watched.state.heat, plain.state.heat); assert.equal(watched.state.playtime, plain.state.playtime);
@@ -135,5 +135,26 @@ test('with the officer absent (not in the world, or the square liberated) no gat
   pres.workers[1].person.group.visible = true; assert.equal(gate().filter(t => t.when!()).length, 2); e.state.sites.market = SITE_LIBERATED; call.sync(); call.update(.1, 0, AT_BOX); assert.equal(gate().filter(t => t.when!()).length, 0); assert.equal(call.use('call.ledger'), null); assert.equal(e.state.alignment.commit, null); assert.equal(e.state.resist.call, 0); w.done();
 });
 test('after a resistance commitment no gate interaction is offered', () => {
-  const w = world(), { call, e, pres } = w; seated(w); call.use('call.relay'); assert.equal(e.state.alignment.commit?.side, 'resistance'); for (const t of pres.city.targets.filter(t => ['call.report', 'call.sill', 'call.ledger'].includes(t.id))) assert.equal(t.when!(), false, t.id); assert.equal(call.use('call.report'), null); w.done();
+  const w = world(), { call, e, pres } = w; seated(w); call.use('call.lamp'); assert.equal(e.state.alignment.commit?.side, 'resistance'); for (const t of pres.city.targets.filter(t => ['call.report', 'call.sill', 'call.ledger'].includes(t.id))) assert.equal(t.when!(), false, t.id); assert.equal(call.use('call.report'), null); w.done();
+});
+
+const ids = (pres: { city: { targets: { id: string; when?: () => boolean; hint?: string; label?: string }[] } }) => (id: string) => pres.city.targets.find(t => t.id === id)!;
+test('SEND is the lamp key and nothing else: with the card seated the relay is not offered, the key is, and only the key commits', () => {
+  const w = world(), { call, e, pres } = w, t = ids(pres), seen = commits(e); e.state.day = NIGHT; assert.equal(t('call.lamp').when!(), false); assert.equal(call.use('call.lamp'), null); assert.equal(call.card.take(), null); assert.equal(call.use('call.relay'), CALL.shutterOpen); assert.equal(t('call.lamp').when!(), false);
+  assert.equal(call.use('call.relay'), CALL.seated); assert.equal(t('call.relay').when!(), false); assert.equal(call.use('call.relay'), null); assert.equal(t('call.frame').when!(), true); assert.equal(t('call.lamp').when!(), true); assert.equal(t('call.lamp').hint, 'AFTER DUSK');
+  call.update(.1, 0, new T.Vector3()); assert.equal(t('call.lamp').hint, 'SEND THE CALL'); assert.equal(t('call.lamp').label, 'The relay lamp'); e.state.day = NOON; call.update(.1, 0, new T.Vector3()); assert.equal(t('call.lamp').hint, 'AFTER DUSK'); assert.equal(call.use('call.lamp'), CALL.byDay); assert.deepEqual(seen, []); assert.equal(call.use('call.frame'), CALL.lifted);
+  call.card.drop(); assert.equal(t('call.relay').when!(), true); assert.equal(call.use('call.relay'), CALL.shutterClosed); assert.deepEqual(seen, []); w.done();
+  const x = world(), s = ids(x.pres); seated(x); assert.equal(x.call.use('call.lamp'), CALL.sent); assert.equal(s('call.lamp').when!(), false); assert.equal(s('call.frame').when!(), false); assert.equal(s('call.relay').when!(), true); x.call.update(.1, 0, new T.Vector3()); assert.equal(s('call.relay').hint, 'LOOK CLOSER'); assert.equal(x.call.use('call.relay'), CALL.relayAfter); assert.equal(x.call.use('call.lamp'), null); x.done();
+});
+test('the old Weathervane plaque is unavailable after an ordinance commitment and exactly as it was in every other state', () => {
+  const lore = { id: 'weathervane', when: undefined as (() => boolean) | undefined, hint: undefined }; const w = world(); (w.pres.city.targets as unknown[]).push(lore);
+  const again = new WardCall(w.pres as never); assert.equal(lore.when!(), true); w.e.state.alignment.commit = { side: 'resistance', at: 1, by: 'call.sent' }; assert.equal(lore.when!(), true); w.e.state.alignment.commit = { side: 'ordinance', at: 1, by: 'call.reported' }; assert.equal(lore.when!(), false);
+  w.e.state.alignment.commit = null; assert.equal(lore.when!(), true); w.done(); Consignment.all = Consignment.all.filter(c => c !== again.card);
+});
+test('the dusk watch is kept once per save: the flag is persisted, a second watch is refused and not offered, and a new game clears it', () => {
+  const w = world(), { call, e, pres } = w; e.state.day = NOON; assert.equal(e.state.resist.watch, 0); call.card.take(); const watch = ids(pres)('call.watch'); assert.equal(watch.when!(), true); assert.equal(call.use('call.watch'), CALL.watch); assert.equal(e.state.resist.watch, 1);
+  e.state.day = NOON; assert.equal(watch.when!(), false); assert.equal(call.use('call.watch'), null); assert.equal(e.watchUntilDusk(), false); assert.equal(e.state.day, NOON);
+  const again = new Economy(memory(e.storage.read())); assert.equal(again.state.resist.watch, 1); again.state.day = NOON; assert.equal(again.watchUntilDusk(), false);
+  const bad = JSON.parse(e.storage.read()!); bad.resist.watch = 9; assert.equal(new Economy(memory(JSON.stringify(bad))).state.resist.watch, 1); bad.resist.watch = -3; assert.equal(new Economy(memory(JSON.stringify(bad))).state.resist.watch, 0); delete bad.resist.watch; assert.equal(new Economy(memory(JSON.stringify(bad))).state.resist.watch, 0);
+  e.reset(); assert.equal(e.state.resist.watch, 0); assert.equal(new Economy(memory(e.storage.read())).state.resist.watch, 0); w.done();
 });
