@@ -88,7 +88,7 @@ h1>span+span{margin-left:5px}
 /* ---- 3 HUD ------------------------------------------------------------------------------------------- */
 /* Three clusters on one row: who and where, the compass ribbon (heading, clock, weather, ward), the treasury. */
 #hud{position:absolute;z-index:2;top:max(var(--sp-4),var(--sat));left:max(var(--gutter),var(--sal));right:max(var(--gutter),var(--sar));display:grid;grid-template-columns:1fr auto 1fr;align-items:start;gap:var(--sp-4);pointer-events:none}
-body:not(.started) .ribbon,body:not(.started) .treasury,body:not(.started) #hud-bottom,body:not(.started) #marker{display:none}
+body:not(.started) .identity,body:not(.started) .ribbon,body:not(.started) .treasury,body:not(.started) #hud-bottom,body:not(.started) #marker{display:none}
 .identity,.treasury{min-height:56px;background:var(--paper);border:1px solid var(--ink);padding:var(--sp-2) var(--sp-3)}
 .identity{justify-self:start;display:flex;align-items:center;gap:var(--sp-3);min-width:0}
 .identity svg{flex:none;width:24px;height:31px;fill:none;stroke:var(--ink);stroke-width:1.5}
@@ -187,7 +187,7 @@ body.touch .objective p{margin:2px 0 var(--sp-2);font-size:var(--ui-fs-body)}
 body.touch .pips{display:none}
 body.touch.toasting .objective{visibility:hidden}
 /* With a panel open on a small screen, the ribbon and the ticket step aside rather than sit under the sheet. */
-@media(max-width:700px),(max-height:520px) and (pointer:coarse){body:has(#panel:not([hidden])) .ribbon,body:has(#panel:not([hidden])) #hud-bottom,body:has(#panel:not([hidden])) #marker{visibility:hidden}}
+@media(max-width:700px),(max-height:520px) and (pointer:coarse){body:has(#panel:not([hidden])) .ribbon,body:has(#panel:not([hidden])) #hud-bottom,body:has(#panel:not([hidden])) #marker,body:has(#pause:not([hidden])) .identity,body:has(#pause:not([hidden])) .ribbon,body:has(#pause:not([hidden])) #hud-bottom,body:has(#pause:not([hidden])) #marker{visibility:hidden}}
 body.touch #interaction{left:max(var(--sp-4),var(--sal));top:auto;bottom:max(var(--sp-4),calc(var(--sab) + var(--sp-2)));transform:none;max-width:calc(100vw - 190px - var(--sal))}
 body.touch #interaction kbd{display:none}
 body.touch #interaction{padding:var(--sp-2) var(--sp-3)}
