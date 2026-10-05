@@ -13,7 +13,7 @@ const { WardCall } = await import('../src/world/ward-call.ts');
 const { Consignment } = await import('../src/world/logistics.ts');
 /** A world with the two sites settled (any mix) and the square held: the call is on offer. */
 function world(settled = true) {
-  const hand = new T.Group(); hand.position.set(-16.4, 0, 25); const officer = new T.Group();
+  const hand = new T.Group(); hand.position.set(-16.4, 0, 25); const officer = new T.Group(); officer.position.set(5.75, 0, -34.55);
   const pres = { city: { economy: new Economy(memory()), deck() {}, collider() {}, targets: [] as { id: string; when?: () => boolean; hint?: string }[], ladders: [], onEvent() {} }, root: new T.Group(), workers: [{ person: { group: hand } }, { person: { group: officer } }], addWorker: () => 0, finchRun: { hand: 0 }, marketSquare: { officer: 1 } };
   const call = new WardCall(pres as never), e = pres.city.economy; if (settled) { e.state.alignment = freshAlignment(); e.state.alignment.outcomes.greatMain = 'resistance'; e.state.alignment.outcomes.finchRun = 'ordinance'; } call.sync();
   const done = () => { Consignment.all = Consignment.all.filter(c => c !== call.card); };
@@ -96,4 +96,44 @@ test('keeping watch until dusk moves only the clock to 19:00: no crowns, earned,
   const n = world(); n.e.state.day = NOON; assert.equal(n.e.watchUntilDusk(), true); const g = world(); g.e.state.day = NOON; g.e.state.sites.market = SITE_LIBERATED; assert.equal(g.e.watchUntilDusk(), false); assert.equal(g.e.state.day, NOON);
   const u = world(false); u.e.state.day = NOON; assert.equal(u.e.watchUntilDusk(), false); const d = world(); d.e.state.day = dayAt(23); assert.equal(d.e.watchUntilDusk(), false); const c = world(); c.e.state.day = NOON; c.e.state.alignment.commit = { side: 'resistance', at: 1, by: 'call.sent' }; assert.equal(c.e.watchUntilDusk(), false);
   for (const x of [w, n, g, u, d, c]) x.done();
+});
+
+const lined = (call: { onLine: (l: { who: string; text: string }) => boolean }) => { const said: string[] = []; call.onLine = l => { said.push(l.text); return true; }; return said; };
+/** The viewer stands at the sentry box's window, a few paces from the officer posted at the gate; the officer (worker 1) is in the world. */
+const AT_BOX = new T.Vector3(10.4, 1.75, -30.9);
+test('the gate: REPORT with empty hands is refused in the officer’s words and commits nothing; with the card it goes onto the sill, and a moment later he asks if you are certain', () => {
+  const w = world(), { call, e } = w, said = lined(call), seen = commits(e); call.update(.1, 0, AT_BOX); assert.deepEqual(said, [CALL.officer.approach]); call.update(.1, 0, AT_BOX); assert.deepEqual(said, [CALL.officer.approach]);
+  assert.equal(call.use('call.report'), null); assert.deepEqual(said.slice(1), [CALL.officer.empty]); assert.equal(e.state.alignment.commit, null); assert.equal(call.use('call.sill'), null); assert.equal(call.use('call.ledger'), null);
+  assert.equal(call.card.take(), null); assert.equal(call.use('call.report'), null); assert.equal(call.card.carrying, false); assert.deepEqual(said.slice(2), [CALL.officer.offered]); for (let k = 0; k < 20; k++) call.update(.2, 0, AT_BOX);
+  assert.deepEqual(said.slice(2), [CALL.officer.offered, CALL.officer.certain]); assert.equal(e.state.alignment.commit, null); assert.equal(e.state.resist.call, 0); assert.deepEqual(seen, []); assert.equal(call.card.take(), 'Nothing here needs carrying.'); w.done();
+});
+test('TAKE IT BACK puts the card in the hands again with the officer’s word, and walking away from the gate with it commits nothing', () => {
+  const w = world(), { call, e } = w, said = lined(call), seen = commits(e); call.update(.1, 0, AT_BOX); call.card.take(); call.use('call.report'); assert.equal(call.use('call.sill'), null); assert.equal(call.card.carrying, true); assert.equal(said.at(-1), CALL.officer.back);
+  for (let k = 0; k < 40; k++) call.update(.2, 0, new T.Vector3(0, 1.75, -10)); assert.equal(said.includes(CALL.officer.certain), false); assert.equal(e.state.alignment.commit, null); assert.deepEqual(seen, []); assert.equal(call.use('call.report'), null); assert.equal(call.card.carrying, false); call.card.drop();
+  // Reported again, taken back again, and the hand's next act is still free: nothing was ever committed.
+  call.card.take(); call.use('call.report'); call.use('call.sill'); call.card.drop(); call.sync(); assert.equal(e.state.alignment.commit, null); assert.equal(call.card.take(), null); w.done();
+});
+test('SIGN IT IN commits the Ordinance exactly once, with the officer’s word for how the deeds stand; afterwards SEND, a second SIGN and the sill change nothing, and the relay is sealed', () => {
+  const w = world(), { call, e } = w, said = lined(call), seen = commits(e); call.update(.1, 0, AT_BOX); call.card.take(); call.use('call.report'); const deeds = JSON.stringify(e.state.alignment.deeds);
+  assert.equal(call.use('call.ledger'), CALL.signedToast); assert.equal(e.state.alignment.commit?.side, 'ordinance'); assert.equal(e.state.alignment.commit?.by, 'call.reported'); assert.equal(e.state.resist.call, 2); assert.deepEqual(seen, ['commit']); assert.equal(said.at(-1), CALL.officer.signed.open); assert.equal(JSON.stringify(e.state.alignment.deeds), deeds);
+  assert.equal(call.use('call.ledger'), null); assert.equal(call.use('call.report'), null); assert.equal(call.use('call.sill'), null); assert.equal(e.commit('ordinance', 'call.reported'), false); assert.equal(e.commit('resistance', 'call.sent'), false); e.state.day = NIGHT; assert.equal(call.use('call.relay'), CALL.sealed); assert.equal(call.use('call.frame'), null); assert.equal(call.card.take(), 'Nothing here needs carrying.');
+  assert.deepEqual(seen, ['commit']); assert.equal(e.canSignal(), false); e.state.sites.market = 1; e.state.day = NIGHT; assert.equal(e.canSignal(), false); w.done();
+});
+test('a 2-0 resistance tilt can still sign (crossed, deeds intact), and a 2-0 ordinance tilt signs as kept', () => {
+  for (const [side, how] of [['resistance', 'crossed'], ['ordinance', 'kept']] as const) {
+    const w = world(), { call, e } = w; e.state.alignment = freshAlignment(); e.state.alignment.outcomes.greatMain = side; e.state.alignment.outcomes.finchRun = side; for (const d of (side === 'resistance' ? ['rook.diverted', 'finch.bypassed'] : ['rook.custody', 'finch.certified']) as DeedId[]) e.state.alignment.deeds[d] = 1; call.sync(); const said = lined(call), deeds = JSON.stringify(e.state.alignment.deeds);
+    call.update(.1, 0, AT_BOX); call.card.take(); call.use('call.report'); assert.equal(call.use('call.ledger'), CALL.signedToast); assert.equal(crossing(e.state.alignment), how === 'crossed' ? 'crossed' : 'kept'); assert.equal(said.at(-1), CALL.officer.signed[how]); assert.equal(JSON.stringify(e.state.alignment.deeds), deeds); w.done();
+  }
+});
+test('being caught before signing commits nothing and the card stays on the sill', () => {
+  const w = world(), { call, e } = w; e.onChange = k => { if (k === 'caught') { const c = Consignment.carried(); if (c?.contraband) c.drop(); } }; call.update(.1, 0, AT_BOX); call.card.take(); call.use('call.report'); e.caught('contraband', 'market'); assert.equal(e.state.alignment.commit, null); assert.equal(e.state.resist.call, 0);
+  assert.equal(call.use('call.sill'), null); assert.equal(call.card.carrying, true); call.card.drop(); w.done();
+});
+test('with the officer absent (not in the world, or the square liberated) no gate target is offered and nothing can be reported or signed', () => {
+  const w = world(), { call, e, pres } = w, gate = () => pres.city.targets.filter(t => ['call.report', 'call.sill', 'call.ledger'].includes(t.id)), said = lined(call); assert.equal(gate().length, 3); assert.equal(gate().filter(t => t.when!()).length, 1);
+  call.card.take(); call.use('call.report'); assert.equal(gate().filter(t => t.when!()).length, 2); pres.workers[1].person.group.visible = false; assert.equal(gate().filter(t => t.when!()).length, 0); assert.equal(call.use('call.ledger'), null); assert.equal(call.use('call.sill'), null); call.update(.1, 0, AT_BOX); assert.deepEqual(said, []); assert.equal(e.state.alignment.commit, null);
+  pres.workers[1].person.group.visible = true; assert.equal(gate().filter(t => t.when!()).length, 2); e.state.sites.market = SITE_LIBERATED; call.sync(); call.update(.1, 0, AT_BOX); assert.equal(gate().filter(t => t.when!()).length, 0); assert.equal(call.use('call.ledger'), null); assert.equal(e.state.alignment.commit, null); assert.equal(e.state.resist.call, 0); w.done();
+});
+test('after a resistance commitment no gate interaction is offered', () => {
+  const w = world(), { call, e, pres } = w; seated(w); call.use('call.relay'); assert.equal(e.state.alignment.commit?.side, 'resistance'); for (const t of pres.city.targets.filter(t => ['call.report', 'call.sill', 'call.ledger'].includes(t.id))) assert.equal(t.when!(), false, t.id); assert.equal(call.use('call.report'), null); w.done();
 });
