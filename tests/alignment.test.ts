@@ -1,8 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { freshAlignment, resolve, phase, leaning, runOpen, DEEDS, catwalkRestored, crateHeld, strangerDue } from '../src/simulation/alignment.ts';
+import type { Alignment } from '../src/simulation/alignment.ts';
+import { freshAlignment, resolve, phase, leaning, commit, tilt, standing, crossing, callOffered, COMMITS, runOpen, DEEDS, catwalkRestored, crateHeld, strangerDue } from '../src/simulation/alignment.ts';
 import { Economy, freshSave, decodeSave, type StorageAdapter } from '../src/simulation/economy.ts';
-import { bookendDue, advanceFinch, finchOffered, canBypass, canCertify, FINCH_DONE } from '../src/simulation/resist.ts';
+import { bookendDue, advanceFinch, advanceCall, callHour, CALL_DONE, finchOffered, canBypass, canCertify, FINCH_DONE } from '../src/simulation/resist.ts';
 const memory = (raw: string | null = null): StorageAdapter => ({ read: () => raw, write: s => { raw = s; }, clear: () => { raw = null; } });
 const load = (patch: Record<string, unknown>) => decodeSave(JSON.stringify({ ...freshSave(), ...patch }))!;
 
@@ -31,7 +32,7 @@ test('bad alignment values clamp: unknown outcomes and deeds drop, commit and br
   const d = load({ alignment: { deeds: { 'rook.custody': 5, 'nope': 1, 'rook.diverted': 'x' }, outcomes: { greatMain: 'wat' }, commit: { side: 'bad' }, broke: 7 } });
   assert.deepEqual(d.alignment, { ...freshAlignment(), deeds: { 'rook.custody': 5 } });
   assert.deepEqual(load({ alignment: 'x' }).alignment, freshAlignment()); assert.deepEqual(load({ alignment: null }).alignment, freshAlignment());
-  const c = load({ alignment: { ...freshAlignment(), commit: { side: 'ordinance', at: 9, by: 'x' } } }); assert.equal(phase(c.alignment), 'committed');
+  const c = load({ alignment: { ...freshAlignment(), commit: { side: 'ordinance', at: 9, by: 'call.reported' } } }); assert.equal(phase(c.alignment), 'committed');
 });
 test('one deed on either side leaves the Steward uncommitted; two net deeds on one side lean; a lock commits', () => {
   const r = resolve(freshAlignment(), 'greatMain', 'resistance', 'rook.diverted', 7)!, o = resolve(freshAlignment(), 'greatMain', 'ordinance', 'rook.custody', 7)!;
@@ -121,3 +122,55 @@ test('the offers need the Great Main settled, Finch owned and the run still base
   assert.deepEqual([0, 1, 2].map(s => canBypass(s, 'ordinance', 1, 'base')), [false, false, true]); assert.deepEqual([0, 1, 2].map(s => canCertify(s, 'resistance', 1, 'base')), [false, true, true]);
   assert.equal(canBypass(2, 'base', 1, 'base'), false); assert.equal(canCertify(1, 'resistance', 0, 'base'), false); assert.equal(canCertify(2, 'resistance', 1, 'ordinance'), false);
 });
+
+const R = resolve(freshAlignment(), 'greatMain', 'resistance', 'rook.diverted', 1)!, RR = resolve(R, 'finchRun', 'resistance', 'finch.bypassed', 2)!, OO = resolve(resolve(freshAlignment(), 'greatMain', 'ordinance', 'rook.custody', 1)!, 'finchRun', 'ordinance', 'finch.certified', 2)!, RO = resolve(R, 'finchRun', 'ordinance', 'finch.certified', 2)!, OR = resolve(resolve(freshAlignment(), 'greatMain', 'ordinance', 'rook.custody', 1)!, 'finchRun', 'resistance', 'finch.bypassed', 2)!;
+const settled = (a: Alignment, market = 0) => { const e = new Economy(memory()); e.state.alignment = a; e.state.resist.rook = 3; e.state.resist.finch = FINCH_DONE; e.state.sites.market = market; return e; };
+test('commit is pure and once: it commits the side with the act, never twice, never for the wrong act, never after a break, and leaves deeds and outcomes alone', () => {
+  const c = commit(RR, 'resistance', 'call.sent', 9)!; assert.deepEqual(c.commit, { side: 'resistance', at: 9, by: 'call.sent' }); assert.equal(RR.commit, null);
+  assert.deepEqual(c.deeds, RR.deeds); assert.deepEqual(c.outcomes, RR.outcomes); assert.equal(phase(c), 'committed');
+  assert.equal(commit(c, 'resistance', 'call.sent', 10), null); assert.equal(commit(c, 'ordinance', 'call.reported', 10), null);
+  assert.equal(commit(RR, 'ordinance', 'call.sent', 9), null); assert.equal(commit(RR, 'resistance', 'call.reported', 9), null); assert.equal(commit(RR, 'resistance', 'nope', 9), null); assert.equal(commit(RR, 'ordinance', 'call.reported', 9)!.commit!.side, 'ordinance');
+  assert.equal(commit({ ...RR, broke: { from: 'resistance', at: 1, by: 'x' } }, 'resistance', 'call.sent', 9), null); assert.deepEqual(COMMITS, { 'call.sent': 'resistance', 'call.reported': 'ordinance' });
+});
+test('standing follows the commitment over the deeds in both directions; tilt ignores it; crossing reads kept, crossed, open and null', () => {
+  assert.equal(tilt(RR), 'resistance'); assert.equal(tilt(OO), 'ordinance'); assert.equal(tilt(RO), null); assert.equal(standing(RR), 'resistance'); assert.equal(standing(RO), null); assert.equal(standing(freshAlignment()), null);
+  const sent = commit(OO, 'resistance', 'call.sent', 5)!, signed = commit(RR, 'ordinance', 'call.reported', 5)!;
+  assert.equal(tilt(sent), 'ordinance'); assert.equal(standing(sent), 'resistance'); assert.equal(standing(signed), 'ordinance'); assert.equal(leaning(sent), null); assert.equal(phase(sent), 'committed');
+  assert.equal(crossing(sent), 'crossed'); assert.equal(crossing(signed), 'crossed'); assert.equal(crossing(commit(RR, 'resistance', 'call.sent', 5)!), 'kept'); assert.equal(crossing(commit(OO, 'ordinance', 'call.reported', 5)!), 'kept');
+  assert.equal(crossing(commit(RO, 'resistance', 'call.sent', 5)!), 'open'); assert.equal(crossing(commit(OR, 'ordinance', 'call.reported', 5)!), 'open'); assert.equal(crossing(RR), null); assert.equal(crossing(freshAlignment()), null);
+});
+test('the call is offered only with both sites settled in any mix, nothing committed or broken, and the square still held', () => {
+  for (const a of [RR, OO, RO, OR]) assert.equal(callOffered(a, 0, 4), true);
+  for (const a of [freshAlignment(), R]) assert.equal(callOffered(a, 0, 4), false);
+  assert.equal(callOffered(RR, 3, 4), true); assert.equal(callOffered(RR, 4, 4), false); assert.equal(callOffered(RR, 5, 4), false);
+  assert.equal(callOffered(commit(RR, 'resistance', 'call.sent', 1)!, 0, 4), false); assert.equal(callOffered({ ...RR, broke: { from: 'resistance', at: 1, by: 'x' } }, 0, 4), false);
+});
+test('an uncommitted pre-Signal save decodes uncommitted whatever its deeds, and a valid commitment round-trips', () => {
+  for (const a of [freshAlignment(), RR, OO, RO, OR]) { const d = load({ resist: { rook: 3, finch: 3 }, alignment: a }); assert.equal(d.alignment.commit, null); assert.equal(d.resist.call, 0); }
+  for (const [side, by] of [['resistance', 'call.sent'], ['ordinance', 'call.reported']] as const) { const d = load({ resist: { rook: 3, finch: 3 }, alignment: { ...RR, commit: { side, at: 12, by } } }); assert.deepEqual(d.alignment.commit, { side, at: 12, by }); assert.equal(d.resist.call, CALL_DONE); assert.deepEqual(decodeSave(JSON.stringify(d))!.alignment, d.alignment); }
+});
+test('an invalid side, a mismatched by or an unknown by decodes to no commitment', () => {
+  for (const commitBad of [{ side: 'bad', at: 1, by: 'call.sent' }, { side: 'resistance', at: 1, by: 'call.reported' }, { side: 'ordinance', at: 1, by: 'call.sent' }, { side: 'ordinance', at: 1, by: 'x' }, { side: 'resistance', at: 1 }, { side: 'resistance', at: 1, by: 7 }]) { const d = load({ resist: { call: 2 }, alignment: { ...RR, commit: commitBad } }); assert.equal(d.alignment.commit, null); assert.equal(d.resist.call, 1); }
+});
+test('the call stage clamps 0 to 2, defaults to 0, settles with the commitment, and only steps forward one at a time up to heard', () => {
+  assert.equal(freshSave().resist.call, 0); assert.equal(load({ resist: { rook: 0 } }).resist.call, 0); assert.equal(load({ resist: { call: 9 } }).resist.call, 1); assert.equal(load({ resist: { call: -3 } }).resist.call, 0); assert.equal(load({ resist: { call: 1 } }).resist.call, 1);
+  assert.equal(advanceCall(0, 1), 1); assert.equal(advanceCall(0, 2), 0); assert.equal(advanceCall(1, 2), 1); assert.equal(advanceCall(1, 1), 1); assert.equal(advanceCall(1, 0), 1);
+  const e = settled(RR); assert.equal(e.advanceCall(2), false); assert.equal(e.advanceCall(1), true); assert.equal(e.state.resist.call, 1); assert.equal(e.advanceCall(1), false);
+});
+test('Economy.commit is refused before both sites settle, with the square liberated, or twice; it succeeds once, persists, and reset clears it', () => {
+  for (const e of [new Economy(memory()), settled(R), settled(RR, 4), settled(RR, 5)]) { const before = JSON.stringify(e.state); assert.equal(e.commit('resistance', 'call.sent'), false); assert.equal(JSON.stringify(e.state), before); }
+  let raw: string | null = null; const store: StorageAdapter = { read: () => raw, write: s => { raw = s; }, clear: () => { raw = null; } }, e = new Economy(store); e.state.alignment = RR; e.state.resist.rook = 3; e.state.resist.finch = FINCH_DONE; e.state.playtime = 77;
+  const events: string[] = []; e.onChange = (k, v) => events.push(`${k}:${v}`);
+  assert.equal(e.commit('ordinance', 'call.sent'), false); assert.equal(e.commit('resistance', 'call.reported'), false); assert.equal(e.state.alignment.commit, null); assert.equal(e.state.resist.call, 0);
+  assert.equal(e.commit('resistance', 'call.sent'), true); assert.deepEqual(e.state.alignment.commit, { side: 'resistance', at: 77, by: 'call.sent' }); assert.equal(e.state.resist.call, 2); assert.deepEqual(events, ['alignment:commit']);
+  assert.equal(e.commit('resistance', 'call.sent'), false); assert.equal(e.commit('ordinance', 'call.reported'), false); assert.equal((e.state.alignment as Alignment).commit!.side, 'resistance');
+  const again = new Economy(store); assert.deepEqual(again.state.alignment.commit, { side: 'resistance', at: 77, by: 'call.sent' }); assert.equal(again.state.resist.call, 2);
+  again.reset(); assert.equal(again.state.alignment.commit, null); assert.equal(again.state.resist.call, 0); assert.deepEqual(again.state.alignment, freshAlignment());
+});
+test('a commit leaves the deeds and outcomes exactly as they were, and an ordinance commit seals the nightly lamp', () => {
+  const e = settled(OR, 2), deeds = JSON.stringify(e.state.alignment.deeds), outcomes = JSON.stringify(e.state.alignment.outcomes), rook = e.state.resist.rook, finch = e.state.resist.finch;
+  assert.equal(e.commit('ordinance', 'call.reported'), true); assert.equal(JSON.stringify(e.state.alignment.deeds), deeds); assert.equal(JSON.stringify(e.state.alignment.outcomes), outcomes); assert.equal(e.state.resist.rook, rook); assert.equal(e.state.resist.finch, finch);
+  const lamp = (side: 'resistance' | 'ordinance', by: string) => { const x = settled(RR, 2); x.state.day = .95; x.state.playtime = 1e6; assert.equal(x.canSignal(), true); x.commit(side, by); return x.canSignal(); };
+  assert.equal(lamp('ordinance', 'call.reported'), false); assert.equal(lamp('resistance', 'call.sent'), true);
+});
+test('after dusk is seven in the evening to five in the morning', () => { for (const [h, v] of [[4, true], [5, false], [12, false], [18, false], [19, true], [23, true], [0, true]] as const) assert.equal(callHour(h / 24 + .001), v, String(h)); });

@@ -149,8 +149,8 @@ export type CityFacts = ReturnType<typeof cityFacts>;
 export interface PropertyState { level: number; automated: boolean; stored: number; progress: number }
 import { HOME_TIERS } from './home';
 import { PORCH_ANSWERS } from './intro';
-import { advance, advanceFinch as advanceFinchStage, RESIST_DONE, FINCH_DONE } from './resist';
-import { freshAlignment, resolve, DEEDS, SIDES, CONTESTED, type Alignment, type ContestedId, type DeedId, type Side } from './alignment';
+import { advance, advanceFinch as advanceFinchStage, advanceCall as advanceCallStage, RESIST_DONE, FINCH_DONE, CALL_DONE } from './resist';
+import { freshAlignment, resolve, commit, callOffered, COMMITS, DEEDS, SIDES, CONTESTED, type Alignment, type ContestedId, type DeedId, type Side } from './alignment';
 import { occupation, bandOf, BANDS, curfewIn, curfewHour, caught, cooled, clock, dayAt, districtAt, DISTRICTS, HEAT, type DistrictId, type Band, type Effects, type Enforcement, type Incident, type Outcome } from './occupation';
 /** One day in Terra, in seconds of play. */
 export const DAY_SECONDS = 720;
@@ -162,13 +162,13 @@ export interface Save { version: 3; crowns: number; earned: number; properties: 
   /** The opening scene: played once per new save (older saves never see it), and the porch answer, kept for later. The home tier is not read by anything yet. */
   intro: { played: boolean; answer: string | null }; home: { level: number };
   /** How far the first resistance loop has come (simulation/resist.ts). Carrying is never saved: only the stage. */
-  resist: { rook: number; finch: number };
-  /** Deeds done and the outcome of each contested site (simulation/alignment.ts). Invariants: `resist.rook >= 3` exactly when the Great Main's outcome is not base; `resist.finch === 3` exactly when Service Run 7's is not (Finch: 0 untouched, 1 heard of the run, 2 understood the pawl, 3 settled). */
+  resist: { rook: number; finch: number; call: number };
+  /** Deeds done and the outcome of each contested site (simulation/alignment.ts). Invariants: `resist.rook >= 3` exactly when the Great Main's outcome is not base; `resist.finch === 3` exactly when Service Run 7's is not (Finch: 0 untouched, 1 heard of the run, 2 understood the pawl, 3 settled). `alignment.commit` is set only by `Economy.commit`; `resist.call` is 2 exactly when it is set (the ward call: 0 untouched, 1 heard, 2 settled). */
   alignment: Alignment }
 export interface StorageAdapter { read(): string | null; write(value: string): void; clear(): void }
 export const SAVE_KEY = 'locke.terra.save';
 export function freshSave(now = Date.now()): Save {
-  return { version: 3, crowns: 35, earned: 0, properties: Object.fromEntries(PROPERTIES.map(p => [p.id, { level: 0, automated: false, stored: 0, progress: 0 }])) as Save['properties'], infrastructure: { lamps: 0, roads: 0, steam: 0, gardens: 0, housing: 0 }, districts: [], research: [], knowledge: [], discoveries: [], sites: { market: 0, foundry: 0, row: 0, gauge: 0 }, objective: 0, playtime: 0, day: .72, lastSave: now, settings: { master: .55, ambience: .45, sfx: .7, music: 0, sensitivity: 1, reducedMotion: false, quality: 'high' }, heat: 0, crackdown: null, quietUntil: 0, signalAt: -1e9, intro: { played: false, answer: null }, home: { level: 0 }, resist: { rook: 0, finch: 0 }, alignment: freshAlignment() };
+  return { version: 3, crowns: 35, earned: 0, properties: Object.fromEntries(PROPERTIES.map(p => [p.id, { level: 0, automated: false, stored: 0, progress: 0 }])) as Save['properties'], infrastructure: { lamps: 0, roads: 0, steam: 0, gardens: 0, housing: 0 }, districts: [], research: [], knowledge: [], discoveries: [], sites: { market: 0, foundry: 0, row: 0, gauge: 0 }, objective: 0, playtime: 0, day: .72, lastSave: now, settings: { master: .55, ambience: .45, sfx: .7, music: 0, sensitivity: 1, reducedMotion: false, quality: 'high' }, heat: 0, crackdown: null, quietUntil: 0, signalAt: -1e9, intro: { played: false, answer: null }, home: { level: 0 }, resist: { rook: 0, finch: 0, call: 0 }, alignment: freshAlignment() };
 }
 const finite = (v: unknown, fallback: number, max = 1e15) => typeof v === 'number' && Number.isFinite(v) ? Math.min(max, Math.max(0, v)) : fallback;
 export function decodeSave(raw: string | null): Save | null {
@@ -188,16 +188,17 @@ export function decodeSave(raw: string | null): Save | null {
     s.heat = finite(data.heat, 0, HEAT.max); s.quietUntil = finite(data.quietUntil, 0); s.signalAt = typeof data.signalAt === 'number' && Number.isFinite(data.signalAt) ? data.signalAt : -1e9;
     s.crackdown = data.crackdown && DISTRICTS.some(d => d.id === data.crackdown.district) && Number.isFinite(data.crackdown.until) ? { district: data.crackdown.district, until: data.crackdown.until } : null;
     s.home.level = Math.floor(finite(data.home?.level, 0, HOME_TIERS.length - 1));
-    s.resist.rook = Math.floor(finite(data.resist?.rook, 0, RESIST_DONE)); s.resist.finch = Math.floor(finite(data.resist?.finch, 0, FINCH_DONE));
+    s.resist.rook = Math.floor(finite(data.resist?.rook, 0, RESIST_DONE)); s.resist.finch = Math.floor(finite(data.resist?.finch, 0, FINCH_DONE)); s.resist.call = Math.floor(finite(data.resist?.call, 0, CALL_DONE));
     const al = data.alignment, a = s.alignment, at = (v: unknown) => finite(v, 0), side = (v: unknown) => SIDES.find(x => x === v);
     for (const id of Object.keys(DEEDS) as DeedId[]) if (typeof al?.deeds?.[id] === 'number') a.deeds[id] = at(al.deeds[id]);
     for (const id of CONTESTED) a.outcomes[id] = side(al?.outcomes?.[id]) ?? 'base';
-    if (side(al?.commit?.side)) a.commit = { side: side(al.commit.side)!, at: at(al.commit.at), by: String(al.commit.by ?? '') };
+    if (side(al?.commit?.side) && COMMITS[String(al.commit.by) as keyof typeof COMMITS] === al.commit.side) a.commit = { side: al.commit.side, at: at(al.commit.at), by: String(al.commit.by) };
     if (side(al?.broke?.from)) a.broke = { from: side(al.broke.from)!, at: at(al.broke.at), by: String(al.broke.by ?? '') };
     // An older finished loop was the Embers' win; an outcome with the stage behind it lifts the stage. Neither locks the player in.
     if (s.resist.rook >= 3 && a.outcomes.greatMain === 'base') { a.outcomes.greatMain = 'resistance'; a.deeds['rook.diverted'] ??= 0; }
     if (a.outcomes.greatMain !== 'base' && s.resist.rook < 3) s.resist.rook = 3;
     if (a.outcomes.finchRun !== 'base') s.resist.finch = FINCH_DONE; else if (s.resist.finch >= FINCH_DONE) s.resist.finch = FINCH_DONE - 1;
+    if (a.commit) s.resist.call = CALL_DONE; else if (s.resist.call >= CALL_DONE) s.resist.call = CALL_DONE - 1;
     s.intro = data.intro ? { played: Boolean(data.intro.played), answer: PORCH_ANSWERS.includes(data.intro.answer) ? data.intro.answer : null } : { played: true, answer: null };
     s.settings.reducedMotion = Boolean(data.settings?.reducedMotion); s.settings.quality = data.settings?.quality === 'low' ? 'low' : 'high'; return s;
   } catch { return null; }
@@ -239,7 +240,7 @@ export class Economy {
   sleep() { if (!this.canSleep()) return null; const s = this.state, span = ((dayAt(6) - s.day) % 1 + 1) % 1, award = this.rate * span * DAY_SECONDS * this.awayShare;
     s.day = dayAt(6); s.crowns += award; s.earned += award; s.heat = Math.max(0, s.heat - HEAT.sleep); this.onChange('sleep', ''); this.save(); return { award, hours: Math.round(span * 24) }; }
   /** Curfew is when the Ordinance expects nobody on the roofs. Answering the Weathervane's lamp moves one consignment a night. */
-  canSignal() { return curfewHour(this.state.day) && this.state.sites.market >= 1 && this.state.sites.market < SITE_LIBERATED && this.state.playtime - this.state.signalAt > DAY_SECONDS / 2; }
+  canSignal() { return curfewHour(this.state.day) && this.state.alignment.commit?.side !== 'ordinance' && this.state.sites.market >= 1 && this.state.sites.market < SITE_LIBERATED && this.state.playtime - this.state.signalAt > DAY_SECONDS / 2; }
   signal() { if (!this.canSignal()) return 0; const s = this.state, award = Math.max(60, Math.round(this.rate * 60)); s.signalAt = s.playtime; s.crowns += award; s.earned += award; s.heat = Math.max(0, s.heat - .5); this.onChange('signal', ''); this.save(); return award; }
   output(id: PropertyId) { const p = PROPERTIES.find(p => p.id === id)!; const level = this.state.properties[id].level; return this.effects(districtAt(p.x, p.z)).income * p.base * (level === 0 ? .25 : Math.pow(OUTPUT_GROWTH, level - 1)) * (level >= 3 ? 1.5 : 1) * (level === 5 ? 2 : 1) * this.multiplier; }
   get rate() { return PROPERTIES.reduce((sum, p) => sum + this.output(p.id) / p.interval * (this.state.properties[p.id].automated ? 1 : .4), 0); }
@@ -307,6 +308,12 @@ export class Economy {
   resolve(site: ContestedId, side: Side, deed: DeedId) {
     const next = resolve(this.state.alignment, site, side, deed, this.state.playtime); if (!next) return false;
     this.state.alignment = next; if (site === 'greatMain' && this.state.resist.rook < 3) this.state.resist.rook = 3; else if (site === 'finchRun') this.state.resist.finch = FINCH_DONE; this.onChange('alignment', site); this.save(); return true;
+  }
+  advanceCall(to: number) { const r = this.state.resist, next = advanceCallStage(r.call, to); if (next === r.call) return false; r.call = next; this.onChange('resist', ''); this.save(); return true; }
+  /** The only writer of the commitment: false, and nothing changes, unless the ward call is offered and `by` is that side's decisive act. Deeds and outcomes are untouched; the stage is lifted to settled. */
+  commit(side: Side, by: string) {
+    const s = this.state, next = callOffered(s.alignment, s.sites.market, SITE_LIBERATED) ? commit(s.alignment, side, by, s.playtime) : null; if (!next) return false;
+    s.alignment = next; s.resist.call = CALL_DONE; this.onChange('alignment', 'commit'); this.save(); return true;
   }
   reset() { this.state = freshSave(); this.offlineAward = 0; this.storage.clear(); this.save(); }
 }

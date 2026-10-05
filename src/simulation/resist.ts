@@ -1,5 +1,6 @@
 import { PORCH_ANSWERS } from './intro';
 import type { PropertyId } from './economy';
+import { clock } from './occupation';
 import { crateHeld, strangerDue, runOpen, type Side, type SiteOutcome } from './alignment';
 /** The first resistance loop, as rules. One number per saved game (`Save.resist.rook`) says how far the Steward has come:
  * 0 untouched, 1 reported for work, 2 noticed the chalk, 3 delivered (the city shows it), 4 the stranger has been and gone.
@@ -72,3 +73,8 @@ export const benchOffer = (stage: number, greatMain: SiteOutcome, finchLevel: nu
 /** The one acknowledgement a leaning Steward gets, once per approach: the Embers' warmth at Finch's yard, the Directorate's recognition at the gate desk. Mixed or uncommitted histories get none. */
 export const ACK: Record<Side, string> = { resistance: 'Kettle’s on, if anyone asks. Nobody will.', ordinance: 'Finch Mechanical. You’re on two of our sheets now.' };
 export const acknowledgement = (side: Side | null) => side ? ACK[side] : null;
+/** The ward call's episode stage (`Save.resist.call`), local sequencing only: 0 untouched, 1 heard (the order read or the hand heard), 2 settled by the commitment. Next step only, and only up to 1: the second is the commitment, written by the economy alone. */
+export const CALL_DONE = 2;
+export const advanceCall = (stage: number, to: number) => to === stage + 1 && to < CALL_DONE ? to : stage;
+/** After dusk: the relay only speaks from seven in the evening to five in the morning. */
+export const callHour = (day: number) => { const h = clock(day).hour; return h >= 19 || h < 5; };
