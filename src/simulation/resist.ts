@@ -1,6 +1,6 @@
 import { PORCH_ANSWERS } from './intro';
 import type { PropertyId } from './economy';
-import { crateHeld, strangerDue, type SiteOutcome } from './alignment';
+import { crateHeld, strangerDue, runOpen, type SiteOutcome } from './alignment';
 /** The first resistance loop, as rules. One number per saved game (`Save.resist.rook`) says how far the Steward has come:
  * 0 untouched, 1 reported for work, 2 noticed the chalk, 3 delivered (the city shows it), 4 the stranger has been and gone.
  * It only moves forward, one step at a time, and never replays once it has reached 4. The world reads it; nothing here draws. */
@@ -39,3 +39,27 @@ export const HOLD: Partial<Record<PropertyId, Hold>> = {
     custodyTaken: 'You sign the sheet and shoulder the crate, with the clerk looking on. Directorate custody: nothing is hidden about it.', custodyCarrying: 'Take the crate to the Directorate collection at the Great Main gate.',
     signedIn: 'You sign the crate in. The stamp comes down on the sheet, and the governors go into the east lane’s booms.' },
 };
+
+/** Service Run 7, Finch's street gantry: the second contested site. `Save.resist.finch` is its episode stage, local sequencing only:
+ * 0 untouched, 1 heard of the run (either offer), 2 understood the pawl (the resistance's prerequisite), 3 settled. Forward-only, one step; settling lifts it to 3. */
+export const FINCH_DONE = 3;
+/** The next step only, and only up to 2: the third is the site's outcome, written by the economy alone. */
+export const advanceFinch = (stage: number, to: number) => to === stage + 1 && to < FINCH_DONE ? to : stage;
+/** Either offer is made at Finch itself, once the Great Main is settled (either way), Finch Mechanical is owned and the run is still base. */
+export const finchOffered = (greatMain: SiteOutcome, finchLevel: number, run: SiteOutcome) => greatMain !== 'base' && finchLevel >= 1 && !runOpen(run);
+/** The bypass needs the pawl understood; the certification only needs the order read or the offer heard. */
+export const canBypass = (stage: number, greatMain: SiteOutcome, finchLevel: number, run: SiteOutcome) => finchOffered(greatMain, finchLevel, run) && stage >= 2;
+export const canCertify = (stage: number, greatMain: SiteOutcome, finchLevel: number, run: SiteOutcome) => finchOffered(greatMain, finchLevel, run) && stage >= 1;
+/** What Finch's hand and the Directorate's order say, and what is carried and fitted. The words belong to the trade, not to a side. */
+export const FINCH = {
+  /** The hand's one line, and the variant for a Steward who signed for the Rook crate. */ hand: 'There’s a run on the south roof nobody has used since the winch seized. Pawl’s still in it. Worth a look, if you own the bench.',
+  handCustody: 'You signed for their crate. Finch doesn’t care whose sheet you sign. You own the bench.',
+  /** The notice on the yard door, and the toast on reading it. */ notice: 'DIRECTORATE OF LABOUR • WORK ORDER 7 • Service Run 7 to be certified for maintenance use. A governor, fitted and signed for at the winch, by a keyholder of Finch Mechanical.',
+  noticeToast: 'Work order. Service Run 7: a governor, fitted and signed for at the winch on the south roof.',
+  pawl: 'The pawl is worn to a hook. The winch will not hold a load without the governor, and the governor is stamped for the Directorate’s own count. Pull the pawl pin and the chain simply lets go.',
+  released: 'You take the release off the bench: a pawl pin, a hand’s weight of steel.', governor: 'You take the governor off the bench. Directorate stamp on the housing, oxblood seal on the pin.',
+  releaseCarrying: 'Get the release to the winch on Finch’s south roof.', governorCarrying: 'Take the governor up to Service Run 7’s winch.',
+  bypassed: 'The pin comes out and the chain runs. The lower flight comes down on its own weight and hangs from the gantry.', certified: 'You fit the governor and sign the plate. The winch takes the load and the grilles go back on their hooks.',
+  crew: ['Finch contract. Go on.', 'Your name’s on the sheet.'],
+  plate: 'SERVICE RUN 7 • DIRECTORATE MAINTENANCE • KEEP OFF',
+} as const;
