@@ -22,7 +22,7 @@ const archCurve = (half: number, rise: number, from: number, to: number, n = 28)
 export class MarketSquare implements SiteModule {
   private spoke = 0;
   id = 'market' as const; targets: SiteModule['targets'] = []; anchor = { x: 0, z: -37, rotation: 0 };
-  site: LayeredSite; patrol: Patrol; view: SiteView = { control: 0, stage: 0, levels: {} as SiteView['levels'], sites: {} as SiteView['sites'] };
+  /** The posted officer at the Sael Gate (a worker index), whom the ward call's report is made to. */ readonly officer: number; site: LayeredSite; patrol: Patrol; view: SiteView = { control: 0, stage: 0, levels: {} as SiteView['levels'], sites: {} as SiteView['sites'] };
   wake = 0; night = 0; private shown = -1; private waking = false;
   private petals: T.Group[] = []; private core: T.Mesh; private halo: T.Group; private disc: T.Group; private discFace: T.Mesh;
   private yoke = new T.Group();
@@ -102,7 +102,7 @@ export class MarketSquare implements SiteModule {
     const aim = new T.Group(); aim.position.y = .55; aim.rotation.x = -.98; this.yoke.add(aim); cyl(aim, 0, 0, 0, .36, .6, O.iron); cyl(aim, 0, -.31, 0, .3, .03, mats.glow);
     lightCone(aim, 2.4, 18).position.y = -.32;
     // Two soldiers: one holds the boom, one walks the beat between the gate and the Finch.
-    pres.addWorker(5.75, GZ + .8, 0, 'guard', { role: 'ordinal', when: () => this.view.control < SITE_LIBERATED });
+    this.officer = pres.addWorker(5.75, GZ + .8, 0, 'guard', { role: 'ordinal', when: () => this.view.control < SITE_LIBERATED });
     const beat = pres.addWorker(-1.25, -13.8, Math.PI, 'walk', { role: 'ordinal', when: () => this.view.control < SITE_LIBERATED });
     this.patrol = new Patrol(city, pres.workers[beat], [[-1.25, -13.8], [-1.25, -26.9], [-3.45, -29.3], [-3.45, -32.9], [-1.6, -34.6]].map(([x, z]) => new T.Vector2(x, z)), pres.root);
     this.patrol.hot.push({ x: CELLAR.x, z: CELLAR.z, r: 3.4 });

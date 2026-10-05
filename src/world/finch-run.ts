@@ -41,7 +41,7 @@ export class FinchRun {
   part!: Consignment; private winchTarget!: Target; private releaseTarget!: Target; private orderTarget!: Target;
   /** What sync() works out once: the side the Steward leans to and the line it earns, the gate desk's place. Nothing in update() searches or allocates. */
   private side: Side | null = null; private ack: string | null = null; private desk: T.Vector3 | null = null;
-  private hand: number; private hear = 0; private warm = false; private recognised = false;
+  readonly hand: number; private hear = 0; private warm = false; private recognised = false;
   constructor(private pres: Presentation) {
     const city = pres.city, root = new T.Group(); pres.root.add(root); root.add(this.shut, this.lowered, this.resistance, this.ordinance, this.yard, this.offer);
     const gantry = new T.Group(); root.add(gantry);

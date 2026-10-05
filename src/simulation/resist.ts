@@ -78,3 +78,25 @@ export const CALL_DONE = 2;
 export const advanceCall = (stage: number, to: number) => to === stage + 1 && to < CALL_DONE ? to : stage;
 /** After dusk: the relay only speaks from seven in the evening to five in the morning. */
 export const callHour = (day: number) => { const h = clock(day).hour; return h >= 19 || h < 5; };
+/** The ward call (the Weathervane's relay against the Sael Gate's sill): every word of it, in one place. The regime says "citizen" and never "Steward"; only Finch's hand, after a resistance commitment, says "Steward". The stage-V lines (the hand's and the officer's aftermath, the plates) are written here now and spoken by nothing yet. */
+export const CALL = {
+  plate: 'DIRECTORATE • MOVEMENT ORDER 12 • A column is ordered into Market Square by the Great Main. Lamps, mirrors and pattern cards are to be surrendered to the officer at the Sael Gate. Keyholders will report.',
+  orderToast: 'Movement order. A column into Market Square by the Great Main; any lamp, mirror or pattern card goes to the officer at the Sael Gate.',
+  handOffer: { open: 'They’re marching a column into the square. The Weathervane can call every roof in the ward at once, if someone carries the card up. It’s cut. It’s on your bench.', resistance: 'You’ve read their order. The card’s cut and on the bench. Top of the Weathervane, after dark.', ordinance: 'You’ve signed two of their sheets, so you’ve read the order. The card is on your bench all the same. It’s your bench.' },
+  taken: 'You take the card off the bench: a hand of punched brass. The Weathervane’s relay reads it. So would the Directorate.',
+  carrying: 'The pattern card: the Weathervane’s relay after dusk, or the officer at the Sael Gate.',
+  shutterOpen: 'The shutter folds back on its pin. The lens looks east over the whole ward.', shutterClosed: 'You swing the shutter to. The lens is dark again.',
+  seated: 'The card drops into the frame and seats. The relay is one lamp short of speaking.', lifted: 'You lift the card out of the frame.', byDay: 'A lamp says nothing in daylight. After dusk.',
+  sent: 'You turn the lamp up behind the card. The lens throws it east, long and short. The card will not come out of the frame again.', answered: 'One roof answers. Then another. Then the square.',
+  relayAfter: 'The lamp is still warm. The card has fused in its frame.', sealed: 'A Directorate seal on the shutter pin, oxblood wax, and boot marks on the deck. They found the way up.',
+  watch: 'You sit against the parapet and watch the light go out of the ward. Dusk.',
+  officer: { approach: 'Report.', empty: 'Nothing in your hands, citizen. Move along.', offered: 'Put it there.', certain: 'You’re certain?', back: 'Then stop wasting the gate’s time, citizen.',
+    signed: { open: 'Then we’ll move first.', kept: 'Finch Mechanical. Three sheets now. Then we’ll move first.', crossed: 'From you. That is noted, citizen. Then we’ll move first.' },
+    later: 'Finch Mechanical. Two of our sheets carry your name, citizen. There will be a third.' },
+  signedToast: 'You sign the card in. The officer turns it over once and sends a runner up the Great Main.',
+  hand: { resistance: { open: 'It carried. Every roof I can see answered. Steward.', kept: 'Knew you’d climb. Every roof answered, Steward.', crossed: 'Two of their sheets, and you climbed anyway. Every roof answered. Steward.' },
+    ordinance: { open: 'The card was on your bench this morning. I see where it went.', kept: 'You own the bench. I only work at it.', crossed: 'I cut that card for you.' } },
+  cellar: 'SEALED • MOVEMENT ORDER 12', hoarding: 'ORDER 12 • THE SQUARE IS UNDER COUNT', yard: 'CONTRACT UNDER REVIEW',
+} as const;
+/** What Finch's hand says of the order while it stands: by the side the deeds lean to, or the open offer. */
+export const handOfferLine = (side: Side | null) => CALL.handOffer[side ?? 'open'];
