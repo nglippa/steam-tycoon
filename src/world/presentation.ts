@@ -451,7 +451,7 @@ export class Presentation {
     const post=(x:number,z:number,yaw:number,rank:number,job:PostRole='sentry',path?:[number,number,number])=>{
       // Canal Ward is behind its gate until chartered: its posts cannot be checked now and are not manned until it opens.
       const gated=x>48;if(!gated&&(city.blocked(x,z,.2)||(path&&city.blocked(path[0],path[1],.2)))){console.warn('garrison post is not on open ground',x,z);return -1;}const d=districtAt(x,z);
-      const i=this.addWorker(x,z,yaw,job==='patrol'?'walk':job==='inspector'?'clipboard':job==='pair'?'talk':'guard',{role:job==='inspector'?'ordinal':'guard',path,when:()=>rank<city.social.get(d)!.occupier&&(!gated||city.economy.state.districts.includes('canal'))});
+      const i=this.addWorker(x,z,yaw,job==='patrol'?'walk':job==='inspector'?'clipboard':job==='pair'?'talk':'guard',{role:job==='inspector'?'ordinal':'guard',path,when:()=>(rank<city.social.get(d)!.occupier&&(!gated||city.economy.state.districts.includes('canal')))||(rank>1&&d==='market'&&!!this.wardCall?.turnedOut)});
       this.garrisonPosts.push(i);this.posts.push({index:i,role:job,rank,district:d});return i;};
     const pair=(ax:number,az:number,bx:number,bz:number,rank:number)=>{const a=post(ax,az,Math.atan2(bx-ax,bz-az),rank,'pair'),b=post(bx,bz,Math.atan2(ax-bx,az-bz),rank,'pair');if(a>=0&&b>=0){this.workers[a].partner=b;this.workers[b].partner=a;}};
     // The Great Main: a pair off duty by the arrival end, sentries along it, an inspector at the freight, a beat. (Its checkpoint has its own crew.)

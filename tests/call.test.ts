@@ -158,3 +158,52 @@ test('the dusk watch is kept once per save: the flag is persisted, a second watc
   const bad = JSON.parse(e.storage.read()!); bad.resist.watch = 9; assert.equal(new Economy(memory(JSON.stringify(bad))).state.resist.watch, 1); bad.resist.watch = -3; assert.equal(new Economy(memory(JSON.stringify(bad))).state.resist.watch, 0); delete bad.resist.watch; assert.equal(new Economy(memory(JSON.stringify(bad))).state.resist.watch, 0);
   e.reset(); assert.equal(e.state.resist.watch, 0); assert.equal(new Economy(memory(e.storage.read())).state.resist.watch, 0); w.done();
 });
+
+type Inner = { risen: T.Group; mustered: T.Group; placed: T.Group; gallery: T.Group[]; yardScar: T.Group; winchScar: T.Group; peopleOn: boolean; turnedOut: boolean; stirred: boolean; alerted: boolean };
+const inner = (c: unknown) => c as Inner;
+const FAR = new T.Vector3(0, 1.75, 40), AT_HAND = new T.Vector3(-16.4, 1.75, 23);
+/** A committed world: the call taken to its end through the real handlers (the lamp key or the ledger), nothing left live unless `live` is set. */
+function committed(side: 'resistance' | 'ordinance', live = false, tilt?: 'resistance' | 'ordinance') {
+  const w = world(); if (tilt) { w.e.state.alignment = freshAlignment(); w.e.state.alignment.outcomes.greatMain = tilt; w.e.state.alignment.outcomes.finchRun = tilt; for (const d of (tilt === 'resistance' ? ['rook.diverted', 'finch.bypassed'] : ['rook.custody', 'finch.certified']) as DeedId[]) w.e.state.alignment.deeds[d] = 1; w.call.sync(); }
+  if (side === 'resistance') { seated(w); assert.equal(w.call.use('call.lamp'), CALL.sent); } else { w.call.update(.1, 0, AT_BOX); w.call.card.take(); w.call.use('call.report'); assert.equal(w.call.use('call.ledger'), CALL.signedToast); }
+  if (!live) for (let k = 0; k < 800 && w.call.seq >= 0; k++) w.call.update(.05, 0, FAR); return w;
+}
+test('the square’s dressing: the Embers’ group shows only for a resistance commit once stirred and the square held; the Directorate’s lamps for an ordinance commit; neither while liberated', () => {
+  const shows = (w: ReturnType<typeof world>) => { const i = inner(w.call); return [i.risen.visible, i.mustered.visible, i.placed.visible, i.peopleOn, i.turnedOut]; };
+  const un = world(); assert.deepEqual(shows(un), [false, false, false, false, false]); un.done();
+  const r = committed('resistance', true); assert.deepEqual(shows(r), [false, false, false, false, false]); const v = new T.Vector3(); for (let k = 0; k < 800 && inner(r.call).alerted === false; k++) { r.call.update(.05, 0, v); if (inner(r.call).stirred && !inner(r.call).alerted) assert.deepEqual(shows(r).slice(0, 4), [true, false, false, true]); } assert.deepEqual(shows(r), [true, false, false, true, true]);
+  r.e.state.sites.market = SITE_LIBERATED; r.call.sync(); assert.deepEqual(shows(r), [false, false, false, false, false]); assert.equal(r.call.lens.visible, true); assert.ok(r.call.lamps.every(l => l.visible)); assert.equal(r.e.state.alignment.commit?.side, 'resistance'); r.e.state.sites.market = 0; r.call.sync(); assert.deepEqual(shows(r), [true, false, false, true, true]); r.done();
+  const o = committed('ordinance', false); assert.deepEqual(shows(o), [false, true, true, false, true]); assert.ok(inner(o.call).gallery.every(g => g.visible)); o.e.state.sites.market = SITE_LIBERATED; o.call.sync(); assert.deepEqual(shows(o), [false, false, false, false, false]); assert.equal(o.e.state.alignment.commit?.side, 'ordinance'); o.done();
+});
+test('after signing the gallery lamps light one after another, the posts turn out last, and the placed things wait until the Steward has been 45 m from the square; a reload shows them at once', () => {
+  const w = committed('ordinance', true), i = inner(w.call); assert.equal(i.placed.visible, false); assert.equal(i.mustered.visible, true); assert.deepEqual(i.gallery.map(g => g.visible), [false, false, false, false]); assert.equal(i.turnedOut, false);
+  const seen: number[] = []; for (let k = 0; k < 400 && !i.alerted; k++) { w.call.update(.05, 0, AT_BOX); seen.push(i.gallery.filter(g => g.visible).length); } assert.ok(seen.every((n, k) => k === 0 || n >= seen[k - 1])); assert.equal(seen.at(-1), 4); assert.ok(seen.includes(1) && seen.includes(2) && seen.includes(3)); assert.equal(i.alerted, true); assert.equal(i.turnedOut, true); assert.equal(i.placed.visible, false);
+  w.call.update(.1, 0, new T.Vector3(0, 1.75, -31 + 44)); assert.equal(i.placed.visible, false); w.call.sync(); assert.equal(i.placed.visible, false); w.call.update(.1, 0, new T.Vector3(0, 1.75, -31 + 46)); assert.equal(i.placed.visible, true); w.call.update(.1, 0, AT_BOX); assert.equal(i.placed.visible, true); w.call.sync(); assert.equal(i.placed.visible, true);
+  const again = new WardCall(w.pres as never); assert.equal(inner(again).placed.visible, true); assert.equal(inner(again).turnedOut, true); assert.ok(inner(again).gallery.every(g => g.visible)); w.done(); Consignment.all = Consignment.all.filter(c => c !== again.card);
+});
+test('the turned-out garrison predicate is true only for a commitment of either side, with the Directorate alerted and the square held', () => {
+  const w = world(); assert.equal(w.call.turnedOut, false); w.done(); for (const side of ['resistance', 'ordinance'] as const) { const c = committed(side, true); assert.equal(c.call.turnedOut, false); for (let k = 0; k < 800 && !inner(c.call).alerted; k++) c.call.update(.05, 0, FAR); assert.equal(c.call.turnedOut, true); c.e.state.sites.market = SITE_LIBERATED; assert.equal(c.call.turnedOut, false); c.done(); }
+});
+test('after a commitment the hand and the officer speak by how the deeds stood, once per approach and only while present; the hand never says two lines', () => {
+  for (const [side, tilt, how] of [['resistance', undefined, 'open'], ['resistance', 'resistance', 'kept'], ['resistance', 'ordinance', 'crossed'], ['ordinance', undefined, 'open'], ['ordinance', 'ordinance', 'kept'], ['ordinance', 'resistance', 'crossed']] as const) {
+    const w = committed(side, false, tilt), said = lined(w.call); assert.equal(crossing(w.e.state.alignment), how);
+    for (let k = 0; k < 10; k++) w.call.update(.5, 0, AT_HAND); assert.deepEqual(said, [CALL.hand[side][how]], `${side}/${how}`);
+    for (let k = 0; k < 10; k++) w.call.update(.5, 0, new T.Vector3(-16.4, 1.75, 45)); for (let k = 0; k < 4; k++) w.call.update(.5, 0, AT_HAND); assert.equal(said.length, 2); assert.equal(said[1], said[0]);
+    w.pres.workers[0].person.group.visible = false; for (let k = 0; k < 10; k++) w.call.update(.5, 0, new T.Vector3(-16.4, 1.75, 45)); for (let k = 0; k < 4; k++) w.call.update(.5, 0, AT_HAND); assert.equal(said.length, 2, 'no hand, no line');
+    const off = lined(w.call); for (let k = 0; k < 10; k++) w.call.update(.5, 0, AT_BOX); assert.deepEqual(off, side === 'resistance' && how === 'crossed' ? [CALL.officer.later] : [], `officer ${side}/${how}`); w.done();
+  }
+  const w = committed('resistance', false, 'ordinance'), said = lined(w.call); w.pres.workers[1].person.group.visible = false; for (let k = 0; k < 10; k++) w.call.update(.5, 0, AT_BOX); assert.deepEqual(said, [], 'no officer, no line'); w.done();
+});
+test('the history scars show only for a crossed commitment of the matching side (the winch’s only while the Ember there is showing) and change no state', () => {
+  const scars = (w: ReturnType<typeof world>) => [inner(w.call).yardScar.visible, inner(w.call).winchScar.visible];
+  const a = committed('resistance', false, 'ordinance'); assert.deepEqual(scars(a), [true, false]); a.done(); const b = committed('ordinance', false, 'resistance'); assert.deepEqual(scars(b), [false, true]); b.e.state.alignment.outcomes.finchRun = 'ordinance'; b.call.sync(); assert.deepEqual(scars(b), [false, false]); b.e.state.alignment.outcomes.finchRun = 'resistance'; b.call.sync(); assert.deepEqual(scars(b), [false, true]); const keep = JSON.stringify(b.e.state.alignment); b.call.sync(); assert.equal(JSON.stringify(b.e.state.alignment), keep); b.done();
+  for (const [side, tilt] of [['resistance', undefined], ['resistance', 'resistance'], ['ordinance', undefined], ['ordinance', 'ordinance']] as const) { const c = committed(side, false, tilt); assert.deepEqual(scars(c), [false, false]); c.done(); } const u = world(); assert.deepEqual(scars(u), [false, false]); u.done();
+});
+test('only SEND (call.lamp) and SIGN (call.ledger) ever reach Economy.commit, through every other use() and across the whole send and answer sequence', () => {
+  const w = world(), { call, e } = w, by: string[] = [], push = (id: string) => { by.push(id); }; const was = e.commit.bind(e); e.commit = (side, id) => { push(id); return was(side, id); };
+  e.state.day = NIGHT; for (const id of ['call.order', 'call.card', 'call.relay', 'call.frame', 'call.watch', 'call.report', 'call.sill', 'call.relay', 'call.relay', 'call.frame', 'call.report', 'call.sill', 'nonsense']) { call.use(id); call.update(.1, 0, AT_BOX); } assert.deepEqual(by, []); assert.equal(e.state.alignment.commit, null);
+  w.done(); const x = world(), { call: c2, e: e2 } = x; const was3 = e2.commit.bind(e2); e2.commit = (side, id) => { push(id); return was3(side, id); }; seated(x); for (let k = 0; k < 40; k++) c2.update(.1, 0, FAR); assert.deepEqual(by, []); assert.equal(c2.use('call.lamp'), CALL.sent); assert.deepEqual(by, ['call.sent']);
+  for (let k = 0; k < 800; k++) c2.update(.05, 0, FAR); for (const id of ['call.order', 'call.relay', 'call.frame', 'call.watch', 'call.report', 'call.sill', 'call.lamp']) c2.use(id); assert.deepEqual(by, ['call.sent']); x.done();
+  const o = world(), by2: string[] = []; const was2 = o.e.commit.bind(o.e); o.e.commit = (side, id) => { by2.push(id); return was2(side, id); }; o.call.update(.1, 0, AT_BOX); o.call.card.take(); o.call.use('call.report'); for (let k = 0; k < 60; k++) o.call.update(.1, 0, AT_BOX); o.call.use('call.sill'); o.call.use('call.lamp'); assert.deepEqual(by2, []);
+  o.call.use('call.report'); o.call.use('call.ledger'); for (let k = 0; k < 400; k++) o.call.update(.05, 0, FAR); for (const id of ['call.order', 'call.relay', 'call.frame', 'call.report', 'call.sill', 'call.lamp']) o.call.use(id); assert.deepEqual(by2, ['call.reported']); o.done();
+});

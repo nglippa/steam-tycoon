@@ -113,3 +113,7 @@ export function relayHint(commit: Side | null, open: boolean, seated: boolean, c
   if (commit) return commit === 'resistance' ? 'LOOK CLOSER' : 'SEALED';
   if (!open) return 'OPEN THE SHUTTER'; if (!seated) return carrying ? 'SET THE CARD' : 'CLOSE THE SHUTTER'; return callHour(day) ? 'SEND THE CALL' : 'AFTER DUSK';
 }
+/** The Directorate's own answer to a signature, in seconds after signing: four caged lamps along the gallery rail light one after another (about eight seconds) and then the posts turn out. Nothing here is saved; a reload shows the end of it. */
+export const MUSTER = { lamps: [1.5, 3.5, 5.5, 7.5], stirred: 10, alerted: 10 } as const;
+/** How many of the gallery's caged lamps are lit `t` seconds after signing. */
+export function musterLit(t: number) { let n = 0; for (const s of MUSTER.lamps) if (t >= s) n++; return n; }

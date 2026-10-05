@@ -1,12 +1,12 @@
 import * as T from 'three';
-import { box, cyl, sphere, torus, sign, bake, mats } from './assets';
-import { artMats } from './art-kit';
+import { box, cyl, sphere, torus, beam, crate, sign, bake, mats } from './assets';
+import { artMats, fabricOf } from './art-kit';
 import { unseen } from './routes';
 import { Consignment } from './logistics';
-import { occupationMats } from './factions';
+import { occupationMats, ancientMats, decalMat, emberChalk } from './factions';
 import { callOffered, crossing, leaning, type Side } from '../simulation/alignment';
 import { SITE_LIBERATED } from '../simulation/economy';
-import { CALL, CALL_PACE, handOfferLine, callHour, lensOn, lampsLit, relayHint } from '../simulation/resist';
+import { CALL, CALL_PACE, MUSTER, handOfferLine, callHour, lensOn, lampsLit, musterLit, relayHint } from '../simulation/resist';
 import type { Line } from '../simulation/intro';
 import type { Presentation } from './presentation';
 import type { Target } from './city';
@@ -20,6 +20,10 @@ const BENCH = { x: -16.4, z: 23.5 }, NOTICE = { x: -21.1, z: 22.7 }, CARD = { x:
 const TX = -71, TZ = -28, TOP = 31.1, LY = TOP + 1.8, GAL = 18.1, LOOKOUT = { x: TX + 4.2, z: TZ - 4.2 };
 /** The Sael Gate's sentry box (market-square.ts), which the Ordinance planted and which outlives them: the officer is posted a few paces west, and the card goes onto a ledge under the box's window on the side facing the square. */
 const BOX = { x: 10.85, z: -32.9 }, SILL = { x: BOX.x - .15, y: 1.645, z: -32.2 }, LEDGER = { x: BOX.x + .25 }, NEAR = 8;
+/** Market Square (market-square.ts): its centre, the Sael Gate's line, the Copper Finch's cellar hatch, and how far the Steward must walk from the square before the Directorate's placed things stand. The two lanes flank the stalls where the street meets the gate square. */
+const SQ = { x: 0, z: -31 }, GZ = -35.35, CELLAR = { x: -12.75, z: -23.6 }, AWAY = 45, YARD = { x: -19.2, z: 22.7 }, WINCH = { x: -13.95, z: 20.6 }, TERRACE = 14.45;
+/** The Directorate's caged lamps on the gallery rail: a white-green core and a faint halo, emissive only. The lit panes of the Embers' answer are one more basic material, dull by day and warm at night. */
+const galCore = new T.MeshBasicMaterial({ color: '#d6f5dc' }), galHalo = new T.MeshBasicMaterial({ color: '#6fd08a', transparent: true, opacity: .26, depthWrite: false }), paneMat = new T.MeshBasicMaterial({ color: '#5b6f6a' }), PANE_DAY = new T.Color('#5b6f6a'), PANE_NIGHT = new T.Color('#f0e8b0'), mirror = new T.MeshStandardMaterial({ color: '#c9d6d3', metalness: .6, roughness: .25 });
 /** One turquoise-warm lamp pair for the lit lens and every answering lamp: an emissive core and a faint halo, the idiom of the caged lamps. No real light anywhere. */
 const lampCore = new T.MeshBasicMaterial({ color: '#d2ffe6' }), lampHalo = new T.MeshBasicMaterial({ color: '#3fe0bc', transparent: true, opacity: .3, depthWrite: false }), DAY_CORE = new T.Color('#79ab9c'), NIGHT_CORE = new T.Color('#d2ffe6');
 /** The lit lens is a lamp behind glass, not a neon disc: its own quieter pair, and its halo is put away whenever the viewer is near enough to be inside it. */
@@ -49,8 +53,12 @@ export class WardCall {
   private sillProps = new T.Group(); private onSill = new T.Group(); private pinned = new T.Group(); private sill = false; private hailed = false; private certain = 0; private near = false; private spoken = false;
   /** Seconds since the lamp was turned up while the sequence is live, else -1 (nothing live: after a reload, or once it is over); the answered toast is given once; the lamps' shade is refreshed once a second. */
   seq = -1; private told = false; private shade = 0;
+  /** The square's answer (stage V), baked and toggled by `visible`: the Embers' ribbons, chalk and lit panes (`risen`, above), the Directorate's caged gallery lamps (`mustered`, above, each lamp its own group) and the things it places (`placed`: the sealed cellar, trestles, the crate of seized lamps, the notice), and the two history scars. The people are workers whose `when` is `peopleOn`. */
+  private placed = new T.Group(); private gallery: T.Group[] = []; private yardScar = new T.Group(); private winchScar = new T.Group();
+  /** The placed things stand once the Steward has been more than AWAY from the square after signing (`fresh` is that latch, open from signing until then) or at once when nothing is live (a reload): they never appear in front of someone standing at the sentry box. */
+  private placedOn = false; private fresh = false; private wasHeld = true; private handSaid = false; private later = false;
   constructor(private pres: Presentation) {
-    const city = pres.city, root = new T.Group(); pres.root.add(root); root.add(this.notice, this.risen, this.mustered, this.leaf, this.seat, this.lens, this.sealed, this.sillProps, this.onSill, this.pinned); this.risen.visible = this.mustered.visible = false;
+    const city = pres.city, root = new T.Group(); pres.root.add(root); root.add(this.notice, this.risen, this.mustered, this.placed, this.yardScar, this.winchScar, this.leaf, this.seat, this.lens, this.sealed, this.sillProps, this.onSill, this.pinned); this.risen.visible = this.mustered.visible = false;
     // The order, on its own board clear of Work Order 7: the Directorate's header, oxblood strips, and the sheet.
     const p = CALL.plate.split(' • '), n = this.notice; box(n, NOTICE.x, 1.5, NOTICE.z + .03, 1, 1.3, .06, mats.wood); box(n, NOTICE.x, 1.5, NOTICE.z + .07, .8, 1.06, .012, artMats.paper);
     sign(n, p[0], p[1], NOTICE.x, 1.84, NOTICE.z + .086, .72, .3, '#cbbf9f'); for (const dy of [.2, .06, -.08, -.22]) box(n, NOTICE.x, 1.5 + dy, NOTICE.z + .08, .6, .012, .004, mats.dark);
@@ -82,6 +90,28 @@ export class WardCall {
     desk('call.report', 'Sael Gate sentry box', 'REPORT', BOX.x, 1.1, () => this.offered && !this.sill); desk('call.sill', 'Pattern card on the sill', 'TAKE IT BACK', SILL.x, .34, () => this.offered && this.sill); desk('call.ledger', 'The gate ledger', 'SIGN IT IN', LEDGER.x + .02, .3, () => this.offered && this.sill);
     // The answering lamps: each a post, a core and a halo on an existing roof or ledge, unseen until it answers.
     for (const l of LAMPS) { const g = new T.Group(), mast = l.mast ?? .9; g.position.set(l.x, l.y + mast, l.z); cyl(g, 0, -mast / 2, 0, .035, mast, mats.iron); sphere(g, 0, 0, 0, .35, lampCore); sphere(g, 0, 0, 0, 1.1, lampHalo); g.visible = false; root.add(g); this.lamps.push(g); }
+    // THE SQUARE'S ANSWER. The Embers' (`risen`, once the roofs have stirred): turquoise ribbons tied on the first two stalls' posts, three chalk Embers (the gate's west pier, the Copper Finch's east wall, the exchange's west wall), four upper windows lit on the two blocks that face the square, a handcart turned across the east lane. No banners, nothing on the gate itself.
+    const r = this.risen, rib = fabricOf(ancientMats.turquoise), ember = (x: number, y: number, z: number, ry: number) => { const m = new T.Mesh(new T.PlaneGeometry(.5, .5), decalMat(emberChalk, .9)); m.position.set(x, y, z); m.rotation.y = ry; r.add(m); };
+    for (const [x, z] of [[6.93, -20.48], [6.93, -23.52], [8.87, -23.52], [-6.93, -24.48], [-6.93, -27.52], [-8.87, -27.52]]) { box(r, x, 1, z, .05, .55, .1, rib); box(r, x + .03, .78, z - .04, .04, .4, .08, rib); torus(r, x, 1.27, z, .1, .025, rib).rotation.y = Math.PI / 2; }
+    ember(-10.8, 2.15, GZ + .71, 0); ember(-13.46, 1.5, -17.4, Math.PI / 2); ember(13.46, 1.5, -18.6, -Math.PI / 2);
+    for (const [x, y, z, ry] of [[-12.57, 9.2, -16.5, Math.PI / 2], [-12.57, 9.2, -19.5, Math.PI / 2], [12.32, 7, -15.5, -Math.PI / 2], [12.32, 7, -19, -Math.PI / 2]] as const) { const f = new T.Group(); f.position.set(x, y, z); f.rotation.y = ry; r.add(f);
+      box(f, 0, 0, .01, .96, 1.26, .03, mats.iron); const pane = new T.Mesh(new T.PlaneGeometry(.8, 1.1), paneMat); pane.position.z = .03; f.add(pane); box(f, 0, 0, .035, .04, 1.1, .02, mats.iron); box(f, 0, .1, .035, .8, .04, .02, mats.iron); }
+    { const c = new T.Group(); c.position.set(11.4, 0, -24.8); c.rotation.y = .35; r.add(c); box(c, 0, .55, 0, 1.5, .1, .8, mats.wood); for (const dz of [-.4, .4]) box(c, 0, .72, dz, 1.5, .26, .05, mats.wood); box(c, -.75, .72, 0, .05, .26, .8, mats.wood);
+      for (const dz of [-.46, .46]) torus(c, 0, .38, dz, .36, .05, mats.iron); cyl(c, 0, .38, 0, .03, .96, mats.iron).rotation.x = Math.PI / 2; for (const dz of [-.3, .3]) beam(c, new T.Vector3(.75, .6, dz), new T.Vector3(1.7, .15, dz), .035, mats.wood); sphere(c, -.2, .86, .1, .2, mats.cream).scale.y = .7; bake(c); }
+    bake(r);
+    for (const [x, z, yaw] of [[-11.6, -29.3, 2.04], [-12.4, -28.6, 2.07], [11.6, -29.3, -2.04], [12.4, -28.6, -2.07]] as const) pres.addWorker(x, z, yaw, 'watch', { role: z === -29.3 ? 'resident' : 'worker', essential: true, when: () => this.peopleOn });
+    // The Directorate's (`mustered`: four caged lamps along the gallery rail, which light in turn after signing) and what it places (`placed`): the cellar boarded and sealed, black-iron trestles across the two lanes, an open crate of seized lamps and mirrors beside the sentry box, Order 12 on the hoarding.
+    for (const x of [-8.2, -3.4, 1.6, 8.4]) { const g = new T.Group(); g.position.set(x, 8.75, GZ + .55); cyl(g, 0, -.24, 0, .1, .06, O.iron); cyl(g, 0, .24, 0, .12, .05, O.iron); sphere(g, 0, 0, 0, .17, galCore); sphere(g, 0, 0, 0, .38, galHalo); for (const [dx, dz] of [[.14, 0], [-.14, 0], [0, .14], [0, -.14]]) cyl(g, dx, 0, dz, .014, .5, O.iron); bake(g); this.mustered.add(g); this.gallery.push(g); }
+    const pl = this.placed, hatch = new T.Group(), seal = CALL.cellar.split(' • '); hatch.position.set(CELLAR.x, .52, CELLAR.z); hatch.rotation.z = -.38; pl.add(hatch); for (const k of [-1, 1]) beam(hatch, new T.Vector3(-.62, .1, -.66 * k), new T.Vector3(.62, .1, .66 * k), .045, mats.wood);
+    for (const dz of [-.55, .55]) box(hatch, 0, .1, dz, 1.4, .05, .16, mats.wood); sphere(hatch, 0, .16, 0, .13, O.oxblood).scale.y = .45; { const plate = sign(hatch, seal[0], seal[1], 0, .2, .38, .9, .3, '#cbbf9f'); plate.rotation.x = -Math.PI / 2; }
+    const trestle = (x: number, z: number) => { box(pl, x, .92, z, 3, .14, .1, O.iron); box(pl, x, .6, z, 3, .07, .07, O.iron); for (const dx of [-1.2, 1.2]) for (const k of [-1, 1]) beam(pl, new T.Vector3(x + dx, 0, z - .38 * k), new T.Vector3(x + dx, .95, z), .05, O.iron); for (const dx of [-.95, .35]) box(pl, x + dx, .92, z + .06, .6, .15, .02, O.oxblood); city.collider(x, z, 3, .5, 1, undefined, () => !pl.visible); };
+    trestle(-11, -28.2); trestle(11, -28.2);
+    crate(pl, 9.3, 0, -32.75, .8); for (const [dx, dz] of [[-.2, -.1], [.1, .12], [.22, -.15]]) { cyl(pl, 9.3 + dx, .95, -32.75 + dz, .06, .22, mats.brass); sphere(pl, 9.3 + dx, 1.1, -32.75 + dz, .07, mats.brass); } for (const [dx, tilt] of [[-.28, .5], [.3, -.45]]) { const m = cyl(pl, 9.3 + dx, 1.05, -32.75, .22, .02, mirror); m.rotation.z = tilt; m.rotation.x = Math.PI / 2 - .2; } city.collider(9.3, -32.75, .9, .9, .9, undefined, () => !pl.visible);
+    { const h = CALL.hoarding.split(' • '); box(pl, -6.1, 7.25, GZ + .9, 1.5, 1.2, .02, artMats.paper); box(pl, -6.1, 6.78, GZ + .91, 1.5, .1, .006, O.oxblood); sign(pl, h[0], h[1], -6.1, 7.4, GZ + .915, 1.34, .6, '#cbbf9f'); }
+    bake(pl);
+    // The history scars: an oxblood stamp across Finch's work-order board on the yard door (an ordinance tilt, then the Embers), and two strokes through the Ember on the winch's north face (an Embers tilt, then the Directorate).
+    { const y = this.yardScar; const strip = box(y, YARD.x, 1.5, YARD.z + .075, .76, .17, .012, O.oxblood); strip.rotation.z = -.1; const tag = sign(y, CALL.yard, '', YARD.x, 1.5, YARD.z + .085, .7, .14, '#cbbf9f'); tag.rotation.z = -.1; bake(y); }
+    for (const dx of [-.05, .07]) { const k = box(this.winchScar, WINCH.x + .16 + dx, TERRACE + .2, WINCH.z - .41 - .016, .4, .022, .006, O.oxblood); k.rotation.z = .8; } bake(this.winchScar);
     // The old relay plaque (weatherside.ts) says the Ordinance never found the way up, which a sealed relay contradicts: that one target is unavailable after an ordinance commitment and is exactly as it was otherwise.
     const old = city.targets.find(t => t.id === 'weathervane'); if (old) { const was = old.when; old.when = () => this.side !== 'ordinance' && (was?.() ?? true); }
     this.sync();
@@ -91,6 +121,11 @@ export class WardCall {
   private get side(): Side | null { return this.alignment.commit?.side ?? null; }
   /** The call is on offer: both sites settled, nothing committed, the square still held. Nothing else makes it so. */
   get offered() { const s = this.economy.state; return callOffered(s.alignment, s.sites.market, SITE_LIBERATED); }
+  /** The square is still held: the officer exists and the square's own layers (liberated, restored) have not taken it over. Everything of the square's answer stands down when it is not. */
+  private get held() { return this.economy.state.sites.market < SITE_LIBERATED; }
+  /** The Embers' people stand at the lanes (while the roofs have stirred, a resistance commitment and the square held), and the garrison's crackdown posts in the market district turn out for a commitment of either side once the Directorate has taken notice. */
+  get peopleOn() { return this.held && this.side === 'resistance' && this.stirred; }
+  get turnedOut() { return this.held && !!this.side && this.alerted; }
   /** The notice and the relay's targets stand while the call is offered or once it is settled (committed); never otherwise. */
   private get shown() { return this.offered || !!this.alignment.commit; }
   /** E on something of the call's: what it says, and the stage it moves. Null if there is nothing to say. */
@@ -111,7 +146,7 @@ export class WardCall {
     if (id === 'call.sill') { if (!this.offered || !this.sill || !this.officerHere()) return null; this.sill = false; this.certain = 0; const refusal = this.card.take(); if (refusal) { this.sill = true; return refusal; } this.say(CALL.officer.back); this.refresh(); return null; }
     if (id === 'call.ledger') { if (!this.offered || !this.sill || !this.officerHere()) return null;
       // The one ordinance commit path: only if the economy takes it does anything else happen.
-      if (!this.economy.commit('ordinance', 'call.reported')) return null; this.sill = false; this.certain = 0; this.refresh(); this.say(CALL.officer.signed[crossing(this.alignment) ?? 'open']); return CALL.signedToast; }
+      if (!this.economy.commit('ordinance', 'call.reported')) return null; this.sill = false; this.certain = 0; this.begin(); this.say(CALL.officer.signed[crossing(this.alignment) ?? 'open']); return CALL.signedToast; }
     return null;
   }
   /** The officer at the Sael Gate (a posted worker) is in the world. Without him nobody can be reported to and nothing is offered at the sill. */
@@ -120,12 +155,12 @@ export class WardCall {
   private say(text: string) { if (this.near) this.onLine({ who: 'Gate officer', text }); }
   /** Everything the call shows is worked out here from the state, so a reload, a New Game or a liberated square all land in the same place: transient state (the card in the arms or in the frame, the shutter) is dropped whenever the call is neither on offer nor committed, and a commitment with nothing live shows its end state at once. */
   sync() { const c = this.alignment.commit; this.notice.visible = this.shown; this.hear = 0; if (!this.offered) this.card.drop();
-    if (c) { this.sill = false; this.certain = 0; if (this.seq < 0) this.open = this.seated = c.side === 'resistance'; } else if (!this.offered) this.clear();
+    if (c) { this.sill = false; this.certain = 0; if (this.seq < 0) this.open = this.seated = c.side === 'resistance'; if (!this.fresh) this.placedOn = c.side === 'ordinance'; } else { this.fresh = this.placedOn = false; if (!this.offered) this.clear(); }
     this.refresh(); }
   /** The call is neither on offer nor committed: nothing of it is in progress. */
   private clear() { this.open = this.seated = this.sill = false; this.certain = 0; this.seq = -1; this.card.drop(); }
   /** The lamp has just been turned up: the sequence starts from a dark lens and no answers. */
-  private begin() { this.seq = 0; this.told = false; this.refresh(); }
+  private begin() { this.seq = 0; this.told = false; this.fresh = this.side === 'ordinance'; this.placedOn = false; this.refresh(); }
   /** Pose the relay without the economy, for review: 0 shut, 1 shutter open, 2 card seated. Only while the call is on offer. */
   pose(step: number) { if (!this.offered) return; this.open = step >= 1; this.seated = step >= 2; if (this.seated) this.card.drop(); this.refresh(); }
   /** Lay the card on the gate's sill without the officer, for review. */
@@ -133,21 +168,32 @@ export class WardCall {
   /** Put the shutter, the card, the lens, the lamps and the seal where the state and the sequence say. */
   private refresh() { const side = this.side, res = side === 'resistance', live = this.seq >= 0, lit = lampsLit(this.seq);
     this.leaf.rotation.y = this.open ? -Math.PI / 2 : 0; this.seat.visible = this.seated; this.sealed.visible = this.pinned.visible = side === 'ordinance'; this.onSill.visible = this.sill; this.sillProps.visible = this.offered || side === 'ordinance'; this.lens.visible = res && (!live || lensOn(this.seq));
-    for (let i = 0; i < this.lamps.length; i++) this.lamps[i].visible = res && (!live || i < lit); this.stirred = this.alerted = !!side && !live; this.dim(); }
+    for (let i = 0; i < this.lamps.length; i++) this.lamps[i].visible = res && (!live || i < lit); this.stirred = this.alerted = !!side && !live; this.dress(); this.dim(); }
+  /** The square's answer and the scars, from the state: nothing of the square's stands once it is not held; the scars and the relay do not depend on it. */
+  private dress() { const side = this.side, held = this.held, live = this.seq >= 0, lit = musterLit(this.seq), how = crossing(this.alignment);
+    this.risen.visible = held && side === 'resistance' && this.stirred; this.mustered.visible = held && side === 'ordinance'; for (let i = 0; i < this.gallery.length; i++) this.gallery[i].visible = !live || i < lit; this.placed.visible = held && side === 'ordinance' && this.placedOn;
+    this.yardScar.visible = side === 'resistance' && how === 'crossed'; this.winchScar.visible = side === 'ordinance' && how === 'crossed' && this.alignment.outcomes.finchRun === 'resistance'; }
   /** By day the lamps are dimmer, by night they are at full: the one pair of materials, set from the clock. */
-  private dim() { const h = this.economy.state.day * 24, dark = h >= 19 || h < 5 ? 1 : h >= 17 || h < 7 ? .5 : 0; lampHalo.opacity = .12 + .22 * dark; lampCore.color.lerpColors(DAY_CORE, NIGHT_CORE, dark); lensCore.color.lerpColors(LENS_DAY, LENS_NIGHT, dark); }
+  private dim() { const h = this.economy.state.day * 24, dark = h >= 19 || h < 5 ? 1 : h >= 17 || h < 7 ? .5 : 0; lampHalo.opacity = .12 + .22 * dark; lampCore.color.lerpColors(DAY_CORE, NIGHT_CORE, dark); lensCore.color.lerpColors(LENS_DAY, LENS_NIGHT, dark); paneMat.color.lerpColors(PANE_DAY, PANE_NIGHT, dark); }
   update(dt: number, _time: number, viewer: T.Vector3) {
     if (!this.shown && (this.open || this.seated || this.sill)) { this.clear(); this.refresh(); }
     const card = this.card; card.update(); this.cardTarget.hint = card.carrying ? 'PUT IT BACK' : 'TAKE THE CARD';
     this.keyTarget.hint = callHour(this.economy.state.day) ? 'SEND THE CALL' : 'AFTER DUSK'; const side = this.side; this.relayTarget.hint = relayHint(side, this.open, this.seated, card.carrying, this.economy.state.day); this.relayTarget.label = side ? (side === 'resistance' ? 'The lit relay' : 'Sealed relay') : this.open ? 'Relay lens' : 'Relay shutter';
     // The send-and-answer sequence is the only per-frame work, and only while it is live; the lamps' shade follows the clock once a second.
-    if (this.seq >= 0) { this.seq += dt; const t = this.seq; this.lens.visible = lensOn(t); const lit = lampsLit(t); for (let i = 0; i < this.lamps.length; i++) this.lamps[i].visible = i < lit;
-      if (t >= CALL_PACE.answered && !this.told) { this.told = true; this.pres.city.onEvent(CALL.answered); } this.stirred = t >= CALL_PACE.stirred; this.alerted = t >= CALL_PACE.alerted; if (this.alerted) { this.seq = -1; this.refresh(); } }
+    if (this.seq >= 0) { this.seq += dt; const t = this.seq, res = side === 'resistance', pace = res ? CALL_PACE : MUSTER;
+      if (res) { this.lens.visible = lensOn(t); const lit = lampsLit(t); for (let i = 0; i < this.lamps.length; i++) this.lamps[i].visible = i < lit; if (t >= CALL_PACE.answered && !this.told) { this.told = true; this.pres.city.onEvent(CALL.answered); } }
+      this.stirred = t >= pace.stirred; this.alerted = t >= pace.alerted; if (this.alerted) { this.seq = -1; this.refresh(); } else this.dress(); }
+    // The Directorate's placed things stand once the Steward has been away from the square after signing; the latch is only open from signing until then.
+    if (this.fresh && Math.hypot(viewer.x - SQ.x, viewer.z - SQ.z) > AWAY) { this.fresh = false; this.placedOn = true; this.dress(); }
+    const held = this.held; if (held !== this.wasHeld) { this.wasHeld = held; this.dress(); }
     if (side === 'resistance') { this.shade -= dt; if (this.shade <= 0) { this.shade = 1; this.dim(); this.halo.visible = Math.hypot(viewer.x - TX, viewer.y - LY, viewer.z - TZ) > FAR; for (const l of this.lamps) l.children[2].visible = Math.hypot(viewer.x - l.position.x, viewer.y - l.position.y, viewer.z - l.position.z) > CLOSE; } }
     // The officer is heard only while he is there and near; he says his one word on each approach and, a moment after the card is put down, asks whether you are certain.
-    const here = this.shown && this.officerHere(), po = here ? this.pres.workers[this.pres.marketSquare.officer].person.group.position : null, dist = po ? Math.hypot(viewer.x - po.x, viewer.z - po.z) : 99; this.near = dist < NEAR;
+    const here = this.shown && this.officerHere(), po = here ? this.pres.workers[this.pres.marketSquare.officer].person.group.position : null, dist = po ? Math.hypot(viewer.x - po.x, viewer.z - po.z) : 99; this.near = dist < NEAR; const how = crossing(this.alignment);
+    if (side === 'resistance' && how === 'crossed') { if (!here || dist > 16) this.later = false; else if (this.near && viewer.y < 4 && !this.later && this.onLine({ who: 'Gate officer', text: CALL.officer.later })) this.later = true; }
     if (this.sill && this.certain > 0) { this.certain -= dt; if (this.certain <= 0) { this.certain = 0; this.say(CALL.officer.certain); } }
     if (this.offered && here) { if (dist > 16) this.hailed = false; else if (this.near && viewer.y < 4 && !this.hailed && this.onLine({ who: 'Gate officer', text: CALL.officer.approach })) this.hailed = true; } else this.hailed = false;
+    // After a commitment the hand says how it looks to him, once per approach, only while he is there (Finch's own greetings are silent now: `leaning` is null once committed, and his order line is not offered).
+    if (side && how) { const hg = this.pres.workers[this.pres.finchRun.hand].person.group, hd = hg.visible ? Math.hypot(viewer.x - hg.position.x, viewer.z - hg.position.z) : 99; if (hd > 14) this.handSaid = false; else if (hd < 4.5 && !this.handSaid && this.onLine({ who: 'Finch’s hand', text: CALL.hand[side][how] })) this.handSaid = true; } else this.handSaid = false;
     // The hand says it once, to someone standing at the bench who is not in a menu, and after Finch's own greeting (the hover line of the yard) has had its moment.
     if (!this.offered || this.economy.state.resist.call !== 0) { this.hear = 0; this.spoken = false; return; }
     const hand = this.pres.workers[this.pres.finchRun.hand].person.group, near = hand.visible ? Math.hypot(viewer.x - hand.position.x, viewer.z - hand.position.z) : 99;
