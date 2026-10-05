@@ -52,7 +52,7 @@ export const canBypass = (stage: number, greatMain: SiteOutcome, finchLevel: num
 export const canCertify = (stage: number, greatMain: SiteOutcome, finchLevel: number, run: SiteOutcome) => finchOffered(greatMain, finchLevel, run) && stage >= 1;
 /** What Finch's hand and the Directorate's order say, and what is carried and fitted. The words belong to the trade, not to a side. */
 export const FINCH = {
-  /** The hand's one line, and the variant for a Steward who signed for the Rook crate. */ hand: 'There’s a run on the south roof nobody has used since the winch seized. Pawl’s still in it. Worth a look, if you own the bench.',
+  /** The hand's one line, and the variant for a Steward who signed for the Rook crate. */ hand: 'There’s a run hung on the street side of the south roof. Nobody’s used it since the winch seized.',
   handCustody: 'You signed for their crate. Finch doesn’t care whose sheet you sign. You own the bench.',
   /** The notice on the yard door, and the toast on reading it. */ notice: 'DIRECTORATE OF LABOUR • WORK ORDER 7 • Service Run 7 to be certified for maintenance use. A governor, fitted and signed for at the winch, by a keyholder of Finch Mechanical.',
   noticeToast: 'Work order. Service Run 7: a governor, fitted and signed for at the winch on the south roof.',
@@ -63,3 +63,5 @@ export const FINCH = {
   crew: ['Finch contract. Go on.', 'Your name’s on the sheet.'],
   plate: 'SERVICE RUN 7 • DIRECTORATE MAINTENANCE • KEEP OFF',
 } as const;
+/** What Finch's hand says, once: the run, and after a lawful Rook crate the bench's owner too. */
+export const handLine = (signedCrate: boolean) => signedCrate ? `${FINCH.handCustody} ${FINCH.hand}` : FINCH.hand;

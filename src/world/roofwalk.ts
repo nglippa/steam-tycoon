@@ -46,8 +46,8 @@ export class Roofwalk {
     const P = mats.stone;
     city.deck(W.x0, W.x1, W.z0, W.zN, TERRACE); city.deck(W.x0, W.x1, W.zS, W.z1, TERRACE); city.deck(W.tower, W.x1, W.zN, W.zS, BLOCK);
     city.collider((W.x0 + W.x1) / 2, (W.zN + W.zS) / 2, W.x1 - W.x0, W.zS - W.zN, BLOCK - .1, undefined, undefined, 14); city.collider((W.x0 + W.tower) / 2, (W.zN + W.zS) / 2, W.tower - W.x0, W.zS - W.zN, 37, undefined, undefined, 14);
-    parapet(s, city, W.x0, W.z0, W.x1, W.z0, TERRACE, P); parapet(s, city, W.x0, W.z0, W.x0, W.zN, TERRACE, P); parapet(s, city, W.x1, 7, W.x1, W.zN, TERRACE, P);
-    parapet(s, city, W.x0, W.z1, W.x1, W.z1, TERRACE, P); parapet(s, city, W.x0, W.zS, W.x0, W.z1, TERRACE, P); parapet(s, city, W.x1, W.zS, W.x1, W.z1, TERRACE, P);
+    parapet(s, city, W.x0, W.z0, W.x1, W.z0, TERRACE, P); parapet(s, city, W.x0, W.z0, W.x0, W.zN, TERRACE, P); parapet(s, city, W.x1, 7, W.x1, 7.9, TERRACE, P); parapet(s, city, W.x1, 9.5, W.x1, W.zN, TERRACE, P);
+    parapet(s, city, W.x0, W.z1, W.x1, W.z1, TERRACE, P); parapet(s, city, W.x0, W.zS, W.x0, W.z1, TERRACE, P); parapet(s, city, W.x1, W.zS, W.x1, 18, TERRACE, P); parapet(s, city, W.x1, 19.6, W.x1, W.z1, TERRACE, P);
     parapet(s, city, W.tower, W.zN, W.x1, W.zN, BLOCK, P); parapet(s, city, W.tower, W.zS, W.x1, W.zS, BLOCK, P); parapet(s, city, W.x1, W.zN, W.x1, W.zS, BLOCK, P);
     ladder(s, this.live, city, 'ladder.finch.north', 'Roof ladder', -15.5, W.zN, TERRACE, BLOCK, 0, -1); ladder(s, this.live, city, 'ladder.finch.south', 'Roof ladder', -15.5, W.zS, TERRACE, BLOCK, 0, 1);
     ladder(s, this.live, city, 'ladder.finch.yard', 'Finch Mechanical ladder', -22, W.z1, G, TERRACE, 0, 1);
@@ -114,7 +114,7 @@ export class Roofwalk {
       // the watch post on the south terrace: a hooded box on legs with a slit toward the street
       box(held, -19.5, TERRACE + 1.5, 21.6, 1.5, 1.5, 1.5, O.iron); box(held, -19.5, TERRACE + 2.32, 21.6, 1.8, .12, 1.8, O.iron); for (const dx of [-.65, .65]) for (const dz of [-.65, .65]) box(held, -19.5 + dx, TERRACE + .38, 21.6 + dz, .1, .76, .1, O.iron); box(held, -18.74, TERRACE + 1.7, 21.6, .03, .22, 1.1, mats.dark); city.collider(-19.5, 21.6, 1.5, 1.5, TERRACE + 2.4, undefined, () => st.phase >= 4, TERRACE - .2);
       // wire along the street-side parapets, and the notice at the head of the yard ladder
-      for (const [z0, z1] of [[7.2, 10.4], [17.6, 22.4]]) { for (let z = z0; z <= z1; z += .8) { box(held, W.x1 - .1, TERRACE + 1.32, z, .04, .44, .04, O.iron); beam(held, V(W.x1 - .1, TERRACE + 1.5, z), V(W.x1 + .12, TERRACE + 1.62, z + .4), .012, O.iron); } for (const y of [1.22, 1.4]) box(held, W.x1 - .1, TERRACE + y, (z0 + z1) / 2, .02, .02, z1 - z0, O.iron); }
+      for (const [z0, z1] of [[7.2, 7.8], [9.6, 10.4], [19.8, 22.4]]) { for (let z = z0; z <= z1; z += .8) { box(held, W.x1 - .1, TERRACE + 1.32, z, .04, .44, .04, O.iron); beam(held, V(W.x1 - .1, TERRACE + 1.5, z), V(W.x1 + .12, TERRACE + 1.62, z + .4), .012, O.iron); } for (const y of [1.22, 1.4]) box(held, W.x1 - .1, TERRACE + y, (z0 + z1) / 2, .02, .02, z1 - z0, O.iron); }
       sign(held, 'ROOFS CLOSED', 'OBSERVATION POST • KEEP OFF', -17.5, TERRACE + 1.5, 21.9, 1.5, .6, '#cbbf9f').rotation.y = Math.PI; box(held, -17.5, TERRACE + .6, 21.95, .08, 1.2, .08, O.iron);
       box(held, -9, LEADS + 1.5, 3.25, .9, .5, .04, O.oxblood); box(held, 9, LEADS + 1.5, 3.25, .9, .5, .04, O.oxblood);
       // Until people organise, the loft is boarded and nothing hangs on the roof.
