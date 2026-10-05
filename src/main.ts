@@ -97,6 +97,7 @@ function frame(now: number) { requestAnimationFrame(frame); if ((document.hidden
     camera.updateMatrixWorld();
   }
   detailCull.update(raw, camera.position); inkRenderer.setRecovery(economy.stage); inkRenderer.render(scene, camera);
+  ui.hudFrame();
   review?.frame(now, raw);
 }
 requestAnimationFrame(frame);

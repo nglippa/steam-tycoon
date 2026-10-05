@@ -1,77 +1,324 @@
-:root{font-family:"Avenir Next",Avenir,"Segoe UI",sans-serif;color:#ebe8da;background:#16282d;font-synthesis:none;--gold:#d2b27a;--muted:#a6b2ad;--line:#a8976938;--panel:#112526f5}*{box-sizing:border-box}body{margin:0;overflow:hidden}button,input{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.4}button:focus-visible,input:focus-visible{outline:2px solid #efdb9e;outline-offset:4px}button{transition:background .16s,color .16s}button:hover:not(:disabled){filter:brightness(1.18)}[hidden]{display:none!important}#world{display:block;position:fixed;inset:0;width:100%;height:100%;outline:0}#app{position:fixed;inset:0;pointer-events:none}#app button,#app input,#panel{pointer-events:auto}.vignette{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 42%,transparent 35%,#06161766 100%);pointer-events:none}header{position:absolute;left:38px;right:38px;top:29px;display:flex;justify-content:space-between;align-items:center;gap:30px;text-shadow:0 2px 12px #0009}.identity{display:flex;align-items:center;gap:13px}.identity svg,.panel-top svg{width:29px;height:38px;fill:none;stroke:var(--gold);stroke-width:1.4}.identity b{font-size:14px;letter-spacing:3px;font-weight:600;display:block}.identity span{display:block;font-size:9px;letter-spacing:3.1px;color:var(--gold);margin-top:7px}.identity i{font-style:normal;margin:0 8px;color:#b1c8c9}.bearing{text-align:center;position:absolute;left:50%;transform:translateX(-50%);display:grid;gap:9px}.bearing>span{font:18px Georgia;color:#eee0ba}.bearing>span:before,.bearing>span:after{content:'· ── ·';font-size:10px;letter-spacing:6px;color:#bec5b366;margin:0 14px}.bearing small{font-size:8px;letter-spacing:2px;color:#bcc8c4}.treasury{display:flex;align-items:center;gap:15px}.coin{color:var(--gold);font-size:25px;border:1px solid #cead6866;width:38px;height:38px;display:grid;place-items:center;transform:rotate(-5deg)}.treasury small{font-size:8px;letter-spacing:1.5px;display:block;color:#bec8bb}.treasury strong{font:30px Georgia;display:block;line-height:1.1;margin-top:3px;font-variant-numeric:tabular-nums}.income{border-left:1px solid #c7b68344;padding-left:19px;margin-left:4px}.income b{display:block;font-size:16px;font-weight:500;color:#b0d0b5;margin-bottom:5px}#crosshair{position:absolute;top:50%;left:50%;width:4px;height:4px;background:#eee6ca;border-radius:50%;box-shadow:0 0 5px #0008;opacity:0}.playing #crosshair{opacity:.8}footer{position:absolute;bottom:28px;left:38px;right:38px;display:flex;align-items:end;justify-content:space-between;gap:20px}.overline,.eyebrow,.section-label{font-size:9px;letter-spacing:2.2px;font-weight:600;color:var(--gold)}.objective{border-left:1px solid var(--gold);padding-left:14px;text-shadow:0 2px 10px #000}.objective p{font-size:14px;margin:8px 0 13px}.objective>small{font-size:8px;letter-spacing:1.8px;color:#a1bbb4}.controls{display:flex;gap:19px;color:#c9d2c8;font-size:10px}.controls span{display:flex;gap:6px;align-items:center}kbd{display:inline-flex;justify-content:center;align-items:center;min-width:22px;height:22px;border:1px solid #bdc4b555;border-radius:2px;padding:0 5px;font:9px "Avenir Next",sans-serif;letter-spacing:1px;color:#e5e5d7;background:#16292a66}.welcome{position:absolute;left:7.5vw;bottom:19vh;max-width:650px;text-shadow:0 2px 20px #0008}.welcome:before{content:'';position:absolute;z-index:-1;left:-15vw;top:-20vh;bottom:-30vh;right:-10vw;background:radial-gradient(ellipse at 30% 70%,#0b1d23bd,transparent 70%)}.eyebrow{display:flex;align-items:center;gap:12px;font-size:9px;letter-spacing:2.6px}.eyebrow>span{width:28px;height:1px;background:var(--gold)}h1{font:clamp(38px,4.3vw,66px)/1.14 Georgia,"Times New Roman",serif;font-weight:400;letter-spacing:-1.8px;margin:26px 0 22px;color:#f0eee2}h1 em{font-weight:400;color:#d7bd87}.welcome p{font-size:13px;line-height:1.9;color:#c5d0ca;margin-bottom:29px}.primary{display:flex;align-items:center;justify-content:space-between;gap:55px;border:1px solid #ccb17d;background:#c7ad76;color:#142527;padding:15px 21px;font-size:12px;font-weight:600;min-width:260px;letter-spacing:.5px}.primary span{font-size:21px;font-weight:400}.welcome-foot{font-size:8px;letter-spacing:1.6px;color:#abbab4;margin-top:21px}.welcome-foot i{font-style:normal;padding:0 9px;color:var(--gold)}body:not(.started) #hud-bottom{opacity:0}.pause{position:absolute;left:7.5vw;top:32%;padding:30px 35px;background:#102527e8;border:1px solid var(--line);width:380px;backdrop-filter:blur(10px)}h2{font:36px/1.15 Georgia;font-weight:400;margin:16px 0;color:#eeeadb}.pause p{font-size:12px;line-height:1.7;color:var(--muted);margin-bottom:24px}.plain{background:none;border:none;border-bottom:1px solid var(--line);color:#c8d0c6;text-align:left;padding:14px 0;font-size:12px;width:100%;display:flex;justify-content:space-between;align-items:center}.panel{position:absolute;top:20px;right:20px;bottom:20px;width:470px;display:flex;flex-direction:column;background:var(--panel);border:1px solid #a8936155;box-shadow:-15px 10px 80px #03131970;backdrop-filter:blur(14px)}.panel-top{padding:17px 24px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line)}.panel-top>span{display:flex;align-items:center;gap:9px;font-size:8px;letter-spacing:1.8px;color:#c4b184}.panel-top svg{width:15px;height:20px}.panel-top button{border:none;background:none;color:#bfbba4;font-size:27px;font-weight:200;line-height:1}.panel-scroll{overflow-y:auto;padding:25px 28px;scrollbar-width:thin;scrollbar-color:#89794a #12292a}.description{color:#a9b8b2;font-size:12px;line-height:1.85;margin:15px 0 23px}.panel h2{font-size:33px}.panel h3{font:20px Georgia;font-weight:400;margin:8px 0;color:#e2dfcc}.tabs{display:flex;flex-wrap:wrap;gap:0 18px;border-bottom:1px solid var(--line);margin-bottom:18px}.tabs button{border:none;background:none;color:#a6b6ad;padding:10px 0;font-size:10px}.tabs button.active{color:#e2c185;border-bottom:1px solid #d2b27a}.ledger-row{padding:17px 0;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:14px}.ledger-row small{font-size:8px;letter-spacing:1.6px;color:#98a49a}.ledger-row p{font-size:11px;color:#a7b6ad;line-height:1.8;margin:8px 0}.ledger-row h3{font-size:19px}.find{border:1px solid #baa47166;color:var(--gold);background:transparent;font-size:22px;width:36px;height:36px}.block{display:block}.purchase{display:flex;width:100%;justify-content:space-between;align-items:center;gap:15px;padding:14px 15px;background:#c3a96e12;border:1px solid #bdaa6e66;color:#e1ca96;font-size:11px;margin:15px 0}.purchase b{font-size:12px;white-space:nowrap;font-weight:500}.purchase:not(:disabled):hover{background:#bba37126}.panel-bottom{padding:16px 24px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:10px;color:var(--gold);font-size:8px;letter-spacing:1px;margin-top:auto}.panel-bottom small{font-size:8px;color:#a4aca0}.level-track{display:flex;gap:8px;margin:20px 0}.level-track span{flex:1;border-top:2px solid #98a59733;color:#768e84;padding:9px 0;font-size:10px;letter-spacing:1px}.level-track .done{border-color:var(--gold);color:var(--gold)}.instrument{display:flex;gap:24px;padding:18px 0}.instrument>div{flex:1}.instrument small{font-size:8px;letter-spacing:1.3px;color:#8fa69d}.instrument strong{display:block;font:30px Georgia;color:#e1d6b5;margin:9px 0}.instrument em{font:14px Georgia;color:#a69a74}.instrument span{font-size:9px;color:#9baea4}.production-bar{height:2px;background:#c3ad7133;margin:0 0 18px}.production-bar span{display:block;height:100%;background:#c5b77a}.section-label{border-top:1px solid var(--line);padding-top:24px;margin:24px 0 15px;font-size:8px}.muted,.footnote{font-size:11px;line-height:1.8;color:#98aba2}.footnote{font-size:10px;margin:17px 0}.status-good{color:#a3c4a7!important;font-size:11px;line-height:1.7}.complete{display:block;color:#a9c5a8;font-size:9px;letter-spacing:1.4px;padding:13px 0}.map{background:#0b1e204d;border:1px solid var(--line)}.map svg{display:block;width:100%}.stat-row{display:flex;justify-content:space-between;gap:15px;padding:16px 0;border-bottom:1px solid var(--line);font-size:11px;color:#aeb8ad}.stat-row b{font-weight:500;color:#d6c69e}.city-stage{padding:20px;border:1px solid var(--line);margin:20px 0}.city-stage>span{font-size:8px;letter-spacing:2px;color:var(--gold)}.city-stage p{font-size:11px;color:#aab7ae}.slider{display:flex;align-items:center;justify-content:space-between;padding:17px 0;border-bottom:1px solid var(--line);font-size:12px;color:#b6c3b8;gap:15px}.slider input{width:45%;accent-color:var(--gold)}.check{display:flex;align-items:center;gap:10px;font-size:11px;margin:25px 0;color:#bdc5b8}.check input{accent-color:var(--gold)}.quality{display:flex;gap:8px}.quality button{padding:12px;background:none;border:1px solid var(--line);color:#a7b7ad;font-size:11px}.quality .active{border-color:var(--gold);color:var(--gold)}.danger{padding:18px;border:1px solid #b86e5866}.danger p{font-size:12px;color:#cba491;line-height:1.7}.danger button{width:100%;padding:12px;margin-top:8px;background:#794b3722;color:#dfa99b;border:1px solid #ad7a5e66;font-size:11px}.danger-text{color:#bd9b89}#interaction{position:absolute;top:56%;left:50%;transform:translateX(-50%);display:flex;gap:12px;align-items:center;background:#0e252bdd;padding:12px 18px;border:1px solid #bca36544;font-size:13px;color:#e5d8b9}#interaction kbd{width:30px;height:30px;border-color:var(--gold);color:var(--gold)}#interaction small{display:block;font-size:7px;letter-spacing:1.7px;margin-top:5px;color:#b1b9a9}#tracked{position:absolute;left:50%;bottom:115px;transform:translateX(-50%);font-size:10px;color:#e4d9b9;text-shadow:0 1px 8px #000;letter-spacing:.3px}#tracked>span{margin-right:8px;color:var(--gold);font-size:16px}#tracked small{font-size:9px;opacity:.7;margin-left:8px}#toast{position:absolute;top:112px;left:50%;transform:translate(-50%,-8px);max-width:580px;text-align:center;background:#10272be8;border:1px solid #b9a67444;padding:13px 22px;font-size:12px;line-height:1.7;color:#dfd6b7;opacity:0;transition:opacity .3s,transform .3s}#toast.show{opacity:1;transform:translate(-50%,0)}#debug{position:absolute;top:95px;left:38px;font:11px monospace;color:#aee4bc;background:#0008;padding:8px}#save-status{position:absolute;bottom:7px;right:38px;font-size:8px;color:#bac5aa}.started #hud{opacity:1}.playing .welcome{display:none}@media(max-width:900px){header{left:20px;right:20px}.bearing{display:none}.controls{gap:8px}.controls span:nth-child(2),.controls span:nth-child(3){display:none}footer{left:20px;right:20px}.panel{width:min(470px,calc(100vw - 20px));top:10px;right:10px;bottom:10px}.welcome{left:7vw;bottom:20vh}.welcome h1{font-size:42px}.income{display:none}}@media(prefers-reduced-motion:reduce){*{transition:none!important}} 
+/* ==========================================================================================================
+   TERRA INTERFACE
+   Printed Victorian ephemera: cream paper, ink rules, a ticket, a timetable, a ward ledger. Typography does the
+   hierarchy; containers are few and thin; the hard offset shadow is kept for the three things that must be seen
+   (the compass ribbon, the objective ticket and the toast). The --terra-* colours are set from the world palette
+   in main.ts.
 
-/* Terra's illustrated edition: printed paper, ink edges and painted enamel. */
-:root{--gold:#896238;--muted:#536762;--line:#344b4840;--panel:var(--terra-paper);color:var(--terra-ink);background:#71bdb4}
-.vignette{background:none}
-header{top:32px;left:34px;right:34px;text-shadow:none;align-items:flex-start}
-.identity{background:var(--terra-paper);border:2px solid var(--terra-ink);padding:12px 16px;box-shadow:3px 4px 0 var(--terra-ink);border-radius:2px 5px 3px 2px;transform:rotate(-1deg)}
-.identity b{font-weight:800;font-size:13px;letter-spacing:2px}.identity span{color:#5c7470;letter-spacing:2px;margin-top:5px}.identity svg{stroke:var(--terra-ink)}
-.treasury{padding:12px 18px;background:var(--terra-paper);border:2px solid var(--terra-ink);box-shadow:3px 4px 0 var(--terra-ink);transform:rotate(1deg)}
-.treasury small{color:#526b66;font-size:9px}.treasury strong{font-family:"Avenir Next",sans-serif;font-weight:800;font-size:27px}.coin{color:var(--terra-ink);border:2px solid var(--terra-ink);background:var(--terra-brass);box-shadow:2px 2px 0 var(--terra-ink)}.income{border-color:#34494a44}.income b{color:#356d5e;font-weight:700}
-.bearing{background:var(--terra-paper);border:1px solid var(--terra-ink);padding:8px 16px;gap:4px;box-shadow:2px 3px 0 var(--terra-ink)}.bearing>span{font:bold 16px "Avenir Next",sans-serif;color:var(--terra-ink)}.bearing>span:before,.bearing>span:after{color:#526c64}.bearing small{color:#526c64}
-body:not(.started) .bearing,body:not(.started) .treasury{display:none}
-.welcome{left:8vw;top:21vh;bottom:auto;max-width:480px;text-shadow:none;animation:paper-in .7s both}.welcome:before{display:none}.eyebrow{color:var(--terra-ink);font-weight:800;font-size:10px;letter-spacing:2px}.eyebrow>span{background:var(--terra-ink)}
+   1 Tokens and base   2 Title screen (unchanged)   3 HUD   4 Panels   5 Touch   6 Opening scene and dialogue
+   ========================================================================================================== */
+
+/* ---- 1 Tokens and base ------------------------------------------------------------------------------- */
+:root{
+  font-family:"Avenir Next",Avenir,"Segoe UI",sans-serif;font-synthesis:none;color:var(--ink);background:#71bdb4;
+  /* Colour. Muted text is 6.4:1 on paper, the burgundy 6.4:1, the teal 5.2:1. */
+  --paper:var(--terra-paper,#f2e4c9);--parchment:var(--terra-parchment,#e4d8c3);--ink:var(--terra-ink,#22283c);
+  --ink-soft:#46524f;--rule:#22283c40;--burgundy:var(--terra-burgundy,#793d59);--teal:#1f6670;--good:#2d6254;
+  --brass:var(--terra-brass,#efc66e);--gold:#7a5230;--hover:#f6ecd5;--focus:#226f6c;
+  --band-liberated:#2f6f6a;--band-low:#4b6a38;--band-controlled:#6b5218;--band-heavy:#8c4424;--band-lockdown:#793d59;
+  /* One spacing scale. */
+  --sp-1:4px;--sp-2:8px;--sp-3:12px;--sp-4:16px;--sp-5:24px;--sp-6:32px;
+  /* One type scale. Nothing is set below 10px. */
+  --ui-fs-label:10px;--ui-fs-small:11px;--ui-fs-body:13px;--ui-fs-lead:15px;--ui-fs-head:22px;--ui-fs-num:26px;
+  --serif:Georgia,"Times New Roman",serif;
+  /* Edges and shadows. */
+  --edge:2px solid var(--ink);--hair:1px solid var(--rule);--shadow:2px 3px 0 var(--ink);--shadow-lg:5px 6px 0 #22283c59;
+  /* Layout. --hud-h is measured from the top plates by interface.ts. */
+  --gutter:34px;--panel-w:440px;--hud-h:76px;
+  --sat:env(safe-area-inset-top,0px);--sar:env(safe-area-inset-right,0px);--sab:env(safe-area-inset-bottom,0px);--sal:env(safe-area-inset-left,0px);
+}
+*{box-sizing:border-box}
+body{margin:0;overflow:hidden}
+button,input{font:inherit}
+button{cursor:pointer;transition:background .16s,color .16s}
+button:disabled{cursor:not-allowed}
+button:hover:not(:disabled){filter:brightness(1.06)}
+[hidden]{display:none!important}
+button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
+#panel:focus{outline:none}
+html,body{overscroll-behavior:none;-webkit-user-select:none;user-select:none}
+#panel,#panel *{-webkit-user-select:text;user-select:text}
+#world{display:block;position:fixed;inset:0;width:100%;height:100%;outline:0}
+#app{position:fixed;inset:0;pointer-events:none}
+#app button,#app input,#panel{pointer-events:auto}
+.overline,.section-label{font-size:var(--ui-fs-label);font-weight:800;letter-spacing:.18em;text-transform:uppercase}
+kbd{display:inline-flex;justify-content:center;align-items:center;min-width:24px;height:24px;padding:0 var(--sp-1);border:1px solid var(--ink);border-radius:2px;background:#fff9df;box-shadow:0 2px 0 var(--ink);color:var(--ink);font:700 var(--ui-fs-label) "Avenir Next",sans-serif;letter-spacing:.06em;-webkit-text-stroke:0}
+@keyframes paper-in{from{opacity:0;translate:0 18px;rotate:-2deg}to{opacity:1;translate:0 0;rotate:0deg}}
+@keyframes ledger-in{from{opacity:0;translate:35px 0}to{opacity:1;translate:0 0}}
+@keyframes sheet-in{from{opacity:0;translate:0 40px}to{opacity:1;translate:0 0}}
+.reduced-motion *{animation:none!important;transition:none!important}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+#debug{position:absolute;top:95px;left:38px;font:11px monospace;color:#aee4bc;background:#0008;padding:8px}
+#save-status{position:absolute;bottom:7px;right:38px;font-size:var(--ui-fs-label);color:#284a42;background:#e8ecdaaa}
+#crosshair{position:absolute;top:50%;left:50%;width:5px;height:5px;background:#f7f1d4;border-radius:50%;box-shadow:0 0 0 1px var(--ink);opacity:0}
+.playing #crosshair{opacity:.8}
+
+/* ---- 2 Title screen: unchanged, only gathered here ---------------------------------------------------- */
+.eyebrow{font-size:9px;letter-spacing:2.2px;font-weight:600;color:var(--gold)}
+.welcome{position:absolute;left:7.5vw;bottom:19vh;max-width:650px;text-shadow:0 2px 20px #0008}
+.welcome:before{content:'';position:absolute;z-index:-1;left:-15vw;top:-20vh;bottom:-30vh;right:-10vw;background:radial-gradient(ellipse at 30% 70%,#0b1d23bd,transparent 70%)}
+.eyebrow{display:flex;align-items:center;gap:12px;font-size:9px;letter-spacing:2.6px}
+.eyebrow>span{width:28px;height:1px;background:var(--gold)}
+h1{font:clamp(38px,4.3vw,66px)/1.14 Georgia,"Times New Roman",serif;font-weight:400;letter-spacing:-1.8px;margin:26px 0 22px;color:#f0eee2}
+h1 em{font-weight:400;color:#d7bd87}
+.welcome p{font-size:13px;line-height:1.9;color:#c5d0ca;margin-bottom:29px}
+.primary{display:flex;align-items:center;justify-content:space-between;gap:55px;border:1px solid #ccb17d;background:#c7ad76;color:#142527;padding:15px 21px;font-size:12px;font-weight:600;min-width:260px;letter-spacing:.5px}
+.primary span{font-size:21px;font-weight:400}
+.welcome-foot{font-size:8px;letter-spacing:1.6px;color:#abbab4;margin-top:21px}
+.welcome-foot i{font-style:normal;padding:0 9px;color:var(--gold)}
+.playing .welcome{display:none}
+@media(max-width:900px){.welcome{left:7vw;bottom:20vh}.welcome h1{font-size:42px}}
+.welcome{left:8vw;top:21vh;bottom:auto;max-width:480px;text-shadow:none;animation:paper-in .7s both}
+.welcome:before{display:none}
+.eyebrow{color:var(--terra-ink);font-weight:800;font-size:10px;letter-spacing:2px}
+.eyebrow>span{background:var(--terra-ink)}
 .title-stamp{display:inline-block;font-size:10px;font-weight:800;letter-spacing:2px;margin:22px 0 15px;background:#cf755c;color:#f6efd7;border:2px solid var(--terra-ink);padding:7px 12px;transform:rotate(-3deg);box-shadow:2px 3px 0 var(--terra-ink)}
 h1{font-family:Impact,"Arial Narrow",sans-serif;font-size:clamp(108px,12.5vw,196px);font-weight:900;line-height:.79;letter-spacing:-.045em;color:#eff0d9;margin:10px 0 28px;transform:rotate(-3deg);-webkit-text-stroke:2px var(--terra-ink);text-shadow:1px 2px 0 var(--terra-ink),3px 4px 0 var(--terra-ink),5px 6px 0 var(--terra-ink),7px 8px 0 var(--terra-ink),9px 10px 0 var(--terra-ink)}
-h1>span{display:block}h1>span+span{margin-left:5px}.title-dot{color:var(--terra-brass)}
-.welcome p{font-size:15px;font-weight:600;line-height:1.65;color:var(--terra-ink);margin:0 0 24px;max-width:330px}.welcome-foot{color:#345653;font-size:9px;font-weight:700;letter-spacing:1.4px;margin-top:18px}
-.primary{color:#304341;background:#f0c965;border:2px solid var(--terra-ink);padding:15px 20px;box-shadow:4px 5px 0 var(--terra-ink);min-width:270px;transform:rotate(-1deg);font-size:13px;font-weight:800;transition:transform .18s,box-shadow .18s}.primary:hover:not(:disabled){filter:none;transform:translate(-1px,-3px) rotate(0);box-shadow:5px 8px 0 var(--terra-ink)}.primary:active:not(:disabled){transform:translate(3px,4px);box-shadow:1px 1px 0 var(--terra-ink)}.primary span{font-size:24px}
-footer{left:34px;right:34px;bottom:32px}.objective{border:2px solid var(--terra-ink);background:var(--terra-paper);padding:13px 18px;box-shadow:3px 4px 0 var(--terra-ink);text-shadow:none;max-width:430px}.objective p{font-weight:700;font-size:13px;margin:7px 0}.objective>small{color:#5c7470}.controls{color:var(--terra-ink);background:var(--terra-paper);border:1px solid var(--terra-ink);padding:9px 12px;box-shadow:2px 3px 0 var(--terra-ink)}kbd{color:#314a46;border:1px solid var(--terra-ink);background:#fff9df;box-shadow:1px 2px 0 var(--terra-ink);font-weight:700}
-.pause,.panel{background:var(--panel);border:2px solid var(--terra-ink);box-shadow:6px 7px 0 #34494a88;backdrop-filter:none}.pause{animation:paper-in .25s both}.panel{animation:ledger-in .25s both}.panel-top{background:var(--terra-parchment);border-color:var(--terra-ink)}.panel-top>span,.panel-top button{color:var(--terra-ink)}.panel-top svg{stroke:var(--terra-ink)}.panel-scroll{scrollbar-color:#5b8076 #e5e9d5}.panel-bottom{background:var(--terra-parchment);color:var(--terra-ink)}.panel-bottom small{color:#586c61}
-h2,.panel h2{color:var(--terra-ink);font-family:"Avenir Next",sans-serif;font-weight:800;font-size:32px;letter-spacing:-1px}h3,.panel h3{color:var(--terra-ink);font-family:"Avenir Next",sans-serif;font-weight:700;font-size:19px}
-.description,.ledger-row p,.ledger-row small,.muted,.footnote,.stat-row,.slider,.check,.city-stage p{color:#536762}.tabs button{color:#5b7168;font-size:11px}.tabs button.active{color:#2c4943;font-weight:800;border-bottom:3px solid #367f73}.instrument small,.instrument span,.instrument em{color:#597469}.instrument strong{color:#344d43}.stat-row b{color:#335e50}.level-track .done{color:#357365;border-color:#357365}.status-good,.complete{color:#36725b!important}.plain{color:#3b5a50}.quality button{color:#537068}.quality .active{color:#2b5147;border-color:#2b5147}.map{background:#31494b}.find{background:#6cb5a3;color:#253f3c;border:2px solid var(--terra-ink);box-shadow:2px 2px 0 var(--terra-ink)}.purchase{background:#edd08a;color:#354c43;border:1px solid var(--terra-ink);box-shadow:2px 3px 0 var(--terra-ink);font-weight:700}.purchase:not(:disabled):hover{background:#f1dca4;filter:none}.purchase b{font-weight:800}.section-label{color:#6b6742}.production-bar{height:5px;background:#34494a22}.production-bar span{background:#40897b}.danger p,.danger-text{color:#945446}.danger button{color:#703a31;border-color:#9c6753;background:#d8a18433}
-#interaction,#toast{background:var(--terra-paper);color:var(--terra-ink);border:2px solid var(--terra-ink);box-shadow:3px 4px 0 var(--terra-ink)}#interaction kbd{color:var(--terra-ink);border-color:var(--terra-ink);background:#f1cc70}#interaction small{color:#5a7268}#tracked{color:#29473f;text-shadow:none;background:var(--terra-paper);padding:8px 14px;border:1px solid var(--terra-ink);box-shadow:2px 3px 0 var(--terra-ink)}#tracked>span{color:#3f7c6d}#save-status{color:#284a42;background:#e8ecdaaa}#crosshair{background:#f7f1d4;box-shadow:0 0 0 1px var(--terra-ink);width:5px;height:5px}
-button:focus-visible,input:focus-visible{outline:3px solid #226f6c;outline-offset:5px}
-@keyframes paper-in{from{opacity:0;translate:0 18px;rotate:-2deg}to{opacity:1;translate:0 0;rotate:0deg}}@keyframes ledger-in{from{opacity:0;translate:35px 0}to{opacity:1;translate:0 0}}
+h1>span{display:block}
+h1>span+span{margin-left:5px}
+.title-dot{color:var(--terra-brass)}
+.welcome p{font-size:15px;font-weight:600;line-height:1.65;color:var(--terra-ink);margin:0 0 24px;max-width:330px}
+.welcome-foot{color:#345653;font-size:9px;font-weight:700;letter-spacing:1.4px;margin-top:18px}
+.primary{color:#304341;background:#f0c965;border:2px solid var(--terra-ink);padding:15px 20px;box-shadow:4px 5px 0 var(--terra-ink);min-width:270px;transform:rotate(-1deg);font-size:13px;font-weight:800;transition:transform .18s,box-shadow .18s}
+.primary:hover:not(:disabled){filter:none;transform:translate(-1px,-3px) rotate(0);box-shadow:5px 8px 0 var(--terra-ink)}
+.primary:active:not(:disabled){transform:translate(3px,4px);box-shadow:1px 1px 0 var(--terra-ink)}
+.primary span{font-size:24px}
 @media(max-height:800px) and (min-width:701px){.welcome{top:17vh}h1{font-size:clamp(100px,10.5vw,145px);margin-bottom:22px}.title-stamp{margin-top:15px}.welcome p{font-size:13px;margin-bottom:18px}.welcome-foot{margin-top:15px}}
-@media(max-width:900px){header{left:22px;right:22px}.welcome{left:7vw}.welcome h1{font-size:145px}.controls span:nth-child(2),.controls span:nth-child(3){display:none}.panel{width:min(470px,calc(100vw - 28px));right:14px;top:14px;bottom:14px}.treasury{padding:10px}.identity{padding:10px}.identity b{font-size:11px}}
-@media(max-width:700px){.welcome{top:22vh;left:8vw}.welcome h1{font-size:112px}.welcome .eyebrow{font-size:8px;letter-spacing:1px}.welcome p{font-size:13px}.welcome:before{display:block;inset:-20px -28px -28px;z-index:-1;background:#83bdb6df;clip-path:polygon(0 1%,98% 0,100% 99%,1% 100%)}.title-stamp{font-size:8px;margin-top:15px}footer{left:20px;right:20px;bottom:24px;align-items:stretch;flex-direction:column;gap:8px}.objective{max-width:100%}.controls{justify-content:space-between}.treasury strong{font-size:21px}.treasury .coin{display:none}.pause{left:20px;width:calc(100vw - 40px)}#tracked{bottom:172px;white-space:nowrap}#toast{width:calc(100% - 40px);top:110px;font-size:11px}.welcome-foot{font-size:8px}.primary{min-width:250px}}
+@media(max-width:900px){.welcome{left:7vw}.welcome h1{font-size:145px}}
+@media(max-width:700px){.welcome{top:22vh;left:8vw}.welcome h1{font-size:112px}.welcome .eyebrow{font-size:8px;letter-spacing:1px}.welcome p{font-size:13px}.welcome:before{display:block;inset:-20px -28px -28px;z-index:-1;background:#83bdb6df;clip-path:polygon(0 1%,98% 0,100% 99%,1% 100%)}.title-stamp{font-size:8px;margin-top:15px}.welcome-foot{font-size:8px}.primary{min-width:250px}}
 @media(max-height:640px){.welcome{top:16vh}.welcome h1{font-size:90px;margin:5px 0 16px}.title-stamp{margin:10px 0}.welcome p{margin-bottom:12px}.welcome-foot{margin-top:12px}.primary{padding:10px 18px}}
-.reduced-motion *{animation:none!important;transition:none!important}@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
-
-/* Finishing pass: readable opening copy and reachable controls on short screens. */
 .welcome{width:min(340px,84vw)}
 .welcome p{width:fit-content;max-width:100%;padding:10px 14px;background:var(--terra-paper);border:1px solid var(--terra-ink);box-shadow:2px 3px 0 var(--terra-ink);font-size:14px}
 .welcome-foot{width:fit-content;background:var(--terra-paper);padding:6px 9px;font-size:8px}
-.controls .ledger-control{display:flex;align-items:center;gap:6px;border:0;background:none;padding:0;color:inherit;font-size:inherit}
-.controls .ledger-control:hover{color:#226f6c;filter:none}
-.panel-top,.panel-bottom{flex-shrink:0}.panel-scroll{min-height:0;overscroll-behavior:contain}
-.panel-top button,.find{min-width:40px;min-height:40px}.tabs button{min-height:40px}
-.pause{max-height:calc(100dvh - 40px);overflow-y:auto}
-#interaction{max-width:calc(100vw - 40px);width:max-content}
-#tracked{max-width:calc(100vw - 40px)}
-@media(max-width:700px){
-  .welcome{width:calc(100vw - 62px);max-width:340px}
-  .welcome:before{inset:-16px -14px -18px;background:#83bdb6eb}
-  .welcome .primary{min-width:0;width:100%;gap:12px}
-  .welcome p{font-size:12px}.panel-scroll{padding:20px}
-  .pause{top:50%;transform:translateY(-50%);padding:24px}
-  .pause .primary{min-width:0;width:100%;gap:16px}
-  .panel-top,.panel-bottom{padding:12px 16px}
-  .panel-top>span{letter-spacing:1px}
-  header{gap:10px}.identity{gap:8px}.identity span{letter-spacing:1px}
+@media(max-width:700px){.welcome{width:calc(100vw - 62px);max-width:340px}.welcome:before{inset:-16px -14px -18px;background:#83bdb6eb}.welcome .primary{min-width:0;width:100%;gap:12px}.welcome p{font-size:12px}.pause .primary{min-width:0;width:100%;gap:16px}}
+@media(max-height:700px){.welcome{top:110px}.welcome h1{font-size:100px;margin:6px 0 18px}.title-stamp{margin:12px 0}.welcome p{margin-bottom:14px}.welcome-foot{margin-top:12px}.welcome .primary{padding:10px 16px}}
+@media(max-height:540px) and (min-width:701px){.welcome{top:104px;width:min(650px,85vw);max-width:none;display:grid;grid-template-columns:210px 290px;column-gap:28px;align-items:start}.welcome .eyebrow{grid-column:1 / -1}.title-stamp{grid-column:1;width:fit-content;font-size:8px}.welcome h1{grid-column:1;grid-row:3 / 6;font-size:106px}.welcome p{grid-column:2;grid-row:3}.welcome .primary{grid-column:2;grid-row:4}.welcome-foot{grid-column:2;grid-row:5}}
+@media(max-height:560px) and (max-width:700px){.welcome{top:96px;bottom:20px;overflow-y:auto;padding:8px 8px 12px;pointer-events:auto}.welcome h1{font-size:78px}.welcome:before{display:none}.welcome .eyebrow{letter-spacing:.4px}.welcome-foot{display:none}}
+.welcome-foot{font-size:var(--ui-fs-label)}
+.pause .primary{margin-bottom:10px}
+
+/* ---- 3 HUD ------------------------------------------------------------------------------------------- */
+/* Three clusters on one row: who and where, the compass ribbon (heading, clock, weather, ward), the treasury. */
+#hud{position:absolute;z-index:2;top:max(var(--sp-4),var(--sat));left:max(var(--gutter),var(--sal));right:max(var(--gutter),var(--sar));display:grid;grid-template-columns:1fr auto 1fr;align-items:start;gap:var(--sp-4);pointer-events:none}
+body:not(.started) .ribbon,body:not(.started) .treasury,body:not(.started) #hud-bottom,body:not(.started) #marker{display:none}
+.identity,.treasury{min-height:56px;background:var(--paper);border:1px solid var(--ink);padding:var(--sp-2) var(--sp-3)}
+.identity{justify-self:start;display:flex;align-items:center;gap:var(--sp-3);min-width:0}
+.identity svg{flex:none;width:24px;height:31px;fill:none;stroke:var(--ink);stroke-width:1.5}
+.id-over,.treasury small{display:block;font-size:var(--ui-fs-label);font-weight:800;letter-spacing:.16em;color:var(--ink-soft)}
+.identity b{display:block;margin-top:2px;font:700 var(--ui-fs-lead)/1.2 var(--serif);letter-spacing:.04em;white-space:nowrap}
+.treasury{justify-self:end;display:grid;gap:2px}
+.treasury .amount{display:flex;align-items:baseline;gap:var(--sp-2)}
+.coin{font-size:var(--ui-fs-lead);color:var(--gold)}
+.treasury strong{font:700 var(--ui-fs-num)/1 var(--serif);font-variant-numeric:tabular-nums}
+.income{font-size:var(--ui-fs-small);color:var(--ink-soft);font-variant-numeric:tabular-nums}.income b{color:var(--good);font-weight:800}
+
+/* The ribbon: a compass tape turning with the heading, the clock set into its centre, one small line beneath. */
+.ribbon{width:clamp(280px,34vw,440px);background:var(--paper);border:var(--edge);box-shadow:var(--shadow);display:grid;justify-items:center;padding-bottom:var(--sp-1)}
+.tape{position:relative;width:100%;height:26px;overflow:hidden;border-bottom:var(--hair)}
+.strip{position:absolute;left:50%;top:0;width:2160px;height:100%;will-change:transform;
+  background:repeating-linear-gradient(90deg,var(--ink) 0 1px,transparent 1px 30px) 0 100%/100% 5px no-repeat,repeating-linear-gradient(90deg,var(--ink) 0 2px,transparent 2px 90px) 0 100%/100% 9px no-repeat}
+.strip span{position:absolute;top:3px;transform:translateX(-50%);font:800 var(--ui-fs-label)/1 "Avenir Next",sans-serif;letter-spacing:.06em;color:var(--ink-soft)}
+.strip span.card{top:2px;font:700 14px/1 var(--serif);color:var(--ink)}
+.index{position:absolute;left:50%;bottom:0;width:0;height:0;margin-left:-5px;border:5px solid transparent;border-bottom:7px solid var(--burgundy);border-top:0}
+.rb-pin{position:absolute;left:50%;top:6px;width:12px;height:12px;margin-left:-6px}
+.rb-pin::before{content:'';position:absolute;inset:1px;background:var(--brass);border:2px solid var(--ink);transform:rotate(45deg)}
+.rb-pin[data-side]::before{inset:0;border:0;background:var(--burgundy);transform:none;clip-path:polygon(0 0,100% 50%,0 100%)}
+.rb-pin[data-side=l]::before{clip-path:polygon(100% 0,0 50%,100% 100%)}
+.clockline{display:flex;align-items:center;gap:var(--sp-3);width:100%;padding:var(--sp-1) var(--sp-3) 0}
+.clockline::before,.clockline::after{content:'';flex:1;height:1px;background:var(--rule)}
+#clock{font:700 var(--ui-fs-head)/1 var(--serif);font-variant-numeric:tabular-nums;letter-spacing:.04em}
+.meta{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:var(--sp-1) var(--sp-2);padding:var(--sp-1) var(--sp-3) 0;font-size:var(--ui-fs-label);font-weight:700;letter-spacing:.14em;color:var(--ink-soft);white-space:nowrap}
+#curfew:empty{display:none}#curfew.on{color:var(--burgundy);font-weight:800}
+.tag{padding:1px var(--sp-2);background:var(--band,var(--band-heavy));color:var(--paper);font-weight:800;letter-spacing:.12em}
+.tag[data-band=liberated]{--band:var(--band-liberated)}.tag[data-band=low]{--band:var(--band-low)}.tag[data-band=controlled]{--band:var(--band-controlled)}.tag[data-band=heavy]{--band:var(--band-heavy)}.tag[data-band=lockdown]{--band:var(--band-lockdown)}
+
+/* The objective marker: an ink-outlined brass diamond in the world, its distance beneath, and on the edge of the
+   safe area a chevron pointing the way. interface.ts moves it with transforms only. */
+#marker{position:absolute;z-index:1;left:0;top:0;width:0;height:0;will-change:transform,opacity}
+.mk-pin{position:absolute;left:-9px;top:-9px;width:18px;height:18px;background:var(--brass);border:2px solid var(--ink);transform:rotate(45deg);box-shadow:1px 1px 0 var(--ink)}
+.mk-pin::after{content:'';position:absolute;inset:3px;background:var(--ink)}
+.mk-dist{position:absolute;left:0;top:17px;transform:translateX(-50%);font:800 var(--ui-fs-small)/1 "Avenir Next",sans-serif;letter-spacing:.04em;font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--paper);-webkit-text-stroke:3px var(--ink);paint-order:stroke fill}
+.mk-chev{position:absolute;left:-8px;top:-8px;width:16px;height:16px;display:none}
+.mk-chev svg{display:block;width:16px;height:16px;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.mk-chev .o{stroke:var(--ink);stroke-width:5}.mk-chev .i{stroke:var(--brass);stroke-width:2}
+#marker.edge .mk-chev{display:block}
+
+/* The ticket: one container, one overline, the sentence, a perforated rule, the step. */
+#hud-bottom{position:absolute;z-index:2;left:max(var(--gutter),var(--sal));right:max(var(--gutter),var(--sar));bottom:max(var(--gutter),calc(var(--sab) + var(--sp-4)));display:flex;justify-content:space-between;align-items:flex-end;gap:var(--sp-4);pointer-events:none}
+.objective{width:340px;max-width:100%;padding:var(--sp-3) var(--sp-4) var(--sp-2);background:var(--paper);border:var(--edge);box-shadow:var(--shadow)}
+.objective .overline{display:block;color:var(--burgundy)}
+.objective p{margin:var(--sp-1) 0 var(--sp-3);font:700 var(--ui-fs-lead)/1.35 var(--serif)}
+.steps{display:flex;align-items:center;gap:var(--sp-2);padding-top:var(--sp-2);border-top:1px dashed var(--ink);font-size:var(--ui-fs-label);font-weight:700;letter-spacing:.12em;color:var(--ink-soft);font-variant-numeric:tabular-nums;white-space:nowrap}
+.steps #stage{margin-left:auto}
+.pips{flex:1;display:flex;gap:3px;min-width:24px}.pips i{flex:1;height:3px;background:var(--rule)}.pips i.on{background:var(--burgundy)}
+/* The key hints: no box, just keycaps and outlined labels. They fade once the Steward has found their feet. */
+.controls{display:flex;align-items:center;gap:var(--sp-4);margin-left:auto;font-size:var(--ui-fs-small);font-weight:800;letter-spacing:.04em;color:var(--paper);-webkit-text-stroke:3px var(--ink);paint-order:stroke fill;transition:opacity 1.6s ease}
+.controls span,.ledger-control{display:flex;align-items:center;gap:var(--sp-1)}
+.controls kbd+kbd{margin-left:-1px}
+.ledger-control{min-height:32px;padding:0;border:0;background:none;color:inherit;font:inherit;letter-spacing:inherit;-webkit-text-stroke:inherit;paint-order:inherit}
+body.hint-off .controls:not(:focus-within){opacity:0;pointer-events:none}
+@media(max-width:900px){.controls span:nth-child(2),.controls span:nth-child(3){display:none}}
+
+/* The prompt: the key is the call to action, the label the verb, the hint the small print. */
+#interaction{position:absolute;z-index:2;left:50%;top:58%;transform:translateX(-50%);display:flex;align-items:center;gap:var(--sp-3);width:max-content;max-width:calc(100vw - 2*var(--sp-4));padding:var(--sp-2) var(--sp-4) var(--sp-2) var(--sp-2);background:var(--paper);border:var(--edge);box-shadow:var(--shadow);font:700 var(--ui-fs-lead)/1.25 "Avenir Next",sans-serif}
+#interaction kbd{width:32px;height:32px;background:var(--brass);font-size:var(--ui-fs-lead);font-weight:800}
+#interaction small{display:block;margin-top:2px;font-size:var(--ui-fs-label);font-weight:700;letter-spacing:.14em;color:var(--ink-soft)}
+
+/* The toast: below the ribbon, transient, and the one place a ward change is announced (the ledger keeps it). */
+#toast{position:absolute;z-index:4;left:50%;top:calc(max(var(--sp-4),var(--sat)) + var(--hud-h) + var(--sp-3));width:max-content;max-width:min(520px,calc(100vw - 2*var(--sp-4)));padding:var(--sp-2) var(--sp-4) var(--sp-3);background:var(--paper);border:var(--edge);border-left:6px solid var(--teal);box-shadow:var(--shadow);font-size:var(--ui-fs-body);font-weight:600;line-height:1.5;opacity:0;visibility:hidden;transform:translate(-50%,-6px);pointer-events:none;transition:opacity .25s,transform .25s,visibility 0s .25s}
+#toast.show{opacity:1;visibility:visible;transform:translate(-50%,0);transition-delay:0s}
+.t-over{display:block;margin-bottom:2px;font-size:var(--ui-fs-label);font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--burgundy)}
+body:has(#panel:not([hidden])) #toast{left:calc((100% - var(--panel-w) - var(--sp-4))/2);max-width:min(520px,calc(100vw - var(--panel-w) - 3*var(--sp-4)))}
+
+/* Narrow windows and tablets. */
+@media(max-width:900px){:root{--gutter:22px}.ribbon{width:clamp(260px,38vw,340px)}}
+@media(min-width:901px) and (max-width:1100px){.id-over{display:none}}
+@media(max-width:700px){:root{--gutter:var(--sp-4);--hud-h:128px}
+  #hud{grid-template-columns:1fr auto;grid-template-areas:"id tre" "rib rib";row-gap:var(--sp-2)}
+  .identity{grid-area:id}.treasury{grid-area:tre}.ribbon{grid-area:rib;justify-self:center;width:min(100%,360px)}
+  .identity svg,.id-over,.treasury small{display:none}
+  .identity,.treasury{min-height:44px;padding:var(--sp-1) var(--sp-3)}
+  .identity b{font-size:var(--ui-fs-body)}.treasury{gap:0}.treasury strong{font-size:20px}
 }
-@media(max-height:700px){
-  .welcome{top:110px}.welcome h1{font-size:100px;margin:6px 0 18px}
-  .title-stamp{margin:12px 0}.welcome p{margin-bottom:14px}
-  .welcome-foot{margin-top:12px}.welcome .primary{padding:10px 16px}
-  .pause{top:50%;transform:translateY(-50%)}
-}
-@media(max-height:540px) and (min-width:701px){
-  .welcome{top:104px;width:min(650px,85vw);max-width:none;display:grid;grid-template-columns:210px 290px;column-gap:28px;align-items:start}
-  .welcome .eyebrow{grid-column:1 / -1}.title-stamp{grid-column:1;width:fit-content;font-size:8px}
-  .welcome h1{grid-column:1;grid-row:3 / 6;font-size:106px}
-  .welcome p{grid-column:2;grid-row:3}.welcome .primary{grid-column:2;grid-row:4}
-  .welcome-foot{grid-column:2;grid-row:5}
-}
-@media(max-height:560px) and (max-width:700px){
-  .welcome{top:96px;bottom:20px;overflow-y:auto;padding:8px 8px 12px;pointer-events:auto}
-  .welcome h1{font-size:78px}.welcome:before{display:none}
-  .welcome .eyebrow{letter-spacing:.4px}.welcome-foot{display:none}
+/* A phone on its side: the three clusters share one short row. */
+@media(max-height:520px) and (pointer:coarse){:root{--gutter:var(--sp-4);--hud-h:64px}
+  #hud{grid-template-columns:auto 1fr auto;grid-template-areas:"id rib tre";column-gap:var(--sp-3)}
+  .ribbon{width:min(100%,300px)}.tape{height:22px}.strip span.card{font-size:var(--ui-fs-body)}.rb-pin{top:4px}
+  #clock{font-size:var(--ui-fs-lead)}.clockline{padding-top:2px}.meta{padding-top:2px}
+  .identity svg,.id-over,.treasury small{display:none}.identity,.treasury{min-height:44px;padding:var(--sp-1) var(--sp-3)}
+  .treasury{gap:0}.treasury strong{font-size:20px}.identity b{font-size:var(--ui-fs-body)}
 }
 
-body:not(.started) #hud-bottom{visibility:hidden}
-/* Touch play: floating joystick, thumb buttons, no keyboard hints. */
+/* Phones and tablets: no key hints, no crosshair; the pause button holds the top-left, the card hangs under the ribbon. */
+body.touch .controls,body.touch #crosshair{display:none}
+body.touch .identity{margin-left:calc(44px + var(--sp-2))}
+body.touch #hud{left:max(var(--sp-4),var(--sal))}
+body.touch #hud-bottom{top:calc(max(var(--sp-4),var(--sat)) + var(--hud-h) + var(--sp-2));bottom:auto;left:max(var(--sp-4),var(--sal));right:auto}
+body.touch .objective{width:min(300px,calc(100vw - 2*var(--sp-4)));padding:var(--sp-2) var(--sp-3)}
+body.touch .objective p{margin:2px 0 var(--sp-2);font-size:var(--ui-fs-body)}
+body.touch .pips{display:none}
+body.touch.toasting .objective{visibility:hidden}
+/* With a panel open on a small screen, the ribbon and the ticket step aside rather than sit under the sheet. */
+@media(max-width:700px),(max-height:520px) and (pointer:coarse){body:has(#panel:not([hidden])) .ribbon,body:has(#panel:not([hidden])) #hud-bottom,body:has(#panel:not([hidden])) #marker{visibility:hidden}}
+body.touch #interaction{left:max(var(--sp-4),var(--sal));top:auto;bottom:max(var(--sp-4),calc(var(--sab) + var(--sp-2)));transform:none;max-width:calc(100vw - 190px - var(--sal))}
+body.touch #interaction kbd{display:none}
+body.touch #interaction{padding:var(--sp-2) var(--sp-3)}
+@media(max-width:700px){body:has(#panel:not([hidden])) #toast,body:has(#pause:not([hidden])) #toast{left:50%;top:max(var(--sp-2),var(--sat));max-width:calc(100vw - 2*var(--sp-4))}}
+
+/* ---- 4 Panels: ledger, property, site, pause, settings ------------------------------------------------ */
+.panel,.pause{position:absolute;z-index:3;background:var(--paper);border:var(--edge);box-shadow:var(--shadow-lg);color:var(--ink)}
+.panel{top:var(--sp-4);right:var(--sp-4);bottom:var(--sp-4);width:var(--panel-w);max-width:calc(100vw - 2*var(--sp-4));display:flex;flex-direction:column;animation:ledger-in .25s both}
+.panel-top,.panel-bottom{flex:none;display:flex;align-items:center;justify-content:space-between;gap:var(--sp-2);background:var(--parchment)}
+.panel-top{padding:var(--sp-1) var(--sp-1) var(--sp-1) var(--sp-4);border-bottom:1px solid var(--ink);touch-action:none}
+.panel-top>span{display:flex;align-items:center;gap:var(--sp-2);font-size:var(--ui-fs-label);font-weight:800;letter-spacing:.16em}
+.panel-top svg{width:14px;height:19px;fill:none;stroke:var(--ink);stroke-width:1.6}
+.panel-top button{width:44px;height:44px;padding:0;border:1px solid transparent;background:none;color:var(--ink);font-size:26px;line-height:1}
+.panel-top button:hover{border-color:var(--ink);filter:none}
+.panel-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:var(--sp-4) var(--sp-5) var(--sp-5);scrollbar-width:thin;scrollbar-color:var(--ink-soft) transparent}
+.panel-bottom{padding:var(--sp-3) var(--sp-4);border-top:1px solid var(--ink);font-size:var(--ui-fs-label);font-weight:800;letter-spacing:.1em;font-variant-numeric:tabular-nums}
+.panel-bottom small{font-size:var(--ui-fs-label);color:var(--ink-soft)}
+.panel .overline,.pause .eyebrow{display:block;color:var(--burgundy)}
+.panel h2,.pause h2{margin:var(--sp-1) 0 var(--sp-3);font:700 28px/1.15 var(--serif);letter-spacing:-.01em;color:var(--ink)}
+.panel h3{margin:var(--sp-1) 0;font:700 17px/1.25 var(--serif);color:var(--ink)}
+.description,.muted,.footnote{color:var(--ink-soft)}
+.description{margin:0 0 var(--sp-4);font-size:var(--ui-fs-body);line-height:1.6}
+.muted{margin:var(--sp-1) 0 var(--sp-3);font-size:var(--ui-fs-body);line-height:1.55}
+.footnote{margin:var(--sp-3) 0;font-size:var(--ui-fs-small);line-height:1.5}.footnote b{color:var(--ink)}
+/* Section heading: overline and a thin rule. */
+.section-label{display:flex;align-items:center;gap:var(--sp-2);margin:var(--sp-5) 0 var(--sp-2);color:var(--ink-soft)}
+.section-label::after{content:'';flex:1;height:1px;background:var(--ink);opacity:.4}
+
+/* Tabs: an underlined row of seven that wraps as four and three, each row filling its width. */
+.tabs{display:grid;grid-template-columns:repeat(12,1fr);margin:var(--sp-3) 0 var(--sp-4)}
+.tabs button{grid-column:span 4;min-height:44px;padding:0 var(--sp-1);border:0;border-bottom:1px solid var(--rule);background:none;color:var(--ink-soft);font-size:var(--ui-fs-small);font-weight:700;text-align:center;white-space:nowrap}
+.tabs button:nth-child(-n+4){grid-column:span 3}
+.tabs button:hover:not(.active){color:var(--ink);filter:none}
+.tabs button.active{color:var(--ink);font-weight:800;box-shadow:inset 0 -3px 0 var(--burgundy)}
+
+/* Rows: label left, value or action right, on one grid, tabular numerals. */
+.ledger-row{display:grid;grid-template-columns:1fr auto;align-items:center;gap:var(--sp-3);padding:var(--sp-3) 0;border-bottom:var(--hair)}
+.ledger-row.block{display:block}
+.ledger-row small{display:block;font-size:var(--ui-fs-label);font-weight:800;letter-spacing:.14em;color:var(--ink-soft)}
+.ledger-row p{margin:var(--sp-1) 0 0;font-size:var(--ui-fs-small);line-height:1.5;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.find{width:44px;height:44px;padding:0;border:1px solid var(--ink);background:none;color:var(--ink);font-size:18px;line-height:1}
+.find:hover{background:var(--brass);filter:none}
+.stat-row{display:flex;justify-content:space-between;align-items:baseline;gap:var(--sp-4);padding:var(--sp-2) 0;border-bottom:1px dotted #22283c80;font-size:var(--ui-fs-body);line-height:1.4;color:var(--ink-soft)}
+.stat-row b{font-weight:700;text-align:right;color:var(--ink);font-variant-numeric:tabular-nums}
+.city-stage{margin:0 0 var(--sp-2);padding:0 0 var(--sp-3);border-bottom:var(--hair)}
+.city-stage>span{font-size:var(--ui-fs-label);font-weight:800;letter-spacing:.16em;color:var(--gold)}
+.city-stage p{margin:var(--sp-1) 0 0;font-size:var(--ui-fs-small);color:var(--ink-soft)}
+.status-good,.complete{color:var(--good)}
+.status-good{margin:var(--sp-1) 0;font-size:var(--ui-fs-small);line-height:1.5}
+.complete{display:block;padding:var(--sp-2) 0 0;font-size:var(--ui-fs-label);font-weight:800;letter-spacing:.14em}
+.complete::before{content:'\2713\00a0'}
+.map{margin:0 0 var(--sp-4);border:1px solid var(--ink);background:#31494b}.map svg{display:block;width:100%}
+
+/* A property or site: its level track, the two readings, the production bar. */
+.level-track{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:var(--sp-2);margin:var(--sp-4) 0}
+.level-track span{padding-top:var(--sp-1);border-top:3px solid var(--rule);font-size:var(--ui-fs-label);font-weight:700;letter-spacing:.08em;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.level-track .done{border-top-color:var(--teal);color:var(--good)}
+.instrument{display:grid;grid-template-columns:1fr 1fr;margin:0 0 var(--sp-3)}
+.instrument>div{padding:var(--sp-1) var(--sp-4) var(--sp-1) 0}
+.instrument>div+div{padding-left:var(--sp-4);border-left:var(--hair)}
+.instrument small{display:block;font-size:var(--ui-fs-label);font-weight:800;letter-spacing:.14em;color:var(--ink-soft)}
+.instrument strong{display:block;margin:var(--sp-1) 0;font:700 var(--ui-fs-num)/1.1 var(--serif);font-variant-numeric:tabular-nums}
+.instrument em{font:400 var(--ui-fs-lead) var(--serif);color:var(--ink-soft)}
+.instrument span{font-size:var(--ui-fs-small);color:var(--ink-soft)}
+.production-bar{height:6px;margin:0 0 var(--sp-3);border:1px solid var(--ink)}.production-bar span{display:block;height:100%;background:var(--teal)}
+
+/* The primary action: raised brass, visibly not a list row. Short of Crowns, the fill shows the savings. */
+.purchase{display:grid;grid-template-columns:1fr auto;align-items:center;gap:var(--sp-3);width:100%;min-height:48px;margin:var(--sp-3) 0 var(--sp-1);padding:0 var(--sp-4);background:var(--brass);border:var(--edge);box-shadow:var(--shadow);color:var(--ink);font-size:var(--ui-fs-body);font-weight:700;text-align:left;transition:transform .12s,box-shadow .12s,background .12s}
+.purchase b{font-weight:800;white-space:nowrap;font-variant-numeric:tabular-nums}
+.purchase:not(:disabled):hover{transform:translate(-1px,-2px);box-shadow:3px 5px 0 var(--ink);filter:none}
+.purchase:not(:disabled):active{transform:translate(2px,3px);box-shadow:none}
+.purchase:disabled{border-style:dashed;border-color:#22283c99;box-shadow:none;color:#3f4d4b;background:#22283c12}
+.purchase:disabled b{color:var(--burgundy)}
+.purchase[data-cost]:disabled:not([data-locked]){background-image:linear-gradient(90deg,var(--brass) var(--saved,0%),#efc66e55 var(--saved,0%))}
+.purchase[data-locked]:disabled b{color:var(--ink-soft)}
+
+/* Settings. */
+.slider{display:grid;grid-template-columns:1fr 48%;align-items:center;gap:var(--sp-3);min-height:48px;border-bottom:var(--hair);font-size:var(--ui-fs-body)}
+.slider input{width:100%;height:44px;margin:0;accent-color:var(--teal)}
+.check{display:flex;align-items:center;gap:var(--sp-3);min-height:44px;margin:var(--sp-2) 0;font-size:var(--ui-fs-body);color:var(--ink-soft)}
+.check input{width:20px;height:20px;margin:0;accent-color:var(--teal)}
+.quality{display:grid;grid-template-columns:1fr 1fr}
+.quality button{min-height:44px;border:1px solid var(--ink);background:none;color:var(--ink-soft);font-size:var(--ui-fs-body);font-weight:700}
+.quality button+button{border-left:0}
+.quality .active{background:var(--ink);color:var(--paper)}
+.plain{display:flex;justify-content:space-between;align-items:center;width:100%;min-height:48px;padding:0 var(--sp-1);border:0;border-bottom:var(--hair);background:none;color:var(--ink);font-size:var(--ui-fs-body);font-weight:700;text-align:left;transition:background .12s,padding .12s}
+.plain::after{content:'\2192';font-weight:400;color:var(--ink-soft)}
+.plain:hover:not(:disabled),.plain:focus-visible{background:var(--hover);padding-inline:var(--sp-3);filter:none}
+.danger-text,.danger-text::after{color:var(--burgundy)}
+.danger{margin-top:var(--sp-4);padding:var(--sp-1) 0 var(--sp-1) var(--sp-3);border-left:3px solid var(--burgundy)}
+.danger h3{margin-top:0;color:var(--burgundy)}.danger p{margin:var(--sp-1) 0;font-size:var(--ui-fs-body);line-height:1.5;color:#4a2c3a}
+.danger button{display:block;width:100%;min-height:44px;margin-top:var(--sp-2);padding:0 var(--sp-3);border:2px solid var(--burgundy);background:none;color:var(--burgundy);font-size:var(--ui-fs-body);font-weight:700;text-align:left}
+.danger button[data-action=reset-confirm]{background:var(--burgundy);color:var(--paper)}
+
+/* Pause: the same paper, a single column of actions. */
+.pause{left:8vw;top:50%;transform:translateY(-50%);width:min(380px,calc(100vw - 2*var(--sp-4)));max-height:calc(100dvh - 2*var(--sp-4));overflow-y:auto;padding:var(--sp-5);animation:paper-in .25s both}
+.pause p{margin:0 0 var(--sp-4);font-size:var(--ui-fs-body);line-height:1.55;color:var(--ink-soft)}
+.pause .primary{width:100%;margin-bottom:var(--sp-3);transform:none}
+
+/* A phone: panels become a bottom sheet with a grab handle, at most 85% of the screen, scrolling inside. */
+@media(max-width:700px){
+  .panel,.pause{left:0;right:0;top:auto;bottom:0;width:100%;max-width:none;max-height:85dvh;transform:none;border-width:2px 0 0;box-shadow:none;animation:sheet-in .25s both}
+  .panel::before,.pause::before{content:'';display:block;flex:none;width:44px;height:4px;margin:var(--sp-2) auto var(--sp-1);background:var(--ink);opacity:.4;border-radius:2px}
+  .pause{padding:0 var(--sp-4) calc(var(--sp-4) + var(--sab))}.pause::before{margin-bottom:var(--sp-4)}
+  .panel-scroll{padding:var(--sp-3) var(--sp-4) var(--sp-4)}
+  .panel-bottom{padding-bottom:calc(var(--sp-3) + var(--sab))}.panel-bottom small{display:none}
+  .panel h2,.pause h2{font-size:24px}
+}
+/* A phone on its side keeps the side panel, trimmed to fit the height. */
+@media(max-height:520px) and (min-width:701px){:root{--panel-w:min(480px,62vw)}
+  .panel{top:var(--sp-2);right:max(var(--sp-2),var(--sar));bottom:var(--sp-2)}
+  .panel-top{padding-block:0}.panel-top>span{font-size:var(--ui-fs-label)}.panel-bottom{padding-block:var(--sp-2)}
+  .tabs{display:flex;overflow-x:auto;margin:var(--sp-2) 0;scrollbar-width:none}.tabs button{flex:none;padding:0 var(--sp-3)}.panel .overline{display:none}
+  .panel-scroll{padding:var(--sp-3) var(--sp-4) var(--sp-4)}.panel h2{font-size:22px;margin-bottom:var(--sp-2)}
+  .pause{padding:var(--sp-4)}.pause h2{font-size:22px}.pause p{margin-bottom:var(--sp-3)}
+}
+@media(min-width:701px) and (max-width:900px){:root{--panel-w:min(440px,calc(100vw - 2*var(--sp-4)))}}
+
+/* ---- 5 Touch: floating joystick and thumb buttons (their positions are what the HUD above keeps clear of) -- */
 #touch{position:fixed;inset:0;pointer-events:none;z-index:5;display:none}
 body.touch.started #touch.live{display:block}
 .stick-base{position:absolute;left:0;top:0;width:120px;height:120px;border-radius:50%;border:2px solid #e8dcc0aa;background:#10181a44;opacity:0;transition:opacity .15s}
@@ -84,39 +331,12 @@ body.touch.started #touch.live{display:block}
 .touch-use.ready{opacity:1;border-color:#f3cf87;box-shadow:0 0 0 4px #f3cf8744}
 .touch-ledger{right:max(24px,env(safe-area-inset-right));bottom:calc(max(28px,env(safe-area-inset-bottom)) + 82px);width:56px;height:56px;font-size:9px;letter-spacing:1px}
 .touch-pause{left:max(16px,env(safe-area-inset-left));top:max(16px,env(safe-area-inset-top));width:44px;height:44px;border-radius:8px;font-size:13px}
-body.touch .controls,body.touch #crosshair{display:none}
-body.touch #hud-bottom{bottom:auto;top:84px;left:max(16px,env(safe-area-inset-left));right:auto;max-width:60vw;pointer-events:none}
-body.touch .objective p{font-size:12px;margin:4px 0 6px}
-body.touch header#hud{top:max(12px,env(safe-area-inset-top));left:74px;right:max(16px,env(safe-area-inset-right))}
-body.touch #interaction{top:auto;bottom:150px}
-body.touch #interaction kbd{display:none}
-html,body{overscroll-behavior:none;-webkit-user-select:none;user-select:none}
-#panel,#panel *{-webkit-user-select:text;user-select:text}
-@media (max-height:520px){body.touch .identity{transform:scale(.7);transform-origin:top left}body.touch .treasury{transform:scale(.7);transform-origin:top right}body.touch #hud-bottom{transform:scale(.7);transform-origin:top left;top:62px}body.touch .touch-btn{transform:scale(.88)}}
 
-/* A commission the treasury cannot meet yet fills as the Crowns come in: saving is something you can watch. */
-.purchase[data-cost]:disabled:not([data-locked]){background-image:linear-gradient(90deg,#edd08a var(--saved,0%),#edd08a55 var(--saved,0%));background-color:transparent}
-
-/* The hour, and the ward the Steward stands in: the same plate language as the bearing. */
-.hour{position:absolute;left:50%;top:0;transform:translateX(calc(-50% - 178px));display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--terra-paper);border:1px solid var(--terra-ink);padding:6px 14px;gap:2px;box-shadow:2px 3px 0 var(--terra-ink);color:var(--terra-ink);min-height:44px}
-.hour>span{font:bold 17px "Avenir Next",sans-serif;font-variant-numeric:tabular-nums;letter-spacing:.06em}.hour small{font-size:9px;letter-spacing:.16em;color:#526c64;min-height:11px}.hour small.on{color:var(--terra-burgundy);font-weight:800}
-.bearing small.ward{font-weight:700;letter-spacing:.12em;border-top:1px solid #526c6440;padding-top:3px;margin-top:1px;white-space:nowrap}
-.ward[data-band=liberated]{color:#2f6f6a}.ward[data-band=low]{color:#55733f}.ward[data-band=controlled]{color:#7a5f1e}.ward[data-band=heavy]{color:#8c4424}.ward[data-band=lockdown]{color:var(--terra-burgundy)}
-body:not(.started) .hour{display:none}
-@media (max-width:900px){.hour{transform:translateX(-50%)}}
-/* A phone has no room between the title card and the treasury: the clock hangs under them, and the toast below it. */
-@media (max-width:700px) and (min-height:521px){.hour{top:calc(100% + 8px)}#toast{top:162px}body.touch #hud-bottom{top:132px}body.touch #toast{top:232px}}
-body.touch .hour{transform:translateX(-50%) scale(.85);transform-origin:top center}
-/* Small screens lose the bearing plate, so the hour plate carries the ward: time, curfew, then one compact line. */
-#ward-mini{display:none;font-weight:800;letter-spacing:.1em;white-space:nowrap;min-height:0}
-@media (max-width:900px){#ward-mini{display:block}.hour{padding:4px 10px}.hour small:empty{display:none}}
-body.touch #ward-mini{display:block}
-
-/* THE KNOCK: the opening scene. The HUD is held back until it ends; the card is the toast's paper, with a speaker and choices. */
+/* ---- 6 The opening scene and its dialogue: the HUD is held back until it ends --------------------------- */
 #cut{position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;z-index:8;transition:opacity 1.6s ease}
 #cut.on{opacity:1}#cut.now{transition:none}
-#hud,#hud-bottom,#tracked{transition:opacity 1.2s ease}
-body.scene #hud,body.scene #hud-bottom,body.scene #tracked,body.scene #toast,body.scene .touch-ledger{opacity:0;visibility:hidden;pointer-events:none}
+#hud,#hud-bottom,#marker{transition:opacity 1.2s ease}
+body.scene #hud,body.scene #hud-bottom,body.scene #marker,body.scene #toast,body.scene .touch-ledger{opacity:0;visibility:hidden;pointer-events:none}
 body.scene.dialogue #touch{display:none!important}
 body.scene .pause{z-index:10}body.scene .pause [data-action=ledger],body.scene .pause [data-action=settings]{display:none}
 #dialogue{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);width:min(640px,calc(100vw - 32px));z-index:9;display:flex;flex-direction:column;gap:10px;align-items:stretch}
@@ -137,93 +357,3 @@ body.scene #skip{display:block}
 #title-card b{display:block;font:900 clamp(56px,11vw,120px)/1 "Avenir Next",sans-serif;letter-spacing:.18em;padding-left:.18em}
 #title-card span{display:block;font:700 11px "Avenir Next",sans-serif;letter-spacing:.4em;margin-top:10px}
 @media(max-width:700px),(max-height:520px){#dialogue{bottom:auto;top:max(64px,calc(env(safe-area-inset-top) + 56px))}.dlg-card p{font-size:15px}#title-card{top:30%}}
-
-/* ---------------------------------------------------------------------------------------------------------------
-   Fixes VII: one card language. Every plate on the HUD shares the same edge, shadow, gutter and type floor, and the
-   muted text is dark enough to read on the paper (4.5:1 or better on --terra-paper). */
-:root{
-  --ui-gutter:34px;--ui-top:32px;--ui-bottom:32px;--ui-card-h:80px;
-  --ui-edge:2px solid var(--terra-ink);
-  --ui-shadow:3px 4px 0 var(--terra-ink);--ui-shadow-sm:2px 3px 0 var(--terra-ink);--ui-shadow-lg:6px 7px 0 #34494a88;
-  --ui-soft:#3c5653;--gold:#7a5230;--muted:#3c5653;
-  --ui-fs-label:10px;--ui-fs-small:11px;--ui-fs-body:13px;--ui-fs-lead:15px;
-  --ui-hover:#f6ecd5;--ui-accent:#edd08a;--ui-focus:#226f6c;
-}
-/* The top row: four plates on one baseline, one height, one edge. The tilt is kept for the two corner cards, softened. */
-header{top:var(--ui-top);left:var(--ui-gutter);right:var(--ui-gutter)}
-.identity,.treasury,.bearing,.hour{min-height:var(--ui-card-h);border:var(--ui-edge);box-shadow:var(--ui-shadow);box-sizing:border-box}
-.identity{transform:rotate(-.6deg)}.treasury{transform:rotate(.6deg);padding-block:8px}
-.bearing,.hour{justify-content:center}
-/* The clock and the compass plate are one centred pair, so a long ward name pushes them apart instead of overlapping. */
-@media(min-width:901px){.centre{position:absolute;left:50%;top:0;transform:translateX(-50%);display:flex;gap:10px;align-items:stretch}.centre .bearing,.centre .hour{position:static;transform:none}}
-@media(max-width:900px){.centre{display:contents}}
-.identity span,.treasury small,.bearing small,.hour small,.income small{font-size:var(--ui-fs-label);color:var(--ui-soft)}
-.hour small.on{color:var(--terra-burgundy)}
-.income b{color:#2d6254}
-/* The bottom row shares the same gutter and shadow; the waypoint chip sits on the row's baseline, between the two cards. */
-footer{left:var(--ui-gutter);right:var(--ui-gutter);bottom:var(--ui-bottom)}
-.objective,.controls,#tracked,#interaction,#toast{border:var(--ui-edge);box-shadow:var(--ui-shadow)}
-.objective>small,.objective .overline{font-size:var(--ui-fs-label)}.objective>small{color:var(--ui-soft)}.objective .overline{color:var(--terra-burgundy)}
-.objective p{font-size:var(--ui-fs-body);line-height:1.4}
-.controls{font-size:var(--ui-fs-small);color:var(--terra-ink);gap:16px;align-items:center}
-.controls .ledger-control{font:inherit}
-kbd{font-size:var(--ui-fs-label);min-width:24px;height:24px}
-@media(min-width:1000px){#tracked{bottom:var(--ui-bottom);box-shadow:var(--ui-shadow);border:var(--ui-edge);padding:9px 14px;min-height:42px;display:flex;align-items:center;font-size:var(--ui-fs-small)}#tracked small{opacity:1;color:var(--ui-soft);font-size:var(--ui-fs-label)}}
-/* The prompt: the key is the call to action, the label is the verb, the hint is the small print. */
-#interaction{gap:14px;padding:10px 18px 10px 12px;font-size:var(--ui-fs-lead);font-weight:700;top:57%}
-#interaction kbd{width:34px;height:34px;font-size:15px;font-weight:800;box-shadow:var(--ui-shadow-sm)}
-#interaction small{font-size:var(--ui-fs-label);font-weight:700;letter-spacing:1.6px;color:var(--ui-soft);margin-top:3px}
-/* The toast: clear of the clock row, left aligned for reading, and never hidden behind the ledger. */
-#toast{top:calc(var(--ui-top) + var(--ui-card-h) + 14px);font-size:var(--ui-fs-body);line-height:1.5;font-weight:600;padding:11px 20px;max-width:min(560px,calc(100vw - 2*var(--ui-gutter)));text-align:left;border-left:8px solid var(--terra-civic)}
-body:has(#panel:not([hidden])) #toast{left:calc((100% - 490px)/2);max-width:min(560px,calc(100vw - 530px))}
-/* Dialogue and prompt copy floor. */
-.dlg-card small,.welcome-foot,.panel-top>span,.panel-bottom,.panel-bottom small{font-size:var(--ui-fs-label)}
-.dlg-card small{color:var(--ui-soft)}
-.description,.ledger-row p,.ledger-row small,.muted,.footnote,.stat-row,.slider,.check,.city-stage p,.instrument small,.instrument span,.instrument em,.panel-bottom small,.tabs button,.level-track span,.plain{color:var(--ui-soft)}
-.instrument small,.instrument span{font-size:var(--ui-fs-label)}
-.section-label{color:#6a4a2b;font-size:var(--ui-fs-label)}
-.description{font-size:var(--ui-fs-body);line-height:1.7}
-.stat-row,.slider,.check{font-size:12px}.footnote{font-size:var(--ui-fs-small)}
-.level-track span{border-top-width:3px;border-top-color:#34494a33;font-size:var(--ui-fs-label);font-weight:700}
-.level-track .done{border-top-color:#357365;color:#245a4d}
-.production-bar{height:7px;border:1px solid #34494a55;background:#34494a14}
-/* The ledger, pause and settings share the card edge; the panel keeps its softer offset because it is large. */
-.pause,.panel{border:var(--ui-edge);box-shadow:var(--ui-shadow-lg)}
-.pause{left:8vw}
-.pause p{color:var(--ui-soft);font-size:var(--ui-fs-body)}
-.plain{display:flex;align-items:center;justify-content:space-between;padding:13px 4px;font-size:var(--ui-fs-body);font-weight:700;color:var(--terra-ink);border-bottom:1px solid #34494a55;transition:background .12s,padding .12s}
-.plain:after{content:'\2192';font-weight:400;color:var(--ui-soft)}
-.plain:hover:not(:disabled){background:var(--ui-hover);padding-inline:10px;filter:none}
-.plain:focus-visible{background:var(--ui-hover)}
-/* The ledger's tabs are a row of labelled tabs that wrap as even pills instead of leaving one word alone on a line. */
-.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--line)}
-.tabs button{min-height:36px;padding:0 6px;text-align:center;white-space:nowrap;border:2px solid transparent;border-radius:999px;font-size:var(--ui-fs-small);font-weight:700;color:var(--ui-soft)}
-.tabs button:hover:not(.active){border-color:var(--terra-ink);color:var(--terra-ink);filter:none}
-.tabs button.active{background:var(--terra-ink);color:var(--terra-paper);border:2px solid var(--terra-ink)}
-/* Buttons: one raised state, one pressed state, and a disabled state that still reads (the fill shows the savings). */
-.purchase{border:2px solid var(--terra-ink);box-shadow:var(--ui-shadow-sm);font-size:var(--ui-fs-body);min-height:48px;transition:transform .12s,box-shadow .12s,background .12s}
-.purchase:not(:disabled):hover{transform:translate(-1px,-2px);box-shadow:3px 5px 0 var(--terra-ink)}
-.purchase:not(:disabled):active{transform:translate(2px,3px);box-shadow:0 0 0 var(--terra-ink)}
-.purchase:disabled{opacity:1;cursor:not-allowed;color:#4c5f5a;border-style:dashed;border-color:#34494a99;box-shadow:none}
-.purchase:disabled b{color:var(--terra-burgundy)}
-.purchase[data-locked]:disabled{background:#34494a12;background-image:none}.purchase[data-locked]:disabled b{color:var(--ui-soft)}
-.find{border:2px solid var(--terra-ink)}.find:hover{filter:none;transform:translate(-1px,-1px);box-shadow:3px 4px 0 var(--terra-ink)}
-.panel-top button{border-radius:2px;border:2px solid transparent}.panel-top button:hover{border-color:var(--terra-ink);filter:none}
-/* Focus: one ring, always visible against paper. */
-button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--ui-focus);outline-offset:3px}
-input[type=range]{accent-color:#40897b}
-@media(max-width:900px){:root{--ui-gutter:22px}}
-.pause .primary{margin-bottom:10px}
-/* Around 1024px wide the clock pair and the treasury meet: the ward line and the treasury give up some air, never any words. */
-@media(min-width:901px) and (max-width:1180px){
-  .bearing{padding-inline:12px}.bearing small.ward{letter-spacing:.03em}.bearing>span:before,.bearing>span:after{margin:0 8px;letter-spacing:3px}
-  .treasury{gap:10px;padding-inline:12px}.coin{width:32px;height:32px;font-size:20px}.income{padding-left:12px;margin-left:0}.treasury strong{font-size:24px}
-}
-/* New game confirm: a warning plate with the safe choice first in reading order and a clear destructive button. */
-.danger{border:2px solid var(--terra-burgundy);background:#793d5912;padding:16px 18px;margin-top:18px;box-shadow:var(--ui-shadow-sm)}
-.danger h3{color:var(--terra-burgundy);margin-top:0}.danger p{color:#4a2c3a;font-size:var(--ui-fs-body)}
-.danger button{display:block;width:100%;min-height:44px;margin-top:8px;padding:0 14px;text-align:left;font-weight:700;font-size:var(--ui-fs-body);border:2px solid var(--terra-burgundy);color:var(--terra-burgundy);background:transparent}
-.danger button[data-action=reset-confirm]{background:var(--terra-burgundy);color:var(--terra-paper)}
-.danger button:hover{filter:none;background:#793d5922}.danger button[data-action=reset-confirm]:hover{background:#8d4a69}
-.danger-text{color:var(--terra-burgundy)}
-#panel:focus{outline:none}
