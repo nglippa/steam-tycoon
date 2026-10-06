@@ -42,7 +42,7 @@ const smooth = (a: number, b: number, x: number) => { const u = Math.min(1, Math
  *  hung off the front from brow to chin, the jaw a rounded run from under the ear to a rounded chin. */
 export function skullTable(H: number, shape: Shape): number[][] {
   const L = landmarks(H, shape), a = L.width / 2, jaw = L.jawW / 2, chin = L.chinW / 2, R = L.R, yc = L.ballY, out: number[][] = [];
-  const jy = HEAD_SHAPES[shape].jawY, ys = [0, .035, jy * .55, jy, jy + .07, jy + .15, .34, .45, .5714, .68, .78, .87, .94, .985, 1].sort((p, q) => p - q);
+  const jy = HEAD_SHAPES[shape].jawY, ys = [0, .02, .05, .1, jy, jy + .07, jy + .15, .34, .45, .5714, .68, .78, .87, .94, .985, 1].sort((p, q) => p - q);
   const rho = (y: number) => Math.sqrt(Math.max(0, R * R - (y - yc) * (y - yc)));
   const zbAt = (y: number) => { // the back: the ball down to the jaw, then a steep run in to the chin
     const y1 = .25 * H, back1 = L.z0 - rho(y1);
@@ -56,7 +56,9 @@ export function skullTable(H: number, shape: Shape): number[][] {
     if (y <= L.jawY) { const u = y / L.jawY; w = chin * (.55 + .45 * Math.min(1, y / (.04 * H))) + (jaw - chin) * Math.pow(u, .92); }
     else w = jaw + (a - jaw) * smooth(L.jawY, ANIME.eye * H + .02 * H, y);
     w = y >= yc ? sph : Math.max(w, y > .3 * H ? sph : 0);
-    const zf = y >= yc ? L.z0 + rho(y) : L.chinZ + (L.faceFront - L.chinZ) * Math.pow(y / yc, .8);
+    // the face plane, chin to brow; the chin is carried a little forward of that line and the skin dips under the lower lip, so the profile has a chin and not only a corner
+    const u = y / H, cb = .011 * H * Math.exp(-((u - .045) ** 2) / (2 * .03 * .03)) - .004 * H * Math.exp(-((u - .1) ** 2) / (2 * .018 * .018));
+    const zf = y >= yc ? L.z0 + rho(y) : L.chinZ + (L.faceFront - L.chinZ) * Math.pow(y / yc, .8) + cb;
     const zb = zbAt(y), n = y < .06 * H ? 2 : y < L.jawY ? (shape === 'square' ? 2.7 : 2.3) : y > .9 * H ? 2.15 : 2.5;
     out.push([y, Math.max(w, .008 * H), zf, zb, n]);
   }

@@ -2,7 +2,9 @@ import * as T from 'three';
 import { loft, sweep, place, plate, offset, ringAt, surface, onFace, type Ring, type SweepPt } from './loft';
 import { dimsOf, ribcage, pelvis as pelvisRings, neck as neckRings, upperArm, forearm, thigh as thighRings, shin as shinRings, ring, RIG, type Dims } from './body';
 import { CASTS, paletteOf, type CastId, type Look } from './look';
-import { skull, ear, hairOf, hatOf, facialOf, CHIN_TO_PIVOT } from './head';
+import { skull, ear, facialOf, skullRings, CHIN_TO_PIVOT } from './head';
+import { hairOf } from './hair';
+import { hatOf } from './hat';
 import { hand, foot, put0, strip, seam, around, steps, button, kerchiefBand, kerchiefTails } from './parts';
 import { palette as P } from '../palette';
 
@@ -42,10 +44,11 @@ export function buildFigure(want: Look, opts: FigureOpts, kit: Kit) {
   // ---- the body reference, in sole heights; torso parts hang from `lifted` so that body-local y is the height above the sole plus .01
   const rib = ribcage(d), pel = pelvisRings(d), neckR = neckRings(d), dk = JSON.stringify(d);
   const lifted = new T.Group(); lifted.position.y = LIFT; body.add(lifted); const pelLift = new T.Group(); pelLift.position.y = LIFT; pelvisG.add(pelLift);
-  put0(lifted, loft(neckR, { seg: 10, capStart: 'flat', key: `neck/${dk}` }), skin);
-  const skinShade = kit.plain('#' + new T.Color(P.skin[look.skin]).multiply(new T.Color(.86, .8, .87)).getHexString());
-  // the jaw's cel shadow: a soft crescent under the chin on the FRONT of the neck only, wide under the jaw and narrowing to a point down the throat, so it fades toward the sides and back
-  put0(lifted, plate(neckR, Array.from({ length: 7 }, (_, i) => { const t = i / 6; return [d.chin + .004 - t * .062, -1.3 * Math.sqrt(1 - t * t * .96), 1.3 * Math.sqrt(1 - t * t * .96)]; }), .0008, .0016, 10), skinShade);
+  // the drawn neck: the body reference's column, carried on up behind the jaw into the skull (Book 6). Its throat is set back under the jaw so the jaw has an underside plane, and its
+  // back rises into the occiput, so no rim or step shows between the neck and the head in profile, even when the head nods. The reference (and so every collar) is unchanged.
+  const headZ = .012 + d.headFwd, nt = neckR[neckR.length - 1], at = (dy: number, front: number, back: number, wf: number): Ring => ({ y: d.chin + dy * k, w: nt.w * wf, f: (front - back) / 2 * k, b: (front - back) / 2 * k, z: headZ + (front + back) / 2 * k, n: 2.1 });
+  const neckDrawn = [...neckR.slice(0, -1), at(.03, .046, -.032, 1), at(.058, .03, -.06, 1.02), at(.09, 0, -.082, .98)];
+  put0(lifted, loft(neckDrawn, { seg: 10, capStart: 'flat', capEnd: 'flat', key: `neck/${dk}` }), skin);
 
   // ---- what each cast wears
   const shirtM = col(lab ? pal.shirt : P.cloth.bone), trouM = col(pal.trousers), leather = sw('leather'), leatherDark = sw('leatherDark'), soot = sw('soot');
@@ -158,7 +161,7 @@ export function buildFigure(want: Look, opts: FigureOpts, kit: Kit) {
 
   // ================================================================ the head
   const head = new T.Group(), hg = new T.Group(), swing = new T.Group(), faceMat = kit.face(look.skin);
-  const neckTop = neckR[neckR.length - 1], pivotZ = (neckTop.z ?? 0), headZ = .012 + d.headFwd;
+  const neckTop = neckR[neckR.length - 1], pivotZ = (neckTop.z ?? 0);
   head.position.set(0, d.chin - CHIN_TO_PIVOT + LIFT, pivotZ); hg.position.set(0, CHIN_TO_PIVOT, headZ - pivotZ); head.add(hg); body.add(head);
   put0(hg, skull(look, h), faceMat);
   for (const s of [-1, 1]) put0(hg, ear(s, h, look.headShape), skin);
@@ -168,6 +171,15 @@ export function buildFigure(want: Look, opts: FigureOpts, kit: Kit) {
   for (const gg of hairs.swing) put0(swing, place(gg, [0, -.1 * k, .12 * k]), hairMat);
   for (const gg of opts.bare ? [] : facialOf(look, h)) put0(hg, gg, hairMat);
   const hat = opts.bare ? { cloth: [], trim: [], metal: [] } : hatOf(look, h); for (const gg of hat.cloth) put0(hg, gg, capM); for (const gg of hat.trim) put0(hg, gg, leatherDark); for (const gg of hat.metal) put0(hg, gg, brass);
+  // the jaw's cel shadow: a crescent on the neck under the jaw, wide under the chin and narrowing to nothing under the ears. It hangs from the head, so it follows the jaw when the head
+  // turns or nods, and its upper edge is tucked inside the jaw, so no pale band opens between the two
+  { const L0 = new T.Vector3(0, LIFT, 0).sub(head.position), sk = skullRings(look.headShape, h), inHead = (p: T.Vector3) => { const y = p.y - (d.chin + LIFT), r = ringAt(sk, Math.max(0, y)), n = r.n ?? 2, z = p.z - headZ - (r.z ?? 0); return y >= 0 && Math.abs(p.x / r.w) ** n + Math.abs(z / (z >= 0 ? r.f : r.b)) ** n < 1; };
+    const C = 14, Rw = 3, A0 = 1.45, pos: number[] = [], nrm: number[] = [], idx: number[] = []; // a darker skin with its normals turned down out of the light: always in shade, so always darker than the neck beside it, never a pale patch
+    for (let i = 0; i <= C; i++) { const a = -A0 + 2 * A0 * i / C; let top = d.chin - .02; while (top < d.chin + .09 && !inHead(surface(neckDrawn, top, a, 0).p.add(new T.Vector3(0, LIFT, 0)))) top += .002;
+      const depth = .036 * k * Math.cos(a / A0 * Math.PI / 2) ** .7; for (let j = 0; j <= Rw; j++) { const y = top + .006 - (depth + .006) * (1 - j / Rw), q = surface(neckDrawn, y, a, .002); q.p.add(L0); pos.push(q.p.x, q.p.y, q.p.z); const n = q.n.multiplyScalar(.25).add(new T.Vector3(0, -1, 0)).normalize(); nrm.push(n.x, n.y, n.z); } }
+    for (let i = 0; i < C; i++) for (let j = 0; j < Rw; j++) { const p0 = i * (Rw + 1) + j, p1 = p0 + Rw + 1; idx.push(p0, p1, p0 + 1, p1, p1 + 1, p0 + 1); }
+    const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new T.Float32BufferAttribute(new Float32Array(pos.length / 3 * 2), 2)); g.setAttribute('normal', new T.Float32BufferAttribute(nrm, 3)); g.setIndex(idx);
+    put0(head, g, kit.plain('#' + new T.Color(P.skin[look.skin]).multiply(new T.Color(.86, .8, .85)).getHexString())); }
   kit.bake(head);
   kit.bake(swing); head.add(swing);
   const face = head.children.find(o => o instanceof T.Mesh && o.material === faceMat) as T.Mesh;

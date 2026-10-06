@@ -2,7 +2,7 @@ import * as T from 'three';
 import { faceAtlasNext, faceTypesNext, citizen, citizenNext, setCitizenProsperity, type Citizen, type Expression } from './world/citizens';
 import { BUILT } from './world/people/figure';
 import { landmarks } from './world/people/headform';
-import { skullRings, ear, faceUV, noseWedge, HS } from './world/people/head';
+import { skullRings, ear, faceUV, noseWedge } from './world/people/head';
 import { ringAt } from './world/people/loft';
 import { dimsOf } from './world/people/body';
 import { CASTS, type CastId, type Family, type Frame } from './world/people/look';
@@ -15,7 +15,7 @@ import { mats } from './world/assets';
 /** Dev-only cast sheet (sheet.html): solo figures posed by the game's own `animateLife` and drawn through the game's ink pass. Not imported by the game.
  * ?roles=worker,guard &seeds=0,1,2 | 0-19 &view=front|quarter|side|back &pose=stand|stride|sit|raise|carry|bite &sil=1 &px=50 &stage=0..5 &light=game &labels=0 &zoom=3 &fy=.9
  * &build=old|new (the figure builder; default old) and, for the new one, &cast=labourer &family=slim|standard|sturdy &frame=broad|narrow to force part of the look, &look=officer for a story character;
- * &combos=labourer.sturdy.broad,rowCoat.slim.narrow,... one figure per entry (cast.family.frame) on a single row, for the family sheet */
+ * &combos=labourer.sturdy.broad,rowCoat.slim.narrow,... one figure per entry (cast.family.frame) on a single row, for the family sheet; &still=1 the unposed figure (no head turned to the viewer) */
 const q = new URLSearchParams(location.search);
 const ROLES: Archetype[] = ['worker', 'engineer', 'merchant', 'guard', 'resident', 'courier', 'ordinal'];
 const roles = (q.get('roles') ?? ROLES.join(',')).split(',').filter((r): r is Archetype => ROLES.includes(r as Archetype));
@@ -82,7 +82,7 @@ let tallest = 0;
 for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
   const { role, seed } = cell(r, c), n = make(seed, role, c);
   n.group.traverse(o => { if (o instanceof T.Mesh && o.geometry instanceof T.CircleGeometry) o.visible = false; }); // the contact disc is for pavement; the backdrop is a wall
-  if (q.get('bare') === '1') n.group.rotation.y = yaw; else simulate(n); if (exprs.length) n.setExpression(exprs[c] as Expression, exprs[c] === 'blink'); scene.add(n.group); n.group.position.set(0, 0, 0); n.group.updateMatrixWorld(true);
+  if (q.get('bare') === '1' || q.get('still') === '1') n.group.rotation.y = yaw; else simulate(n); if (exprs.length) n.setExpression(exprs[c] as Expression, exprs[c] === 'blink'); scene.add(n.group); n.group.position.set(0, 0, 0); n.group.updateMatrixWorld(true);
   const sole = Math.min(...n.ankles.map(a => new T.Box3().setFromObject(a).min.y)), x = (c - (cols - 1) / 2) * SX, y = (rows - 1 - r) * SY;
   n.group.position.set(x, y - sole, 0); n.group.updateMatrixWorld(true);
   tallest = Math.max(tallest, new T.Box3().setFromObject(n.head).max.y - y);
@@ -94,8 +94,9 @@ if (sil) scene.overrideMaterial = new T.MeshBasicMaterial({ color: 0x000000 });
 else { const wall = new T.Mesh(new T.PlaneGeometry(200, 200), painted(new T.MeshLambertMaterial({ color: '#a4a39c' }))); wall.position.z = -1.2; scene.add(wall); }
 
 // Camera: looks straight at the wall at the grid's mid height. `px` sets the on-screen height of a figure at the game's 68 degree FOV; otherwise the grid is framed
-// (figure at most 70% of the viewport) at a 30 degree FOV, because the game's 68 degrees at a metre or two distorts a figure's proportions.
-const aspect = innerWidth / innerHeight, fov = px ? 68 : 30, tan = Math.tan(fov * Math.PI / 360);
+// (figure at most 70% of the viewport) at a 30 degree FOV, because the game's 68 degrees at a metre or two distorts a figure's proportions; &fov=6 is near-orthographic,
+// for rows of heads that must all be seen square-on.
+const aspect = innerWidth / innerHeight, fov = px ? 68 : Number(q.get('fov')) || 30, tan = Math.tan(fov * Math.PI / 360);
 const gridW = (cols - 1) * SX + 1, gridH = (rows - 1) * SY + tallest;
 const dist = px ? tallest * innerHeight / (px * 2 * tan) : Math.max(gridH * 1.1, gridW * 1.1 / aspect, tallest / .7) / (2 * tan);
 const zoom = Number(q.get('zoom')) || 1, fy = q.get('fy'); // zoom and fy (a fraction of the figure's height) frame a close-up: the head is zoom=3.2&fy=.9
@@ -159,7 +160,7 @@ function measureHead() {
     const e = ear(1, H0, shape); e.computeBoundingBox(); const eb = e.boundingBox!, nose = noseWedge(H0, shape), np = nose.attributes.position as T.BufferAttribute; let tipY = 0, tipZ = -1; for (let i = 0; i < np.count; i++) if (np.getZ(i) > tipZ) { tipZ = np.getZ(i); tipY = np.getY(i); }
     const eyeW = 2 * ftp.w * px, gap = 2 * ((ftp.sx ?? 50) - ftp.w) * px, wEye = wAt(eyeY);
     res[shape] = { H: r3(H), widthAtEye: F(wEye), widthMax: F(Math.max(...rings.map(r => r.w * 2))), depth: F(zf - zb), depthAtBrow: F((ringAt(rings, browY).f + ringAt(rings, browY).b)), jawCornerWidth: F(wAt(jy)), jawCornerRatio: r3(wAt(jy) / Math.max(...rings.map(r => r.w * 2))), jawCornerHeight: F(jy),
-      chinWidth: F(wAt(.012 * H)), chinRatio: r3(wAt(.012 * H) / Math.max(...rings.map(r => r.w * 2))), eyeCentre: F(eyeY), brow: F(browY), noseTip: F(tipY), lipLine: F(mouthY), hairlineFringe: F(HS.sidePart.hl * H0 / .285),
+      chinWidth: F(wAt(.012 * H)), chinRatio: r3(wAt(.012 * H) / Math.max(...rings.map(r => r.w * 2))), eyeCentre: F(eyeY), brow: F(browY), noseTip: F(tipY), lipLine: F(mouthY), 
       earTop: F(eb.max.y), earBottom: F(eb.min.y), earZFromMid: F((eb.min.z + eb.max.z) / 2 - mid), neckWidth: F(dimsOf('standard', 'broad').neckW * H0 / dimsOf('standard', 'broad').h), eyeWidth: F(eyeW), eyeGap: F(gap), eyeGapInEyeWidths: r3(gap / eyeW), fiveEyeAcrossFace: r3(wEye / eyeW), eyeHeightOverWidth: r3((ftp.rise * .8 * px) / eyeW) };
   }
   return res;

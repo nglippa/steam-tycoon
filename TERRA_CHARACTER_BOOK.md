@@ -304,14 +304,14 @@ The head is **derived, not tuned**: `src/world/people/headform.ts` computes ever
 
 - **The ball.** Let t = H / 3.5. The cranium is a ball of radius **R = 1.5 t = .429 H** centred on the Loomis brow line (2 t = .571 H); it reaches the crown at the top. The head is as deep as the ball: **depth = .86 H** (the built head measures .85 H), with a rounded back of the skull. A head built from rings tuned in the front view comes out near .75 H deep, a coin from the side, with hats and hair sitting on it like helmets. Depth is never allowed below .84 H.
 - **The side planes.** Each side of the ball is cut flat by a circle of radius t centred on the brow line; its top is the hairline (.857 H), its centre the brow, its bottom the nose base. Head **width** is .69 to .75 H by shape (the ball's width, not its depth).
-- **The face plane.** The front of the face is a flatter plane hung off the front of the ball from brow to chin, the chin carried forward to about .8 R from the ball's centre.
+- **The face plane.** The front of the face is a flatter plane hung off the front of the ball from brow to chin, the chin carried forward to about .8 R from the ball's centre. Below the mouth the plane is not a straight run to the chin: the skin dips a little under the lower lip (about .4 % of H at .1 H) and the chin stands about 1 % of H forward of the line at .045 H, so the profile has a chin and not only the corner where the face meets the jaw.
 - **The jaw.** It runs from under the ear, through a rounded **jaw corner** at .14 to .19 H, to a rounded chin: the four shape rows below.
 - **The ear.** In the back lower quarter of the side plane, **behind the depth midline**, tilted back, from about .5 H (just under the brow) to about .25 H (the nose base).
-- **The neck** leaves behind the jaw from the underside of the ball, leaning forward, and is about .38 H across (half the head's width; never under .36 H).
+- **The neck** leaves behind the jaw from the underside of the ball, leaning forward, and is about .38 H across (half the head's width; never under .36 H). The neck that is drawn carries on above the body reference's top ring, up behind the jaw into the skull: its throat is set back under the jaw (so the jaw has an underside plane, chin to throat, in profile) and its back rises into the occiput, with its top closed. No rim, notch or step shows between the neck and the head in profile, even with the head nodded. The body reference, and so every collar, is unchanged.
 - A **nose** in the geometry: a small wedge on the face plane that breaks the profile at .26 H. From the front it is a mark; from the side a nose. The brow is a soft change of plane, not a ridge.
 - The head pivots at the top of the neck.
 
-A cel shadow lies under the jaw on the front of the neck only: a crescent, wide under the chin and narrowing down the throat, so it fades out toward the sides and back and is never a ring. The painted face is a front plane (ear to ear, chin to hairline) faded out toward the ears; the atlas is not wrapped round the head.
+A cel shadow lies under the jaw on the neck: a crescent, about 3.6 cm deep under the chin and narrowing to nothing under each ear, so it is never a ring. It hangs from the head, not the body, so it follows the jaw when the head turns or nods, and its upper edge is tucked inside the jaw, so no band of lit neck opens between the jaw and the shadow (that band was the pale wedge). It is a darker skin with its normals turned down out of the light: it is always in the shade tone, and so always darker than the neck beside it, whatever the light. A lighter-than-skin shadow is a fail. The painted face is a front plane (ear to ear, chin to hairline) faded out toward the ears; the atlas is not wrapped round the head.
 
 ### Shading the head
 
@@ -348,7 +348,7 @@ Placed by the formula, as fractions of H up from the chin (restrained anime), an
 - **Irises:** brown, dark brown, hazel, grey, grey-green, slate blue. No violet, red or teal.
 - **Brows:** thin, close to the eye; weight and arch vary by face type.
 - **Nose:** the atlas adds at most a short mark under the wedge.
-- **Mouth:** a short thin line (about 1.7 cm) in a darker, slightly redder version of that head's skin, with its corners no wider than the pupils; talking opens it to a small oval, never a slab.
+- **Mouth:** a short thin line (about 1.6 cm long and 2 mm thick: one length and one weight for every face) in a darker, slightly redder version of that head's skin, with its corners no wider than the pupils. Every mouth of the expression set is drawn at that weight on these faces: a smile or a frown is the same line curved, talking and shouting open it to a small oval at most about 8 by 6 mm, and nothing is a filled slab that reads as a moustache from a few metres away.
 - **Marks** (stubble, freckles, a scar, laugh lines, bags under the eyes): at most one per face, and on fewer than half the faces.
 
 The atlas layout, the expression set and the packing stay as they are. Feature positions are
@@ -356,27 +356,99 @@ repainted to the landmarks above and aligned to the built nose.
 
 ---
 
-## 7. Hair
+## 7. Hair and hats
 
-Hair is a few designed masses with a silhouette. It is not a cap with things stuck to it.
+Hair is a few designed masses with a silhouette. It is not a cap with things stuck to it: a head
+whose hair is a slightly larger skull is a helmet, and "the hair's outline is the skull's outline"
+is a fail (section 13). That is measured, not judged by eye: `npx tsx tools/hair-measure.ts`
+rasterises each style's front and side silhouettes and reports, along rays from the ball's centre,
+how far the outline stands off the skull's, how evenly, and where the skull's own outline shows.
 
-- Every style has three parts: a **fringe**, **sides**, and a **back and top** mass.
-- The masses sit 1.5 to 4 cm off the scalp. The outline of the hair must break the outline of the
-  skull; a head whose hair is a slightly larger skull is a helmet.
-- Clumps are tapered, curved wedges of different lengths that follow one direction of flow. The
-  back mass ends in two to four clumps. Not cones, not spheres, not an even row of spikes.
-- A parting or a sweep gives every style a side. That is one of the figure's asymmetries.
-- **Under a hat** the hair is a different, authored shape: what shows below the band at the
-  temples and the nape. A hat never sits on top of a full head of hair.
+### How a style is built
 
-### Styles
+`src/world/people/hair.ts`. Each of the ten styles is data in the units of the standard head
+(H = .285), written once for a parting on one side and mirrored for the other.
 
-About ten, each tagged with the head shapes, hats and casts it suits:
+- **A hairline:** a contour round the head through authored points: where the forehead, the
+  temples, the sideburn, the ear and the nape show. A point can be sharp (the tip of a lock, the
+  notch between two, the end of a sideburn), so the edge comes to a point instead of a scallop, and
+  the main mass puts a column on every authored point, so a tip stays a tip with few columns.
+- **An offset field:** how far the outer surface stands off the scalp in each direction, built from
+  lobes of volume, a groove at the parting and tight areas (a crop's back and sides). This, never a
+  constant offset, is what makes the outline the style's own. Where the hair grows out of a hairline
+  the style leaves bare (a combed-back forehead, the temples) it starts thin and thickens over the
+  first few centimetres; where hair ends (a fringe, a nape, a bob's hem) the edge is thick. The
+  sideburn in front of the ear is trimmed to a slim point. Below the ear, long hair falls straight
+  instead of following the jaw in.
+- **Walls:** every edge of the mass turns back toward the scalp, at most 1.4 cm deep, in the hair's
+  shade colour: a thickness and a dark underside, never a knife edge.
+- **Locks:** few, and each has a job: points standing off the crown and over the ears of the tousled
+  style, the loose piece and the upward flow of the high knot. No rows of cones, no even chunks.
+- **Tied masses:** a bun, a knot, a tail; they hang from the swing group and move with the walk.
 
-short crop · side part · swept back · tousled · bob · low bun · high knot · ponytail ·
-long and tied back · balding with sides.
+### The ten styles
 
-Facial hair is a separate small set: moustache, short beard, sideburns.
+| Style | Front | Side | Edges | Stands off the skull |
+|---|---|---|---|---|
+| **short crop** | a flat, squared top over tight sides | a flat top run forward into a short fringe; tight back | six uneven fringe points 4 to 7 cm above the brows, swept to one side; temples and ears clear; four clumps at the nape | top 3 cm, sides .5 |
+| **side part** | lopsided: a rise over the far temple, flat on the parting side | a rounded back of the head over a tapered nape | a swoop of fringe across the forehead in two points; a notch at the parting; the temple shows on the parting side | far temple 4.5, parting side .6 |
+| **swept back** | tall and narrow over a bare forehead with a small peak | a lift behind the hairline, the hair running back to the collar and turning out in points | no fringe; the tops of the ears covered; three points at the nape | front lift 6, back 4 |
+| **tousled** | wide and broken | a big round top with points standing off the crown | six uneven points falling to the brows; points over and behind the ears; four at the nape | 3 to 6.6 |
+| **bob** | a bell, widest at the jaw | a block with a blunt hem, longer at the front | a fringe cut straight across above the brows; curtains to the jaw; a slight parting off the centre | top 2, jaw 3.5 to 6 |
+| **low bun** | close over the top, soft wings over the upper ears | smooth, a bun low at the back | bare forehead and temples, a centre parting, the hair over the top of the ear | top 1, wings 3.5 |
+| **high knot** | tight, a knot above the crown | tight, the knot high at the back | bare forehead, ears and nape; one loose piece in front of one ear | about 1, the knot 6 |
+| **ponytail** | close, with a lift over one side of the front | a tail from the back of the crown to the shoulder blades | one long point of fringe swept across; ears clear | sides .7, lift 2 |
+| **long, tied back** | full at the sides down to the jaw | drawn behind the ear into a broad tail low at the nape | points framing the face in front of the ears; bare forehead | sides 3.5 to 5 |
+| **balding** | a bare crown between two tufts over the ears | a horseshoe round the back, receding from the temples | the top edge feathers into the scalp; clumps at the nape | tufts 3 |
+
+Every style has a side: a parting, a sweep, or the lean of its fringe points. Measured on the
+standard oval head, every style's outline is at least 2 cm off the skull somewhere and uneven
+(the offset's standard deviation along the outline is 1 to 4 cm in front or in profile), and no two
+styles' outlines are closer than 5 mm on average in either view; the closest pair, the crop and the
+swept-back style from the front, is 6 mm apart (`tests/hair.test.ts` holds both). The one weak view is
+the ponytail from the front, which is close to the skull by nature; its profile carries it.
+
+### Under a hat
+
+A hat never sits on a full head of hair. The style is cut at the hat's **seat** (the line where the
+hat's lower edge rests, below): above the band only a thin layer tucked under it, below the band the
+style as it is: the sideburns, the nape, a bob's curtains, a crop's clumps. Under a bonnet or a
+headscarf the bun is gathered inside the cloth, which swells over it; under a cap a ponytail is
+tied lower so that it leaves from under the band. For every pairing `HAT_HAIR` allows, on every head
+shape and size, no hair and no skull comes through a crown and some hair shows under the band
+(`tests/hair.test.ts`).
+
+### Hats
+
+`src/world/people/hat.ts`. Every hat has a defined crown, a band, and a brim or a peak with a
+thickness where it has one. A rigid hat is built level in its own frame, on a ring fitted round the
+skull along its seat with room for the hair under it, then tilted onto the head. Its sections are
+true ellipses: a squarer section kinks where its front and back halves meet at the sides, and the
+ink draws that kink as a seam down the crown. The cloth texture's garment side seams are kept off
+hats; the only lines on a crown are designed ones (the soft cap's panels, the helm's comb). A brim
+is closed in section (a top, a rounded edge and an underside), so it reads from above and below.
+
+| Hat | Seat (front, side, back; fractions of H) | What it is |
+|---|---|---|
+| **flat cap** | .66, .65, .65 | pulled low over the brow; a band, a crown that comes forward from the band down onto a short stiff peak, its top sloping to the front |
+| **soft cap** | .69, .67, .66 | fuller, rounder and higher than the flat cap; six panels meeting at a button; a short peak |
+| **bowler** | .81, .79, .78 | rides high; a hard round crown, a narrow brim curled up at the sides, a ribbon band |
+| **top hat** | .79, .76, .75 | a tall crown flaring a little to a flat top, a brim curled at the sides, a deep ribbon band |
+| **kepi** | .73, .72, .72 | level; a stiff band, a crown narrowing a little to a top that slopes down to the front, a flat visor, a brass pin |
+| **helm** | .69, .67, .67 | level; a tall rounded shell, a comb from brow to nape, a short peak pitched down, a deep guard over the nape, a leather band, a brass badge |
+| **elder's hat** | .72, .70, .68 | soft felt; a low crown dented along the top, a wide brim drooping at the front and back, a ribbon band |
+| **bonnet** | .86, .54, .25 | cloth over the back of the head to the nape, a brim standing round the face from ear to ear, ribbon ties |
+| **headscarf** | .83, .58, .20 | cloth over the head and behind the ears to the nape, its edge turned back in a roll, tied at the nape with two tails |
+| **kerchief** | .79, .64, .48 | a tight cloth cap low on the forehead with a rolled edge, a knot and two short tails at the back |
+
+A head with its hair is 1,480 to 1,890 triangles (skull, ears, hair and the jaw shadow), and with a
+hat 1,940 to 2,360. People VI's were 1,370 to 1,960 and 2,000 to 2,500.
+
+### Facial hair
+
+A separate small set, attached to the lip and jaw and never painted: a moustache in two tapered
+halves parted at the philtrum, on the upper lip and well clear of the painted mouth; a short beard;
+sideburns.
 
 ### Colour
 
