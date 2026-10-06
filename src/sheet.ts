@@ -1,6 +1,10 @@
 import * as T from 'three';
-import { faceAtlasNext, citizen, citizenNext, setCitizenProsperity, type Citizen, type Expression } from './world/citizens';
+import { faceAtlasNext, faceTypesNext, citizen, citizenNext, setCitizenProsperity, type Citizen, type Expression } from './world/citizens';
 import { BUILT } from './world/people/figure';
+import { landmarks } from './world/people/headform';
+import { skullRings, ear, faceUV, noseWedge, HS } from './world/people/head';
+import { ringAt } from './world/people/loft';
+import { dimsOf } from './world/people/body';
 import { CASTS, type CastId, type Family, type Frame } from './world/people/look';
 import { animateLife, setLifeConditions, type Activity } from './world/citizen-life';
 import { InkRenderer } from './world/ink-renderer';
@@ -20,9 +24,11 @@ const YAW: Record<string, number> = { front: 0, quarter: Math.PI / 4, side: Math
 const view = q.get('view') ?? 'front', how = q.get('pose') ?? 'stand', yaw = YAW[view] ?? 0;
 const ACTIVITY: Record<string, Activity> = { stand: 'walk', stride: 'walk', sit: 'sit', raise: 'repair', carry: 'carry', bite: 'eat' };
 const sil = q.get('sil') === '1', px = Number(q.get('px')) || 0, stage = Math.min(5, Math.max(0, Number(q.get('stage')) || 0));
-const next = q.get('build') === 'new', force = { cast: (q.get('cast') as CastId | null) ?? undefined, family: (q.get('family') as Family | null) ?? undefined, frame: (q.get('frame') as Frame | null) ?? undefined, look: q.get('look') ?? undefined };
-const combos = (q.get('combos') ?? '').split(',').filter(Boolean).map(c => { const [cast, family, frame] = c.split('.'); return { cast: cast as CastId, family: family as Family, frame: frame as Frame }; });
-const make = (seed: number, role: Archetype, c = 0) => next ? citizenNext(mats.rust, seed, role, { solo: true, casts: BUILT, ...force, ...(combos[exprs.length ? 0 : c] ?? {}) }) : citizen(mats.rust, seed, role, { solo: true });
+const parseSet = (t: string) => Object.fromEntries(t.split(',').filter(Boolean).map(kv => { const [k, v] = kv.split(':'); return [k, /^\d+$/.test(v) ? Number(v) : v.includes('+') ? v.split('+') : v]; })) as never;
+const sets = (q.get('sets') ?? '').split(';');
+const next = q.get('build') === 'new', force = { cast: (q.get('cast') as CastId | null) ?? undefined, family: (q.get('family') as Family | null) ?? undefined, frame: (q.get('frame') as Frame | null) ?? undefined, look: q.get('look') ?? undefined, over: parseSet(q.get('set') ?? '') };
+const combos = (q.get('combos') ?? '').split(',').filter(Boolean).map(c => { const [cast, family, frame, shape] = c.split('.'); return { cast: cast as CastId, family: family as Family, frame: frame as Frame, shape }; });
+const make = (seed: number, role: Archetype, c = 0) => next ? citizenNext(mats.rust, seed, role, { solo: true, bare: q.get('bare') === '1', casts: BUILT, ...force, ...(({ shape, ...rest }) => ({ ...rest, over: { ...(force.over as object), ...(parseSet(sets[exprs.length ? 0 : c] ?? '') as object), ...(shape ? { headShape: shape } : {}) } as never }))(combos[exprs.length ? 0 : c] ?? {} as never) }) : citizen(mats.rust, seed, role, { solo: true });
 const WALK = 1; // m/s, the pace the stride is simulated at
 // Roles run along one row when there is a single seed; otherwise roles are rows and seeds are columns.
 const exprs = (q.get('expr') ?? '').split(',').filter(Boolean); // &expr=neutral,happy,... one head through several expressions
@@ -70,13 +76,13 @@ function simulate(n: Citizen) {
   snap?.forEach(([o, p, r, s]) => { o.position.copy(p); o.quaternion.copy(r); o.scale.copy(s); });
 }
 
-const SX = cols > 10 ? .85 : 1, SY = 2.4, bench = painted(new T.MeshLambertMaterial({ color: '#6b5a46' }));
+const SX = Number(q.get('sx')) || (cols > 10 ? .85 : 1), SY = 2.4, bench = painted(new T.MeshLambertMaterial({ color: '#6b5a46' }));
 const figures: { role: Archetype; seed: number; n: Citizen; x: number; y: number }[] = [];
 let tallest = 0;
 for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
   const { role, seed } = cell(r, c), n = make(seed, role, c);
   n.group.traverse(o => { if (o instanceof T.Mesh && o.geometry instanceof T.CircleGeometry) o.visible = false; }); // the contact disc is for pavement; the backdrop is a wall
-  simulate(n); if (exprs.length) n.setExpression(exprs[c] as Expression, exprs[c] === 'blink'); scene.add(n.group); n.group.position.set(0, 0, 0); n.group.updateMatrixWorld(true);
+  if (q.get('bare') === '1') n.group.rotation.y = yaw; else simulate(n); if (exprs.length) n.setExpression(exprs[c] as Expression, exprs[c] === 'blink'); scene.add(n.group); n.group.position.set(0, 0, 0); n.group.updateMatrixWorld(true);
   const sole = Math.min(...n.ankles.map(a => new T.Box3().setFromObject(a).min.y)), x = (c - (cols - 1) / 2) * SX, y = (rows - 1 - r) * SY;
   n.group.position.set(x, y - sole, 0); n.group.updateMatrixWorld(true);
   tallest = Math.max(tallest, new T.Box3().setFromObject(n.head).max.y - y);
@@ -95,6 +101,23 @@ const dist = px ? tallest * innerHeight / (px * 2 * tan) : Math.max(gridH * 1.1,
 const zoom = Number(q.get('zoom')) || 1, fy = q.get('fy'); // zoom and fy (a fraction of the figure's height) frame a close-up: the head is zoom=3.2&fy=.9
 const camera = new T.PerspectiveCamera(fov, aspect, .08, 500), midY = fy !== null ? (rows - 1) * SY / 2 + tallest * Number(fy) : (rows - 1) * SY / 2 + tallest / 2;
 camera.position.set(0, midY, dist / zoom); camera.lookAt(0, midY, 0); camera.updateMatrixWorld(true);
+
+
+// &overlay=1 (with &bare=1, front or side): the head formula's construction lines over the heads, from the same landmarks the head is built from.
+if (q.get('overlay') === '1') {
+  const cv = document.createElement('canvas'); cv.width = innerWidth; cv.height = innerHeight; cv.style.cssText = 'position:fixed;left:0;top:0;pointer-events:none'; document.body.append(cv); const g2 = cv.getContext('2d')!;
+  const sideV = view === 'side';
+  for (const [c, f] of figures.entries()) {
+    const shape = (combos[c] as { shape?: string } | undefined)?.shape ?? (force.over as { headShape?: string }).headShape ?? 'oval', L = landmarks(.285, shape as never), proj = (x: number, y: number, z: number) => { const v = f.n.face.localToWorld(new T.Vector3(x, y, z)).project(camera); return [(v.x + 1) / 2 * innerWidth, (1 - v.y) / 2 * innerHeight] as const; };
+    const line = (a: readonly [number, number], b: readonly [number, number], col: string, w = 1, dash = false) => { g2.strokeStyle = col; g2.lineWidth = w; g2.setLineDash(dash ? [4, 3] : []); g2.beginPath(); g2.moveTo(a[0], a[1]); g2.lineTo(b[0], b[1]); g2.stroke(); };
+    const hx = L.width / 2 * 1.35, span = (y: number) => sideV ? [proj(0, y, L.zBack - .03), proj(0, y, L.zFront + .06)] as const : [proj(-hx, y, 0), proj(hx, y, 0)] as const;
+    const marks: [string, number, string][] = [['crown', L.crown, '#ff5050'], ['hairline', L.hairline, '#ffa030'], ['brow', L.brow, '#ffe040'], ['eye', L.eye, '#40ff70'], ['nose', L.noseTip, '#40e0ff'], ['lip', L.lip, '#6080ff'], ['chin', 0, '#ff60ff']];
+    for (const [name, y, col] of marks) { const [a, b] = span(y); line(a, b, col, 1.2); g2.fillStyle = col; g2.font = '10px monospace'; g2.fillText(name, b[0] + 3, b[1] + 3); }
+    const ring = (cx: number, cy: number, r: number, col: string) => { g2.strokeStyle = col; g2.lineWidth = 1.2; g2.setLineDash([5, 3]); g2.beginPath(); for (let i = 0; i <= 48; i++) { const t = i / 48 * Math.PI * 2, p = sideV ? proj(0, cy + Math.sin(t) * r, cx + Math.cos(t) * r) : proj(Math.cos(t) * r * (L.width / 2 / L.R), cy + Math.sin(t) * r, 0); i ? g2.lineTo(p[0], p[1]) : g2.moveTo(p[0], p[1]); } g2.stroke(); };
+    ring(L.z0, L.ballY, L.R, '#ffffff'); ring(L.z0, L.ballY, L.sideR, '#c0c0ff');
+    if (sideV) line(proj(0, 0, L.z0), proj(0, L.crown, L.z0), '#ffffff', 1, true); else { line(proj(0, 0, 0), proj(0, L.crown, 0), '#ffffff', 1, true); for (const s of [-1, 1]) line(proj(s * L.width / 2, 0, 0), proj(s * L.width / 2, L.crown, 0), '#c0c0ff', 1, true); }
+  }
+}
 
 if (q.get('labels') !== '0' && !px) {
   const tag = (text: string, x: number, y: number) => { const e = document.createElement('div'); e.className = 'tag'; e.textContent = text; e.style.left = x + 'px'; e.style.top = y + 'px'; document.body.append(e); };
@@ -121,7 +144,27 @@ function probe() {
     const grips = n.grips.map(x => x.getWorldPosition(new T.Vector3())), sole = Math.min(...n.ankles.map(a => new T.Box3().setFromObject(a).min.y));
     const r = (v: T.Vector3) => [v.x, v.y - sole, v.z].map(q => Math.round(q * 1e3) / 1e3); return { grip: r(g), mouth: r(m), dist: Math.round(g.distanceTo(m) * 1e3) / 1e3, gripGap: Math.round(grips[0].distanceTo(grips[1]) * 1e3) / 1e3, gripHeight: r(grips[0])[1] }; });
 }
-(window as unknown as { __SHEET__: unknown }).__SHEET__ = { measure, probe, roles, seeds, view, pose: how, sil, px, stage, dist };
+
+/** The head against the construction formula (skill figure-construction ch07): every landmark as a fraction of H, measured on the built rings, the ear and nose geometry and the face-atlas mapping. */
+function measureHead() {
+  const H0 = .285, res: Record<string, Record<string, number>> = {};
+  for (const shape of ['oval', 'square', 'long', 'heart'] as const) {
+    const rings = skullRings(shape, H0), H = rings[rings.length - 1].y - rings[0].y, r3 = (v: number) => Math.round(v * 1e3) / 1e3, F = (v: number) => r3(v / H);
+    const zf = Math.max(...rings.map(r => (r.z ?? 0) + r.f)), zb = Math.min(...rings.map(r => (r.z ?? 0) - r.b)), mid = (zf + zb) / 2, wAt = (y: number) => ringAt(rings, y).w * 2;
+    // the y of a tile row on the atlas (bisection on faceUV)
+    const yOf = (px: number, ft = 0) => { let lo = 0, hi = H0 * 1.2; const o = [0, 0]; for (let i = 0; i < 40; i++) { const m = (lo + hi) / 2; faceUV(0, m, 0, ft, H0, o); const p = (o[1] * 8 - ft) * 512; if (p > px) lo = m; else hi = m; } return (lo + hi) / 2; };
+    const ft = shape === 'oval' ? 0 : shape === 'square' ? 4 : shape === 'long' ? 4 : 1, ftp = faceTypesNext[ft], eyeY = yOf(300, ft), browY = yOf((ftp.by ?? 224) - 7, ft), mouthY = yOf(389, ft), px = .318 / 512 * (H0 / .285);
+    // jaw corner: the sharpest outward turn of the outline between .05 H and .35 H
+    let best = 0, jy = 0; for (let y = .1 * H; y < .3 * H; y += .002) { const turn = (wAt(y + .012) - wAt(y)) - (wAt(y) - wAt(y - .012)); if (turn < best) { best = turn; jy = y; } }
+    const e = ear(1, H0, shape); e.computeBoundingBox(); const eb = e.boundingBox!, nose = noseWedge(H0, shape), np = nose.attributes.position as T.BufferAttribute; let tipY = 0, tipZ = -1; for (let i = 0; i < np.count; i++) if (np.getZ(i) > tipZ) { tipZ = np.getZ(i); tipY = np.getY(i); }
+    const eyeW = 2 * ftp.w * px, gap = 2 * ((ftp.sx ?? 50) - ftp.w) * px, wEye = wAt(eyeY);
+    res[shape] = { H: r3(H), widthAtEye: F(wEye), widthMax: F(Math.max(...rings.map(r => r.w * 2))), depth: F(zf - zb), depthAtBrow: F((ringAt(rings, browY).f + ringAt(rings, browY).b)), jawCornerWidth: F(wAt(jy)), jawCornerRatio: r3(wAt(jy) / Math.max(...rings.map(r => r.w * 2))), jawCornerHeight: F(jy),
+      chinWidth: F(wAt(.012 * H)), chinRatio: r3(wAt(.012 * H) / Math.max(...rings.map(r => r.w * 2))), eyeCentre: F(eyeY), brow: F(browY), noseTip: F(tipY), lipLine: F(mouthY), hairlineFringe: F(HS.sidePart.hl * H0 / .285),
+      earTop: F(eb.max.y), earBottom: F(eb.min.y), earZFromMid: F((eb.min.z + eb.max.z) / 2 - mid), neckWidth: F(dimsOf('standard', 'broad').neckW * H0 / dimsOf('standard', 'broad').h), eyeWidth: F(eyeW), eyeGap: F(gap), eyeGapInEyeWidths: r3(gap / eyeW), fiveEyeAcrossFace: r3(wEye / eyeW), eyeHeightOverWidth: r3((ftp.rise * .8 * px) / eyeW) };
+  }
+  return res;
+}
+(window as unknown as { __SHEET__: unknown }).__SHEET__ = { measure, measureHead, probe, roles, seeds, view, pose: how, sil, px, stage, dist };
 
 // A fixed few frames let the shaders and textures settle, then rendering stops.
 let frames = 0;

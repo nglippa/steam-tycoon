@@ -95,16 +95,16 @@ Terra's adults stand **about 6⅔ heads tall**. That is a little bigger in the h
 7½, which keeps the anime influence and keeps a face readable at ten metres, and it is nowhere
 near the old four.
 
-With the chin at 1.60 and **h** = 0.285, a standard adult is 1.885 units tall (the chin is 1.575 for slim and 1.616 for sturdy, so that every family stands 6.5 to 6.8 heads on the sheet). The mouth lands at 1.636, about 9 cm below where the old head put it (1.725), so the hand-to-mouth pose (the bite) needs a retune of about 9 cm; the head was not raised and the neck was not lengthened to avoid it.
+With the chin at 1.60 and **h** = 0.285, a standard adult is 1.885 units tall (the chin is 1.575 for slim and 1.616 for sturdy, so that every family stands 6.5 to 6.8 heads on the sheet). The mouth lands at 1.637, about 9 cm below where the old head put it (1.725), so the hand-to-mouth pose (the bite) needs a retune of about 9 cm; the head was not raised and the neck was not lengthened to avoid it.
 
 | Landmark | Height | Rule |
 |---|---|---|
 | Crown | 1.885 | chin + h |
-| Hairline | 1.82 | |
-| Brow | 1.765 | |
-| Eye line | 1.73 | just below the middle of the head |
-| Nose tip | 1.67 | a quarter of a head above the chin |
-| Mouth | 1.636 | an eighth of a head above the chin |
+| Hairline | 1.844 | .857 H: the third third of the Loomis head (section 6) |
+| Brow | 1.752 | .535 H; the ball's equator is at .571 H |
+| Eye line | 1.724 | .435 H, below the middle of the head |
+| Nose tip | 1.677 | .26 H (oval), .25 to .29 H across the shapes |
+| Mouth | 1.637 | .13 H, between .12 and .15 H |
 | Chin | 1.60 | |
 | Pit of the neck | 1.49 | the neck shows about 0.4 h in front |
 | Top of the shoulder | 1.47 | |
@@ -300,18 +300,18 @@ carries eyes, brows and mouth. Readable, restrained, never an emoji.
 
 ### Head form
 
-- A cranium with a separate lower face: jaw planes that rise to the ear and a small chin carried
-  forward. Not one egg.
-- A front plane that is flatter than the sides, turning at the cheekbones.
-- A **nose** in the geometry: a small wedge that breaks the profile a quarter of a head above the
-  chin. From the front it is a mark; from the side it is a nose.
-- A brow that is a soft change of plane, not a ridge. A slight eye socket below it.
-- **Ears** that are flat shaped forms just behind the middle of the head in side view, their tops
-  on the eye line. Not spheres.
+The head is **derived, not tuned**: `src/world/people/headform.ts` computes every landmark from the head height **H** (chin to crown, no hair) and one of four parameter rows, using the Loomis ball-and-plane construction with a restrained anime shift (skill `figure-construction`, chapter 7, which the numbers below are taken from; the side-view landmarks are chapter 5). `head.ts` only builds geometry from it, and `tests/headform.test.ts` checks the ranges.
+
+- **The ball.** Let t = H / 3.5. The cranium is a ball of radius **R = 1.5 t = .429 H** centred on the Loomis brow line (2 t = .571 H); it reaches the crown at the top. The head is as deep as the ball: **depth = .86 H** (the built head measures .85 H), with a rounded back of the skull. A head built from rings tuned in the front view comes out near .75 H deep, a coin from the side, with hats and hair sitting on it like helmets. Depth is never allowed below .84 H.
+- **The side planes.** Each side of the ball is cut flat by a circle of radius t centred on the brow line; its top is the hairline (.857 H), its centre the brow, its bottom the nose base. Head **width** is .69 to .75 H by shape (the ball's width, not its depth).
+- **The face plane.** The front of the face is a flatter plane hung off the front of the ball from brow to chin, the chin carried forward to about .8 R from the ball's centre.
+- **The jaw.** It runs from under the ear, through a rounded **jaw corner** at .14 to .19 H, to a rounded chin: the four shape rows below.
+- **The ear.** In the back lower quarter of the side plane, **behind the depth midline**, tilted back, from about .5 H (just under the brow) to about .25 H (the nose base).
+- **The neck** leaves behind the jaw from the underside of the ball, leaning forward, and is about .38 H across (half the head's width; never under .36 H).
+- A **nose** in the geometry: a small wedge on the face plane that breaks the profile at .26 H. From the front it is a mark; from the side a nose. The brow is a soft change of plane, not a ridge.
 - The head pivots at the top of the neck.
 
-Head width is about 0.72 h. The neck is about 0.5 of the head's width on a broad frame, a little
-under on a narrow one (never under 0.42), round in section, tapering slightly upward and tucking in under the jaw. A cel shadow lies under the jaw on the neck. The painted face is a front plane (ear to ear, chin to hairline) faded out toward the ears; the atlas is not wrapped round the head.
+A cel shadow lies under the jaw on the front of the neck only: a crescent, wide under the chin and narrowing down the throat, so it fades out toward the sides and back and is never a ring. The painted face is a front plane (ear to ear, chin to hairline) faded out toward the ears; the atlas is not wrapped round the head.
 
 ### Shading the head
 
@@ -324,20 +324,32 @@ Under the fringe, under the jaw onto the neck, and inside collars are always in 
 
 ### Head shape families
 
-Four, authored: **oval**, **square** (wide jaw, flat chin), **long** (tall, narrow jaw) and
-**heart** (wide cheekbones, small chin). The shape is part of the look, chosen with it.
+Four, authored, and nothing but four parameter rows on the one shared ball (`HEAD_SHAPES` in `headform.ts`): the cranium, the depth and the eye line are identical, so every head is one species. The shape is part of the look, chosen with it.
+
+| Shape | Width | Jaw corner / width | Chin / width | Nose tip (lower third) | Jaw corner height |
+|---|---|---|---|---|---|
+| **oval** | .72 H | .72 | .20 | .27 H | .17 H |
+| **square** (wide jaw, flat chin) | .75 H | .80 | .26 | .27 H | .14 H |
+| **long** (tall, narrow jaw) | .69 H | .70 | .20 | .29 H | .18 H |
+| **heart** (wide cheekbones, small chin) | .74 H | .64 | .15 | .25 H | .19 H |
 
 ### Features
 
-- **Eyes:** on the eye line, one eye-width apart. An eye is about a fifth of the head's width and
-  between 0.6 and 0.8 as tall as it is wide. Larger than life, smaller than the old atlas. The
-  upper lid sits over the top of the iris. One inking hand for all eyes.
+Placed by the formula, as fractions of H up from the chin (restrained anime), and measured on every build (`__SHEET__.measureHead()`; the numbers are in `screenshots/presentation/people-next/head-measure-after.json`):
+
+| Feature | Height |
+|---|---|
+| Eye centre | .435 H (range .43 to .46) |
+| Brow | .55 H (range .52 to .55) |
+| Nose tip | .26 H (.25 to .28; .25 to .29 across shapes) |
+| Lip line | .13 H (.12 to .15) |
+
+- **Eyes:** five eye-widths across the face at the eye line, one eye-width between the eyes, one outside each. An eye is about .145 H wide and .6 to .8 as tall as it is wide. The upper lid sits over the top of the iris. One inking hand for all eyes. The tile's vertical scale is squeezed to .78 in the eye band and .5 in the brow band (`faceUV`), which is how the tall painted eye lands on the formula.
 - **Irises:** brown, dark brown, hazel, grey, grey-green, slate blue. No violet, red or teal.
 - **Brows:** thin, close to the eye; weight and arch vary by face type.
 - **Nose:** the atlas adds at most a short mark under the wedge.
-- **Mouth:** a line, an eighth of a head above the chin.
-- **Marks** (stubble, freckles, a scar, laugh lines, bags under the eyes): at most one per face,
-  and on fewer than half the faces.
+- **Mouth:** a short thin line (about 1.7 cm) in a darker, slightly redder version of that head's skin, with its corners no wider than the pupils; talking opens it to a small oval, never a slab.
+- **Marks** (stubble, freckles, a scar, laugh lines, bags under the eyes): at most one per face, and on fewer than half the faces.
 
 The atlas layout, the expression set and the packing stay as they are. Feature positions are
 repainted to the landmarks above and aligned to the built nose.

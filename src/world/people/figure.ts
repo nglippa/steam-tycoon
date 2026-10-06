@@ -15,7 +15,7 @@ export interface Kit {
   /** a baked plain material (hair, metal): no cloth map */ plain(color: string): T.Material;
   skin: T.Material[]; face(tone: number): T.Material; bake(g: T.Group): T.Group; contact: T.Mesh;
 }
-export interface FigureOpts { solo?: boolean; mask?: boolean }
+export interface FigureOpts { solo?: boolean; mask?: boolean; /** dev: no hair, hat or facial hair (the head-formula sheet) */ bare?: boolean }
 
 /** TODO (next task): only `labourer` and `rowCoat` are dressed. Every other cast is built as the nearest of these, in its own family, body, head, hands and hair, until its wardrobe is
  *  authored. This is the one place that says so. */
@@ -38,15 +38,14 @@ export function buildFigure(want: Look, opts: FigureOpts, kit: Kit) {
   const group = new T.Group(), body = new T.Group(), pelvisG = new T.Group(); group.add(body); group.add(pelvisG);
   const contact = kit.contact; contact.rotation.x = -Math.PI / 2; contact.position.y = -.10; contact.scale.y = .7; group.add(contact);
   const lab = look.cast === 'labourer';
-  void opts;
 
   // ---- the body reference, in sole heights; torso parts hang from `lifted` so that body-local y is the height above the sole plus .01
   const rib = ribcage(d), pel = pelvisRings(d), neckR = neckRings(d), dk = JSON.stringify(d);
   const lifted = new T.Group(); lifted.position.y = LIFT; body.add(lifted); const pelLift = new T.Group(); pelLift.position.y = LIFT; pelvisG.add(pelLift);
   put0(lifted, loft(neckR, { seg: 10, capStart: 'flat', key: `neck/${dk}` }), skin);
-  const skinShade = kit.plain('#' + new T.Color(P.skin[look.skin]).multiply(new T.Color(.76, .72, .8)).getHexString());
-  // the jaw's cel shadow on the neck
-  put0(lifted, loft([d.chin - .05, d.chin - .022, d.chin + .004].map(y => { const r = ringAt(neckR, y); return { ...r, w: r.w + .0015, f: r.f + .0015, b: r.b + .0015 }; }), { seg: 12, key: `jawshade/${dk}` }), skinShade);
+  const skinShade = kit.plain('#' + new T.Color(P.skin[look.skin]).multiply(new T.Color(.86, .8, .87)).getHexString());
+  // the jaw's cel shadow: a soft crescent under the chin on the FRONT of the neck only, wide under the jaw and narrowing to a point down the throat, so it fades toward the sides and back
+  put0(lifted, plate(neckR, Array.from({ length: 7 }, (_, i) => { const t = i / 6; return [d.chin + .004 - t * .062, -1.3 * Math.sqrt(1 - t * t * .96), 1.3 * Math.sqrt(1 - t * t * .96)]; }), .0008, .0016, 10), skinShade);
 
   // ---- what each cast wears
   const shirtM = col(lab ? pal.shirt : P.cloth.bone), trouM = col(pal.trousers), leather = sw('leather'), leatherDark = sw('leatherDark'), soot = sw('soot');
@@ -162,13 +161,13 @@ export function buildFigure(want: Look, opts: FigureOpts, kit: Kit) {
   const neckTop = neckR[neckR.length - 1], pivotZ = (neckTop.z ?? 0), headZ = .012 + d.headFwd;
   head.position.set(0, d.chin - CHIN_TO_PIVOT + LIFT, pivotZ); hg.position.set(0, CHIN_TO_PIVOT, headZ - pivotZ); head.add(hg); body.add(head);
   put0(hg, skull(look, h), faceMat);
-  for (const s of [-1, 1]) put0(hg, ear(s, h), skin);
-  const hatted = look.hat !== 'none', hairs = hairOf(look, h, hatted);
+  for (const s of [-1, 1]) put0(hg, ear(s, h, look.headShape), skin);
+  const hatted = look.hat !== 'none' && !opts.bare, hairs = hairOf(look, h, hatted); if (opts.bare) { hairs.hair.length = 0; hairs.under.length = 0; hairs.swing.length = 0; }
   for (const gg of hairs.hair) put0(hg, gg, hairMat); for (const gg of hairs.under) put0(hg, gg, hairShade);
   swing.position.set(0, CHIN_TO_PIVOT + .1 * k, headZ - pivotZ - .12 * k);
   for (const gg of hairs.swing) put0(swing, place(gg, [0, -.1 * k, .12 * k]), hairMat);
-  for (const gg of facialOf(look, h)) put0(hg, gg, hairMat);
-  const hat = hatOf(look, h); for (const gg of hat.cloth) put0(hg, gg, capM); for (const gg of hat.trim) put0(hg, gg, leatherDark); for (const gg of hat.metal) put0(hg, gg, brass);
+  for (const gg of opts.bare ? [] : facialOf(look, h)) put0(hg, gg, hairMat);
+  const hat = opts.bare ? { cloth: [], trim: [], metal: [] } : hatOf(look, h); for (const gg of hat.cloth) put0(hg, gg, capM); for (const gg of hat.trim) put0(hg, gg, leatherDark); for (const gg of hat.metal) put0(hg, gg, brass);
   kit.bake(head);
   kit.bake(swing); head.add(swing);
   const face = head.children.find(o => o instanceof T.Mesh && o.material === faceMat) as T.Mesh;

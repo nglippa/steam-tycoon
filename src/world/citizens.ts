@@ -4,7 +4,7 @@ import { footing } from '../simulation/gait';
 import { palette as P, wardrobes, type Archetype } from './palette';
 import { box, cyl, sphere, torus, bake, mats, thinLine, seeded, type Material } from './assets';
 import { painted } from './tone';
-import { resolveLook, type CastId, type Family, type Frame } from './people/look';
+import { resolveLook, type Look, type CastId, type Family, type Frame } from './people/look';
 import { buildFigure, type Kit } from './people/figure';
 
 const ramp = new T.DataTexture(new Uint8Array([128, 202, 255]), 3, 1, T.RedFormat);
@@ -156,9 +156,9 @@ function paintBrow(c: Ctx, f: FaceType, side: number, v: number) {
 function paintMouth(c: Ctx, f: FaceType, v: number) {
   const m = f.mouth, line = (a: number, b: number, k: number, w = 4.5, h = 10) => { c.strokeStyle = '#4a2a30'; c.lineWidth = w; c.beginPath(); c.moveTo(256 - h * m, a); c.quadraticCurveTo(256, k, 256 + h * m, b); c.stroke(); };
   const open = (rx: number, ry: number, y: number, fill = '#6c3b45') => { c.fillStyle = fill; c.beginPath(); c.ellipse(256, y, rx * m, ry, 0, 0, Math.PI * 2); c.fill(); c.strokeStyle = '#4a2a30'; c.lineWidth = 3; c.stroke(); };
-  if (v === 0) line(389, 389, 389.5); else if (v === 1) line(384, 384, 402, 5, 13); else if (v === 3) line(395, 395, 383, 5.5, 11); else if (v === 4) line(389, 389, 389, 5.5);
+  if (v === 0) line(389, 389, 389.5, f.calm ? 3.4 : 4.5); else if (v === 1) line(384, 384, 402, 5, 13); else if (v === 3) line(395, 395, 383, 5.5, 11); else if (v === 4) line(389, 389, 389, 5.5);
   else if (v === 2) { c.fillStyle = '#8c3a47'; c.beginPath(); c.moveTo(256 - 19 * m, 382); c.quadraticCurveTo(256, 424, 256 + 19 * m, 382); c.closePath(); c.fill(); c.fillStyle = '#f2e8d6'; c.fillRect(256 - 13 * m, 383, 26 * m, 5); c.fillStyle = '#e0848a'; c.beginPath(); c.ellipse(256, 402, 8 * m, 3.6, 0, 0, Math.PI * 2); c.fill(); }
-  else if (v === 5) open(8, 8, 391); else if (v === 6) open(12, 4.5, 390); else if (v === 7) open(5.5, 7, 391); else if (v === 11) open(6.5, 5.5, 392);
+  else if (v === 5) f.calm ? open(5.5, 6, 391) : open(8, 8, 391); else if (v === 6) f.calm ? open(8.5, 3.4, 390) : open(12, 4.5, 390); else if (v === 7) f.calm ? open(4.4, 6, 391) : open(5.5, 7, 391); else if (v === 11) open(6.5, 5.5, 392);
   else if (v === 8) { c.strokeStyle = '#4a2a30'; c.lineWidth = 4.5; c.beginPath(); c.moveTo(256 - 10 * m, 392); c.quadraticCurveTo(256 + 2, 391, 256 + 12 * m, 379); c.stroke(); }
   else if (v === 9) { c.fillStyle = '#5a2630'; c.beginPath(); c.moveTo(256 - 15 * m, 382); c.quadraticCurveTo(256, 378, 256 + 15 * m, 382); c.lineTo(256 + 11 * m, 404); c.quadraticCurveTo(256, 410, 256 - 11 * m, 404); c.closePath(); c.fill(); c.fillStyle = '#f2e8d6'; c.fillRect(256 - 12 * m, 382, 24 * m, 6); c.strokeStyle = '#3a1c22'; c.lineWidth = 3; c.stroke(); }
   else { c.strokeStyle = '#4a2a30'; c.lineWidth = 4; c.beginPath(); c.moveTo(256 - 8 * m, 391); c.quadraticCurveTo(256 - 3 * m, 385, 256, 390); c.quadraticCurveTo(256 + 3 * m, 395, 256 + 8 * m, 390); c.stroke(); }
@@ -199,15 +199,15 @@ const faceAtlas = paintAtlas(faceTypes);
 /** The new head's faces: the same atlas layout and painters, eyes one eye-width apart and a fifth of the head wide (the tile is a front plane about 32 cm across), irises from palette.iris, a calm
  * single highlight, thin brows close to the eye, a short mouth line, no blush, and a mark on at most three of the eight. */
 const IR = P.iris;
-const faceTypesNext: FaceType[] = [
-  { rise: 58, w: 33, tilt: 2, lash: 11, iris: IR.slateBlue, brow: [3, 8, 0], nose: 'dash', mouth: 1.35, marks: 'none', sx: 68, by: 224, calm: true },
-  { rise: 60, w: 33, tilt: 4, lash: 11, iris: IR.brown, brow: [3, 10, -2], nose: 'dot', mouth: 1.25, marks: 'none', sx: 68, by: 224, calm: true },
-  { rise: 54, w: 34, tilt: -2, lash: 10, iris: IR.darkBrown, brow: [4, 4, 3], nose: 'hook', mouth: 1.45, marks: 'none', sx: 69, by: 226, calm: true },
-  { rise: 58, w: 32, tilt: 3, lash: 11, iris: IR.greyGreen, brow: [3, 9, -2], nose: 'button', mouth: 1.25, marks: 'none', sx: 67, by: 224, calm: true },
-  { rise: 55, w: 34, tilt: -4, lash: 10, iris: IR.grey, brow: [4, 5, 3], nose: 'dash', mouth: 1.35, marks: 'none', sx: 69, by: 226, calm: true },
-  { rise: 60, w: 32, tilt: 2, lash: 11, iris: IR.hazel, brow: [3, 10, 0], nose: 'dot', mouth: 1.2, marks: 'none', sx: 67, by: 224, calm: true },
-  { rise: 54, w: 34, tilt: 4, lash: 10, iris: IR.greyGreen, brow: [4, 3, -3], nose: 'hook', mouth: 1.45, marks: 'scar', sx: 69, by: 226, calm: true },
-  { rise: 58, w: 33, tilt: 0, lash: 11, iris: IR.darkBrown, brow: [3, 8, 2], nose: 'button', mouth: 1.3, marks: 'none', sx: 68, by: 224, calm: true },
+export const faceTypesNext: FaceType[] = [
+  { rise: 58, w: 33, tilt: 2, lash: 11, iris: IR.slateBlue, brow: [3, 8, 0], nose: 'dash', mouth: 1.35, marks: 'none', sx: 68, by: 232, calm: true },
+  { rise: 60, w: 33, tilt: 4, lash: 11, iris: IR.brown, brow: [3, 10, -2], nose: 'dot', mouth: 1.25, marks: 'none', sx: 68, by: 232, calm: true },
+  { rise: 54, w: 34, tilt: -2, lash: 10, iris: IR.darkBrown, brow: [4, 4, 3], nose: 'hook', mouth: 1.45, marks: 'none', sx: 69, by: 234, calm: true },
+  { rise: 58, w: 32, tilt: 3, lash: 11, iris: IR.greyGreen, brow: [3, 9, -2], nose: 'button', mouth: 1.25, marks: 'none', sx: 67, by: 232, calm: true },
+  { rise: 55, w: 34, tilt: -4, lash: 10, iris: IR.grey, brow: [4, 5, 3], nose: 'dash', mouth: 1.35, marks: 'none', sx: 69, by: 234, calm: true },
+  { rise: 60, w: 32, tilt: 2, lash: 11, iris: IR.hazel, brow: [3, 10, 0], nose: 'dot', mouth: 1.2, marks: 'none', sx: 67, by: 232, calm: true },
+  { rise: 54, w: 34, tilt: 4, lash: 10, iris: IR.greyGreen, brow: [4, 3, -3], nose: 'hook', mouth: 1.45, marks: 'scar', sx: 69, by: 234, calm: true },
+  { rise: 58, w: 33, tilt: 0, lash: 11, iris: IR.darkBrown, brow: [3, 8, 2], nose: 'button', mouth: 1.3, marks: 'none', sx: 68, by: 232, calm: true },
 ];
 export const faceAtlasNext = paintAtlas(faceTypesNext);
 /** Each band picks its own column: the shader reads the tile's height (the head's baked v) and takes the eye, brow or mouth column from the figure's `vFace`. Texture gradients come from the
@@ -223,7 +223,7 @@ const faceMaterial = (tone: number, next = false) => {
   m.onBeforeCompile = shader => { shader.uniforms.uFace = look;
     if (next) shader.vertexShader = 'attribute float faceMask;varying float vMask;\n' + shader.vertexShader.replace('void main() {', 'void main() {\nvMask = faceMask;');
     shader.vertexShader = 'uniform vec3 uFace;flat varying vec3 vFace;\n' + shader.vertexShader.replace('#include <color_vertex>', '#include <color_vertex>\n#ifdef USE_BATCHING_COLOR\nvColor=vec3(1.);vFace=batchingColor;\n#else\nvFace=uFace;\n#endif');
-    shader.fragmentShader = (next ? 'varying float vMask;\n' : '') + 'flat varying vec3 vFace;\n' + shader.fragmentShader.replace('#include <map_fragment>', next ? FACE_MAP.replace('fs.a)', 'fs.a*vMask)').replace('diffuseColor.rgb=mix', `if(ft>=${tV(BAND[4])}&&ft<${tV(BAND[3])}&&dot(fs.rgb,vec3(.333))<.4)fs.rgb=diffuseColor.rgb*vec3(.5,.33,.35);diffuseColor.rgb=mix`) : FACE_MAP).replace('#include <emissivemap_fragment>', 'totalEmissiveRadiance*=diffuseColor.rgb;'); };
+    shader.fragmentShader = (next ? 'varying float vMask;\n' : '') + 'flat varying vec3 vFace;\n' + shader.fragmentShader.replace('#include <map_fragment>', next ? FACE_MAP.replace('fs.a)', 'fs.a*vMask)').replace('diffuseColor.rgb=mix', `if(ft>=${tV(BAND[4])}&&ft<${tV(BAND[3])}&&dot(fs.rgb,vec3(.333))<.4)fs.rgb=diffuseColor.rgb*mix(vec3(.64,.43,.44),vec3(.42,.27,.3),smoothstep(.24,.29,dot(fs.rgb,vec3(.333))));diffuseColor.rgb=mix`) : FACE_MAP).replace('#include <emissivemap_fragment>', 'totalEmissiveRadiance*=diffuseColor.rgb;'); };
   m.customProgramCacheKey = () => next ? 'terra-face-bands-next' : 'terra-face-bands'; return thinLine(painted(m));
 };
 const faces = skinColors.map((_, i) => faceMaterial(i));
@@ -492,10 +492,10 @@ export type Citizen=ReturnType<typeof citizen>;
 const plainByColor=new Map<string,T.MeshToonMaterial>();
 const plainMaterial=(color:string)=>{let m=plainByColor.get(color);if(!m){m=toon(color);m.userData.plain=true;plainByColor.set(color,m);}return m;};
 /** `look`: a named story character (people/look.ts). `cast`, `family`, `frame`: force part of a look (the cast sheet). */
-export type NextOpts={solo?:boolean;mask?:boolean;look?:string;cast?:CastId;family?:Family;frame?:Frame;/** the casts the scene wants (narrows the archetype's casts) */casts?:readonly CastId[]};
+export type NextOpts={solo?:boolean;mask?:boolean;look?:string;/** dev: bare heads */bare?:boolean;/** dev: fields of the resolved look to overwrite (the cast sheet's `set=`) */over?:Partial<Look>;cast?:CastId;family?:Family;frame?:Frame;/** the casts the scene wants (narrows the archetype's casts) */casts?:readonly CastId[]};
 export function citizenNext(coat:Material=mats.rust,seed=0,archetype:Archetype='worker',opts:NextOpts={}):Citizen{
   void coat;
-  const look=resolveLook(seed,archetype,{look:opts.look,cast:opts.cast,family:opts.family,frame:opts.frame,casts:opts.casts});
+  const look={...resolveLook(seed,archetype,{look:opts.look,cast:opts.cast,family:opts.family,frame:opts.frame,casts:opts.casts}),...opts.over};
   const kit:Kit={cloth:(c,l)=>outfitMaterial(c,l),plain:plainMaterial,skin,face:tone=>opts.solo?faceMaterial(tone,true):facesNext[tone],bake:g=>bakeCharacter(g,coloredToonNext),contact:new T.Mesh(contactShape,contactInk)};
   const fig=buildFigure(look,opts,kit);
   const {faceMat,...nodes}=fig;
