@@ -151,7 +151,8 @@ export class MarketSquare implements SiteModule {
     this.springTarget = new T.Mesh(new T.CylinderGeometry(.8, .8, 3.2, 8), mats.dark); this.springTarget.position.set(SX, 1.9, SZ); this.springTarget.visible = false; live.add(this.springTarget);
     const restored = () => this.view.control >= SITE_RESTORED;
     pres.addWorker(-1.6, -33.6, .56, 'watch', { role: 'resident', scale: .72, when: restored }); pres.addWorker(-2.25, -34.15, .5, 'watch', { role: 'resident', when: restored });
-    this.targets.push({ object: this.cellarTarget, spot: 'cell', label: 'Copper Finch cellar', hint: 'KNOCK' }, { object: this.springTarget, spot: 'spring', label: 'Ordinance seal', hint: 'EXAMINE' });
+    // The cellar takes no knock while the Directorate's boards and seal are on it (ward-call.ts): the door and the knock agree because both read the one visible group.
+    this.targets.push({ object: this.cellarTarget, spot: 'cell', label: 'Copper Finch cellar', hint: 'KNOCK', when: () => !pres.wardCall?.cellarSealed }, { object: this.springTarget, spot: 'spring', label: 'Ordinance seal', hint: 'EXAMINE' });
     this.site.seal();
   }
   sync(view: SiteView) {

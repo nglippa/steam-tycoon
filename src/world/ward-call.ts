@@ -135,6 +135,8 @@ export class WardCall {
   /** The Embers' people stand at the lanes (while the roofs have stirred, a resistance commitment and the square held), and the garrison's crackdown posts in the market district turn out for a commitment of either side once the Directorate has taken notice. */
   get peopleOn() { return this.held && this.side === 'resistance' && this.stirred; }
   get turnedOut() { return this.held && !!this.side && this.alerted; }
+  /** The Finch cellar stands boarded and sealed (the placed things are up): its KNOCK (market-square.ts) is not offered while this is so, and is exactly as it was otherwise. */
+  get cellarSealed() { return this.placed.visible; }
   /** The notice and the relay's targets stand while the call is offered or once it is settled (committed); never otherwise. */
   private get shown() { return this.offered || !!this.alignment.commit; }
   /** E on something of the call's: what it says, and the stage it moves. Null if there is nothing to say. */

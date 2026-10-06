@@ -182,6 +182,12 @@ test('after signing the gallery lamps light one after another, the posts turn ou
   w.call.update(.1, 0, new T.Vector3(0, 1.75, -31 + 44)); assert.equal(i.placed.visible, false); w.call.sync(); assert.equal(i.placed.visible, false); w.call.update(.1, 0, new T.Vector3(0, 1.75, -31 + 46)); assert.equal(i.placed.visible, true); w.call.update(.1, 0, AT_BOX); assert.equal(i.placed.visible, true); w.call.sync(); assert.equal(i.placed.visible, true);
   const again = new WardCall(w.pres as never); assert.equal(inner(again).placed.visible, true); assert.equal(inner(again).turnedOut, true); assert.ok(inner(again).gallery.every(g => g.visible)); w.done(); Consignment.all = Consignment.all.filter(c => c !== again.card);
 });
+test('the Finch cellar takes no knock once it is boarded and sealed, and only then: never uncommitted, after sending, before the Steward has left the square, or with the square free', () => {
+  const u = world(); assert.equal(u.call.cellarSealed, false); u.done(); const r = committed('resistance'); assert.equal(r.call.cellarSealed, false); r.done();
+  const o = committed('ordinance', true), i = inner(o.call); while (o.call.seq >= 0) o.call.update(.05, 0, AT_BOX); assert.equal(o.call.cellarSealed, false);
+  o.call.update(.1, 0, new T.Vector3(0, 1.75, -31 + 46)); assert.equal(i.placed.visible, true); assert.equal(o.call.cellarSealed, true); o.call.sync(); assert.equal(o.call.cellarSealed, true);
+  o.e.state.sites.market = SITE_LIBERATED; o.call.sync(); assert.equal(i.placed.visible, false); assert.equal(o.call.cellarSealed, false); o.done();
+});
 test('the turned-out garrison predicate is true only for a commitment of either side, with the Directorate alerted and the square held', () => {
   const w = world(); assert.equal(w.call.turnedOut, false); w.done(); for (const side of ['resistance', 'ordinance'] as const) { const c = committed(side, true); assert.equal(c.call.turnedOut, false); for (let k = 0; k < 800 && !inner(c.call).alerted; k++) c.call.update(.05, 0, FAR); assert.equal(c.call.turnedOut, true); c.e.state.sites.market = SITE_LIBERATED; assert.equal(c.call.turnedOut, false); c.done(); }
 });

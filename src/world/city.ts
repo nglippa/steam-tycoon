@@ -565,7 +565,7 @@ export class City {
     this.constructions.push({ group: g, time: 0, duration: this.economy.buildSeconds(p ? this.economy.state.properties[p.id].level : undefined), workers, site: kind === 'site' ? id : undefined, finish: () => { if (p) this.propertyUpgrade(p.id); this.sync(); } });
   }
   /** Every layered district's physical spots become ordinary interaction targets. */
-  siteTargets() { for (const site of this.presentation.sites) for (const t of site.targets) { t.object.updateWorldMatrix(true, false); this.targets.push({ object: t.object, id: `${site.id}.${t.spot}`, kind: 'site', label: t.label, hint: t.hint, position: t.object.getWorldPosition(new T.Vector3()) }); } }
+  siteTargets() { for (const site of this.presentation.sites) for (const t of site.targets) { t.object.updateWorldMatrix(true, false); this.targets.push({ object: t.object, id: `${site.id}.${t.spot}`, kind: 'site', label: t.label, hint: t.hint, position: t.object.getWorldPosition(new T.Vector3()), when: t.when }); } }
   relabel(object: T.Object3D, label: string, hint: string) { const t = this.targets.find(t => t.object === object); if (t) { t.label = label; t.hint = hint; } }
   /** True while occupation eyes (a patrol, an overseer) are on the Steward at this site. */
   watched(id: SiteId) { return this.presentation.sites.find(s => s.id === id)!.watching; }

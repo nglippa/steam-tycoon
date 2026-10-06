@@ -38,7 +38,7 @@ export class LayeredSite {
 /** What a layered district offers the rest of the world: physical spots to interact
  * with, where restoration crews set up, whether occupation eyes are on the Steward. */
 export interface SiteModule {
-  id: SiteId; view: SiteView; targets: { object: T.Mesh; spot: string; label: string; hint: string }[];
+  id: SiteId; view: SiteView; targets: { object: T.Mesh; spot: string; label: string; hint: string; /** Not offered while this is false. */ when?: () => boolean }[];
   anchor: { x: number; z: number; rotation: number }; readonly watching: boolean;
   sync(view: SiteView): void; update(dt: number, time: number, viewer: T.Vector3, calm: boolean): void; setNight(v: number): void;
 }
