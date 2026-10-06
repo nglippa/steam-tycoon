@@ -491,10 +491,10 @@ export function citizen(coat:Material=mats.rust,seed=0,archetype:Archetype='work
   return finish({group,body,pelvis,legs,knees,ankles,arms,elbows,grips,head,worn,finery,scarf,tails,skirt,swing,face},faceMat,seed,archetype,opts);
 }
 /** The tail every figure shares, old builder and new: motion state, the expression API and the returned shape. A pure move out of `citizen()`. */
-function finish(n:{group:T.Group;body:T.Group;pelvis:T.Group;legs:T.Group[];knees:T.Group[];ankles:T.Group[];arms:T.Group[];elbows:T.Group[];grips:T.Group[];head:T.Group;worn:T.Group;finery:T.Group;scarf:T.Group;tails:T.Group;skirt:{drop:number;depth:number};swing:T.Group;face:T.Mesh},faceMat:T.Material,seed:number,archetype:Archetype,opts:{solo?:boolean;mask?:boolean}){
-  const {group,body,pelvis,legs,knees,ankles,arms,elbows,grips,head,worn,finery,scarf,tails,skirt,swing,face}=n;
+function finish(n:{group:T.Group;body:T.Group;pelvis:T.Group;legs:T.Group[];knees:T.Group[];ankles:T.Group[];arms:T.Group[];elbows:T.Group[];grips:T.Group[];head:T.Group;worn:T.Group;finery:T.Group;scarf:T.Group;tails:T.Group;/** the hinge of long cloth at the knee (new builder only) */hem?:T.Group;skirt:{drop:number;depth:number};swing:T.Group;face:T.Mesh},faceMat:T.Material,seed:number,archetype:Archetype,opts:{solo?:boolean;mask?:boolean}){
+  const {group,body,pelvis,legs,knees,ankles,arms,elbows,grips,head,worn,finery,scarf,tails,hem,skirt,swing,face}=n;
   const motion={stride:seed*1.3,latch:footing(),gait:0,speed:0,prevX:NaN,prevZ:0,prevYaw:0,turn:0,tail:0,tailV:0,hair:0,hairV:0,tempo:.88+((seed*37)%25)/100,idle:0,drape:1,pose:null as Float32Array|null,mood:newMood(),pick:Math.abs(Math.sin(seed*12.9898+1.7)*43758.5453)%1};
-  return {group,body,pelvis,legs,knees,ankles,arms,elbows,grips,head,worn,finery,scarf,tails,skirt,swing,face,archetype,motion,phase:seed*1.7,expression:'neutral' as Expression,gaze:'away',manner:mannerOf(archetype,seedOf(seed)),/** A line being spoken, and until when: the body takes the register of the words (`palm`: until when a raised palm says halt). */tone:undefined as undefined|{tone:Tone;until:number;palm?:number},packed:0,
+  return {group,body,pelvis,legs,knees,ankles,arms,elbows,grips,head,worn,finery,scarf,tails,hem,skirt,swing,face,archetype,motion,phase:seed*1.7,expression:'neutral' as Expression,gaze:'away',manner:mannerOf(archetype,seedOf(seed)),/** A line being spoken, and until when: the body takes the register of the words (`palm`: until when a raised palm says halt). */tone:undefined as undefined|{tone:Tone;until:number;palm?:number},packed:0,
     /** Dress the face: a named look, with the eyes shut for a blink, the mouth moving (`talk` 0..2 is a frame of speech) or the eyes turned (`eye` 6 left, 7 right on the atlas). Writes only when the look changes. */
     setExpression(state:Expression,blink=false,talk=-1,eye=-1){const [e,b,m]=LOOK[state];let E:number=eye>=0?eye:e,M:number=m;if(blink&&E!==4)E=3;if(talk>=0){const t=TALK[m===9?1:0][talk];if(t>=0)M=t;}
       this.expression=blink?'blink':state;const p=E|b<<4|M<<8;if(p===this.packed)return;this.packed=p;face.userData.face=p;if(opts.solo)(faceMat.userData.look as T.Vector3).set(E,b,M);}};
@@ -511,6 +511,7 @@ export function citizenNext(coat:Material=mats.rust,seed=0,archetype:Archetype='
   const look={...resolveLook(seed,archetype,{look:opts.look,cast:opts.cast,family:opts.family,frame:opts.frame,casts:opts.casts}),...opts.over};
   const kit:Kit={cloth:(c,l)=>outfitMaterial(c,l),plain:plainMaterial,skin,face:tone=>opts.solo?faceMaterial(tone,true):facesNext[tone],bake:g=>bakeCharacter(g,coloredToonNext),contact:new T.Mesh(contactShape,contactInk)};
   const fig=buildFigure(look,opts,kit);
+  fig.group.userData.next=true; // the new builder's mark: a few poses are tuned to its head (citizen-life.ts)
   const {faceMat,...nodes}=fig;
   return finish(nodes,faceMat,seed,archetype,opts);
 }

@@ -7,7 +7,7 @@ import { hairOf } from './hair';
 import { hatOf } from './hat';
 import { hand, foot, put0, strip, seam, around, steps, button, kerchiefBand, kerchiefTails } from './parts';
 import { palette as P } from '../palette';
-import { dress, headgear, WARDROBE } from './wardrobe';
+import { dress, headgear, WARDROBE, HEM_Y } from './wardrobe';
 
 /** The people builder (Terra Character Book 5 and 8): a figure from a resolved Look, on the rig `animateLife` and `gait.ts` are solved against. A body reference (body.ts) that is mostly
  *  never drawn, garments as shells measured from it, the head built as a head (head.ts), hands and shoes (parts.ts). It returns the node set the old `citizen()` returns before its tail. */
@@ -65,9 +65,9 @@ export function buildFigure(want: Look, opts: FigureOpts, kit: Kit) {
   const arms: T.Group[] = [], elbows: T.Group[] = [], grips: T.Group[] = [], legs: T.Group[] = [], knees: T.Group[] = [], ankles: T.Group[] = [];
   const scarf = new T.Group(); scarf.position.set(-.035, 1.5 + LIFT, .075 + d.belly * .4); body.add(scarf);
   const tails = new T.Group(); tails.position.y = 1.08; pelvisG.add(tails);
-  const skirt = { drop: 0, depth: 0 };
+  const skirt = { drop: 0, depth: 0 }, hem = new T.Group(); hem.position.y = HEM_Y;
   const worn = new T.Group(); body.add(worn); const finery = new T.Group(); body.add(finery); finery.visible = false;
-  const X = { look, d, k, kit, asym, pal, rib, pel, neckR, dk, lifted, pelLift, body, group, pelvisG, tails, skirt, scarf, worn, finery, skin, brass, neckM, out: { arms, elbows, grips, legs, knees, ankles } };
+  const X = { look, d, k, kit, asym, pal, rib, pel, neckR, dk, lifted, pelLift, body, group, pelvisG, tails, hem, skirt, scarf, worn, finery, skin, brass, neckM, out: { arms, elbows, grips, legs, knees, ankles } };
   if (fresh) { dress(X); kit.bake(lifted); kit.bake(pelLift); }
   else {
   // ================================================================ torso
@@ -198,14 +198,14 @@ export function buildFigure(want: Look, opts: FigureOpts, kit: Kit) {
   kerchiefTails(scarf, neckM, asym.has('scarfTail'));
   kit.bake(scarf);
   if (!lab && !fresh) coatSkirt(tails, skirt, d, pel, coatM, g, closed, asym, leather, brass);
-  kit.bake(tails);
+  kit.bake(tails); if (hem.children.length) { kit.bake(hem); tails.add(hem); } // baking merges a group's children away, so the hinge joins its parent after it is baked
   put0(worn, plate(lab ? shirtR : coatR, [[1.27, -.9, -.62], [1.2, -.9, -.62]], .0, .004, 3), sw('umber'));
   kit.bake(worn); kit.bake(finery);
   // the old rig lowers everything the body carries by .14 (animateLife is solved against it)
   body.position.y -= .14; pelvisG.position.y -= .14; for (const l of legs) l.position.y -= .14;
   group.scale.setScalar(look.stature);
   group.traverse(o => { if (o instanceof T.Mesh) o.castShadow = false; });
-  return { group, body, pelvis: pelvisG, legs, knees, ankles, arms, elbows, grips, head, tails, skirt, swing, scarf, worn, finery, face, faceMat };
+  return { group, body, pelvis: pelvisG, legs, knees, ankles, arms, elbows, grips, head, tails, hem: hem.children.length ? hem : undefined, skirt, swing, scarf, worn, finery, face, faceMat };
 }
 
 /** The coat's skirts: a shell that hangs from the waist on the PELVIS, flares past the hips to a hem wider than they are and standing off the legs, with a lining so a seated figure is not

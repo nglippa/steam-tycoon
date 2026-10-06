@@ -166,7 +166,7 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
     // The bite: the mouth is level with the crown of the shoulder, so the upper arm comes up and across and the elbow closes until the food is at the lips (solved against the rig: the grip's food point lands within 1 cm of the mouth).
     // A mug is raised with the same stroke, its rim to the lips (the wrist then keeps it level, below).
     if(activity==='eat'){const bite=ease(clamp01(Math.max(0,Math.sin(phase*.9))*1.25)),mug=n.group.userData.upright;sip=bite;
-      n.arms[0].rotation.set(-.4-(mug?1.01:1.24)*bite,.21*bite,.05+(mug?.3:.49)*bite);n.elbows[0].rotation.x=-.8-(mug?.84:.49)*bite;if(bite>.8)expression='smiling';}}
+      const nx=n.group.userData.next,lo=nx?.55:0;/* the new head's mouth is about 9 cm lower and the shoulders are set differently: the stroke stops shorter, folds more and comes in with the shoulder width (solved with the sheet's probe(): the hand lands within 2 cm of the mouth's height and about 9 cm off its front, as the old pose does) */n.arms[0].rotation.set(-.4-((mug?1.01:1.24)-lo)*bite,.21*bite,.05+(mug?.3:.49)*bite+(nx?.3+(Math.abs(n.arms[0].position.x)-.233)*3:0)*bite);n.elbows[0].rotation.x=-.8-(mug?.84:.49)*bite-(nx?.7:0)*bite;if(bite>.8)expression='smiling';}}
   const umbrella=n.group.userData.umbrella as T.Object3D|undefined;
   if(umbrella){umbrella.visible=raining;if(raining){n.arms[1].rotation.set(-.55,0,-.1);n.elbows[1].rotation.x=-1.3;}}
   // Secondary motion: damped springs driven by gait, acceleration and turning.
@@ -176,6 +176,8 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
     m.tailV+=((tailTarget-m.tail)*55-m.tailV*8)*dt;m.tail+=m.tailV*dt;m.hairV+=((hairTarget-m.hair)*35-m.hairV*6)*dt;m.hair+=m.hairV*dt;
     n.tails.rotation.set(seated?-1.25:m.tail,0,g*Math.sin(c)*.035-m.turn*.03);n.swing.rotation.set(m.hair,0,Math.sin(c)*.08*g-m.turn*.08);n.scarf.rotation.x=m.tail*.8+Math.sin(phase*2.2)*.02;
   } else {n.tails.rotation.set(seated?-1.25:0,0,0);n.swing.rotation.set(.05,0,0);n.scarf.rotation.x=0;}
+  // The knee hinge of long cloth (new builder only; the old figures have none): the cloth below the knee hangs from the knees whatever the lap does, and trails a little in a stride.
+  if(n.hem){n.hem.rotation.x=-n.tails.rotation.x*(seated?1:.6);n.hem.scale.z=seated?.45:1;}
   // Drape. Cloth never lets a leg through: the hem is carried by whichever thigh reaches furthest, front and
   // back together, so a skirt, coat or apron opens into an oval over the stride and closes as the legs pass.
   if(n.skirt.depth){const reach=seated?0:Math.max(...n.legs.map(leg=>Math.abs(Math.tan(Math.min(1.1,Math.abs(leg.rotation.x))))*n.skirt.drop))+.1,want=Math.max(1,reach/n.skirt.depth);
