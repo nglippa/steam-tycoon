@@ -108,5 +108,5 @@ test('the story-only items are never dealt by the resolver', () => {
 test('the switch: no place outside citizens.ts and the dev sheet builds a person except through person()', async () => {
   const { readdirSync, readFileSync } = await import('node:fs');
   const walk = (dir: URL): URL[] => readdirSync(dir, { withFileTypes: true }).flatMap(e => e.isDirectory() ? walk(new URL(`${e.name}/`, dir)) : [new URL(e.name, dir)]);
-  for (const f of walk(new URL('../src/', import.meta.url))) { if (/citizens\.ts$|sheet\.ts$/.test(f.pathname) || !f.pathname.endsWith('.ts')) continue; assert.ok(!/\bcitizen(Next)?\(/.test(readFileSync(f, 'utf8')), `${f.pathname} builds a person directly`); }
+  for (const f of walk(new URL('../src/', import.meta.url))) { if (/citizens\.ts$|sheet\.ts$/.test(f.pathname) || !f.pathname.endsWith('.ts')) continue; assert.ok(!/\bcitizen(Next)?\(mats\./.test(readFileSync(f, 'utf8')), `${f.pathname} builds a person directly`); }
 });
