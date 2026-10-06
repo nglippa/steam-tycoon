@@ -80,6 +80,13 @@ function bakeCharacter(group:T.Group,cloth:T.Material=coloredToon){
     geometry.setAttribute('color',new T.BufferAttribute(colors,3));
     const restored=new T.Color(object.material.userData.restoredColor??color),late=new Float32Array(colors.length);
     for(let i=0;i<late.length;i+=3){late[i]=restored.r;late[i+1]=restored.g;late[i+2]=restored.b;}
+    // leather and metal carry a baked highlight in the same attribute: leather a narrow lighter band on the upward faces of its forms, metal a small hard spot where a face looks at the light
+    const kind=object.material.userData.kind as string|undefined,normal=geometry.attributes.normal as T.BufferAttribute|undefined;
+    if(kind&&normal&&!geometry.attributes.tint){const tt=new Float32Array(normal.count),pos=geometry.attributes.position as T.BufferAttribute;geometry.computeBoundingBox();const bb=geometry.boundingBox!,cx=(bb.min.x+bb.max.x)/2,cy=(bb.min.y+bb.max.y)/2,cz=(bb.min.z+bb.max.z)/2,sx=Math.max(1e-4,(bb.max.x-bb.min.x)/2),sy=Math.max(1e-4,(bb.max.y-bb.min.y)/2),sz=Math.max(1e-4,(bb.max.z-bb.min.z)/2);
+      for(let i=0;i<tt.length;i++){const ny=normal.getY(i);
+        if(kind==='leather')tt[i]=T.MathUtils.smoothstep(ny,.3,.8)*.9;
+        else{const lit=T.MathUtils.smoothstep(normal.getX(i)*-.35+ny*.55+normal.getZ(i)*.76,.4,.62),u=(pos.getX(i)-cx)/sx,v=(pos.getY(i)-cy)/sy,w=(pos.getZ(i)-cz)/sz;tt[i]=lit*T.MathUtils.smoothstep(-u*.55+v*.8+w*.3,.45,.75);}}
+      geometry.setAttribute('tint',new T.BufferAttribute(tt,1));}
     // hair carries a baked tone (people/hair.ts): a sheen toward a lighter value of its own colour where `tint` > 0, a darker underside where it is < 0; consumed here, so every
     // geometry in a batch keeps the same attributes
     const tint=geometry.attributes.tint as T.BufferAttribute|undefined;
@@ -503,7 +510,8 @@ export type Citizen=ReturnType<typeof citizen>;
 
 // ---- The next figure (People III): built beside the old one, from a resolved Look. The game still uses `citizen()` until the whole cast is dressed.
 const plainByColor=new Map<string,T.MeshToonMaterial>();
-const plainMaterial=(color:string,late=color)=>{const key=color+'>'+late;let m=plainByColor.get(key);if(!m){m=toon(color);m.userData.plain=true;if(late!==color)m.userData.restoredColor=late;plainByColor.set(key,m);}return m;};
+/** `kind` says what the plain material is made of: leather takes a narrow lighter band on the tops of its forms, metal a small hard light spot (both baked into vertex colour by `bakeCharacter`, Book 8). */
+const plainMaterial=(color:string,late=color,kind?:'leather'|'metal')=>{const key=color+'>'+late+'>'+(kind??'');let m=plainByColor.get(key);if(!m){m=toon(color);m.userData.plain=true;if(kind)m.userData.kind=kind;if(late!==color)m.userData.restoredColor=late;plainByColor.set(key,m);}return m;};
 /** `look`: a named story character (people/look.ts). `cast`, `family`, `frame`: force part of a look (the cast sheet). */
 export type NextOpts={solo?:boolean;mask?:boolean;look?:string;/** dev: bare heads */bare?:boolean;/** dev: fields of the resolved look to overwrite (the cast sheet's `set=`) */over?:Partial<Look>;cast?:CastId;family?:LookFamily;frame?:Frame;/** the casts the scene wants (narrows the archetype's casts) */casts?:readonly CastId[]};
 export function citizenNext(coat:Material=mats.rust,seed=0,archetype:Archetype='worker',opts:NextOpts={}):Citizen{

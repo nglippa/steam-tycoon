@@ -16,7 +16,7 @@ import { dress, headgear, WARDROBE, HEM_Y } from './wardrobe';
 /** What the builder needs from the world's material setup (supplied by `citizens.ts`, so this module imports no materials and no DOM). */
 export interface Kit {
   /** a baked cloth material for a colour (and the colour it is in better times) */ cloth(color: string, late?: string): T.Material;
-  /** a baked plain material (hair, metal, leather): no cloth map; `late` is its colour in better times */ plain(color: string, late?: string): T.Material;
+  /** a baked plain material (hair, metal, leather): no cloth map; `late` is its colour in better times */ plain(color: string, late?: string, kind?: 'leather' | 'metal'): T.Material;
   skin: T.Material[]; face(tone: number): T.Material; bake(g: T.Group): T.Group; contact: T.Mesh;
 }
 export interface FigureOpts { solo?: boolean; mask?: boolean; /** dev: no hair, hat or facial hair (the head-formula sheet) */ bare?: boolean }
@@ -29,7 +29,7 @@ const LIFT = .01;
 export function buildFigure(look: Look, opts: FigureOpts, kit: Kit) {
   const fresh = (WARDROBE as readonly string[]).includes(look.cast), d = dimsOf(look.family, look.frame), h = d.h, k = h / .285;
   const pal = paletteOf(look), sw = (n: keyof typeof P.cloth) => kit.cloth(P.cloth[n]), col = (hex: string) => kit.cloth(hex ?? '#777777');
-  const skin = kit.skin[look.skin], brass = kit.plain(P.metal.agedBrass), hairHex = P.hair2[look.hairColour], asym = new Set(look.asymmetries);
+  const skin = kit.skin[look.skin], brass = kit.plain(P.metal.agedBrass, undefined, 'metal'), hairHex = P.hair2[look.hairColour], asym = new Set(look.asymmetries);
   const hairMat = kit.plain(hairHex), hairShade = kit.plain('#' + new T.Color(hairHex).multiplyScalar(.7).getHexString());
   const group = new T.Group(), body = new T.Group(), pelvisG = new T.Group(); group.add(body); group.add(pelvisG);
   const contact = kit.contact; contact.rotation.x = -Math.PI / 2; contact.position.y = -.10; contact.scale.y = .7; group.add(contact);
@@ -45,7 +45,7 @@ export function buildFigure(look: Look, opts: FigureOpts, kit: Kit) {
   put0(lifted, loft(neckDrawn, { seg: 10, capStart: 'flat', capEnd: 'flat', key: `neck/${dk}` }), skin);
 
   // ---- what each cast wears
-  const shirtM = col(lab ? pal.shirt : P.cloth.bone), trouM = col(pal.trousers), leather = sw('leather'), leatherDark = sw('leatherDark'), soot = sw('soot');
+  const shirtM = col(lab ? pal.shirt : P.cloth.bone), trouM = col(pal.trousers), leather = kit.plain(P.cloth.leather, undefined, 'leather'), leatherDark = kit.plain(P.cloth.leatherDark, undefined, 'leather'), soot = sw('soot');
   const coatM = lab ? shirtM : col(pal.coat), vestM = col(lab ? pal.shirt : pal.waistcoat), capM = fresh ? kit.cloth(pal.cap ?? pal.hat ?? pal.kepi ?? pal.helm ?? pal.kerchief ?? pal.scarf, undefined) : col(pal.cap), neckM = col(lab ? pal.kerchief : (pal.scarf ?? pal.kerchief ?? pal.shirt ?? pal.coat ?? pal.greatcoat)), ordinance = look.cast === 'garrison' || look.cast === 'inspector'; // the Ordinance wears no scarf and no mending
   const bootM = lab ? leatherDark : leather, soleM = lab ? soot : leatherDark;
   const shirtR = offset(rib, .007, (_, i) => ({ w: i >= 3 && i <= 5 ? .003 : 0, f: i >= 3 && i <= 5 ? .004 : 0 }));

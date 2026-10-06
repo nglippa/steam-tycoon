@@ -69,9 +69,9 @@ export function hatOf(look: Look, h: number): HatOut {
     // rounded shoulders that turn in to the top, so from the front a cap is a low dome over its band and not a box; the flat cap's crown comes forward from the band down onto the
     // peak (it is snapped to it), so the peak and the crown are one front and not a bill under a brow
     const rows: [number, number, object][] = flat
-      ? [[0, .002, {}], [.012, .004, { f: .02, z: .004 }], [.03, .01, { f: .03, z: .008 }], [.056, .012, { f: .034, z: .012 }], [.075, .004, { f: .034, z: .015 }], [.089, -.014, { f: .026, z: .016 }], [topY, -.036, { f: .012, z: .016 }]]
-      : [[0, .002, {}], [.014, .004, {}], [.04, .017, { f: .008, z: .004 }], [.07, .022, { f: .016, z: .01 }], [.094, .008, { f: .014, z: .01 }], [.106, -.016, { f: .008, z: .009 }], [topY, -.04, { f: .002, z: .008 }]];
-    const crownRings = rows.map(([y, g, o]) => ringOf(Fr, y, g, o as never)), slope = (v: T.Vector3) => { const z = v.z - (Fr.base.z ?? 0), e = .02 * k; v.y -= sh * .5 * (z + Math.sqrt(z * z + e * e)) * T.MathUtils.smoothstep(v.y, .03 * k, topY * k); }; // a smooth ramp (a hard max folds the top along a line)
+      ? [[0, .002, {}], [.012, .004, { f: .02, z: .004 }], [.03, .01, { f: .03, z: .008 }], [.056, .021, { f: .034, z: .012 }], [.075, .015, { f: .034, z: .015 }], [.089, -.002, { f: .026, z: .016 }], [topY, -.026, { f: .012, z: .016 }]]
+      : [[0, .002, {}], [.014, .004, {}], [.04, .017, { f: .008, z: .004 }], [.07, .03, { f: .016, z: .01 }], [.094, .02, { f: .014, z: .01 }], [.106, -.004, { f: .008, z: .009 }], [topY, -.028, { f: .002, z: .008 }]];
+    const crownRings = rows.map(([y, g, o]) => ringOf(Fr, y, g, o as never)), slope = (v: T.Vector3) => { const z = v.z - (Fr.base.z ?? 0), e = .02 * k; v.y -= sh * .5 * (z + Math.sqrt(z * z + e * e)) * T.MathUtils.smoothstep(v.y, .03 * k, topY * k); v.y -= .016 * k * T.MathUtils.smoothstep(v.x / Fr.base.w, -.3, 1) * T.MathUtils.smoothstep(v.y, .03 * k, topY * k); }; // and the whole crown sags a little to one side // a smooth ramp (a hard max folds the top along a line)
     out.cloth.push(onHead(Fr, bend(loft(crownRings, { seg: 18, capEnd: { round: (flat ? .006 : .01) * k }, lipStart: .003 * k }), slope)));
     out.cloth.push(onHead(Fr, loft([ringOf(Fr, .001, .006), ringOf(Fr, .016, .008)], { seg: 18, lipStart: .002 * k, lipEnd: .002 * k })));
     out.cloth.push(onHead(Fr, brim(Fr, .006, .004, { f: flat ? .05 : .046, s: .006, b: 0 }, (u, w, t) => (-.016 * Math.max(0, w) ** 1.5 - .004 * u * u) * t, -1.05, 2.1, 14)));
