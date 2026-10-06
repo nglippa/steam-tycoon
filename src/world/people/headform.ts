@@ -54,8 +54,10 @@ export function skullTable(H: number, shape: Shape): number[][] {
     // half width: chin to jaw corner (rounded), jaw to cheekbone, then the ball
     let w: number;
     if (y <= L.jawY) { const u = y / L.jawY; w = chin * (.55 + .45 * Math.min(1, y / (.04 * H))) + (jaw - chin) * Math.pow(u, .92); }
-    else w = jaw + (a - jaw) * smooth(L.jawY, ANIME.eye * H + .02 * H, y);
-    w = y >= yc ? sph : Math.max(w, y > .3 * H ? sph : 0);
+    // above the jaw corner the width rises to the full width at the eye line along one curve whose slope only falls (below the slope under the corner, so the corner stays a corner):
+    // the outline runs convex from the jaw past the cheekbone to the temple, with no ledge where the side plane meets the jaw
+    else { const u = Math.min(1, (y - L.jawY) / (ANIME.eye * H + .02 * H - L.jawY)); w = jaw + (a - jaw) * (1 - (1 - u) * (1 - u)); }
+    w = y >= yc ? sph : Math.max(w, sph);
     // the face plane, chin to brow; the chin is carried a little forward of that line and the skin dips under the lower lip, so the profile has a chin and not only a corner
     const u = y / H, cb = .011 * H * Math.exp(-((u - .045) ** 2) / (2 * .03 * .03)) - .004 * H * Math.exp(-((u - .1) ** 2) / (2 * .018 * .018));
     const zf = y >= yc ? L.z0 + rho(y) : L.chinZ + (L.faceFront - L.chinZ) * Math.pow(y / yc, .8) + cb;

@@ -1,5 +1,5 @@
 import * as T from 'three';
-import { loft, surface, ringAt, ringPoint, sweep, merge, shared, type Ring, type SweepPt } from './loft';
+import { loft, surface, ringAt, ringPoint, mirrorX, sweep, merge, shared, type Ring, type SweepPt } from './loft';
 import type { Look, HeadShape } from './look';
 import { skullTable, landmarks } from './headform';
 
@@ -64,14 +64,21 @@ export function skull(look: Look, h: number): T.BufferGeometry {
   });
 }
 
-/** Ears (Book 6): flat shaped plates on the side plane, in its back lower quarter, behind the depth midline and tilted back; the top near the brow line, the bottom near the nose base. */
+/** Ears (Book 6): in the back lower quarter of the side plane, behind the depth midline, from just under the brow line to about the nose base. Each is an authored outline (a helix
+ *  wider at the top, narrowing down the back to a soft lobe, a notch for the tragus in front) with a thickness, hinged at its front edge on the side of the skull and flared out about
+ *  twenty degrees, so from the front an ear is a small tapering shape whose lobe tucks back into the jaw line, not a tab or a notch in the outline. */
+const EAR: [number, number][] = [[.08, .12], [.0, .36], [.03, .55], [.1, .82], [.3, .98], [.55, 1], [.8, .9], [.95, .7], [.92, .48], [.76, .3], [.55, .14], [.36, .02], [.2, 0]];
 export function ear(side: number, h: number, shape: HeadShape = 'oval'): T.BufferGeometry {
   return shared(`ear/${side}/${h}/${shape}`, () => {
-    const L = landmarks(h, shape), top = .5 * h, bot = .245 * h, cy = (top + bot) / 2, ry = (top - bot) / 2, rx = .0125 * h / .285 * 1.05, cz = L.earZ, rg = skullRings(shape, h), s = new T.Shape(), rc = ringAt(rg, cy); let x0 = rc.w; { let lo = Math.PI / 2, hi = Math.PI; for (let i = 0; i < 30; i++) { const m = (lo + hi) / 2, q = ringPoint(rc, m); if (q[2] > cz) lo = m; else hi = m; } x0 = ringPoint(rc, lo)[0]; }
-    const pts: [number, number][] = Array.from({ length: 12 }, (_, i) => { const t = i / 12 * Math.PI * 2; return [cz + Math.cos(t) * rx - Math.sin(t) * ry * .12, cy + Math.sin(t) * ry + (Math.sin(t) < 0 ? .003 : 0)]; });
-    pts.forEach(([z, y], i) => { const x = -z * side; i ? s.lineTo(x, y) : s.moveTo(x, y); }); s.closePath();
-    const g = new T.ExtrudeGeometry(s, { depth: .005 * h / .285, bevelEnabled: true, bevelThickness: .0025 * h / .285, bevelSize: .0025 * h / .285, bevelSegments: 1, curveSegments: 3 });
-    g.rotateY(side * Math.PI / 2); g.translate(side * (x0 - .004 * h / .285), 0, 0); if (side < 0) g.translate(-.005 * h / .285, 0, 0); g.rotateY(side * -.12); return g;
+    const L = landmarks(h, shape), k = h / .285, top = .5 * h, bot = .245 * h, W = .034 * k, Hh = top - bot, flare = .36, rg = skullRings(shape, h), zFront = L.earZ + W * .45;
+    // the skull's side where the ear's front edge meets it
+    const rc = ringAt(rg, bot + Hh * .45); let lo = Math.PI / 2, hi = Math.PI; for (let i = 0; i < 30; i++) { const m = (lo + hi) / 2, q = ringPoint(rc, m); if (q[2] > zFront) lo = m; else hi = m; } const x0 = ringPoint(rc, lo)[0];
+    const s = new T.Shape(); EAR.forEach(([u, v], i) => { i ? s.lineTo(u * W, v * Hh) : s.moveTo(u * W, v * Hh); }); s.closePath();
+    const t = .0045 * k, g = new T.ExtrudeGeometry(s, { depth: t, bevelEnabled: true, bevelThickness: .0018 * k, bevelSize: .0018 * k, bevelSegments: 1, curveSegments: 2 });
+    g.translate(0, 0, -t / 2);
+    // local x runs back from the front edge, y up, z through the ear's thickness; turned to run back along the head and flared out at the back
+    const X = new T.Vector3(Math.sin(flare), 0, -Math.cos(flare)), Y = new T.Vector3(0, 1, 0), Z = new T.Vector3().crossVectors(X, Y);
+    g.applyMatrix4(new T.Matrix4().makeBasis(X, Y, Z).setPosition(x0 - .003 * k, bot, zFront)); g.computeVertexNormals(); return side > 0 ? g : mirrorX(g);
   });
 }
 
@@ -112,8 +119,9 @@ const sm = (a: number, lo: number, hi: number) => T.MathUtils.smoothstep(a, lo, 
 /** Facial hair: attached to the lip and jaw, never painted. */
 export function facialOf(look: Look, h: number): T.BufferGeometry[] {
   const k = h / .285, rings = skullRings(look.headShape, h), out: T.BufferGeometry[] = [];
-  // a moustache in two tapered halves parted at the philtrum, drooping a little at the ends, on the upper lip and well clear of the painted mouth
-  if (look.facial === 'moustache') for (const s of [-1, 1]) out.push(strand(rings, [[s * .03, .058, .005, .0036], [s * .11, .0572, .0055, .0032], [s * .18, .0535, .0045, .0022], [s * .22, .0495, .003, .0008]].map(([a, y, o, w]) => [a, y * k, o * k, w * k]), .0028 * k, 4));
+  // a moustache: a full shape over the whole upper lip, wider than the nose and following the lip down to the mouth's corners, in two halves that meet at the philtrum and taper
+  // to their ends; it sits on the lip, clear above the painted mouth
+  if (look.facial === 'moustache') for (const s of [-1, 1]) out.push(strand(rings, [[s * .0, .0545, .0072, .0095], [s * .1, .0535, .0082, .0088], [s * .2, .0485, .0068, .0062], [s * .3, .0425, .0038, .002]].map(([a, y, o, w]) => [a, y * k, o * k, w * k]), .0052 * k, 4));
   if (look.facial === 'sideburns') for (const s of [-1, 1]) out.push(strand(rings, [[s * 1.42, .15, .006, .016], [s * 1.38, .115, .008, .017], [s * 1.34, .075, .006, .014]].map(([a, y, o, w]) => [a, y * k, o * k, w * k]), .007 * k));
   if (look.facial === 'beard') out.push(patch(rings, { a0: -1.55, a1: 1.55, cols: 16, rows: 3, low: () => .0, top: a => (.058 + .03 * sm(Math.abs(a), .9, 1.5)) * k, off: (s, a) => (.007 + .004 * Math.cos(a)) * k }));
   return out;

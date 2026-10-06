@@ -28,7 +28,7 @@ export interface Look {
 export interface Outfit { id: string; /** palette id -> a swatch per slot of the cast */ palettes: Record<string, readonly Swatch[]> }
 export interface Cast {
   id: CastId; archetype: Archetype; families: readonly LookFamily[]; frames: readonly Frame[]; headShapes: readonly HeadShape[]; hair: readonly HairStyle[]; hairColours: readonly HairColour[];
-  hats: readonly Hat[]; facial: readonly Facial[]; outfits: readonly Outfit[];
+  hats: readonly Hat[]; /** facial hair with weights: a moustache or a beard belongs to a cast that wears one (Book 7), at a modest rate, never dealt to anyone at a third */ facial: readonly (readonly [Facial, number])[]; outfits: readonly Outfit[];
   /** what a palette's swatches colour, in order */ slots: readonly string[]; asymmetries: readonly string[]; elder?: boolean;
 }
 
@@ -47,48 +47,48 @@ const o = (id: string, palettes: Record<string, readonly Swatch[]>): Outfit => (
 
 /** The fourteen casts. A cast fixes a family and frame range, face and hair compatibility, a wardrobe, a palette range and its asymmetries. */
 export const CASTS: Record<CastId, Cast> = {
-  rowCoat: { id: 'rowCoat', archetype: 'resident', families: ['slim', 'standard'], frames: ['broad', 'narrow'], headShapes: allShapes, hair: ['shortCrop', 'sidePart', 'tousled', 'bob', 'lowBun', 'ponytail'], hairColours: young, hats: ['none', 'flatCap', 'softCap'], facial: ['none', 'sideburns', 'moustache'],
+  rowCoat: { id: 'rowCoat', archetype: 'resident', families: ['slim', 'standard'], frames: ['broad', 'narrow'], headShapes: allShapes, hair: ['shortCrop', 'sidePart', 'tousled', 'bob', 'lowBun', 'ponytail'], hairColours: young, hats: ['none', 'flatCap', 'softCap'], facial: [['none', 5], ['sideburns', 1]],
     slots: ['coat', 'waistcoat', 'trousers', 'cap', 'scarf'], asymmetries: ['unevenFront', 'scarfTail', 'pouchHip', 'sleeveRolled'],
     outfits: [o('rowCoat.open', { ash: ['slate', 'stone', 'charcoal', 'slate', 'oxblood'], umber: ['umber', 'mustard', 'slate', 'umber', 'greyGreen'], moss: ['greyGreen', 'canvas', 'umber', 'greyGreen', 'bone'] }),
       o('rowCoat.closed', { ash: ['charcoal', 'stone', 'umber', 'charcoal', 'mustard'], oxblood: ['oxblood', 'canvas', 'slate', 'umber', 'stone'], stone: ['stone', 'umber', 'slate', 'stone', 'oxblood'] })] },
-  rowSkirt: { id: 'rowSkirt', archetype: 'resident', families: ['slim', 'standard'], frames: ['narrow'], headShapes: allShapes, hair: ['lowBun', 'bob', 'ponytail', 'highKnot', 'longTied'], hairColours: young, hats: ['none', 'headscarf'], facial: ['none'],
+  rowSkirt: { id: 'rowSkirt', archetype: 'resident', families: ['slim', 'standard'], frames: ['narrow'], headShapes: allShapes, hair: ['lowBun', 'bob', 'ponytail', 'highKnot', 'longTied'], hairColours: young, hats: ['none', 'headscarf'], facial: [['none', 1]],
     slots: ['shawl', 'bodice', 'skirt', 'scarf'], asymmetries: ['scarfTail', 'pouchHip', 'apronTie'],
     outfits: [o('rowSkirt.shawl', { ash: ['slate', 'bone', 'umber', 'greyGreen'], plum: ['oxblood', 'cream', 'charcoal', 'bone'] }), o('rowSkirt.plain', { moss: ['greyGreen', 'bone', 'umber', 'mustard'], umber: ['umber', 'cream', 'slate', 'oxblood'] })] },
-  elder: { id: 'elder', archetype: 'resident', families: ['slim'], frames: ['broad', 'narrow'], headShapes: ['oval', 'long', 'square'], hair: ['balding', 'shortCrop', 'lowBun', 'sidePart'], hairColours: aged, hats: ['elderHat', 'softCap', 'none'], facial: ['none', 'moustache', 'beard'], elder: true,
+  elder: { id: 'elder', archetype: 'resident', families: ['slim'], frames: ['broad', 'narrow'], headShapes: ['oval', 'long', 'square'], hair: ['balding', 'shortCrop', 'lowBun', 'sidePart'], hairColours: aged, hats: ['elderHat', 'softCap', 'none'], facial: [['none', 4], ['moustache', 2], ['beard', 1]], elder: true,
     slots: ['coat', 'waistcoat', 'trousers', 'hat'], asymmetries: ['stick', 'basket', 'scarfTail'],
     outfits: [o('elder.longCoat', { ash: ['charcoal', 'stone', 'soot', 'charcoal'], umber: ['umber', 'bone', 'charcoal', 'umber'] })] },
-  affluent: { id: 'affluent', archetype: 'resident', families: ['slim', 'standard'], frames: ['broad', 'narrow'], headShapes: ['oval', 'long', 'heart'], hair: ['sweptBack', 'sidePart', 'lowBun', 'highKnot'], hairColours: young, hats: ['topHat', 'bonnet'], facial: ['none', 'moustache'],
+  affluent: { id: 'affluent', archetype: 'resident', families: ['slim', 'standard'], frames: ['broad', 'narrow'], headShapes: ['oval', 'long', 'heart'], hair: ['sweptBack', 'sidePart', 'lowBun', 'highKnot'], hairColours: young, hats: ['topHat', 'bonnet'], facial: [['none', 1]],
     slots: ['frock', 'waistcoat', 'trousers', 'hat', 'trim'], asymmetries: ['watchChain', 'unevenFront', 'gloveHeld'],
     outfits: [o('affluent.frock', { oxblood: ['burgundy', 'cream', 'soot', 'soot', 'mustard'], navy: ['navy', 'bone', 'charcoal', 'soot', 'ochre'] })] },
-  stallholder: { id: 'stallholder', archetype: 'merchant', families: ['standard', 'sturdy'], frames: ['broad', 'narrow'], headShapes: allShapes, hair: ['lowBun', 'bob', 'tousled'], hairColours: young, hats: ['headscarf', 'none'], facial: ['none'],
+  stallholder: { id: 'stallholder', archetype: 'merchant', families: ['standard', 'sturdy'], frames: ['broad', 'narrow'], headShapes: allShapes, hair: ['lowBun', 'bob', 'tousled'], hairColours: young, hats: ['headscarf', 'none'], facial: [['none', 1]],
     slots: ['blouse', 'skirt', 'apron', 'scarf'], asymmetries: ['apronTie', 'pouchHip', 'scarfTail'],
     outfits: [o('stallholder.apron', { ochre: ['cream', 'ochre', 'bone', 'burgundy'], wine: ['bone', 'burgundy', 'cream', 'mustard'] })] },
-  shopMerchant: { id: 'shopMerchant', archetype: 'merchant', families: ['standard', 'sturdy'], frames: ['broad', 'narrow'], headShapes: allShapes, hair: ['sidePart', 'shortCrop', 'balding'], hairColours: mid, hats: ['bowler', 'none'], facial: ['none', 'moustache', 'sideburns'],
+  shopMerchant: { id: 'shopMerchant', archetype: 'merchant', families: ['standard', 'sturdy'], frames: ['broad', 'narrow'], headShapes: allShapes, hair: ['sidePart', 'shortCrop', 'balding'], hairColours: mid, hats: ['bowler', 'none'], facial: [['none', 4], ['sideburns', 1]],
     slots: ['waistcoat', 'shirt', 'trousers', 'apron', 'hat'], asymmetries: ['watchChain', 'pencilEar', 'sleeveGarters'],
     outfits: [o('shopMerchant.waistcoat', { wine: ['burgundy', 'cream', 'charcoal', 'bone', 'soot'], ochre: ['mustard', 'bone', 'umber', 'cream', 'charcoal'] })] },
-  labourer: { id: 'labourer', archetype: 'worker', families: ['sturdy', 'standard'], frames: ['broad'], headShapes: allShapes, hair: ['shortCrop', 'tousled', 'sidePart'], hairColours: young, hats: ['flatCap', 'none', 'softCap'], facial: ['none', 'sideburns', 'moustache', 'beard'],
+  labourer: { id: 'labourer', archetype: 'worker', families: ['sturdy', 'standard'], frames: ['broad'], headShapes: allShapes, hair: ['shortCrop', 'tousled', 'sidePart'], hairColours: young, hats: ['flatCap', 'none', 'softCap'], facial: [['none', 4], ['sideburns', 1]],
     slots: ['shirt', 'trousers', 'braces', 'cap', 'kerchief'], asymmetries: ['pouchHip', 'ragBelt', 'braceDown'],
     outfits: [o('labourer.braced', { dust: ['canvas', 'umber', 'leatherDark', 'slate', 'rust'], soot: ['stone', 'charcoal', 'leatherDark', 'soot', 'oxblood'], moss: ['greyGreen', 'stone', 'leather', 'umber', 'mustard'] }),
       o('labourer.vested', { umber: ['bone', 'rust', 'oxblood', 'umber', 'greyGreen'], grey: ['canvas', 'slate', 'charcoal', 'stone', 'rust'] })] },
-  foundry: { id: 'foundry', archetype: 'worker', families: ['sturdy'], frames: ['broad', 'narrow'], headShapes: ['square', 'oval', 'long'], hair: ['shortCrop', 'tousled', 'balding'], hairColours: young, hats: ['kerchief', 'none'], facial: ['none', 'sideburns', 'beard'],
+  foundry: { id: 'foundry', archetype: 'worker', families: ['sturdy'], frames: ['broad', 'narrow'], headShapes: ['square', 'oval', 'long'], hair: ['shortCrop', 'tousled', 'balding'], hairColours: young, hats: ['kerchief', 'none'], facial: [['none', 4], ['sideburns', 1]],
     slots: ['shirt', 'trousers', 'apron', 'kerchief'], asymmetries: ['gauntletTucked', 'gogglesUp', 'pouchHip'],
     outfits: [o('foundry.apron', { soot: ['charcoal', 'soot', 'leather', 'rust'], umber: ['umber', 'charcoal', 'leatherDark', 'oxblood'] })] },
-  youngMechanic: { id: 'youngMechanic', archetype: 'engineer', families: ['slim', 'standard'], frames: ['broad', 'narrow'], headShapes: allShapes, hair: ['tousled', 'sweptBack', 'shortCrop', 'ponytail'], hairColours: young, hats: ['softCap', 'none'], facial: ['none', 'sideburns'],
+  youngMechanic: { id: 'youngMechanic', archetype: 'engineer', families: ['slim', 'standard'], frames: ['broad', 'narrow'], headShapes: allShapes, hair: ['tousled', 'sweptBack', 'shortCrop', 'ponytail'], hairColours: young, hats: ['softCap', 'none'], facial: [['none', 4], ['sideburns', 1]],
     slots: ['jacket', 'shirt', 'trousers', 'roll', 'cap'], asymmetries: ['toolRoll', 'gogglesUp', 'ragBelt'],
     outfits: [o('youngMechanic.jacket', { slate: ['slate', 'bone', 'charcoal', 'leather', 'slate'], moss: ['greyGreen', 'cream', 'umber', 'leatherDark', 'greyGreen'] })] },
-  olderMechanic: { id: 'olderMechanic', archetype: 'engineer', families: ['standard', 'sturdy'], frames: ['broad', 'narrow'], headShapes: allShapes, hair: ['balding', 'shortCrop'], hairColours: ['iron', 'umber', 'soot'], hats: ['flatCap', 'none'], facial: ['moustache', 'beard', 'sideburns'],
+  olderMechanic: { id: 'olderMechanic', archetype: 'engineer', families: ['standard', 'sturdy'], frames: ['broad', 'narrow'], headShapes: allShapes, hair: ['balding', 'shortCrop'], hairColours: ['iron', 'umber', 'soot'], hats: ['flatCap', 'none'], facial: [['moustache', 3], ['none', 2], ['beard', 1]],
     slots: ['shopCoat', 'shirt', 'trousers', 'cap'], asymmetries: ['spectacles', 'pencilEar', 'ragBelt'],
     outfits: [o('olderMechanic.shopCoat', { canvas: ['canvas', 'bone', 'umber', 'umber'], slate: ['slate', 'cream', 'charcoal', 'slate'] })] },
-  courier: { id: 'courier', archetype: 'courier', families: ['slim'], frames: ['broad', 'narrow'], headShapes: allShapes, hair: ['shortCrop', 'tousled', 'ponytail', 'bob'], hairColours: young, hats: ['softCap'], facial: ['none', 'sideburns'],
+  courier: { id: 'courier', archetype: 'courier', families: ['slim'], frames: ['broad', 'narrow'], headShapes: allShapes, hair: ['shortCrop', 'tousled', 'ponytail', 'bob'], hairColours: young, hats: ['softCap'], facial: [['none', 1]],
     slots: ['jacket', 'shirt', 'trousers', 'satchel', 'scarf', 'cap'], asymmetries: ['satchelStrap', 'scarfTail'],
     outfits: [o('courier.jacket', { oxblood: ['oxblood', 'bone', 'charcoal', 'leather', 'mustard', 'umber'], slate: ['slate', 'cream', 'soot', 'leather', 'oxblood', 'slate'] })] },
-  garrison: { id: 'garrison', archetype: 'guard', families: ['standard', 'sturdy'], frames: ['broad'], headShapes: ['square', 'oval', 'long'], hair: ['shortCrop'], hairColours: mid, hats: ['kepi'], facial: ['none', 'moustache', 'sideburns'],
+  garrison: { id: 'garrison', archetype: 'guard', families: ['standard', 'sturdy'], frames: ['broad'], headShapes: ['square', 'oval', 'long'], hair: ['shortCrop'], hairColours: mid, hats: ['kepi'], facial: [['none', 4], ['moustache', 1], ['sideburns', 1]],
     slots: ['greatcoat', 'trousers', 'crossbelt', 'kepi'], asymmetries: ['crossbelt'],
     outfits: [o('garrison.greatcoat', { ordinance: ['greenCharcoal', 'soot', 'leatherDark', 'greenCharcoal'] })] },
-  inspector: { id: 'inspector', archetype: 'ordinal', families: ['slim', 'standard'], frames: ['broad'], headShapes: ['square', 'long', 'oval'], hair: ['shortCrop', 'sweptBack', 'sidePart'], hairColours: mid, hats: ['helm', 'none'], facial: ['none', 'moustache'],
+  inspector: { id: 'inspector', archetype: 'ordinal', families: ['slim', 'standard'], frames: ['broad'], headShapes: ['square', 'long', 'oval'], hair: ['shortCrop', 'sweptBack', 'sidePart'], hairColours: mid, hats: ['helm', 'none'], facial: [['none', 5], ['moustache', 1]],
     slots: ['coat', 'trousers', 'collar', 'helm', 'armband'], asymmetries: ['armband', 'ledger'],
     outfits: [o('inspector.coat', { ordinance: ['greenCharcoal', 'soot', 'oxblood', 'soot', 'oxblood'] })] },
-  child: { id: 'child', archetype: 'resident', families: ['child'], frames: ['narrow'], headShapes: ['oval', 'heart'], hair: ['tousled', 'bob', 'shortCrop'], hairColours: young, hats: ['softCap', 'none'], facial: ['none'],
+  child: { id: 'child', archetype: 'resident', families: ['child'], frames: ['narrow'], headShapes: ['oval', 'heart'], hair: ['tousled', 'bob', 'shortCrop'], hairColours: young, hats: ['softCap', 'none'], facial: [['none', 1]],
     slots: ['coat', 'shirt', 'trousers', 'cap'], asymmetries: ['scarfTail'],
     outfits: [o('child.coat', { ash: ['slate', 'bone', 'umber', 'slate'], rust: ['rust', 'cream', 'charcoal', 'rust'] })] },
 };
@@ -140,7 +140,7 @@ export function resolveLook(seed: number, archetype: Archetype, opts: LookOpts =
   const stature = Math.round((.96 + .08 * unit(seed, S.stature)) * 1000) / 1000, skin = Math.floor(unit(seed, S.skin) * 3) as 0 | 1 | 2;
   const headShape = pick(cast.headShapes, seed, S.shape), faceType = pick(FACE_ROWS[headShape], seed, S.face);
   const hat = pick(cast.hats, seed, S.hat), hairStyle = pick(cast.hair.filter(h => HAT_HAIR[hat].includes(h)), seed, S.hair), hairColour = pick(cast.hairColours, seed, S.hairColour);
-  const facial = pick(cast.facial, seed, S.facial), outfit = pick(cast.outfits, seed, S.outfit), pal = pick(Object.keys(outfit.palettes), seed, S.palette);
+  const facial = weighted(cast.facial, seed, S.facial), outfit = pick(cast.outfits, seed, S.outfit), pal = pick(Object.keys(outfit.palettes), seed, S.palette);
   const n = Math.min(cast.asymmetries.length, 1 + Math.floor(unit(seed, S.asymCount) * 2)), pool2 = [...cast.asymmetries], asymmetries: string[] = [];
   for (let i = 0; i < n; i++) asymmetries.push(pool2.splice(Math.floor(unit(seed, S.asym + 100 * i) * pool2.length), 1)[0]);
   return { cast: cast.id, family, frame, stature, skin, headShape, faceType, hairStyle, hairColour, hat, facial, outfit: outfit.id, palette: pal, asymmetries };
@@ -158,7 +158,7 @@ export function invalid(look: Look): string | undefined {
   if (look.stature < .96 || look.stature > 1.04) return 'stature'; if (![0, 1, 2].includes(look.skin)) return 'skin';
   if (!c.headShapes.includes(look.headShape)) return 'headShape'; if (!FACE_ROWS[look.headShape].includes(look.faceType)) return 'faceType';
   if (!c.hats.includes(look.hat)) return 'hat'; if (!c.hair.includes(look.hairStyle)) return 'hair not in cast'; if (!HAT_HAIR[look.hat].includes(look.hairStyle)) return `hat ${look.hat} does not suit hair ${look.hairStyle}`;
-  if (!c.hairColours.includes(look.hairColour)) return 'hairColour'; if (!c.facial.includes(look.facial)) return 'facial';
+  if (!c.hairColours.includes(look.hairColour)) return 'hairColour'; if (!c.facial.some(([f]) => f === look.facial)) return 'facial';
   const outfit = c.outfits.find(x => x.id === look.outfit); if (!outfit) return 'outfit'; if (!outfit.palettes[look.palette]) return 'palette';
   if (look.asymmetries.length < 1 || look.asymmetries.length > 2 || look.asymmetries.some(a => !c.asymmetries.includes(a)) || new Set(look.asymmetries).size !== look.asymmetries.length) return 'asymmetries';
   return undefined;

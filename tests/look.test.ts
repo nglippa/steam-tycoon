@@ -76,3 +76,12 @@ test('every story look resolves to its fixed table entry, whatever the seed, and
   }
   assert.throws(() => resolveLook(0, 'worker', { look: 'nobody' }));
 });
+
+test('a moustache or a beard belongs to a cast that wears one, at a modest rate: never dealt to the crowd at a third', () => {
+  const rows = all.map(r => r.look), hairy = (l: Look) => l.facial === 'moustache' || l.facial === 'beard';
+  for (const l of rows) if (hairy(l)) assert.ok(['elder', 'olderMechanic', 'garrison', 'inspector'].includes(l.cast), `${l.cast} with a ${l.facial}`);
+  const share = rows.filter(hairy).length / rows.length;
+  assert.ok(share < .12, `${(share * 100).toFixed(1)}% of the crowd has a moustache or beard`);
+  const mech = Array.from({ length: 2000 }, (_, s) => resolveLook(s, 'engineer', { cast: 'olderMechanic' }));
+  assert.ok(mech.filter(l => l.facial === 'moustache').length / mech.length > .35, 'the older mechanic (Book 9) mostly wears his moustache');
+});

@@ -36,12 +36,16 @@ export function contour(pts: readonly CP[]): Contour {
 }
 /** The same contour on both sides: points for angles 0..pi, mirrored. */
 const sym = (pts: CP[]) => contour([...pts, ...pts.filter(p => p[0] > 0 && p[0] < A).map(([a, y, k]) => [-a, y, k] as CP)]);
-/** Points for a row of pointed locks along the hairline between angles a0 and a1 (a1 > a0): notches at `notch`, tips at `tips`, each tip leaning by `lean` (a fraction of its width)
- *  toward the +a end. */
-const teeth = (a0: number, a1: number, notch: number, tips: number[], lean = 0, widths: number[] = tips.map(() => 1)): CP[] => {
-  const n = tips.length, tot = widths.reduce((p, q) => p + q, 0), out: CP[] = []; let x = a0;
-  for (let i = 0; i < n; i++) { const w = (a1 - a0) * widths[i] / tot; out.push([x, notch, 1]); out.push([x + (.5 + lean * .45) * w, tips[i], 1]); x += w; }
-  out.push([a1, notch, 1]); return out;
+/** A fringe of a few authored locks between angles a0 and a1 (a1 > a0), each [width (radians), length], all flowing one way (`flow` +1 toward +a, -1 toward -a): a lock runs
+ *  from its root along a long curved flank to a tip that sits toward the flow, then turns back up a short flank under the next lock, so the edge reads as locks with curved,
+ *  hooked tips and not as a row of even triangles. */
+const fringeLocks = (a0: number, a1: number, notch: number, locks: [number, number][], flow: number): CP[] => {
+  // a lock's edge, root to tip, as [across, down]: the locks overlap, so the notch between two is a short narrow V at .55 of a lock's length; the flank is a convex arc
+  const up: [number, number, number][] = [.12, .26, .4, .54, .67].map(t => [t, .55 + .45 * Math.sin(t / .82 * Math.PI / 2), 0] as [number, number, number]);
+  const prof: [number, number, number][] = [...up, [.82, 1, 1]], tot = locks.reduce((p, q) => p + q[0], 0), out: CP[] = [];
+  let x = a0; out.push([a0, notch, 1]);
+  locks.forEach(([w0, len], i) => { const w = (a1 - a0) * w0 / tot; for (const [t, f, k] of prof) out.push([x + (flow > 0 ? t : 1 - t) * w, notch - len * f, k]); x += w; out.push([x, i === locks.length - 1 ? notch : notch - len * .55, 1]); });
+  return out; // (contour() sorts the points by angle)
 };
 /** The mirror image of a contour's points (for a parting on the other side). */
 const flip = (pts: CP[], sg: number): CP[] => sg > 0 ? pts : pts.map(([a, y, k]) => [Math.abs(Math.abs(a) - A) < 1e-9 ? a : -a, y, k] as CP);
@@ -80,7 +84,12 @@ function shell(c: Ctx, o: ShellOpts): { outer: T.BufferGeometry; wall: T.BufferG
     const base = at(c, a, y, 0, o.hang), d = dirOf(c, base.p), off = onScalp ? .0015 : Math.max(.002, o.off(d, s, a, y));
     return at(c, a, y, off, onScalp ? -1 : o.hang).p;
   };
-  for (let j = 0; j <= Rw; j++) for (let i = 0; i <= C; i++) { const a = cols[i], p = vert(a, j / Rw); pos.push(p.x, p.y, p.z); uv.push(i / C, j / Rw); }
+  // tone, baked into the colour the crowd batch already carries (citizens.ts bakeCharacter reads `tint`): a broken angel ring of sheen in a lighter value of the hair colour round the
+  // upper head, and the underside of the mass darkening toward its edges and the nape, so the parting, the fringe and the crown read as volume and not as a cut-out
+  const tint: number[] = [];
+  for (let j = 0; j <= Rw; j++) for (let i = 0; i <= C; i++) { const a = cols[i], p = vert(a, j / Rw); pos.push(p.x, p.y, p.z); uv.push(i / C, j / Rw);
+    const d = dirOf(c, p), ring = sm(d.y, .5, .6) * (1 - sm(d.y, .7, .8)) * sm(Math.cos(a), -.35, .25) * sm(Math.cos(a * 7 + .6), -.15, .45), under = (1 - sm(j / Rw, 0, .5)) * .7 + .35 * sm(-d.z, .3, 1) * (1 - sm(d.y, 0, .5));
+    tint.push(ring > .04 ? ring : -Math.min(1, under)); }
   for (let j = 0; j < Rw; j++) for (let i = 0; i < C; i++) { const p = j * (C + 1) + i, q = p + C + 1; idx.push(p, p + 1, q, p + 1, q + 1, q); }
   // walls: the outer edge row joined back to the scalp
   const wall = (s: number, flip: boolean) => {
@@ -89,7 +98,7 @@ function shell(c: Ctx, o: ShellOpts): { outer: T.BufferGeometry; wall: T.BufferG
     for (let i = 0; i < C; i++) { const p = b + i * 2, q = p + 2; if (flip) wi.push(p, p + 1, q, q, p + 1, q + 1); else wi.push(p, q, p + 1, q, q + 1, p + 1); }
   };
   wall(0, false); if (o.wallTop) wall(1, true);
-  const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new T.Float32BufferAttribute(uv, 2)); g.setIndex(idx); g.computeVertexNormals();
+  const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new T.Float32BufferAttribute(uv, 2)); g.setAttribute('tint', new T.Float32BufferAttribute(tint, 1)); g.setIndex(idx); g.computeVertexNormals();
   if (closed) { const nr = g.attributes.normal as T.BufferAttribute; for (let j = 0; j <= Rw; j++) { const i0 = j * (C + 1), i1 = i0 + C, x = nr.getX(i0) + nr.getX(i1), y = nr.getY(i0) + nr.getY(i1), z = nr.getZ(i0) + nr.getZ(i1), l = Math.hypot(x, y, z) || 1; nr.setXYZ(i0, x / l, y / l, z / l); nr.setXYZ(i1, x / l, y / l, z / l); } }
   const w = new T.BufferGeometry(); w.setAttribute('position', new T.Float32BufferAttribute(wp, 3)); w.setAttribute('uv', new T.Float32BufferAttribute(new Float32Array(wp.length / 3 * 2), 2)); w.setIndex(wi); w.computeVertexNormals();
   return { outer: g, wall: w };
@@ -131,31 +140,33 @@ const S: Record<HairStyle, Mk> = {
   /** Short back and sides, a little length on top pushed forward into a short broken fringe: a flat, squared top over tight sides, the ears and temples clear, four clumps at the
    *  nape. */
   shortCrop: sg => ({
-    low: contour([...teeth(-1.0, 1.0, .238, sg > 0 ? [.226, .214, .207, .213, .205, .222] : [.222, .205, .213, .207, .214, .226], -.6 * sg, sg > 0 ? [1.2, .8, 1.1, .9, 1.3, .7] : [.7, 1.3, .9, 1.1, .8, 1.2]),
-      ...sides([[1.1, .232], [1.22, .19], [1.3, .16], [1.38, .136, 1], [1.5, .158], [1.8, .166], [2.1, .142], [2.45, .1], [2.62, .07, 1], [2.78, .088, 1], [2.96, .06, 1], [A, .074]])]),
+    // four short locks of uneven width pushed forward and swept away from the parting; behind the ear the hairline stays up, so skin shows round the ear
+    low: contour([...fringeLocks(-1.0, 1.0, .24, ([[.62, .024], [.48, .03], [.52, .026], [.38, .018]] as [number, number][])[sg > 0 ? 'slice' : 'reverse'](), -sg),
+      ...sides([[1.1, .234], [1.22, .19], [1.32, .168], [1.39, .14, 1], [1.46, .165], [1.8, .17], [2.05, .162], [2.3, .13], [2.5, .098], [2.62, .07, 1], [2.78, .088, 1], [2.96, .06, 1], [A, .074]])]),
     off: d => .005 + .024 * sm(d.y, .32, .66) + front(d, .008) + .002 * sm(-d.z, .2, .8) * (1 - sm(d.y, 0, .4)),
   }),
   /** A side parting: the hair is combed from the parting over the top into a rounded rise above the far temple and a long swoop of fringe across the forehead, in two points; the
    *  parting side lies flat and shows the temple. Tidy above the ears, a rounded back of the head over a tapered nape. */
   sidePart: sg => ({
-    low: contour(flip([[.18, .23], [.3, .25, 1], [.4, .236, 1], [.8, .24], [1.05, .232], [1.2, .2], [1.3, .162], [1.4, .138, 1], [1.52, .16], [1.8, .168], [2.1, .145], [2.45, .105], [2.62, .078, 1], [2.8, .092, 1], [2.98, .072, 1], [A, .084],
-      [0, .222], [-.16, .206, 1], [-.26, .216, 1], [-.5, .2], [-.72, .184], [-.86, .176, 1], [-.95, .196, 1], [-1.08, .206], [-1.22, .18], [-1.32, .16], [-1.42, .14, 1], [-1.55, .158], [-1.82, .162], [-2.1, .14], [-2.45, .1], [-2.62, .078, 1], [-2.8, .092, 1], [-2.98, .072, 1]], sg)),
+    low: contour(flip([[.18, .23], [.3, .25, 1], [.4, .236, 1], [.8, .24], [1.05, .232], [1.2, .2], [1.32, .168], [1.4, .142, 1], [1.47, .165], [1.8, .17], [2.05, .162], [2.3, .13], [2.5, .1], [2.62, .078, 1], [2.8, .092, 1], [2.98, .072, 1], [A, .084],
+      [0, .222], [-.16, .206, 1], [-.26, .216, 1], [-.5, .2], [-.72, .184], [-.86, .176, 1], [-.95, .196, 1], [-1.08, .206], [-1.22, .18], [-1.33, .166], [-1.41, .142, 1], [-1.48, .164], [-1.8, .168], [-2.05, .16], [-2.3, .13], [-2.5, .1], [-2.62, .078, 1], [-2.8, .092, 1], [-2.98, .072, 1]], sg)),
     roots: a => sm(a * sg, -.05, .2) * (1 - sm(Math.abs(a), 1.2, 1.4)),
     off: d => .01 + lobe(-.75 * sg, .55, .35, .028, .5)(d) + lobe(-.2 * sg, .95, .15, .012, .65)(d) + lobe(0, .15, -1, .022, .7)(d) - .009 * parting(d, .36 * sg) - .004 * Math.max(0, d.x * sg - .4) * sm(d.y, .2, .6) + front(d, .007) - .006 * sm(-d.x * sg, .55, .8) * (1 - sm(d.y, .25, .45)),
   }),
   /** Combed straight back from a bare forehead with a small peak: a lift behind the hairline, the hair running back over the crown and over the tops of the ears to the collar, where
    *  it turns out in a few pieces. No fringe. */
   sweptBack: () => ({
-    low: sym([[0, .229, 1], [.16, .236], [.5, .236], [.82, .242], [1.02, .232], [1.18, .19], [1.3, .16], [1.38, .145, 1], [1.5, .166], [1.8, .17], [2.1, .13], [2.38, .09], [2.56, .066], [2.7, .042, 1], [2.86, .062, 1], [3.0, .036, 1], [A, .05]]),
+    low: sym([[0, .229, 1], [.16, .236], [.5, .236], [.82, .242], [1.02, .232], [1.18, .19], [1.32, .168], [1.39, .148, 1], [1.46, .168], [1.8, .17], [2.1, .13], [2.38, .09], [2.56, .066], [2.7, .042, 1], [2.86, .062, 1], [3.0, .036, 1], [A, .05]]),
     hang: .1,
     off: d => .012 + lobe(0, .62, .78, .04, .42)(d) + lobe(0, .95, .2, .012, .7)(d) + lobe(0, -.25, -1, .026, .6)(d) + lobe(1, .45, .05, .006, .4)(d) + lobe(-1, .45, .05, .006, .4)(d) + .004 * sm(d.y, -.2, .3) * sm(-d.z, .2, .8),
     roots: a => 1 - sm(Math.abs(a), 1.25, 1.5),
   }),
   /** Untidy: a full top that rises off the crown, a broken fringe of uneven points falling to the brows, points that stick out over the ears and at the nape. */
   tousled: sg => ({
-    low: contour([...teeth(-1.05, 1.05, .23, sg > 0 ? [.205, .176, .194, .168, .19, .2] : [.2, .19, .168, .194, .176, .205], -.5 * sg, sg > 0 ? [1, 1.3, .8, 1.2, .9, 1.1] : [1.1, .9, 1.2, .8, 1.3, 1]),
-      ...sides([[1.12, .215], [1.24, .172, 1], [1.33, .2, 1], [1.46, .148, 1], [1.58, .17, 1], [1.72, .128, 1], [1.86, .158, 1], [2.0, .118, 1], [2.14, .136], [2.4, .1], [2.58, .066, 1], [2.72, .088, 1], [2.88, .05, 1], [3.02, .078, 1], [A, .06, 1]])]),
-    off: d => .016 + lobe(.25 * sg, .9, .25, .03, .5)(d) + lobe(-.45 * sg, .62, -.45, .022, .45)(d) + lobe(1, .25, 0, .016, .4)(d) + lobe(-1, .25, 0, .016, .4)(d) + lobe(0, -.05, -1, .014, .6)(d) + front(d, .006),
+    // five looser locks of uneven width and length, all falling one way
+    low: contour([...fringeLocks(-1.05, 1.05, .232, ([[.36, .034], [.5, .054], [.4, .04], [.46, .06], [.38, .03]] as [number, number][])[sg > 0 ? 'slice' : 'reverse'](), -sg),
+      ...sides([[1.12, .215], [1.24, .174, 1], [1.33, .2, 1], [1.42, .156, 1], [1.56, .172], [1.74, .136, 1], [1.9, .16], [2.06, .13, 1], [2.2, .142], [2.4, .1], [2.58, .066, 1], [2.72, .088, 1], [2.88, .05, 1], [3.02, .078, 1], [A, .06, 1]])]),
+    off: d => .016 + lobe(.25 * sg, .9, .25, .03, .5)(d) + lobe(-.45 * sg, .62, -.45, .022, .45)(d) + lobe(1, .35, 0, .01, .4)(d) + lobe(-1, .35, 0, .01, .4)(d) + lobe(0, -.05, -1, .014, .6)(d) + front(d, .006),
     fringe: [[[.2 * sg, .282, .024, .02], [-.2 * sg, .292, .05, .018, .008], [-.5 * sg, .286, .068, .006, .004]], [[A - .5 * sg, .276, .026, .022], [A - .38 * sg, .268, .052, .02, .008], [A - .28 * sg, .25, .066, .006, .004]]],
   }),
   /** A chin-length bob: a blunt fringe cut straight across above the brows, sides falling straight past the cheeks to the jaw and turning under, a bell that is widest at the
@@ -231,6 +242,9 @@ export function hairOf(look: Look, h: number, hatted: boolean): HairOut {
     const cut = (a: number) => seat(a) + .006;
     // (the points of the hairline that the hat covers are dropped: the shell under a hat is a narrow band and needs few columns)
     top = Object.assign((a: number) => Math.min(st.top ? st.top(a) : 1, cut(a)), { keys: st.top?.keys?.filter(a => st.top!(a) < seat(a)) }); low = Object.assign((a: number) => Math.min(st.low(a), cut(a) - .004), { keys: st.low.keys?.filter(a => st.low(a) < seat(a) - .004) });
+    // what shows under the hat is soft: the sawtooth of the style's temples is blurred away into one rounded edge that follows the head
+    const raw = low, blur = (a: number) => { let t = 0; for (let i = -4; i <= 4; i++) t += raw(a + i * .07); return t / 9; };
+    low = Object.assign((a: number) => Math.min(raw(a), blur(a) + .008, cut(a) - .004), { keys: [] as number[] });
     const o1 = off; off = (d, s, a, y) => { const f = sm(y, seat(a) - .03, seat(a) - .004), v = o1(d, s, a, y); return v * (1 - f) + Math.min(v, .006) * f; };
   }
   const sh = shell(c, { low, top, off, hang: st.hang, cols: seat ? 16 : st.cols, rows: seat ? 3 : st.rows, a0: st.a0, a1: st.a1, wallTop: st.wallTop || !!seat });

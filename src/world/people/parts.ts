@@ -52,7 +52,7 @@ export function button(g: T.Object3D, q: { p: T.Vector3; n: T.Vector3 }, m: T.Ma
 /** The neckerchief (and the scarf of the row coat): a band round the neck that is part of the torso, and a knot to one side of the throat with two tails that hang down the chest and
  *  swing with the walk (the scarf group). */
 export function kerchiefBand(g: T.Group, neckR: Ring[], m: T.Material, lift = 0) {
-  const r = ringAt(neckR, 1.51), z0 = (r.z ?? 0), up = lift, band = [1.482, 1.5, 1.52, 1.534].map((y, i) => ({ y: y + up * (i / 3), w: r.w + [.012, .02, .019, .012][i], f: r.f + [.011, .019, .018, .011][i], b: r.b + [.01, .018, .017, .01][i], z: z0 + .004, n: 2.1 }));
+  const r = ringAt(neckR, 1.51), z0 = (r.z ?? 0), up = lift, band = [1.502, 1.52, 1.54, 1.554].map((y, i) => ({ y: y + up * (i / 3), w: r.w + [.012, .02, .019, .012][i], f: r.f + [.011, .019, .018, .011][i], b: r.b + [.01, .018, .017, .01][i], z: z0 + .004, n: 2.1 }));
   put0(g, loft(band, { seg: 12, lipStart: .003, lipEnd: .004 }), m);
 }
 export function kerchiefTails(scarf: T.Group, m: T.Material, long: boolean, plain = false) {

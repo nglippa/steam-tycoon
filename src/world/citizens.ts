@@ -80,6 +80,10 @@ function bakeCharacter(group:T.Group,cloth:T.Material=coloredToon){
     geometry.setAttribute('color',new T.BufferAttribute(colors,3));
     const restored=new T.Color(object.material.userData.restoredColor??color),late=new Float32Array(colors.length);
     for(let i=0;i<late.length;i+=3){late[i]=restored.r;late[i+1]=restored.g;late[i+2]=restored.b;}
+    // hair carries a baked tone (people/hair.ts): a sheen toward a lighter value of its own colour where `tint` > 0, a darker underside where it is < 0; consumed here, so every
+    // geometry in a batch keeps the same attributes
+    const tint=geometry.attributes.tint as T.BufferAttribute|undefined;
+    if(tint){for(const arr of [colors,late])for(let i=0;i<tint.count;i++){const t=tint.getX(i);for(let c=0;c<3;c++){const v=arr[i*3+c];arr[i*3+c]=t>0?v+(Math.min(1,v*1.9+.05)-v)*t*.6:v*(1+t*.32);}}geometry.deleteAttribute('tint');}
     geometry.setAttribute('restoredColor',new T.BufferAttribute(late,3));object.geometry=geometry;object.material=object.material.userData.plain?plainToon:cloth;
   });return bake(group);
 }
@@ -185,7 +189,9 @@ function paintFace(c: Ctx, f: FaceType, col: number) {
   for (const side of [-1, 1]) { paintEye(c, f, side, col); paintBrow(c, f, side, col < 8 ? col : 0); }
   // Nose: halfway between the tops of the eyes and the chin.
   c.strokeStyle = 'rgba(150,96,88,.75)'; c.lineWidth = 2.6; c.fillStyle = 'rgba(150,96,88,.75)';
-  if (f.nose === 'dash') { c.beginPath(); c.moveTo(259, 352); c.lineTo(256, 359); c.stroke(); }
+  // the new faces: the nose is the built wedge, marked only by one light stroke down its shaded side; nothing under it that could read as hair, the mouth line well below
+  if (f.calm) { c.strokeStyle = 'rgba(150,96,88,.45)'; c.lineWidth = 2.2; c.beginPath(); c.moveTo(264, 334); c.quadraticCurveTo(266, 348, 262, 356); c.stroke(); }
+  else if (f.nose === 'dash') { c.beginPath(); c.moveTo(259, 352); c.lineTo(256, 359); c.stroke(); }
   if (f.nose === 'dot') { c.beginPath(); c.ellipse(257, 356, 2.8, 2.2, 0, 0, Math.PI * 2); c.fill(); }
   if (f.nose === 'hook') { c.beginPath(); c.moveTo(262, 340); c.quadraticCurveTo(266, 354, 256, 360); c.stroke(); }
   if (f.nose === 'button') { c.beginPath(); c.moveTo(251, 354); c.quadraticCurveTo(257, 361, 263, 354); c.stroke(); }

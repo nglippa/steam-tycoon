@@ -76,7 +76,7 @@ export function buildFigure(want: Look, opts: FigureOpts, kit: Kit) {
     kerchiefBand(lifted, neckR, neckM);
   } else {
     // the shirt's turned collar, the waistcoat over it, the coat over both
-    const cr = ringAt(neckR, 1.52), collar = [1.49, 1.515, 1.545].map((y, i) => ({ y, w: cr.w + [.01, .016, .018][i], f: cr.f + [.01, .016, .018][i], b: cr.b + [.009, .015, .017][i], z: (cr.z ?? 0) + .003, n: 2.1 }));
+    const cr = ringAt(neckR, 1.52), collar = [1.51, 1.535, 1.565].map((y, i) => ({ y, w: cr.w + [.01, .016, .018][i], f: cr.f + [.01, .016, .018][i], b: cr.b + [.009, .015, .017][i], z: (cr.z ?? 0) + .003, n: 2.1 }));
     put0(lifted, loft(collar, { seg: 12, lipEnd: .003, key: `shirtcollar/${dk}` }), shirtM);
     const vestBase = offset(rib, .013), vest = [1.125, 1.2, 1.3, 1.36, 1.43].map(y => ringAt(vestBase, y));
     put0(lifted, loft(vest, { seg: 10, lipEnd: .004, key: `vest/${dk}` }), vestM);
@@ -92,7 +92,7 @@ export function buildFigure(want: Look, opts: FigureOpts, kit: Kit) {
       for (const y of steps(1.42, 1.12, 3)) button(lifted, surface(coatR, y, .1, .0075), brass, .0085);
     }
     // collar (stood at the back, turned over at the front) and lapels that lie ON the chest and curve with it
-    const nc = ringAt(neckR, 1.52), cc = [1.488, 1.516, 1.552].map((y, i) => ({ y, w: nc.w + [.021, .03, .038][i], f: nc.f + [.021, .03, .036][i], b: nc.b + [.02, .03, .038][i], z: (nc.z ?? 0) + .004, n: 2.1 }));
+    const nc = ringAt(neckR, 1.52), cc = [1.508, 1.536, 1.572].map((y, i) => ({ y, w: nc.w + [.021, .03, .038][i], f: nc.f + [.021, .03, .036][i], b: nc.b + [.02, .03, .038][i], z: (nc.z ?? 0) + .004, n: 2.1 }));
     put0(lifted, loft(cc, { seg: 14, ...(closed ? { start: 0, arc: Math.PI * 2 } : { start: .7, arc: Math.PI * 2 - 1.4 }), lipEnd: .007, lipStart: .004, key: `collar/${dk}/${closed}` }), coatM);
     if (!closed) for (const [s, e] of [[1, g.aL], [-1, -g.aR]] as const) put0(lifted, plate(coatR, [[1.488, .25], [1.43, .5], [1.36, .55], [1.28, .45], [1.2, .18]].map(([y, w]) => [y, e, e + s * w]), .0, .007, 3), coatM);
     // the back is designed too: a centre seam, a yoke seam across the shoulder blades, a waist strap with two buttons
