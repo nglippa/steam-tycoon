@@ -4,7 +4,7 @@ import { footing } from '../simulation/gait';
 import { palette as P, wardrobes, type Archetype } from './palette';
 import { box, cyl, sphere, torus, bake, mats, thinLine, seeded, type Material } from './assets';
 import { painted } from './tone';
-import { resolveLook, type Look, type CastId, type Family, type Frame } from './people/look';
+import { resolveLook, type Look, type CastId, type LookFamily, type Frame } from './people/look';
 import { buildFigure, type Kit } from './people/figure';
 
 const ramp = new T.DataTexture(new Uint8Array([128, 202, 255]), 3, 1, T.RedFormat);
@@ -505,7 +505,7 @@ export type Citizen=ReturnType<typeof citizen>;
 const plainByColor=new Map<string,T.MeshToonMaterial>();
 const plainMaterial=(color:string,late=color)=>{const key=color+'>'+late;let m=plainByColor.get(key);if(!m){m=toon(color);m.userData.plain=true;if(late!==color)m.userData.restoredColor=late;plainByColor.set(key,m);}return m;};
 /** `look`: a named story character (people/look.ts). `cast`, `family`, `frame`: force part of a look (the cast sheet). */
-export type NextOpts={solo?:boolean;mask?:boolean;look?:string;/** dev: bare heads */bare?:boolean;/** dev: fields of the resolved look to overwrite (the cast sheet's `set=`) */over?:Partial<Look>;cast?:CastId;family?:Family;frame?:Frame;/** the casts the scene wants (narrows the archetype's casts) */casts?:readonly CastId[]};
+export type NextOpts={solo?:boolean;mask?:boolean;look?:string;/** dev: bare heads */bare?:boolean;/** dev: fields of the resolved look to overwrite (the cast sheet's `set=`) */over?:Partial<Look>;cast?:CastId;family?:LookFamily;frame?:Frame;/** the casts the scene wants (narrows the archetype's casts) */casts?:readonly CastId[]};
 export function citizenNext(coat:Material=mats.rust,seed=0,archetype:Archetype='worker',opts:NextOpts={}):Citizen{
   void coat;
   const look={...resolveLook(seed,archetype,{look:opts.look,cast:opts.cast,family:opts.family,frame:opts.frame,casts:opts.casts}),...opts.over};
@@ -514,4 +514,14 @@ export function citizenNext(coat:Material=mats.rust,seed=0,archetype:Archetype='
   fig.group.userData.next=true; // the new builder's mark: a few poses are tuned to its head (citizen-life.ts)
   const {faceMat,...nodes}=fig;
   return finish(nodes,faceMat,seed,archetype,opts);
+}
+
+// ---- The switch (People XIV). Every place that makes a person goes through `person()`, which picks the old builder or the new one from this one flag.
+/** `next`: the whole game uses the new figure builder. Off by default; `?people=new` turns it on for a dev session (`?dev=1&people=new`), `?people=old` forces it off. Flip the default here when the new cast is accepted. */
+export const PEOPLE={next:(()=>{try{const q=new URLSearchParams(location.search),v=q.get('people');return v==='new'?(q.get('dev')==='1'||!!import.meta.env?.DEV):false;}catch{return false;}})()};
+/** What a spawn site knows about the person: `look` is a named story character (people/look.ts `STORY`), `child` asks for the child cast. Both are inert under the old builder. */
+export type PersonOpts={solo?:boolean;mask?:boolean;look?:string;child?:boolean};
+export function person(coat:Material=mats.rust,seed=0,archetype:Archetype='worker',opts:PersonOpts={}):Citizen{
+  if(!PEOPLE.next)return citizen(coat,seed,archetype,{solo:opts.solo,mask:opts.mask});
+  return citizenNext(coat,seed,archetype,{solo:opts.solo,mask:opts.mask,look:opts.look,...(opts.child&&!opts.look?{cast:'child' as CastId,family:'child' as const,frame:'narrow' as const}:{})});
 }

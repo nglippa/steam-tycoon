@@ -72,7 +72,7 @@ export class RationLine implements SiteModule {
     { const n = new T.Mesh(signs.plate('PRESSURE THEFT IS SABOTAGE', 2.2, .42), signs.material); n.position.set(PIPE_X + .5, 2.35, 24.07); watch.add(n); box(watch, PIPE_X + .5, 2.35, 24.02, 2.28, .5, .04, O.green); }
     box(watch, VALVE.x - .8, 1.25, VALVE.z + .05, .03, .22, .16, O.oxblood); // the second seal
     this.desk = box(live, DESK.x, .7, DESK.z, .8, 1.4, .8, mats.dark); this.desk.visible = false;
-    this.warden = pres.addWorker(WARDEN.x, WARDEN.z, Math.PI, 'guard', { role: 'ordinal', when: () => this.facts.pressureWatch });
+    this.warden = pres.addWorker(WARDEN.x, WARDEN.z, Math.PI, 'guard', { role: 'ordinal', look: 'warden', when: () => this.facts.pressureWatch });
     // THE KEY: forged at the yard with the cutters, carried by hand to the socket.
     this.key = new Consignment('gauge.key', 'gauge', 'gauge.valve', live, KEY, g => { box(g, 0, .38, 0, .8, .06, .36, mats.wood); for (const dx of [-.32, .32]) box(g, dx, .18, 0, .06, .36, .3, mats.wood);
         const shaft = cyl(g, 0, .47, 0, .035, .95, mats.brass); shaft.rotation.z = Math.PI / 2; box(g, -.48, .47, 0, .05, .3, .05, mats.brass); box(g, .46, .47, .05, .1, .05, .12, mats.brass); },

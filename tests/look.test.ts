@@ -85,3 +85,22 @@ test('a moustache or a beard belongs to a cast that wears one, at a modest rate:
   const mech = Array.from({ length: 2000 }, (_, s) => resolveLook(s, 'engineer', { cast: 'olderMechanic' }));
   assert.ok(mech.filter(l => l.facial === 'moustache').length / mech.length > .35, 'the older mechanic (Book 9) mostly wears his moustache');
 });
+
+test('every story character resolves to a valid authored look, and each spawn site asks for the look it is named for', async () => {
+  const { readFileSync } = await import('node:fs');
+  const sites: Record<string, string[]> = { 'market-square.ts': ['officer', 'beat'], 'rook-yard.ts': ['rookHand', 'clerk', 'masked'], 'finch-run.ts': ['finchHand'], 'cinder-row.ts': ['embersChalker', 'embersLookout', 'embersCourier'], 'foundry-works.ts': ['overseer'], 'ration-line.ts': ['warden'], 'intro.ts': ['introGuard', 'introOrdinal', 'masked'] };
+  for (const name of Object.keys(STORY)) { const l = resolveLook(0, 'resident', { look: name }); assert.equal(invalid(l), undefined, `${name}: ${invalid(l)}`); assert.deepEqual(l, { ...STORY[name], asymmetries: [...STORY[name].asymmetries] }); }
+  const named = new Set<string>();
+  for (const [file, names] of Object.entries(sites)) { const src = readFileSync(new URL(`../src/world/${file}`, import.meta.url), 'utf8'); for (const n of names) { assert.ok(src.includes(`'${n}'`) && (file === 'intro.ts' ? true : src.includes(`look: '${n}'`)), `${file} does not ask for ${n}`); assert.ok(n in STORY, n); named.add(n); } }
+  for (const name of Object.keys(STORY)) assert.ok(named.has(name), `${name} is not placed anywhere`);
+});
+
+test('no asymmetry in a cast table is a no-op: every name is built by the wardrobe or the figure', async () => {
+  const { readFileSync } = await import('node:fs');
+  const src = ['wardrobe.ts', 'figure.ts'].map(f => readFileSync(new URL(`../src/world/people/${f}`, import.meta.url), 'utf8')).join('\n');
+  for (const c of Object.values(CASTS)) for (const a of [...c.asymmetries, ...(c.story ?? [])]) assert.ok(src.includes(`'${a}'`), `${c.id}: asymmetry ${a} is built nowhere`);
+});
+
+test('the story-only items are never dealt by the resolver', () => {
+  for (const { look } of all) for (const a of look.asymmetries) assert.ok(!(CASTS[look.cast].story ?? []).includes(a), `${look.cast} was dealt ${a}`);
+});

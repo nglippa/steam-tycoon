@@ -1,5 +1,5 @@
 import * as T from 'three';
-import { citizen } from './citizens';
+import { person, type Citizen } from './citizens';
 import { animateLife, type Activity } from './citizen-life';
 import { mats } from './assets';
 import { HOME } from './roofwalk';
@@ -17,7 +17,7 @@ import type { Interface } from '../ui/interface';
  * simulation/intro.ts; this is the staging. The three figures are the scene's own and are in no one's list of workers, so
  * nothing else moves them and nothing in the ward can be challenged by them. */
 type Beat = 'idle' | 'black' | 'room' | 'open' | 'guards' | 'leave' | 'walk' | 'porch' | 'after';
-type Figure = { p: ReturnType<typeof citizen>; act: Activity; moving: boolean };
+type Figure = { p: Citizen; act: Activity; moving: boolean };
 const F = HOME.floor, FAR = new T.Vector3(0, 0, 1e4), KNOCKS = [.7, 1.15, 1.6, 3.9, 4.35, 4.8], SEAT = new T.Vector3(-15.95, .24, -3.3), CHALK = [-15.9, -3.75] as const;
 const wrap = (a: number) => Math.atan2(Math.sin(a), Math.cos(a));
 const stoopY = (x: number, z: number) => x > -16.3 && x < -15.4 && z > -3.5 && z < -1.9 ? .4 : x > -17.1 && x <= -16.3 && z > -3.8 && z < -1.7 ? .29 : .18;
@@ -31,8 +31,8 @@ export class Intro {
   private get figures() { return this.stranger ? [...this.guards, this.stranger] : []; }
   /** The three scene figures, made the first time they are needed and hidden between uses. */
   private cast() { if (this.stranger) return; const root = this.o.city.presentation.root;
-    const make = (role: 'guard' | 'ordinal' | 'courier', seed: number, act: Activity, mask = false): Figure => { const p = citizen(mats.rust, seed, role, { solo: true, mask }); p.group.visible = false; root.add(p.group); return { p, act, moving: false }; };
-    this.guards = [make('guard', 1, 'guard'), make('ordinal', 2, 'guard')]; this.stranger = make('courier', 7, 'sit', true);
+    const make = (role: 'guard' | 'ordinal' | 'courier', seed: number, act: Activity, mask = false, look?: string): Figure => { const p = person(mats.rust, seed, role, { solo: true, mask, look }); p.group.visible = false; root.add(p.group); return { p, act, moving: false }; };
+    this.guards = [make('guard', 1, 'guard', false, 'introGuard'), make('ordinal', 2, 'guard', false, 'introOrdinal')]; this.stranger = make('courier', 7, 'sit', true, 'masked');
   }
   /** A new stewardship starts here. Nothing else starts the scene: not the frame loop, not a view, not a save that has seen it. */
   begin() { const { economy, player, dialogue } = this.o; if (!this.o.enabled || economy.state.intro.played) return; this.cast();

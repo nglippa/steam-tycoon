@@ -6,7 +6,7 @@ import { facadeDetail, businessCrown, businessBody, businessHeights, businessLif
 import { box, cyl, sphere, torus, beam, gear, barrel, crate, tree, sign, windowUnit, windowGlass, displayGlass, arch, bake, mats, random, applyWorldPalette, illustrated, asProp } from './assets';
 setDisplayGlass(displayGlass);
 import { roof, pipe, crest, railing, canopy, bunting, fabricOf, shopDisplay, grimeSkirt, sootStreak, paintedWear, rustStreak, pressureRing, bench, pressureStation, mailPost, wingedValve, aetherDiamond, gauge, refreshCanopyColors, refreshFacades, facadePaints, artMats } from './art-kit';
-import { citizen, setCitizenProsperity } from './citizens';
+import { person, setCitizenProsperity, type Citizen } from './citizens';
 import { palette as P } from './palette';
 import { housingPaint, setHousingCondition, residentialWindows, type Home } from './housing';
 import { animateLife, sceneFor, stageCitizen, setLifeConditions, setSocialField, turnTaking, routeLeg } from './citizen-life';
@@ -58,7 +58,7 @@ export class City {
   presentation!: Presentation;
   root = new T.Group(); colliders: Collider[] = []; decks: Deck[] = []; ladders: Ladder[] = []; targets: Target[] = []; properties = new Map<PropertyId, PropertyVisual>();
   infrastructure = new T.Group(); prosperity = new T.Group(); gears: T.Group[] = []; smokeOrigins: T.Vector3[] = []; lamps: T.PointLight[] = [];
-  npcs: ReturnType<typeof citizen>[] = []; constructions: { group: T.Group; time: number; duration: number; finish: () => void; workers: ReturnType<typeof citizen>[]; site?: string }[] = [];
+  npcs: Citizen[] = []; constructions: { group: T.Group; time: number; duration: number; finish: () => void; workers: Citizen[]; site?: string }[] = [];
   /** World-originated messages (a patrol's warning, an ancient machine waking) for the UI to voice. */
   onEvent: (message: string) => void = () => {};
   /** The street's condition by district, refreshed twice a second from the economy: who is admitted, how hard the curfew bites,
@@ -482,7 +482,7 @@ export class City {
     const balloon = sphere(this.airship, 0, 0, 0, 1, mats.cream); balloon.scale.set(10, 3, 3); for (const xx of [-5, 0, 5]) { const ring = torus(this.airship, xx, 0, 0, 2.95, .075, mats.copper); ring.rotation.y = Math.PI / 2; } box(this.airship, 0, -4.1, 0, 7, 1.5, 2.1, mats.wood); for (const xx of [-3, 3]) for (const z of [-.8, .8]) beam(this.airship, new T.Vector3(xx, -2.2, z * 2), new T.Vector3(xx, -3.8, z), .035); box(this.airship, -9, 0, 0, 3, 5, .13, mats.teal); this.root.add(this.airship); bake(this.airship); bake(g);
   }
   createPopulation() { for(let i=0;i<42;i++){
-      const profile=sceneFor(i),npc=citizen(mats.rust,i,profile.role);if(profile.trait)npc.manner=mannerOf(profile.role,seedOf(i),profile.trait);
+      const profile=sceneFor(i),npc=person(mats.rust,i,profile.role);if(profile.trait)npc.manner=mannerOf(profile.role,seedOf(i),profile.trait);
       this.cast.push({d:districtAt(profile.x,profile.z),kind:routeKind(profile),standing:standingOf(profile.role),seed:profile.seed??seedOf(i),period:profile.route?(profile.route*2+5)/(profile.speed??.4):0});
       if(profile.activity==='carry'){const cargo=new T.Group();cargo.position.set(0,1.05,.31);npc.body.add(cargo);box(cargo,0,0,0,.43,.32,.33,mats.wood);for(const y of [-.11,.11])box(cargo,0,y,.175,.45,.035,.02,mats.cream);asProp(cargo);bake(cargo);}
       if(profile.activity==='walk'&&i%3!==1){const umbrella=new T.Group();umbrella.position.set(.2,0,.12);npc.body.add(umbrella);cyl(umbrella,0,1.75,0,.012,1.1,mats.iron);
@@ -561,7 +561,7 @@ export class City {
   /** Covert and liberation steps land at once, unannounced; only restoring the ancient works brings the civic engineers. */
   construct(kind: string, id: string) { if (kind === 'automation') { this.propertyUpgrade(id as PropertyId); return; } if (kind === 'site' && this.economy.state.sites[id as SiteId] < SITE_RESTORED) { this.sync(); return; } if (!['property', 'infrastructure', 'district', 'research', 'site'].includes(kind)) return; const g = new T.Group(); this.root.add(g); const p = kind === 'site' ? undefined : PROPERTIES.find(p => p.id === id); const anchor = kind === 'site' ? this.presentation.sites.find(s => s.id === id)!.anchor : undefined; const x = p ? p.x : anchor ? anchor.x : kind === 'district' && id === 'canal' ? 54 : 0; const z = p ? p.z : anchor ? anchor.z : -40; g.position.set(x, 0, z); if (p) g.rotation.y = p.rotation; if (anchor) g.rotation.y = anchor.rotation;
     for (const xx of [-8, 8]) for (const zz of [5.9, 8.2]) { cyl(g, xx, 5, zz, .055, 10, mats.brass); for (const y of [2.7, 5.7, 8.7]) beam(g, new T.Vector3(-8, y, zz), new T.Vector3(8, y, zz), .055, mats.brass); } for (const y of [2.7, 5.7, 8.7]) box(g, 0, y, 7.1, 16, .09, 2.3, mats.wood); for (let xx = -8; xx < 8; xx += 4) beam(g, new T.Vector3(xx, 0, 8.2), new T.Vector3(xx + 4, 5.7, 8.2), .05, mats.iron);
-    const workers = [citizen(mats.cream, 0, 'worker', { solo: true }), citizen(mats.rust, 0, 'worker', { solo: true })]; workers.forEach((w, i) => { w.setExpression(i ? 'smiling' : 'focused'); w.group.position.set(i ? 7 : -6.5, 0, 9.2); w.group.rotation.y = Math.PI; g.add(w.group); }); sign(g, 'TERRA IS REBUILDING', 'Guild of civic engineers', 0, 1.7, 9.2, 5, .8);
+    const workers = [person(mats.cream, 0, 'worker', { solo: true }), person(mats.rust, 0, 'worker', { solo: true })]; workers.forEach((w, i) => { w.setExpression(i ? 'smiling' : 'focused'); w.group.position.set(i ? 7 : -6.5, 0, 9.2); w.group.rotation.y = Math.PI; g.add(w.group); }); sign(g, 'TERRA IS REBUILDING', 'Guild of civic engineers', 0, 1.7, 9.2, 5, .8);
     this.constructions.push({ group: g, time: 0, duration: this.economy.buildSeconds(p ? this.economy.state.properties[p.id].level : undefined), workers, site: kind === 'site' ? id : undefined, finish: () => { if (p) this.propertyUpgrade(p.id); this.sync(); } });
   }
   /** Every layered district's physical spots become ordinary interaction targets. */

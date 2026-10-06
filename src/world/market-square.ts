@@ -102,8 +102,8 @@ export class MarketSquare implements SiteModule {
     const aim = new T.Group(); aim.position.y = .55; aim.rotation.x = -.98; this.yoke.add(aim); cyl(aim, 0, 0, 0, .36, .6, O.iron); cyl(aim, 0, -.31, 0, .3, .03, mats.glow);
     lightCone(aim, 2.4, 18).position.y = -.32;
     // Two soldiers: one holds the boom, one walks the beat between the gate and the Finch.
-    this.officer = pres.addWorker(5.75, GZ + .8, 0, 'guard', { role: 'ordinal', when: () => this.view.control < SITE_LIBERATED });
-    const beat = pres.addWorker(-1.25, -13.8, Math.PI, 'walk', { role: 'ordinal', when: () => this.view.control < SITE_LIBERATED });
+    this.officer = pres.addWorker(5.75, GZ + .8, 0, 'guard', { role: 'ordinal', look: 'officer', when: () => this.view.control < SITE_LIBERATED });
+    const beat = pres.addWorker(-1.25, -13.8, Math.PI, 'walk', { role: 'ordinal', look: 'beat', when: () => this.view.control < SITE_LIBERATED });
     this.patrol = new Patrol(city, pres.workers[beat], [[-1.25, -13.8], [-1.25, -26.9], [-3.45, -29.3], [-3.45, -32.9], [-1.6, -34.6]].map(([x, z]) => new T.Vector2(x, z)), pres.root);
     this.patrol.hot.push({ x: CELLAR.x, z: CELLAR.z, r: 3.4 });
     this.patrol.onConfront = () => { const actor = pres.workers[beat].person, o = city.incident('minor', actor.group.position.x, actor.group.position.z); actor.tone = { tone: o.tier >= 2 ? 'hostile' : 'authoritative', until: performance.now() / 1000 + 1e9 }; this.spoke = 5; };

@@ -48,14 +48,14 @@ export class RookYard {
     const hit = new T.Mesh(new T.BoxGeometry(1.1, 1.6, 2.2), unseen); hit.position.set(BENCH.x, 1.2, BENCH.z); root.add(hit); hit.updateWorldMatrix(true, false);
     city.targets.push({ object: hit, id: 'rook.bench', kind: 'resist', label: 'Workbench', hint: 'CHECK THE MANIFEST', position: hit.getWorldPosition(new T.Vector3()), when: () => this.rook === 0 });
     // The hand at the bench, and the clerk who has come to collect what is held.
-    this.hand = pres.addWorker(HAND.x, HAND.z, .85, 'repair', { role: 'worker', essential: true });
-    this.clerk = pres.addWorker(CLERK.x, CLERK.z, WATCH[0][0], 'guard', { role: 'ordinal', tool: 'clipboard', essential: true, when: () => this.held && this.onDuty });
+    this.hand = pres.addWorker(HAND.x, HAND.z, .85, 'repair', { role: 'worker', look: 'rookHand', essential: true });
+    this.clerk = pres.addWorker(CLERK.x, CLERK.z, WATCH[0][0], 'guard', { role: 'ordinal', look: 'clerk', tool: 'clipboard', essential: true, when: () => this.held && this.onDuty });
     // The held crate: the Directorate's grey, stencilled on every face, and the Embers' chalk on the lane side.
     this.crate = new Consignment('rook.crate', null, 'rook.loft', root, CRATE, g => { labeledCrate(g, 0, 0, 0, .7, HOLD.scrap!.plate, 0, '#9a9486'); tick(g, -.358, .16, .2, .2, -Math.PI / 2); bake(g); },
       () => this.held, HOLD.scrap!.taken, () => !canDivert(this.rook) ? HOLD.scrap!.held : this.watching ? HOLD.scrap!.watched : null, () => this.receive());
     this.crate.covert = true; this.crate.carryLine = HOLD.scrap!.carrying; this.crate.custodyLine = HOLD.scrap!.custodyCarrying; this.crate.custodyAt = 'gate.desk';
     this.cache(root); this.restore(root);
-    pres.addWorker(STRANGER.x, STRANGER.z, 0, 'watch', { role: 'courier', mask: true, essential: true, y: 12.59, when: () => this.standing });
+    pres.addWorker(STRANGER.x, STRANGER.z, 0, 'watch', { role: 'courier', look: 'masked', mask: true, essential: true, y: 12.59, when: () => this.standing });
     // The clerk: there for everyone while the stock is held. Not the keeper, he refuses the standing; the keeper signs for custody in his full view.
     for (const [hint, when] of [['SPEAK TO THE CLERK', 'refused'], ['SIGN FOR CUSTODY', 'offer']] as const) {
       const clerk = new T.Mesh(new T.BoxGeometry(1.1, 2, 1.1), unseen); clerk.position.set(CLERK.x, 1, CLERK.z); root.add(clerk); clerk.updateWorldMatrix(true, false);

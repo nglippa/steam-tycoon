@@ -5,6 +5,7 @@ import { paletteOf, type CastId, type Look } from './look';
 import { skull, ear, facialOf, skullRings, CHIN_TO_PIVOT } from './head';
 import { hairOf } from './hair';
 import { hatOf } from './hat';
+import { maskOf } from './mask';
 import { hand, foot, put0, strip, seam, around, steps, button, kerchiefBand, kerchiefTails } from './parts';
 import { palette as P } from '../palette';
 import { dress, headgear, WARDROBE, HEM_Y } from './wardrobe';
@@ -114,6 +115,7 @@ export function buildFigure(look: Look, opts: FigureOpts, kit: Kit) {
     // back pockets, on the seat
     if (lab) for (const s of [-1, 1]) put0(pelLift, plate(hips, [[1.0, s * 2.5, s * 3.0], [.92, s * 2.5, s * 3.0]], .0, .007, 2), trouM);
   }
+  dress(X); // the inline casts take their trade items (the labourer's apron and hook) from wardrobe.ts
   kit.bake(body); kit.bake(pelvisG);
 
   // ================================================================ arms
@@ -135,6 +137,7 @@ export function buildFigure(look: Look, opts: FigureOpts, kit: Kit) {
       put0(el, loft([at(-.15, off + .006), at(-.205, off + .004)], { seg: 8, lipEnd: .008, lipStart: .004, key: `cuff/${dk}` }), coatM);
     }
     put0(el, hand(d, side), skin, [0, -RIG.forearm, 0]);
+    if (asym.has('chalk') && side > 0) { const ch = kit.plain('#ece8dc'); put0(el, loft([at(-.16, off + .0085), at(-.2, off + .0075)], { seg: 8, lipStart: .002, lipEnd: .002, key: `chalkcuff/${dk}` }), ch); for (const [dx, dz] of [[.034, -.006], [.024, -.02]]) put0(el, new T.Mesh(new T.BoxGeometry(.016, .014, .012)).geometry, ch, [-dx, -RIG.forearm - .105, dz]); }
     kit.bake(el);
     const grip = new T.Group(); grip.position.set(-side * .028, -.312, .004); el.add(grip); grips.push(grip);
   }
@@ -172,6 +175,7 @@ export function buildFigure(look: Look, opts: FigureOpts, kit: Kit) {
   for (const gg of hairs.swing) put0(swing, place(gg, [0, -.1 * k, .12 * k]), hairMat);
   for (const gg of opts.bare ? [] : facialOf(look, h)) put0(hg, gg, hairMat);
   const hat = opts.bare ? { cloth: [], trim: [], metal: [] } : hatOf(look, h); for (const gg of hat.cloth) put0(hg, gg, capM); for (const gg of hat.trim) put0(hg, gg, leatherDark); for (const gg of hat.metal) put0(hg, gg, brass);
+  if (opts.mask) { const m = maskOf(look.headShape, h); for (const gg of m.cloth) put0(hg, gg, kit.cloth('#383744')); for (const gg of m.thread) put0(hg, gg, kit.plain('#2f9c97')); }
   // the jaw's cel shadow: a crescent on the neck under the jaw, wide under the chin and narrowing to nothing under the ears. It hangs from the head, so it follows the jaw when the head
   // turns or nods, and its upper edge is tucked inside the jaw, so no pale band opens between the two
   { const L0 = new T.Vector3(0, LIFT, 0).sub(head.position), sk = skullRings(look.headShape, h), inHead = (p: T.Vector3) => { const y = p.y - (d.chin + LIFT), r = ringAt(sk, Math.max(0, y)), n = r.n ?? 2, z = p.z - headZ - (r.z ?? 0); return y >= 0 && Math.abs(p.x / r.w) ** n + Math.abs(z / (z >= 0 ? r.f : r.b)) ** n < 1; };

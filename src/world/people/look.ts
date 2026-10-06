@@ -29,7 +29,7 @@ export interface Outfit { id: string; /** palette id -> a swatch per slot of the
 export interface Cast {
   id: CastId; archetype: Archetype; families: readonly LookFamily[]; frames: readonly Frame[]; headShapes: readonly HeadShape[]; hair: readonly HairStyle[]; hairColours: readonly HairColour[];
   hats: readonly Hat[]; /** facial hair with weights: a moustache or a beard belongs to a cast that wears one (Book 7), at a modest rate, never dealt to anyone at a third */ facial: readonly (readonly [Facial, number])[]; outfits: readonly Outfit[];
-  /** what a palette's swatches colour, in order */ slots: readonly string[]; asymmetries: readonly string[]; elder?: boolean;
+  /** what a palette's swatches colour, in order */ slots: readonly string[]; asymmetries: readonly string[]; /** items only a named person carries (Book 9, story characters): valid in a look, never dealt by the resolver */ story?: readonly string[]; elder?: boolean;
 }
 
 /** Faces are rows of the atlas. Rows 2 (teal), 3 (violet) and 7 (red) carry irises the Book forbids; they stay out of every table until the atlas is repainted. */
@@ -48,7 +48,7 @@ const o = (id: string, palettes: Record<string, readonly Swatch[]>): Outfit => (
 /** The fourteen casts. A cast fixes a family and frame range, face and hair compatibility, a wardrobe, a palette range and its asymmetries. */
 export const CASTS: Record<CastId, Cast> = {
   rowCoat: { id: 'rowCoat', archetype: 'resident', families: ['slim', 'standard'], frames: ['broad', 'narrow'], headShapes: allShapes, hair: ['shortCrop', 'sidePart', 'tousled', 'bob', 'lowBun', 'ponytail'], hairColours: young, hats: ['none', 'flatCap', 'softCap'], facial: [['none', 5], ['sideburns', 1]],
-    slots: ['coat', 'waistcoat', 'trousers', 'cap', 'scarf'], asymmetries: ['unevenFront', 'scarfTail', 'pouchHip', 'sleeveRolled'],
+    slots: ['coat', 'waistcoat', 'trousers', 'cap', 'scarf'], asymmetries: ['unevenFront', 'scarfTail', 'pouchHip', 'sleeveRolled'], story: ['chalk'],
     outfits: [o('rowCoat.open', { ash: ['slate', 'stone', 'charcoal', 'slate', 'oxblood'], umber: ['umber', 'mustard', 'slate', 'umber', 'greyGreen'], moss: ['greyGreen', 'canvas', 'umber', 'greyGreen', 'bone'] }),
       o('rowCoat.closed', { ash: ['charcoal', 'stone', 'umber', 'charcoal', 'mustard'], oxblood: ['oxblood', 'canvas', 'slate', 'umber', 'stone'], stone: ['stone', 'umber', 'slate', 'stone', 'oxblood'] })] },
   rowSkirt: { id: 'rowSkirt', archetype: 'resident', families: ['slim', 'standard'], frames: ['narrow'], headShapes: allShapes, hair: ['lowBun', 'bob', 'ponytail', 'highKnot', 'longTied'], hairColours: young, hats: ['none', 'headscarf'], facial: [['none', 1]],
@@ -58,7 +58,7 @@ export const CASTS: Record<CastId, Cast> = {
     slots: ['coat', 'waistcoat', 'trousers', 'hat'], asymmetries: ['stick', 'basket', 'scarfTail'],
     outfits: [o('elder.longCoat', { ash: ['charcoal', 'stone', 'soot', 'charcoal'], umber: ['umber', 'bone', 'charcoal', 'umber'] })] },
   affluent: { id: 'affluent', archetype: 'resident', families: ['slim', 'standard'], frames: ['broad', 'narrow'], headShapes: ['oval', 'long', 'heart'], hair: ['sweptBack', 'sidePart', 'lowBun', 'highKnot'], hairColours: young, hats: ['topHat', 'bonnet'], facial: [['none', 1]],
-    slots: ['frock', 'waistcoat', 'trousers', 'hat', 'trim'], asymmetries: ['watchChain', 'unevenFront', 'gloveHeld'],
+    slots: ['frock', 'waistcoat', 'trousers', 'hat', 'trim'], asymmetries: ['watchChain', 'unevenFront'],
     outfits: [o('affluent.frock', { oxblood: ['burgundy', 'cream', 'soot', 'soot', 'mustard'], navy: ['navy', 'bone', 'charcoal', 'soot', 'ochre'] })] },
   stallholder: { id: 'stallholder', archetype: 'merchant', families: ['standard', 'sturdy'], frames: ['broad', 'narrow'], headShapes: allShapes, hair: ['lowBun', 'bob', 'tousled'], hairColours: young, hats: ['headscarf', 'none'], facial: [['none', 1]],
     slots: ['blouse', 'skirt', 'apron', 'scarf'], asymmetries: ['apronTie', 'pouchHip', 'scarfTail'],
@@ -67,26 +67,26 @@ export const CASTS: Record<CastId, Cast> = {
     slots: ['waistcoat', 'shirt', 'trousers', 'apron', 'hat'], asymmetries: ['watchChain', 'pencilEar', 'sleeveGarters'],
     outfits: [o('shopMerchant.waistcoat', { wine: ['burgundy', 'cream', 'charcoal', 'greyGreen', 'soot'], ochre: ['mustard', 'bone', 'umber', 'slate', 'charcoal'] })] },
   labourer: { id: 'labourer', archetype: 'worker', families: ['sturdy', 'standard'], frames: ['broad'], headShapes: allShapes, hair: ['shortCrop', 'tousled', 'sidePart'], hairColours: young, hats: ['flatCap', 'none', 'softCap'], facial: [['none', 4], ['sideburns', 1]],
-    slots: ['shirt', 'trousers', 'braces', 'cap', 'kerchief'], asymmetries: ['pouchHip', 'ragBelt', 'braceDown'],
+    slots: ['shirt', 'trousers', 'braces', 'cap', 'kerchief'], asymmetries: ['pouchHip', 'ragBelt', 'braceDown'], story: ['leatherApron', 'hook'],
     outfits: [o('labourer.braced', { dust: ['canvas', 'umber', 'leatherDark', 'slate', 'rust'], soot: ['stone', 'charcoal', 'leatherDark', 'soot', 'oxblood'], moss: ['greyGreen', 'stone', 'leather', 'umber', 'mustard'] }),
       o('labourer.vested', { umber: ['bone', 'rust', 'oxblood', 'umber', 'greyGreen'], grey: ['canvas', 'slate', 'charcoal', 'stone', 'rust'] })] },
   foundry: { id: 'foundry', archetype: 'worker', families: ['sturdy'], frames: ['broad', 'narrow'], headShapes: ['square', 'oval', 'long'], hair: ['shortCrop', 'tousled', 'balding'], hairColours: young, hats: ['kerchief', 'none'], facial: [['none', 4], ['sideburns', 1]],
-    slots: ['shirt', 'trousers', 'apron', 'kerchief'], asymmetries: ['gauntletTucked', 'gogglesUp', 'pouchHip'],
+    slots: ['shirt', 'trousers', 'apron', 'kerchief'], asymmetries: ['gogglesUp', 'pouchHip'],
     outfits: [o('foundry.apron', { soot: ['charcoal', 'soot', 'leather', 'rust'], umber: ['umber', 'charcoal', 'leatherDark', 'oxblood'] })] },
   youngMechanic: { id: 'youngMechanic', archetype: 'engineer', families: ['slim', 'standard'], frames: ['broad', 'narrow'], headShapes: allShapes, hair: ['tousled', 'sweptBack', 'shortCrop', 'ponytail'], hairColours: young, hats: ['softCap', 'none'], facial: [['none', 4], ['sideburns', 1]],
-    slots: ['jacket', 'shirt', 'trousers', 'roll', 'cap'], asymmetries: ['toolRoll', 'gogglesUp', 'ragBelt'],
+    slots: ['jacket', 'shirt', 'trousers', 'roll', 'cap'], asymmetries: ['toolRoll', 'gogglesUp', 'ragBelt'], story: ['valveSleeve'],
     outfits: [o('youngMechanic.jacket', { slate: ['slate', 'bone', 'charcoal', 'leather', 'slate'], moss: ['greyGreen', 'cream', 'umber', 'leatherDark', 'greyGreen'] })] },
   olderMechanic: { id: 'olderMechanic', archetype: 'engineer', families: ['standard', 'sturdy'], frames: ['broad', 'narrow'], headShapes: allShapes, hair: ['balding', 'shortCrop'], hairColours: ['iron', 'umber', 'soot'], hats: ['flatCap', 'none'], facial: [['moustache', 3], ['none', 2], ['beard', 1]],
     slots: ['shopCoat', 'shirt', 'trousers', 'cap'], asymmetries: ['spectacles', 'pencilEar', 'ragBelt'],
     outfits: [o('olderMechanic.shopCoat', { canvas: ['canvas', 'bone', 'umber', 'umber'], slate: ['slate', 'cream', 'charcoal', 'slate'] })] },
   courier: { id: 'courier', archetype: 'courier', families: ['slim'], frames: ['broad', 'narrow'], headShapes: allShapes, hair: ['shortCrop', 'tousled', 'ponytail', 'bob'], hairColours: young, hats: ['softCap'], facial: [['none', 1]],
-    slots: ['jacket', 'shirt', 'trousers', 'satchel', 'scarf', 'cap'], asymmetries: ['satchelStrap', 'scarfTail'],
+    slots: ['jacket', 'shirt', 'trousers', 'satchel', 'scarf', 'cap'], asymmetries: ['satchelStrap', 'scarfTail'], story: ['threadStrap', 'noSatchel', 'scarfUp'],
     outfits: [o('courier.jacket', { oxblood: ['oxblood', 'bone', 'charcoal', 'leather', 'mustard', 'umber'], slate: ['slate', 'cream', 'soot', 'leather', 'oxblood', 'slate'] })] },
   garrison: { id: 'garrison', archetype: 'guard', families: ['standard', 'sturdy'], frames: ['broad'], headShapes: ['square', 'oval', 'long'], hair: ['shortCrop'], hairColours: mid, hats: ['kepi'], facial: [['none', 4], ['moustache', 1], ['sideburns', 1]],
     slots: ['greatcoat', 'trousers', 'crossbelt', 'kepi'], asymmetries: ['crossbelt'],
     outfits: [o('garrison.greatcoat', { ordinance: ['greenCharcoal', 'soot', 'leatherDark', 'greenCharcoal'] })] },
   inspector: { id: 'inspector', archetype: 'ordinal', families: ['slim', 'standard'], frames: ['broad'], headShapes: ['square', 'long', 'oval'], hair: ['shortCrop', 'sweptBack', 'sidePart'], hairColours: mid, hats: ['helm', 'none'], facial: [['none', 5], ['moustache', 1]],
-    slots: ['coat', 'trousers', 'collar', 'helm', 'armband'], asymmetries: ['armband', 'ledger'],
+    slots: ['coat', 'trousers', 'collar', 'helm', 'armband'], asymmetries: ['ledger', 'whistle'], story: ['spectacles', 'sleeveGuards', 'keyRing', 'truncheon'],
     outfits: [o('inspector.coat', { ordinance: ['greenCharcoal', 'soot', 'oxblood', 'soot', 'oxblood'] })] },
   child: { id: 'child', archetype: 'resident', families: ['child'], frames: ['narrow'], headShapes: ['oval', 'heart'], hair: ['tousled', 'bob', 'shortCrop'], hairColours: young, hats: ['softCap', 'none'], facial: [['none', 1]],
     slots: ['coat', 'shirt', 'trousers', 'cap'], asymmetries: ['scarfTail'],
@@ -112,17 +112,19 @@ const S = { cast: 1, family: 2, frame: 3, stature: 4, skin: 5, shape: 6, face: 7
 
 /** The fixed looks of named people (Book 9, "Story characters"): independent of spawn order. */
 export const STORY: Record<string, Look> = {
-  officer: { cast: 'inspector', family: 'standard', frame: 'broad', stature: 1.04, skin: 0, headShape: 'square', faceType: 4, hairStyle: 'sweptBack', hairColour: 'iron', hat: 'helm', facial: 'none', outfit: 'inspector.coat', palette: 'ordinance', asymmetries: ['ledger', 'armband'] },
-  clerk: { cast: 'inspector', family: 'slim', frame: 'broad', stature: 1, skin: 1, headShape: 'long', faceType: 5, hairStyle: 'sidePart', hairColour: 'umber', hat: 'none', facial: 'none', outfit: 'inspector.coat', palette: 'ordinance', asymmetries: ['armband'] },
-  rookHand: { cast: 'labourer', family: 'sturdy', frame: 'broad', stature: 1.02, skin: 2, headShape: 'square', faceType: 6, hairStyle: 'shortCrop', hairColour: 'soot', hat: 'flatCap', facial: 'sideburns', outfit: 'labourer.vested', palette: 'grey', asymmetries: ['pouchHip'] },
-  finchHand: { cast: 'youngMechanic', family: 'slim', frame: 'narrow', stature: .98, skin: 1, headShape: 'heart', faceType: 1, hairStyle: 'tousled', hairColour: 'chestnut', hat: 'none', facial: 'none', outfit: 'youngMechanic.jacket', palette: 'moss', asymmetries: ['ragBelt', 'toolRoll'] },
-  embersChalker: { cast: 'rowCoat', family: 'standard', frame: 'narrow', stature: 1, skin: 0, headShape: 'oval', faceType: 0, hairStyle: 'bob', hairColour: 'umber', hat: 'none', facial: 'none', outfit: 'rowCoat.open', palette: 'ash', asymmetries: ['sleeveRolled'] },
-  embersLookout: { cast: 'courier', family: 'slim', frame: 'narrow', stature: .97, skin: 2, headShape: 'long', faceType: 4, hairStyle: 'shortCrop', hairColour: 'soot', hat: 'softCap', facial: 'none', outfit: 'courier.jacket', palette: 'slate', asymmetries: ['scarfTail'] },
-  embersCourier: { cast: 'courier', family: 'slim', frame: 'broad', stature: 1, skin: 1, headShape: 'oval', faceType: 1, hairStyle: 'ponytail', hairColour: 'auburn', hat: 'softCap', facial: 'none', outfit: 'courier.jacket', palette: 'oxblood', asymmetries: ['satchelStrap'] },
+  officer: { cast: 'inspector', family: 'standard', frame: 'broad', stature: 1.04, skin: 0, headShape: 'square', faceType: 4, hairStyle: 'sweptBack', hairColour: 'iron', hat: 'helm', facial: 'none', outfit: 'inspector.coat', palette: 'ordinance', asymmetries: ['ledger'] },
+  clerk: { cast: 'inspector', family: 'slim', frame: 'broad', stature: 1, skin: 1, headShape: 'long', faceType: 5, hairStyle: 'sidePart', hairColour: 'umber', hat: 'none', facial: 'none', outfit: 'inspector.coat', palette: 'ordinance', asymmetries: ['spectacles', 'sleeveGuards'] },
+  rookHand: { cast: 'labourer', family: 'sturdy', frame: 'broad', stature: 1.02, skin: 2, headShape: 'square', faceType: 6, hairStyle: 'shortCrop', hairColour: 'soot', hat: 'flatCap', facial: 'sideburns', outfit: 'labourer.vested', palette: 'grey', asymmetries: ['leatherApron', 'hook'] },
+  finchHand: { cast: 'youngMechanic', family: 'slim', frame: 'narrow', stature: .98, skin: 1, headShape: 'heart', faceType: 1, hairStyle: 'tousled', hairColour: 'chestnut', hat: 'none', facial: 'none', outfit: 'youngMechanic.jacket', palette: 'moss', asymmetries: ['valveSleeve', 'ragBelt'] },
+  embersChalker: { cast: 'rowCoat', family: 'standard', frame: 'narrow', stature: 1, skin: 0, headShape: 'oval', faceType: 0, hairStyle: 'bob', hairColour: 'umber', hat: 'none', facial: 'none', outfit: 'rowCoat.open', palette: 'ash', asymmetries: ['chalk', 'sleeveRolled'] },
+  embersLookout: { cast: 'courier', family: 'slim', frame: 'narrow', stature: .97, skin: 2, headShape: 'long', faceType: 4, hairStyle: 'shortCrop', hairColour: 'soot', hat: 'softCap', facial: 'none', outfit: 'courier.jacket', palette: 'slate', asymmetries: ['noSatchel', 'scarfUp'] },
+  embersCourier: { cast: 'courier', family: 'slim', frame: 'broad', stature: 1, skin: 1, headShape: 'oval', faceType: 1, hairStyle: 'ponytail', hairColour: 'auburn', hat: 'softCap', facial: 'none', outfit: 'courier.jacket', palette: 'oxblood', asymmetries: ['threadStrap', 'satchelStrap'] },
   masked: { cast: 'courier', family: 'slim', frame: 'broad', stature: 1.01, skin: 2, headShape: 'long', faceType: 5, hairStyle: 'tousled', hairColour: 'soot', hat: 'softCap', facial: 'none', outfit: 'courier.jacket', palette: 'slate', asymmetries: ['satchelStrap'] },
-  overseer: { cast: 'inspector', family: 'standard', frame: 'broad', stature: 1.02, skin: 1, headShape: 'square', faceType: 6, hairStyle: 'shortCrop', hairColour: 'iron', hat: 'helm', facial: 'moustache', outfit: 'inspector.coat', palette: 'ordinance', asymmetries: ['armband'] },
+  introGuard: { cast: 'garrison', family: 'sturdy', frame: 'broad', stature: 1.03, skin: 1, headShape: 'square', faceType: 4, hairStyle: 'shortCrop', hairColour: 'soot', hat: 'kepi', facial: 'moustache', outfit: 'garrison.greatcoat', palette: 'ordinance', asymmetries: ['crossbelt'] },
+  introOrdinal: { cast: 'inspector', family: 'slim', frame: 'broad', stature: 1, skin: 0, headShape: 'long', faceType: 5, hairStyle: 'sweptBack', hairColour: 'umber', hat: 'helm', facial: 'none', outfit: 'inspector.coat', palette: 'ordinance', asymmetries: ['whistle'] },
+  overseer: { cast: 'inspector', family: 'standard', frame: 'broad', stature: 1.02, skin: 1, headShape: 'square', faceType: 6, hairStyle: 'shortCrop', hairColour: 'iron', hat: 'helm', facial: 'moustache', outfit: 'inspector.coat', palette: 'ordinance', asymmetries: ['keyRing'] },
   warden: { cast: 'inspector', family: 'slim', frame: 'broad', stature: .99, skin: 0, headShape: 'oval', faceType: 0, hairStyle: 'sidePart', hairColour: 'chestnut', hat: 'none', facial: 'none', outfit: 'inspector.coat', palette: 'ordinance', asymmetries: ['ledger'] },
-  beat: { cast: 'inspector', family: 'standard', frame: 'broad', stature: 1, skin: 2, headShape: 'long', faceType: 4, hairStyle: 'shortCrop', hairColour: 'umber', hat: 'helm', facial: 'none', outfit: 'inspector.coat', palette: 'ordinance', asymmetries: ['armband'] },
+  beat: { cast: 'inspector', family: 'standard', frame: 'broad', stature: 1, skin: 2, headShape: 'long', faceType: 4, hairStyle: 'shortCrop', hairColour: 'umber', hat: 'helm', facial: 'none', outfit: 'inspector.coat', palette: 'ordinance', asymmetries: ['truncheon'] },
 };
 
 export interface LookOpts {
@@ -160,6 +162,6 @@ export function invalid(look: Look): string | undefined {
   if (!c.hats.includes(look.hat)) return 'hat'; if (!c.hair.includes(look.hairStyle)) return 'hair not in cast'; if (!HAT_HAIR[look.hat].includes(look.hairStyle)) return `hat ${look.hat} does not suit hair ${look.hairStyle}`;
   if (!c.hairColours.includes(look.hairColour)) return 'hairColour'; if (!c.facial.some(([f]) => f === look.facial)) return 'facial';
   const outfit = c.outfits.find(x => x.id === look.outfit); if (!outfit) return 'outfit'; if (!outfit.palettes[look.palette]) return 'palette';
-  if (look.asymmetries.length < 1 || look.asymmetries.length > 2 || look.asymmetries.some(a => !c.asymmetries.includes(a)) || new Set(look.asymmetries).size !== look.asymmetries.length) return 'asymmetries';
+  if (look.asymmetries.length < 1 || look.asymmetries.length > 2 || look.asymmetries.some(a => !c.asymmetries.includes(a) && !c.story?.includes(a)) || new Set(look.asymmetries).size !== look.asymmetries.length) return 'asymmetries';
   return undefined;
 }

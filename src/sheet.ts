@@ -5,7 +5,7 @@ import { landmarks } from './world/people/headform';
 import { skullRings, ear, faceUV, noseWedge } from './world/people/head';
 import { ringAt } from './world/people/loft';
 import { dimsOf } from './world/people/body';
-import { CASTS, type CastId, type Family, type Frame } from './world/people/look';
+import { CASTS, STORY, type CastId, type Family, type Frame } from './world/people/look';
 import { animateLife, setLifeConditions, type Activity } from './world/citizen-life';
 import { InkRenderer } from './world/ink-renderer';
 import { tone, painted } from './world/tone';
@@ -28,12 +28,13 @@ const parseSet = (t: string) => Object.fromEntries(t.split(',').filter(Boolean).
 const sets = (q.get('sets') ?? '').split(';');
 const next = q.get('build') === 'new', force = { cast: (q.get('cast') as CastId | null) ?? undefined, family: (q.get('family') as Family | null) ?? undefined, frame: (q.get('frame') as Frame | null) ?? undefined, look: q.get('look') ?? undefined, over: parseSet(q.get('set') ?? '') };
 const combos = (q.get('combos') ?? '').split(',').filter(Boolean).map(c => { const [cast, family, frame, shape] = c.split('.'); return { cast: cast as CastId, family: family as Family, frame: frame as Frame, shape }; });
-const make = (seed: number, role: Archetype, c = 0) => next ? citizenNext(mats.rust, seed, role, { solo: true, bare: q.get('bare') === '1', casts: BUILT, ...force, ...(({ shape, ...rest }) => ({ ...rest, over: { ...(force.over as object), ...(parseSet(sets[exprs.length ? 0 : c] ?? '') as object), ...(shape ? { headShape: shape } : {}) } as never }))(combos[exprs.length ? 0 : c] ?? {} as never) }) : citizen(mats.rust, seed, role, { solo: true });
+const looks = (q.get('looks') ?? '').split(',').filter(Boolean); // &looks=officer,clerk,... one story character each
+const make = (seed: number, role: Archetype, c = 0) => next ? citizenNext(mats.rust, seed, role, { solo: true, bare: q.get('bare') === '1', casts: BUILT, ...force, ...(looks.length ? { look: looks[c], mask: looks[c] === 'masked' } : {}), ...(({ shape, ...rest }) => ({ ...rest, over: { ...(force.over as object), ...(parseSet(sets[exprs.length ? 0 : c] ?? '') as object), ...(shape ? { headShape: shape } : {}) } as never }))(combos[exprs.length ? 0 : c] ?? {} as never) }) : citizen(mats.rust, seed, role, { solo: true });
 const WALK = 1; // m/s, the pace the stride is simulated at
 // Roles run along one row when there is a single seed; otherwise roles are rows and seeds are columns.
 const exprs = (q.get('expr') ?? '').split(',').filter(Boolean); // &expr=neutral,happy,... one head through several expressions
-const lineup = seeds.length === 1, rows = exprs.length || combos.length ? 1 : lineup ? 1 : roles.length, cols = exprs.length ? exprs.length : combos.length ? combos.length : lineup ? roles.length : seeds.length;
-const cell = (r: number, c: number) => exprs.length ? { role: roles[0], seed: seeds[0] } : combos.length ? { role: CASTS[combos[c].cast].archetype, seed: seeds[c % seeds.length] } : { role: lineup ? roles[c] : roles[r], seed: lineup ? seeds[0] : seeds[c] };
+const lineup = seeds.length === 1, rows = exprs.length || combos.length || looks.length ? 1 : lineup ? 1 : roles.length, cols = exprs.length ? exprs.length : looks.length ? looks.length : combos.length ? combos.length : lineup ? roles.length : seeds.length;
+const cell = (r: number, c: number) => looks.length ? { role: CASTS[STORY[looks[c]].cast].archetype, seed: c + 1 } : exprs.length ? { role: roles[0], seed: seeds[0] } : combos.length ? { role: CASTS[combos[c].cast].archetype, seed: seeds[c % seeds.length] } : { role: lineup ? roles[c] : roles[r], seed: lineup ? seeds[0] : seeds[c] };
 
 // ?atlas=next&rows=0,1&cols=0,1,2,3: the raw face atlas, unlit, on a flat quad (a dev view: what is really painted in a tile)
 if (q.get('atlas')) {
@@ -123,7 +124,7 @@ if (q.get('overlay') === '1') {
 
 if (q.get('labels') !== '0' && !px) {
   const tag = (text: string, x: number, y: number) => { const e = document.createElement('div'); e.className = 'tag'; e.textContent = text; e.style.left = x + 'px'; e.style.top = y + 'px'; document.body.append(e); };
-  for (const [c, f] of figures.entries()) { const p = new T.Vector3(f.x, f.y - .16, 0).project(camera); tag(combos.length ? combos[c].cast + ' ' + (combos[c].family ?? '') + ' ' + (combos[c].frame ?? '') : lineup ? f.role : String(f.seed), (p.x + 1) / 2 * innerWidth, (1 - p.y) / 2 * innerHeight); }
+  for (const [c, f] of figures.entries()) { const p = new T.Vector3(f.x, f.y - .16, 0).project(camera); tag(looks.length ? looks[c] : combos.length ? combos[c].cast + ' ' + (combos[c].family ?? '') + ' ' + (combos[c].frame ?? '') : lineup ? f.role : String(f.seed), (p.x + 1) / 2 * innerWidth, (1 - p.y) / 2 * innerHeight); }
   if (!lineup && !combos.length) roles.forEach((role, r) => { const p = new T.Vector3(0, (rows - 1 - r) * SY + tallest / 2, 0).project(camera); tag(role, 36, (1 - p.y) / 2 * innerHeight); });
 }
 
