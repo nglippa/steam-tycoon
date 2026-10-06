@@ -503,7 +503,7 @@ export type Citizen=ReturnType<typeof citizen>;
 
 // ---- The next figure (People III): built beside the old one, from a resolved Look. The game still uses `citizen()` until the whole cast is dressed.
 const plainByColor=new Map<string,T.MeshToonMaterial>();
-const plainMaterial=(color:string)=>{let m=plainByColor.get(color);if(!m){m=toon(color);m.userData.plain=true;plainByColor.set(color,m);}return m;};
+const plainMaterial=(color:string,late=color)=>{const key=color+'>'+late;let m=plainByColor.get(key);if(!m){m=toon(color);m.userData.plain=true;if(late!==color)m.userData.restoredColor=late;plainByColor.set(key,m);}return m;};
 /** `look`: a named story character (people/look.ts). `cast`, `family`, `frame`: force part of a look (the cast sheet). */
 export type NextOpts={solo?:boolean;mask?:boolean;look?:string;/** dev: bare heads */bare?:boolean;/** dev: fields of the resolved look to overwrite (the cast sheet's `set=`) */over?:Partial<Look>;cast?:CastId;family?:Family;frame?:Frame;/** the casts the scene wants (narrows the archetype's casts) */casts?:readonly CastId[]};
 export function citizenNext(coat:Material=mats.rust,seed=0,archetype:Archetype='worker',opts:NextOpts={}):Citizen{

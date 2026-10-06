@@ -1,5 +1,5 @@
 import type { Ring } from './loft';
-import type { Family, Frame } from './look';
+import type { Family, Frame, LookFamily } from './look';
 
 /** The body reference (Terra Character Book 3 and 5). Most of it is never drawn: garments are shells derived from these rings by an offset.
  *  Families are authored records, not a width multiplier: each has its own neck, slope of shoulder, belly and limb profile, and a frame (broad or narrow) overrides what differs.
@@ -23,13 +23,18 @@ const standard: Dims = { h: .285, chin: 1.60, shX: .233, rSh: .052, chestW: .335
 const sturdy: Dims = { h: .295, chin: 1.616, shX: .258, rSh: .062, chestW: .38, waistW: .37, hipW: .40, chestD: .27, waistD: .245, hipD: .235, belly: .035, slope: .037, neckW: .128, neckD: .118, neckLean: .13, headFwd: -.004,
   armW: .11, elbowR: .045, foreW: .098, wristW: .058, hipX: .096, hipR: .082, thighW: .17, kneeR: .062, calfW: .125, calfBack: .02, ankleW: .075, hand: .2, shoe: .3, shoeW: .1 };
 
+/** The child (Book 3): its own authored family at about 5.5 heads, not a scaled adult. On the adult rig (joints are not moved) the head is larger, the neck short, the shoulders, chest and limbs narrow,
+ *  the belly a little forward, the hands and feet small; the group is then scaled to about .72 by the spawn sites, which is what makes it a child's size (the crown stands at 1.885 on the rig). */
+const child: Dims = { h: .335, chin: 1.55, shX: .165, rSh: .04, chestW: .25, waistW: .245, hipW: .27, chestD: .175, waistD: .165, hipD: .17, belly: .02, slope: .07, neckW: .092, neckD: .085, neckLean: .12, headFwd: .01,
+  armW: .062, elbowR: .028, foreW: .056, wristW: .037, hipX: .07, hipR: .052, thighW: .108, kneeR: .04, calfW: .08, calfBack: .01, ankleW: .05, hand: .15, shoe: .22, shoeW: .075 };
+
 /** The narrow frame: shoulders and hips about equal, a higher and smaller waist, a slimmer neck and wrist. Only what differs from the broad record. */
 const NARROW: Record<Family, Partial<Dims>> = {
   slim: { shX: .178, chestW: .27, waistW: .23, hipW: .34, chestD: .19, neckW: .084, wristW: .042, hipD: .2 },
   standard: { shX: .198, chestW: .30, waistW: .27, hipW: .38, chestD: .22, neckW: .094, wristW: .046, hipD: .225 },
   sturdy: { shX: .218, chestW: .34, waistW: .33, hipW: .43, chestD: .255, neckW: .114, wristW: .054, hipD: .265 },
 };
-export const dimsOf = (family: Family, frame: Frame): Dims => ({ ...{ slim, standard, sturdy }[family], ...(frame === 'narrow' ? NARROW[family] : {}) });
+export const dimsOf = (family: LookFamily, frame: Frame): Dims => family === 'child' ? child : ({ ...{ slim, standard, sturdy }[family], ...(frame === 'narrow' ? NARROW[family] : {}) });
 
 /** The rig, in sole heights (Book section 2). */
 export const RIG = { hip: .97, knee: .54, ankle: .045, shoulder: 1.43, elbow: 1.18, wrist: .94, crotch: .845, waist: 1.1, thigh: .43, shin: .495, upperArm: .25, forearm: .24, chin: 1.61 } as const;
@@ -62,7 +67,7 @@ export function pelvis(d: Dims): Ring[] { return [
 ]; }
 
 /** The neck: an oval column that leans forward into the skull and enters behind the jaw. Rings are sole heights; the lean moves the centre forward with height. */
-export function neck(d: Dims): Ring[] { const lean = Math.tan(d.neckLean); return [1.47, 1.52, d.chin - .035, d.chin + .03].map((y, i) => ring(y, d.neckW * (1 - i * .06), d.neckD * 1.02 * (1 - i * .05), -.012 + (y - 1.47) * lean + d.headFwd * (i / 3), 2.15)); }
+export function neck(d: Dims): Ring[] { const lean = Math.tan(d.neckLean); return (d.chin < 1.58 ? [1.47, 1.5, d.chin - .015, d.chin + .03] : [1.47, 1.52, d.chin - .035, d.chin + .03]).map((y, i) => ring(y, d.neckW * (1 - i * .06), d.neckD * 1.02 * (1 - i * .05), -.012 + (y - 1.47) * lean + d.headFwd * (i / 3), 2.15)); }
 
 /** Upper arm: local to the shoulder pivot. The cap (the deltoid) is the first ring; fullest a third of the way down, front and back unequal; a point at the back of the elbow. */
 export function upperArm(d: Dims): Ring[] { const a = d.armW / 2; return [
