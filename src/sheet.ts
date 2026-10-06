@@ -135,9 +135,11 @@ function measure() {
     const n = make(seed, role, c), box = (o: T.Object3D) => new T.Box3().setFromObject(o, true);
     n.group.scale.set(1, 1, 1); n.group.updateMatrixWorld(true);
     const sole = Math.min(...n.ankles.map(a => box(a).min.y)), skull = box(n.face), arms = box(n.arms[0]).union(box(n.arms[1])), hips = box(n.pelvis);
-    let tris = 0, meshes = 0, nodes = 0; n.group.traverse(o => { nodes++; if (o instanceof T.Mesh && !(o.geometry instanceof T.CircleGeometry)) { let v = o.visible, p: T.Object3D | null = o.parent; while (v && p) { v = p.visible; p = p.parent; } if (v) { meshes++; tris += (o.geometry.index ? o.geometry.index.count : o.geometry.attributes.position.count) / 3; } } });
+    let tris = 0, meshes = 0, nodes = 0; const mats = new Set<T.Material>(); let multi = 0; n.group.traverse(o => { nodes++; if (o instanceof T.Mesh && !(o.geometry instanceof T.CircleGeometry)) { if (Array.isArray(o.material)) multi++; else mats.add(o.material); let v = o.visible, p: T.Object3D | null = o.parent; while (v && p) { v = p.visible; p = p.parent; } if (v) { meshes++; tris += (o.geometry.index ? o.geometry.index.count : o.geometry.attributes.position.count) / 3; } } });
+    const count = (g: T.Object3D) => { let t = 0; g.traverse(o => { if (o instanceof T.Mesh && !(o.geometry instanceof T.CircleGeometry)) t += (o.geometry.index ? o.geometry.index.count : o.geometry.attributes.position.count) / 3; }); return t; };
+    const parts = { head: count(n.head), arms: count(n.arms[0]) + count(n.arms[1]), legs: count(n.legs[0]) + count(n.legs[1]), tails: count(n.tails), pelvis: count(n.pelvis) - count(n.tails) - count(n.legs[0]) * 0, scarf: count(n.scarf), torso: tris - count(n.head) - count(n.arms[0]) - count(n.arms[1]) - count(n.legs[0]) - count(n.legs[1]) - count(n.pelvis) - count(n.scarf) };
     const height = skull.max.y - sole, head = skull.max.y - skull.min.y, r = (v: number) => Math.round(v * 1e4) / 1e4;
-    return { role, seed, ...(combos[c] ?? {}), height: r(height), head: r(head), headsTall: r(height / head), tris, meshes, nodes, shoulderWidth: r(arms.max.x - arms.min.x), hipWidth: r(hips.max.x - hips.min.x) };
+    return { role, seed, ...(combos[c] ?? {}), height: r(height), head: r(head), headsTall: r(height / head), tris, meshes, nodes, materials: mats.size, multiMaterialMeshes: multi, parts, shoulderWidth: r(arms.max.x - arms.min.x), hipWidth: r(hips.max.x - hips.min.x) };
   });
 }
 /** Where a hand lands, for the poses that were solved against the old rig: the first grip (the food point of a bite) against the mouth, in the figure's own frame (metres, world, scale 1). */
