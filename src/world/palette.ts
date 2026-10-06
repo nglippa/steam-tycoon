@@ -7,6 +7,12 @@ export const palette = {
   aether: { cyan:'#70e7e1', white:'#d1f3f1', glow:'#79dce6' },
   skin: ['#d8b094','#b08470','#86625a'],
   hair: ['#262a4a','#7c4331','#cf9450','#5a3a5e'],
+  /** Character Book 7: hair, soot to white. No plum, no bright ginger. (`hair` above is the old builder's and stays.) */
+  hair2: { soot:'#1f1d22', umber:'#4a3328', chestnut:'#6e4630', auburn:'#6b3328', straw:'#a58f62', iron:'#7d8083', white:'#d9d6cd' },
+  /** Character Book 6: irises. No violet, red or teal. */
+  iris: { brown:'#6a4630', darkBrown:'#3b2a22', hazel:'#7a6532', grey:'#7d8590', greyGreen:'#667a6a', slateBlue:'#56708c' },
+  /** Character Book 10: the swatches a person's clothes are made from. A cast's outfits name these, never a hex. */
+  cloth: { soot:'#2d2c30', charcoal:'#34393a', umber:'#5a4636', rust:'#7a4a36', oxblood:'#7a3a33', burgundy:'#6e3430', greyGreen:'#4e6358', slate:'#3e4a55', navy:'#2f3a4e', bone:'#c9b89a', cream:'#d9ccb0', canvas:'#b3a283', mustard:'#b8933f', ochre:'#a8803a', stone:'#8d877b', leather:'#5b3f33', leatherDark:'#3b2a24', greenCharcoal:'#343d35', turquoise:'#2f9c97' },
   sky: { clear:'#8aa6b6', horizon:'#efe0c4', overcast:'#86908f', rain:'#5a6366', lavender:'#9c9d95', night:'#1b2756', haze:'#3d4a74', cloud:'#f6ead3', cloudShade:'#b9aa98', dusk:'#f2a67f', rose:'#5d6c9e', smog:'#b7b8ae' },
 } as const;
 const p=palette;

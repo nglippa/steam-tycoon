@@ -1,0 +1,26 @@
+[
+  {
+    "role": "worker",
+    "seed": 3,
+    "height": 1.922,
+    "head": 0.295,
+    "headsTall": 6.5153,
+    "tris": 5494,
+    "meshes": 21,
+    "nodes": 43,
+    "shoulderWidth": 0.6477,
+    "hipWidth": 0.424
+  },
+  {
+    "role": "resident",
+    "seed": 3,
+    "height": 1.867,
+    "head": 0.275,
+    "headsTall": 6.7891,
+    "tris": 6598,
+    "meshes": 22,
+    "nodes": 44,
+    "shoulderWidth": 0.4815,
+    "hipWidth": 0.4201
+  }
+]

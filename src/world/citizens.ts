@@ -2,8 +2,10 @@ import * as T from 'three';
 import { mannerOf, seedOf, newMood, type Tone } from '../simulation/occupation';
 import { footing } from '../simulation/gait';
 import { palette as P, wardrobes, type Archetype } from './palette';
-import { box, cyl, sphere, torus, bake, mats, thinLine, type Material } from './assets';
+import { box, cyl, sphere, torus, bake, mats, thinLine, seeded, type Material } from './assets';
 import { painted } from './tone';
+import { resolveLook, type CastId, type Family, type Frame } from './people/look';
+import { buildFigure, type Kit } from './people/figure';
 
 const ramp = new T.DataTexture(new Uint8Array([128, 202, 255]), 3, 1, T.RedFormat);
 ramp.minFilter = ramp.magFilter = T.NearestFilter; ramp.generateMipmaps = false; ramp.needsUpdate = true;
@@ -38,6 +40,17 @@ painted(coloredToon);thinLine(coloredToon);
 // Hair, skin and metal share the wardrobe shader but not the stitched cloth texture.
 const plainToon=new T.MeshToonMaterial({vertexColors:true,gradientMap:ramp});
 plainToon.onBeforeCompile=wardrobeHook;plainToon.customProgramCacheKey=()=> 'terra-wardrobe-plain';painted(plainToon);thinLine(plainToon);
+/** The new figures' cloth: the same side seams, hatching and grime as `clothMap`, but without the stitched hems painted at both ends of every piece (Character Book 8: they drew a line round
+ * every knee and elbow), and seeded, so it is the same on every load. Same wardrobe shader, same terminator, same line class; `painted` is applied once. */
+function clothMapNext(){const W=256,c=document.createElement('canvas');c.width=c.height=W;const x=c.getContext('2d')!,r=seeded(4417);
+  x.fillStyle='#f4f0e6';x.fillRect(0,0,W,W);
+  for(let i=0;i<40;i++){x.strokeStyle='rgba(60,45,35,.12)';x.lineWidth=1.2;const px=r()*W,py=r()*W;x.beginPath();x.moveTo(px,py);x.lineTo(px+10,py+14);x.stroke();}
+  for(const u of [.25,.75]){x.strokeStyle='rgba(35,28,24,.7)';x.lineWidth=2.4;x.beginPath();x.moveTo(u*W,0);x.lineTo(u*W,W);x.stroke();}
+  for(let i=0;i<3;i++){x.fillStyle='rgba(255,250,235,.2)';x.fillRect(r()*W,r()*W,18,12);}
+  const t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;t.wrapS=t.wrapT=T.RepeatWrapping;return t;}
+const coloredToonNext = new T.MeshToonMaterial({ vertexColors:true, gradientMap:ramp, map:clothMapNext() });
+coloredToonNext.onBeforeCompile=wardrobeHook;coloredToonNext.customProgramCacheKey=()=> 'terra-wardrobe-colors';
+painted(coloredToonNext);thinLine(coloredToonNext);
 export function setCitizenProsperity(stage:number){wardrobePhase.value=Math.min(1,stage/5);}
 const wardrobeMaterials=new Map<string,T.MeshToonMaterial>();
 function outfitMaterial(early:string,late=early){const key=early+late;let m=wardrobeMaterials.get(key);if(!m){m=toon(early);m.userData.restoredColor=late;wardrobeMaterials.set(key,m);}return m;}
@@ -59,7 +72,7 @@ function tailored(g:T.Object3D, rings:number[][], material:Material, segments=10
   const mesh=new T.Mesh(geometry,material);g.add(mesh);return mesh;
 }
 function panel(g:T.Object3D,points:number[][],z:number,material:Material){const shape=new T.Shape();points.forEach(([x,y],i)=>i?shape.lineTo(x,y):shape.moveTo(x,y));shape.closePath();const mesh=new T.Mesh(new T.ShapeGeometry(shape),material);mesh.position.z=z;g.add(mesh);return mesh;}
-function bakeCharacter(group:T.Group){
+function bakeCharacter(group:T.Group,cloth:T.Material=coloredToon){
   group.traverse(object=>{
     if(!(object instanceof T.Mesh)||!(object.material instanceof T.MeshToonMaterial)||object.material.map)return;
     const geometry=object.geometry.clone(),color=object.material.color,colors=new Float32Array(geometry.attributes.position.count*3);
@@ -67,7 +80,7 @@ function bakeCharacter(group:T.Group){
     geometry.setAttribute('color',new T.BufferAttribute(colors,3));
     const restored=new T.Color(object.material.userData.restoredColor??color),late=new Float32Array(colors.length);
     for(let i=0;i<late.length;i+=3){late[i]=restored.r;late[i+1]=restored.g;late[i+2]=restored.b;}
-    geometry.setAttribute('restoredColor',new T.BufferAttribute(late,3));object.geometry=geometry;object.material=object.material.userData.plain?plainToon:coloredToon;
+    geometry.setAttribute('restoredColor',new T.BufferAttribute(late,3));object.geometry=geometry;object.material=object.material.userData.plain?plainToon:cloth;
   });return bake(group);
 }
 // One shared atlas for all three skin tones: eight face types (rows) by sixteen feature variants (columns). Skin is left transparent
@@ -444,11 +457,29 @@ export function citizen(coat:Material=mats.rust,seed=0,archetype:Archetype='work
   body.position.y-=.14;pelvis.position.y-=.14;for(const leg of legs)leg.position.y-=.14;
   group.scale.set(1+(seed%4-1.5)*.03,.95+(seed%5)*.022,1);
   group.traverse(o=>{if(o instanceof T.Mesh)o.castShadow=false;});
+  return finish({group,body,pelvis,legs,knees,ankles,arms,elbows,grips,head,worn,finery,scarf,tails,skirt,swing,face},faceMat,seed,archetype,opts);
+}
+/** The tail every figure shares, old builder and new: motion state, the expression API and the returned shape. A pure move out of `citizen()`. */
+function finish(n:{group:T.Group;body:T.Group;pelvis:T.Group;legs:T.Group[];knees:T.Group[];ankles:T.Group[];arms:T.Group[];elbows:T.Group[];grips:T.Group[];head:T.Group;worn:T.Group;finery:T.Group;scarf:T.Group;tails:T.Group;skirt:{drop:number;depth:number};swing:T.Group;face:T.Mesh},faceMat:T.Material,seed:number,archetype:Archetype,opts:{solo?:boolean;mask?:boolean}){
+  const {group,body,pelvis,legs,knees,ankles,arms,elbows,grips,head,worn,finery,scarf,tails,skirt,swing,face}=n;
   const motion={stride:seed*1.3,latch:footing(),gait:0,speed:0,prevX:NaN,prevZ:0,prevYaw:0,turn:0,tail:0,tailV:0,hair:0,hairV:0,tempo:.88+((seed*37)%25)/100,idle:0,drape:1,pose:null as Float32Array|null,mood:newMood(),pick:Math.abs(Math.sin(seed*12.9898+1.7)*43758.5453)%1};
   return {group,body,pelvis,legs,knees,ankles,arms,elbows,grips,head,worn,finery,scarf,tails,skirt,swing,face,archetype,motion,phase:seed*1.7,expression:'neutral' as Expression,gaze:'away',manner:mannerOf(archetype,seedOf(seed)),/** A line being spoken, and until when: the body takes the register of the words (`palm`: until when a raised palm says halt). */tone:undefined as undefined|{tone:Tone;until:number;palm?:number},packed:0,
     /** Dress the face: a named look, with the eyes shut for a blink, the mouth moving (`talk` 0..2 is a frame of speech) or the eyes turned (`eye` 6 left, 7 right on the atlas). Writes only when the look changes. */
     setExpression(state:Expression,blink=false,talk=-1,eye=-1){const [e,b,m]=LOOK[state];let E:number=eye>=0?eye:e,M:number=m;if(blink&&E!==4)E=3;if(talk>=0){const t=TALK[m===9?1:0][talk];if(t>=0)M=t;}
       this.expression=blink?'blink':state;const p=E|b<<4|M<<8;if(p===this.packed)return;this.packed=p;face.userData.face=p;if(opts.solo)(faceMat.userData.look as T.Vector3).set(E,b,M);}};
 }
-
 export type Citizen=ReturnType<typeof citizen>;
+
+// ---- The next figure (People III): built beside the old one, from a resolved Look. The game still uses `citizen()` until the whole cast is dressed.
+const plainByColor=new Map<string,T.MeshToonMaterial>();
+const plainMaterial=(color:string)=>{let m=plainByColor.get(color);if(!m){m=toon(color);m.userData.plain=true;plainByColor.set(color,m);}return m;};
+/** `look`: a named story character (people/look.ts). `cast`, `family`, `frame`: force part of a look (the cast sheet). */
+export type NextOpts={solo?:boolean;mask?:boolean;look?:string;cast?:CastId;family?:Family;frame?:Frame;/** the casts the scene wants (narrows the archetype's casts) */casts?:readonly CastId[]};
+export function citizenNext(coat:Material=mats.rust,seed=0,archetype:Archetype='worker',opts:NextOpts={}):Citizen{
+  void coat;
+  const look=resolveLook(seed,archetype,{look:opts.look,cast:opts.cast,family:opts.family,frame:opts.frame,casts:opts.casts});
+  const kit:Kit={cloth:(c,l)=>outfitMaterial(c,l),plain:plainMaterial,skin,face:tone=>opts.solo?faceMaterial(tone):faces[tone],bake:g=>bakeCharacter(g,coloredToonNext),contact:new T.Mesh(contactShape,contactInk)};
+  const fig=buildFigure(look,opts,kit);
+  const {faceMat,...nodes}=fig;
+  return finish(nodes,faceMat,seed,archetype,opts);
+}
