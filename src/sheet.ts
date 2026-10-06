@@ -13,7 +13,7 @@ import { palette, type Archetype } from './world/palette';
 import { mats } from './world/assets';
 
 /** Dev-only cast sheet (sheet.html): solo figures posed by the game's own `animateLife` and drawn through the game's ink pass. Not imported by the game.
- * ?roles=worker,guard &seeds=0,1,2 | 0-19 &view=front|quarter|side|back &pose=stand|stride|sit|raise|carry|bite &sil=1 &px=50 &stage=0..5 &light=game &labels=0 &zoom=3 &fy=.9
+ * ?roles=worker,guard &seeds=0,1,2 | 0-19 &view=front|quarter|side|back &pose=stand|stride|sit|raise|carry|bite|halt &sil=1 &px=50 &stage=0..5 &light=game &labels=0 &zoom=3 &fy=.9
  * &build=old|new (the figure builder; default old) and, for the new one, &cast=labourer &family=slim|standard|sturdy &frame=broad|narrow to force part of the look, &look=officer for a story character;
  * &combos=labourer.sturdy.broad,rowCoat.slim.narrow,... one figure per entry (cast.family.frame) on a single row, for the family sheet; &still=1 the unposed figure (no head turned to the viewer) */
 const q = new URLSearchParams(location.search);
@@ -22,7 +22,7 @@ const roles = (q.get('roles') ?? ROLES.join(',')).split(',').filter((r): r is Ar
 const seeds = (() => { const s = q.get('seeds') ?? '3', r = /^(\d+)-(\d+)$/.exec(s); return r ? Array.from({ length: +r[2] - +r[1] + 1 }, (_, i) => +r[1] + i) : s.split(',').map(Number).filter(Number.isInteger); })();
 const YAW: Record<string, number> = { front: 0, quarter: Math.PI / 4, side: Math.PI / 2, back: Math.PI };
 const view = q.get('view') ?? 'front', how = q.get('pose') ?? 'stand', yaw = YAW[view] ?? 0;
-const ACTIVITY: Record<string, Activity> = { stand: 'walk', stride: 'walk', sit: 'sit', raise: 'repair', carry: 'carry', bite: 'eat' };
+const ACTIVITY: Record<string, Activity> = { stand: 'walk', stride: 'walk', sit: 'sit', raise: 'repair', carry: 'carry', bite: 'eat', halt: 'guard' };
 const sil = q.get('sil') === '1', px = Number(q.get('px')) || 0, stage = Math.min(5, Math.max(0, Number(q.get('stage')) || 0));
 const parseSet = (t: string) => Object.fromEntries(t.split(',').filter(Boolean).map(kv => { const [k, v] = kv.split(':'); return [k, /^\d+$/.test(v) ? Number(v) : v.includes('+') ? v.split('+') : v]; })) as never;
 const sets = (q.get('sets') ?? '').split(';');
@@ -68,6 +68,7 @@ function simulate(n: Citizen) {
   const warm = how === 'stride' ? 90 : how === 'bite' ? 45 : 60, window = how === 'stride' ? 48 : how === 'bite' ? 300 : 0;
   let best = -Infinity, snap: ReturnType<typeof save> | undefined;
   n.group.rotation.y = yaw; n.group.position.set(0, 0, 0);
+  if (how === 'halt') n.tone = { tone: 'authoritative', until: 1e9, palm: 1e9 }; // the Ordinance's halt: a raised palm
   for (let i = 0; i < warm + window; i++) {
     const t = i * dt; if (how === 'stride') n.group.position.copy(fwd).multiplyScalar(t * WALK); // gait speed is read from real displacement
     animateLife(n, ACTIVITY[how] ?? 'walk', dt, t, false, player);

@@ -1,7 +1,7 @@
 import * as T from 'three';
 import { loft, sweep, place, plate, offset, ringAt, surface, onFace, type Ring, type SweepPt } from './loft';
 import { dimsOf, ribcage, pelvis as pelvisRings, neck as neckRings, upperArm, forearm, thigh as thighRings, shin as shinRings, ring, RIG, type Dims } from './body';
-import { CASTS, paletteOf, type CastId, type Look } from './look';
+import { paletteOf, type CastId, type Look } from './look';
 import { skull, ear, facialOf, skullRings, CHIN_TO_PIVOT } from './head';
 import { hairOf } from './hair';
 import { hatOf } from './hat';
@@ -20,21 +20,13 @@ export interface Kit {
 }
 export interface FigureOpts { solo?: boolean; mask?: boolean; /** dev: no hair, hat or facial hair (the head-formula sheet) */ bare?: boolean }
 
-/** TODO (next task): `labourer`, `rowCoat` and the ten wardrobe.ts casts are dressed; only `garrison` and `inspector` fall back. Every other cast is built as the nearest of these, in its own family, body, head, hands and hair, until its wardrobe is
- *  authored. This is the one place that says so. */
+/** Every cast is built: ten and the two of the Ordinance from wardrobe.ts, and the labourer and the row coat in the inline branch below. */
 export const BUILT: readonly CastId[] = ['labourer', 'rowCoat', ...WARDROBE];
-const NEAREST: Record<CastId, 'labourer' | 'rowCoat'> = { labourer: 'labourer', rowCoat: 'rowCoat', rowSkirt: 'rowCoat', elder: 'rowCoat', affluent: 'rowCoat', stallholder: 'rowCoat', shopMerchant: 'rowCoat', foundry: 'labourer', youngMechanic: 'rowCoat', olderMechanic: 'rowCoat', courier: 'rowCoat', garrison: 'rowCoat', inspector: 'rowCoat', child: 'rowCoat' };
-export function dressedAs(look: Look): Look {
-  const near = NEAREST[look.cast]; if (near === look.cast || (WARDROBE as readonly string[]).includes(look.cast)) return look;
-  const cast = CASTS[near], outfit = cast.outfits[0], pal = Object.keys(outfit.palettes)[0], hat = cast.hats.includes(look.hat) ? look.hat : 'none';
-  const asym = look.asymmetries.filter(a => cast.asymmetries.includes(a)); if (!asym.length) asym.push(cast.asymmetries[0]);
-  return { ...look, cast: near, outfit: outfit.id, palette: pal, hat, asymmetries: asym.slice(0, 2) };
-}
 
 const LIFT = .01;
 
-export function buildFigure(want: Look, opts: FigureOpts, kit: Kit) {
-  const look = dressedAs(want), fresh = (WARDROBE as readonly string[]).includes(look.cast), d = dimsOf(look.family, look.frame), h = d.h, k = h / .285;
+export function buildFigure(look: Look, opts: FigureOpts, kit: Kit) {
+  const fresh = (WARDROBE as readonly string[]).includes(look.cast), d = dimsOf(look.family, look.frame), h = d.h, k = h / .285;
   const pal = paletteOf(look), sw = (n: keyof typeof P.cloth) => kit.cloth(P.cloth[n]), col = (hex: string) => kit.cloth(hex ?? '#777777');
   const skin = kit.skin[look.skin], brass = kit.plain(P.metal.agedBrass), hairHex = P.hair2[look.hairColour], asym = new Set(look.asymmetries);
   const hairMat = kit.plain(hairHex), hairShade = kit.plain('#' + new T.Color(hairHex).multiplyScalar(.7).getHexString());
@@ -53,7 +45,7 @@ export function buildFigure(want: Look, opts: FigureOpts, kit: Kit) {
 
   // ---- what each cast wears
   const shirtM = col(lab ? pal.shirt : P.cloth.bone), trouM = col(pal.trousers), leather = sw('leather'), leatherDark = sw('leatherDark'), soot = sw('soot');
-  const coatM = lab ? shirtM : col(pal.coat), vestM = col(lab ? pal.shirt : pal.waistcoat), capM = fresh ? kit.cloth(pal.cap ?? pal.hat ?? pal.kerchief ?? pal.scarf, undefined) : col(pal.cap), neckM = col(lab ? pal.kerchief : (pal.scarf ?? pal.kerchief ?? pal.shirt ?? pal.coat));
+  const coatM = lab ? shirtM : col(pal.coat), vestM = col(lab ? pal.shirt : pal.waistcoat), capM = fresh ? kit.cloth(pal.cap ?? pal.hat ?? pal.kepi ?? pal.helm ?? pal.kerchief ?? pal.scarf, undefined) : col(pal.cap), neckM = col(lab ? pal.kerchief : (pal.scarf ?? pal.kerchief ?? pal.shirt ?? pal.coat ?? pal.greatcoat)), ordinance = look.cast === 'garrison' || look.cast === 'inspector'; // the Ordinance wears no scarf and no mending
   const bootM = lab ? leatherDark : leather, soleM = lab ? soot : leatherDark;
   const shirtR = offset(rib, .007, (_, i) => ({ w: i >= 3 && i <= 5 ? .003 : 0, f: i >= 3 && i <= 5 ? .004 : 0 }));
   const g = { aL: .3, aR: .3 }; // the coat's front edges (radians either side of centre): the gap the waistcoat shows through
@@ -195,11 +187,11 @@ export function buildFigure(want: Look, opts: FigureOpts, kit: Kit) {
   const face = head.children.find(o => o instanceof T.Mesh && o.material === faceMat) as T.Mesh;
 
   // ================================================================ the scarf, the cloth below the belt, mending and finery
-  kerchiefTails(scarf, neckM, asym.has('scarfTail'));
+  if (!ordinance) kerchiefTails(scarf, neckM, asym.has('scarfTail'));
   kit.bake(scarf);
   if (!lab && !fresh) coatSkirt(tails, skirt, d, pel, coatM, g, closed, asym, leather, brass);
   kit.bake(tails); if (hem.children.length) { kit.bake(hem); tails.add(hem); } // baking merges a group's children away, so the hinge joins its parent after it is baked
-  put0(worn, plate(lab ? shirtR : coatR, [[1.27, -.9, -.62], [1.2, -.9, -.62]], .0, .004, 3), sw('umber'));
+  if (!ordinance) put0(worn, plate(lab ? shirtR : coatR, [[1.27, -.9, -.62], [1.2, -.9, -.62]], .0, .004, 3), sw('umber'));
   kit.bake(worn); kit.bake(finery);
   // the old rig lowers everything the body carries by .14 (animateLife is solved against it)
   body.position.y -= .14; pelvisG.position.y -= .14; for (const l of legs) l.position.y -= .14;

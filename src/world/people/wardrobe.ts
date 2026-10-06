@@ -21,7 +21,7 @@ export interface X {
 /** The hinge of long cloth below the belt (Book 12): a child of `tails` pivoted at the knee, in tails-local y. The part of a long skirt, coat, apron or slab from the waist to the knee lies along the
  *  thigh when the figure sits; the part below hangs from the knees. `animateLife` counter-rotates `hem` against `tails`. */
 export const HEM_Y = -.5;
-export const WARDROBE = ['rowSkirt', 'elder', 'affluent', 'stallholder', 'shopMerchant', 'foundry', 'youngMechanic', 'olderMechanic', 'courier', 'child'] as const;
+export const WARDROBE = ['garrison', 'inspector', 'rowSkirt', 'elder', 'affluent', 'stallholder', 'shopMerchant', 'foundry', 'youngMechanic', 'olderMechanic', 'courier', 'child'] as const;
 
 /** The same garment in better times: cleaner, lighter and a little more colour. */
 export const rest = (hex: string, l = 1.13, s = 1.18): string => { const c = new T.Color(hex), q = { h: 0, s: 0, l: 0 }; c.getHSL(q); c.setHSL(q.h, Math.min(1, q.s * s + .03), Math.min(.85, q.l * l + .025)); return '#' + c.getHexString(); };
@@ -30,7 +30,8 @@ const shade = (hex: string, f: number) => '#' + new T.Color(hex).multiplyScalar(
 
 export function dress(x: X) {
   const { look, d, k, kit, asym, pal, rib, pel, neckR, dk, lifted, pelLift, tails, hem, skirt, group } = x, id = look.cast;
-  const c = (hex: string) => kit.cloth(hex, rest(hex)), lea = (hex: string) => kit.plain(hex, rest(hex, 1.2, 1.05)), met = (hex: string) => kit.plain(hex);
+  // the Ordinance never dresses up for prosperity: its colours have no restored twin
+  const ord = id === 'garrison' || id === 'inspector', c = (hex: string) => kit.cloth(hex, ord ? undefined : rest(hex)), lea = (hex: string) => kit.plain(hex, ord ? undefined : rest(hex, 1.2, 1.05)), met = (hex: string) => kit.plain(hex);
   const brass = x.brass, steel = met('#8e98a2'), skin = x.skin;
   const LEATHER = P.cloth.leather, LEATHERD = P.cloth.leatherDark, leatherM = lea(LEATHER), leatherDM = lea(LEATHERD), edgeM = lea(mix(LEATHER, '#c9a27a', .35));
   const wool = (hex: string) => c(hex), white = c(P.cloth.cream);
@@ -86,22 +87,23 @@ export function dress(x: X) {
     return sh;
   };
   /** a jacket or coat shell hung from the chest, open or overlapped, with a collar, lapels, a yoke seam and a back seam; `hem` (a sole height) adds the skirts on the pelvis */
-  const jacket = (m: T.Material, o: { off?: number; closed?: boolean; aL?: number; aR?: number; lapel?: boolean; stand?: boolean; buttons?: number; hem?: number; hemW?: number; hemD?: number; curve?: number; trimM?: T.Material; belt?: boolean }) => {
+  const jacket = (m: T.Material, o: { off?: number; closed?: boolean; aL?: number; aR?: number; lapel?: boolean; stand?: boolean; buttons?: number; hem?: number; hemW?: number; hemD?: number; curve?: number; trimM?: T.Material; belt?: boolean; vent?: number; collar?: boolean; pocketFlaps?: boolean }) => {
     const off = o.off ?? .022, aL = o.aL ?? .3, aR = o.aR ?? .3, cR = offset(rib, off, (_, i) => ({ w: i < 2 ? .004 : 0, f: i < 3 ? .006 : 0 })), arc = o.closed ? { start: 0, arc: Math.PI * 2 } : open(aL, aR);
     put0(lifted, loft(cR, { seg: 10, ...arc, lipEnd: .003, key: key(`coat/${off}/${arc.start}/${arc.arc}`) }), m);
     if (!o.closed) for (const a of [aL, -aR]) put0(lifted, seam(cR, steps(1.5, 1.045, 5), () => a, .002, .018, .005), o.trimM ?? m);
     else { put0(lifted, plate(cR, steps(1.47, 1.05, 8).map(y => [y, -.6, .17]), .0, .006, 8), m); for (const y of steps(1.42, 1.12, o.buttons ?? 3)) button(lifted, surface(cR, y, .1, .0075), brass, .0085); }
     const nc = ringAt(neckR, 1.52), cc = [1.508, 1.536, 1.572].map((y, i) => ({ y, w: nc.w + [.021, .03, .038][i], f: nc.f + [.021, .03, .036][i], b: nc.b + [.02, .03, .038][i], z: (nc.z ?? 0) + .004, n: 2.1 }));
-    put0(lifted, loft(cc, { seg: 14, ...(o.closed || o.stand ? { start: 0, arc: Math.PI * 2 } : { start: .7, arc: Math.PI * 2 - 1.4 }), lipEnd: .007, lipStart: .004, key: key(`collar/${o.closed || o.stand}`) }), m);
+    if (o.collar !== false) put0(lifted, loft(cc, { seg: 14, ...(o.closed || o.stand ? { start: 0, arc: Math.PI * 2 } : { start: .7, arc: Math.PI * 2 - 1.4 }), lipEnd: .007, lipStart: .004, key: key(`collar/${o.closed || o.stand}`) }), m);
     if (!o.closed && o.lapel !== false) for (const [s, e] of [[1, aL], [-1, -aR]] as const) put0(lifted, plate(cR, [[1.488, .25], [1.43, .5], [1.36, .55], [1.28, .45], [1.2, .18]].map(([y, w]) => [y, e, e + s * w]), .0, .007, 3), o.trimM ?? m);
     put0(lifted, seam(cR, steps(1.5, 1.045, 8), () => Math.PI, .002, .006, .0035), m); put0(lifted, around(cR, 1.41, Math.PI - .85, Math.PI + .85, .002, .006, .0035, 6), m);
     if (!o.closed) for (const y of steps(1.36, 1.12, o.buttons ?? 2)) button(lifted, surface(cR, y, aL, .009), brass, .0075);
     if (o.hem !== undefined) {
-      const rings = skirtRings(o.hem, o.hemW ?? 2 * (d.hipX + d.thighW / 2 + .04) + .05, o.hemD ?? d.hipD + .066 + d.belly * .6, o.curve ?? 1, o.hem < .9 ? 6 : 5), a2 = o.closed ? { start: 0, arc: Math.PI * 2 } : open(aL, aR);
+      const rings = skirtRings(o.hem, o.hemW ?? 2 * (d.hipX + d.thighW / 2 + .04) + .05, o.hemD ?? d.hipD + .066 + d.belly * .6, o.curve ?? 1, o.hem < .9 ? 6 : 5), a2 = o.vent ? { start: Math.PI + o.vent, arc: Math.PI * 2 - 2 * o.vent } : o.closed ? { start: 0, arc: Math.PI * 2 } : open(aL, aR);
       longShell(rings, a2, m, `skirt/${o.hem}/${a2.start}`, .012);
       const y0 = rings[0].y, y1 = rings[rings.length - 1].y;
       if (!o.closed) for (const a of [aL, -aR]) stripe(rings, y0, y1, a, .001, .02, .006, o.trimM ?? m);
-      stripe(rings, y0, y1, Math.PI, .001, .008, .004, m); bandAt(rings, .02, Math.PI - 1.15, Math.PI + 1.15, .003, .016, .004, m);
+      if (o.vent) for (const a of [Math.PI + o.vent, Math.PI - o.vent]) stripe(rings, y0, y1, a, .001, .012, .005, o.trimM ?? m); else stripe(rings, y0, y1, Math.PI, .001, .008, .004, m);
+      bandAt(rings, .02, Math.PI - 1.15, Math.PI + 1.15, .003, .016, .004, m);
       skirt.drop = Math.max(skirt.drop, 1.07 - o.hem); skirt.depth = Math.max(skirt.depth, (rings[rings.length - 1].f + rings[rings.length - 1].b) * .5 + .02);
       return { cR, rings };
     }
@@ -146,12 +148,14 @@ export function dress(x: X) {
 
   // ---------------------------------------------------------------- arms and legs
   /** sleeves: an upper sleeve, a forearm (cloth, or bare skin rolled), a cuff, a hand (skin or glove), garters or gauntlets */
-  const arms = (o: { upM: T.Material; foreM?: T.Material; cuffM?: T.Material; off?: number; rolled?: (side: number) => boolean; glove?: T.Material; gauntlet?: T.Material; garter?: T.Material; bell?: boolean; shirtCuff?: T.Material }) => {
+  const arms = (o: { upM: T.Material; foreM?: T.Material; cuffM?: T.Material; off?: number; rolled?: (side: number) => boolean; glove?: T.Material; gauntlet?: T.Material; garter?: T.Material; bell?: boolean; shirtCuff?: T.Material; board?: (sh: T.Group, side: number) => void; armband?: { m: T.Material; side: number } }) => {
     for (const side of [-1, 1]) {
       const sh = new T.Group(); sh.position.set(side * d.shX, RIG.shoulder + LIFT, 0); x.body.add(sh); x.out.arms.push(sh);
       const up = upperArm(d), off = o.off ?? .019, fore = forearm(d), rolled = o.rolled?.(side) ?? false, at = (y: number, e: number) => { const r = ringAt(fore, y); return { ...r, w: r.w + e, f: r.f + e, b: r.b + e }; };
       put0(sh, loft(offset(up, off).filter((_, i) => i !== 2), { seg: 7, capStart: { round: d.rSh + off }, capEnd: { round: d.elbowR + off }, key: key(`sleeve/${off}`) }), o.upM);
       if (o.garter) put0(sh, loft([-.12, -.15].map(y => { const r = ringAt(offset(up, off + .004), y); return r; }), { seg: 7, lipStart: .003, lipEnd: .003, key: key('garter') }), o.garter);
+      if (o.armband && o.armband.side === side) { const bandR = [-.075, -.145].map(y => ringAt(offset(up, off + .004), y)); put0(sh, loft(bandR, { seg: 8, lipStart: .004, lipEnd: .004, key: key('armband') }), o.armband.m); }
+      o.board?.(sh, side);
       x.kit.bake(sh);
       const el = new T.Group(); el.position.set(0, -RIG.upperArm, 0); sh.add(el); x.out.elbows.push(el);
       put0(el, loft(fore, { seg: 6, capStart: { round: d.elbowR }, key: key('fore') }), skin);
@@ -193,10 +197,67 @@ export function dress(x: X) {
 
   // ---------------------------------------------------------------- props
   const pouch = (g: T.Group, rings: Ring[], y: number, a0: number, a1: number, m: T.Material) => { put0(g, plate(rings, [[y, a0, a1], [y - .1, a0, a1]], .0, .014, 4), m); put0(g, plate(rings, [[y + .004, a0 - .02, a1 + .02], [y - .04, a0 - .02, a1 + .02]], .0, .02, 4), edgeM); };
-  const belt = (m: T.Material, y: number, off = .03) => { const b = [y - .018, y + .018].map(yy => ringAt(offset(rib, off), Math.max(1.04, Math.min(1.1, yy)))); put0(lifted, loft([{ ...b[0], y: y - .02 }, { ...b[1], y: y + .02 }], { seg: 10, lipStart: .003, lipEnd: .003, key: key(`belt/${y}/${off}`) }), m); const q = surface(offset(rib, off), y, 0, .004); put0(lifted, new T.Mesh(new T.BoxGeometry(.036, .03, .008), brass).geometry, brass, q.p.toArray() as Pt); };
+  const belt = (m: T.Material, y: number, off = .03, hw = .02) => { const b = [y - hw + .002, y + hw - .002].map(yy => ringAt(offset(rib, off), Math.max(1.04, Math.min(1.1, yy)))); put0(lifted, loft([{ ...b[0], y: y - hw }, { ...b[1], y: y + hw }], { seg: 10, lipStart: .003, lipEnd: .003, key: key(`belt/${y}/${off}/${hw}`) }), m); const q = surface(offset(rib, off), y, 0, .004); put0(lifted, new T.Mesh(new T.BoxGeometry(hw > .025 ? .056 : .036, hw > .025 ? .05 : .03, .008), brass).geometry, brass, q.p.toArray() as Pt); };
 
   // ---------------------------------------------------------------- the casts
   const I = (n: string) => pal[n], bare = (side: number) => side < 0;
+  // ---------------------------------------------------------------- the Ordinance (Book 4, 9, 10): squared, vertical, hard lines, one outfit that never dresses up and never weathers
+  /** a flat shoulder board of the Ordinance, lying over the arm's cap and turning with it (the arm group is the one `animateLife` pushes wide and high every frame, so the board and the cap
+   *  go with it: the cap is a dome that overlaps the torso's shoulder by 4 cm, so the push opens no gap at the armhole) */
+  const board = (m: T.Material, edge: T.Material, len: number, inner: number, wide: number, bar: boolean) => (sh: T.Group, side: number) => {
+    const slab = loft([{ y: -inner, w: .005, f: wide, b: wide, n: 5 }, { y: len, w: .005, f: wide, b: wide, n: 5 }], { seg: 8, capStart: 'flat', capEnd: 'flat', key: key(`board/${len}/${inner}/${wide}`) }), top = d.rSh + .008;
+    const at = (geo: T.BufferGeometry, mat: T.Material, dy = 0, dx = 0) => put0(sh, place(geo, [side * dx, top - .004 + dy, 0], [0, 0, -side * (Math.PI / 2 + .28)]), mat);
+    at(slab, m); at(loft([{ y: len - .012, w: .0075, f: wide + .003, b: wide + .003, n: 5 }, { y: len + .002, w: .0075, f: wide + .003, b: wide + .003, n: 5 }], { seg: 8, capStart: 'flat', capEnd: 'flat', key: key(`boardedge/${len}/${wide}`) }), edge, .001);
+    if (bar) { at(loft([{ y: .0, w: .0065, f: wide * .92, b: wide * .92, n: 5 }, { y: .012, w: .0065, f: wide * .92, b: wide * .92, n: 5 }], { seg: 8, capStart: 'flat', capEnd: 'flat', key: key(`boardbar/${wide}`) }), brass, .002, side * .045); }
+    button(sh, { p: new T.Vector3(side * -(inner - .008) * .995, top + .003 + inner * .1, 0), n: new T.Vector3(0, 1, 0) }, brass, .0085);
+  };
+  /** a book hung from the belt at the hip */
+  const ledger = (g: T.Group, rings: Ring[], y: number, a: number, cover: T.Material) => {
+    const q = surface(rings, y, a, .022), set = (geo: T.BufferGeometry, m: T.Material, dz = 0, dy = 0) => { const mm = put0(g, geo, m, [q.p.x + q.n.x * dz, q.p.y + dy, q.p.z + q.n.z * dz]); mm.quaternion.setFromUnitVectors(new T.Vector3(0, 0, 1), q.n); return mm; };
+    set(new T.BoxGeometry(.105, .15, .034), cover); set(new T.BoxGeometry(.094, .14, .026), c(P.cloth.bone), .004); set(new T.BoxGeometry(.016, .152, .036), cover, 0, 0).position.add(new T.Vector3(.0, 0, 0)); set(new T.BoxGeometry(.02, .02, .01), brass, .02, -.05);
+    put0(g, sweep([[0, .06, .02], [.012, .09, .02]].map(([xx, yy, zz]) => ({ p: [q.p.x + xx, q.p.y + yy, q.p.z + q.n.z * .02] as Pt, a: .004, b: .004, n: [0, 0, 1] as Pt })), { seg: 4, capStart: true, capEnd: true }), brass);
+  };
+  if (id === 'garrison') {
+    const coat = c(I('greatcoat')), trou = c(I('trousers')), strap = lea(I('crossbelt')), black = lea(P.cloth.leatherDark), side = Math.round(look.stature * 1000) % 2 ? 1 : -1;
+    const r = jacket(coat, { closed: true, off: .03, hem: .26, hemW: .58, hemD: .38, curve: 1.05, buttons: 6, stand: true, vent: .13, trimM: black });
+    skirt.drop = Math.min(skirt.drop, .55); skirt.depth = Math.max(skirt.depth, .27); // a greatcoat opens a little in a stride and stays a column
+    // the front is buttoned over to one side: a placket and buttons carried down the skirt
+    stripe(r.rings!, r.rings![0].y, HEM_Y + .02, .17, .003, .014, .006, coat, 6);
+    for (const y of steps(-.04, -.46, 4)) button(tails, surface(r.rings!, y, .12, .008), brass, .0085);
+    // a half-belt across the back, buttoned at both ends
+    put0(lifted, around(r.cR, 1.17, Math.PI - .95, Math.PI + .95, .004, .024, .007, 6), coat); for (const a of [Math.PI - .95, Math.PI + .95]) button(lifted, surface(r.cR, 1.17, a, .012), brass, .009);
+    // the wide belt with a plate buckle, over the coat at the waist
+    belt(black, 1.09, .05, .03);
+    // the crossbelt wraps the torso: over one shoulder, across the chest, round the side to a pouch on the opposite hip, crossing on the back
+    const sd = side, W = (pts: number[][]) => pts.map(([y, a]) => { const q = surface(r.cR, y, a, .009); return { p: q.p.toArray() as Pt, a: .027, b: .006, n: q.n.toArray() as Pt }; });
+    put0(lifted, sweep(W([[1.5, sd * 1.3], [1.44, sd * .9], [1.36, sd * .46], [1.27, -sd * .05], [1.18, -sd * .6], [1.11, -sd * 1.1], [1.07, -sd * 1.5]]), { seg: 4, capStart: true, capEnd: true }), strap);
+    put0(lifted, sweep(W([[1.5, sd * 1.3], [1.44, sd * 1.9], [1.34, sd * 2.45], [1.22, sd * 2.95], [1.12, -sd * 2.75], [1.07, -sd * 2.3]]), { seg: 4, capStart: true, capEnd: true }), strap);
+    { const q = surface(r.cR, 1.27, -sd * .05, .013); put0(lifted, new T.Mesh(new T.BoxGeometry(.04, .034, .008), brass).geometry, brass, q.p.toArray() as Pt); }
+    pouch(tails, r.rings!, -.02, -sd * 1.05, -sd * 1.75, black);
+    arms({ upM: coat, off: .027, cuffM: coat, glove: black, board: board(coat, black, .066, .04, .034, false) });
+    legs({ thighM: trou, boot: black, sole: lea(shade(LEATHERD, .55)), top: -.1, heavy: true, turnup: false, fit: .004, bootCuff: black });
+  }
+  if (id === 'inspector') {
+    const coat = c(I('coat')), trou = c(I('trousers')), oxb = c(I('collar')), black = lea(P.cloth.leatherDark), band = c(I('armband')), side = Math.round(look.stature * 1000) % 2 ? 1 : -1;
+    const r = jacket(coat, { closed: true, off: .024, hem: .4, hemW: .42, hemD: .32, curve: 1.1, buttons: 7, stand: true, collar: false, trimM: black });
+    skirt.drop = Math.min(skirt.drop, .55); skirt.depth = Math.max(skirt.depth, .27); // a greatcoat opens a little in a stride and stays a column
+    // a high oxblood collar, stiff and closed at the throat, standing to just under the jaw
+    { const nc = ringAt(neckR, 1.52), top = d.chin - .018, cc = [1.49, (1.49 + top) / 2, top].map((y, i) => { const q = ringAt(neckR, Math.min(y, 1.538)); return { y, w: q.w + [.036, .033, .031][i], f: q.f + [.036, .034, .032][i], b: q.b + [.034, .032, .03][i], z: (q.z ?? 0) + .004, n: 2.1 }; }); void nc;
+      put0(lifted, loft(cc, { seg: 16, lipEnd: .005, lipStart: .004, key: key('inspcollar') }), oxb);
+      put0(lifted, loft([cc[2], { ...cc[2], y: cc[2].y - .006, w: cc[2].w + .004, f: cc[2].f + .004, b: cc[2].b + .004 }], { seg: 16, lipStart: .002, lipEnd: .002, key: key('inspcollaredge') }), black);
+      button(lifted, { p: new T.Vector3(0, top - .014, cc[2].f + (cc[2].z ?? 0) + .003), n: new T.Vector3(0, 0, 1) }, brass, .0065); }
+    // fitted at the waist, a narrow black belt
+    belt(black, 1.085, .036, .016);
+    // the back is hard-lined: a centre seam and a plain vent
+    stripe(r.rings!, r.rings![0].y, HEM_Y + .02, .17, .003, .012, .005, coat, 6);
+    for (const y of steps(-.04, -.46, 4)) button(tails, surface(r.rings!, y, .12, .008), brass, .0085);
+    // the back: a belt strap with its two buttons, and a pleat either side of the seam
+    put0(lifted, around(r.cR, 1.15, Math.PI - .8, Math.PI + .8, .004, .02, .006, 6), coat); for (const a of [Math.PI - .8, Math.PI + .8]) button(lifted, surface(r.cR, 1.15, a, .011), brass, .008);
+    for (const a of [Math.PI - .3, Math.PI + .3]) stripe(r.rings!, r.rings![0].y - .08, HEM_Y + .02, a, .002, .01, .005, coat, 6);
+    if (asym.has('ledger')) ledger(tails, r.rings!, -.1, -side * 1.4, black);
+    arms({ upM: coat, off: .023, cuffM: coat, glove: black, board: board(black, coat, .1, .05, .044, true), armband: { m: band, side } });
+    legs({ thighM: trou, boot: black, sole: lea(shade(LEATHERD, .55)), top: -.08, turnup: false, fit: .004, bootCuff: black });
+  }
   if (id === 'rowSkirt') {
     const blouse = c(I('bodice')), shawlM = wool(I('shawl')), skirtM = wool(I('skirt')), fringe = c(mix(I('shawl'), P.cloth.bone, .5));
     shirt(blouse, { off: .01, placket: false, collar: true });
