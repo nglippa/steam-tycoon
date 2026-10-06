@@ -179,7 +179,7 @@ These rules come from figure-drawing and 3D-topology references (Love Life Drawi
 - **Two rigid masses.** The ribcage and the pelvis are separate masses joined at the waist. The shirt or coat body ends at the belt. The pelvis is its own mesh in the trouser material: widest at the hip joints, set slightly back into a seat (forward pelvic tilt), and closing under into the crotch, so the legs leave from a V and not from the rim of a tube.
 - **The legs hang from the pelvis.** Hip joints sit inside the pelvis, just above the crotch; the height's halfway line runs between the greater trochanters. Thighs are slimmer at the root, fullest in the upper-middle, and angle in so the knees sit closer than the hips.
 - **Motion turns about the hips.** Lean, twist and sway rotate the upper body around the hip joint, never around the feet. A sideways weight shift moves the hips, and the legs tilt so the feet stay planted.
-- **Proportion.** Terra's citizens are about 4 heads tall (big-head anime). At this scale legs to crotch are about 1.6 heads, and the shoulder-to-crotch torso is about 1 head. Do not stretch the legs to 6.5-head canon without restyling the head.
+- **Proportion.** Terra's citizens are about 4 heads tall (big-head anime). *(Superseded 2026-10-06 by `TERRA_CHARACTER_BOOK.md`, section 3: adults are about 6⅔ heads tall.)* At this scale legs to crotch are about 1.6 heads, and the shoulder-to-crotch torso is about 1 head. Do not stretch the legs to 6.5-head canon without restyling the head.
 
 ## The city responds (2026-09-30)
 
@@ -234,3 +234,7 @@ Rules are in the `figure-construction` skill (`references/faces.md`, `cloth.md`,
 - **Faces.** The atlas no longer paints a shadow wedge by the nose, a contour down each cheek or hatching under the eyes. Eyes are tall, the iris fills them and grades to a lighter tint of its own colour, the upper lid sits over the top of the iris, brows are thin and close, the nose is a small mark. Five of the eight face types carry no marks at all. The head is a soft form with no flattened front plane, so the ink pass draws no creases on it.
 - **Cloth.** Everything below the belt (skirt, dress, coat tails, the apron's skirt) hangs from one waist pivot and opens front and back as the thighs swing, by exactly the thigh's reach at the hem. It opens at once and closes slowly. Long cloth shortens the stride. Seated, it lies along the thighs.
 - **Motion.** Arms, elbows and hands ease to their targets instead of being set, so activities and gestures blend; hammer blows stay fast. The hips sway over the standing leg, roll with the weight and turn toward the forward leg more than before. Workers on paths accelerate and slow, and turn round over a pause.
+
+## People: the Character Book (2026-10-06)
+
+`TERRA_CHARACTER_BOOK.md` is the source of truth for how people are designed, built, varied, animated and checked. Where it disagrees with an older people section in this file, the book wins; it lists the sections it replaces. What this file says about motion, staging, gaze, grips, held things and how cloth opens over the legs remains in force.
