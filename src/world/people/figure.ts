@@ -46,7 +46,7 @@ export function buildFigure(look: Look, opts: FigureOpts, kit: Kit) {
 
   // ---- what each cast wears
   const shirtM = col(lab ? pal.shirt : P.cloth.bone), trouM = col(pal.trousers), leather = kit.plain(P.cloth.leather, undefined, 'leather'), leatherDark = kit.plain(P.cloth.leatherDark, undefined, 'leather'), soot = sw('soot');
-  const coatM = lab ? shirtM : col(pal.coat), vestM = col(lab ? pal.shirt : pal.waistcoat), capM = fresh ? kit.cloth(pal.cap ?? pal.hat ?? pal.kepi ?? pal.helm ?? pal.kerchief ?? pal.scarf, undefined) : col(pal.cap), neckM = col(lab ? pal.kerchief : (pal.scarf ?? pal.kerchief ?? pal.shirt ?? pal.coat ?? pal.greatcoat)), ordinance = look.cast === 'garrison' || look.cast === 'inspector'; // the Ordinance wears no scarf and no mending
+  const coatM = lab ? shirtM : col(pal.coat), vestM = col(lab ? pal.shirt : pal.waistcoat), capM = fresh ? kit.cloth((look.hat === 'bonnet' ? pal.trim : undefined) ?? pal.cap ?? pal.hat ?? pal.kepi ?? pal.helm ?? pal.kerchief ?? pal.scarf, undefined) : col(pal.cap), neckM = col(lab ? pal.kerchief : (pal.scarf ?? pal.kerchief ?? pal.shirt ?? pal.coat ?? pal.greatcoat)), ordinance = look.cast === 'garrison' || look.cast === 'inspector'; // the Ordinance wears no scarf and no mending
   const bootM = lab ? leatherDark : leather, soleM = lab ? soot : leatherDark;
   const shirtR = offset(rib, .007, (_, i) => ({ w: i >= 3 && i <= 5 ? .003 : 0, f: i >= 3 && i <= 5 ? .004 : 0 }));
   const g = { aL: .3, aR: .3 }; // the coat's front edges (radians either side of centre): the gap the waistcoat shows through

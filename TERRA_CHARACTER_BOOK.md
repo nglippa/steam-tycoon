@@ -512,6 +512,27 @@ Wool, canvas, leather and metal must not read as the same stuff in different col
 darker, has harder edges and takes a small highlight. Canvas is pale and matte. Brass and steel
 take a hard highlight. Wool is the default.
 
+As built (`wardrobe.ts`, `citizens.ts` `bakeCharacter`): cloth is the stitched cloth map on the
+cloth material, every colour with a restored twin for prosperity. Leather and metal are the
+**plain material** (no cloth map: smooth, so they do not read as stitched) and carry their
+highlight in vertex colour, baked once with the geometry, so there is no extra material and no
+extra draw. Leather is its swatch at 86 % value with a narrow lighter band on the upward faces of
+its forms (a boot's instep and toe, a belt's top edge) and a lighter edge binding on aprons, flaps
+and straps; brass and steel get a small hard light spot on the upper-left of each part that looks
+toward the light. Canvas is the `canvas` swatch on cloth, with no highlight.
+
+### The wardrobe, as built
+
+`dress()` in `wardrobe.ts` builds the twelve casts that are not inline; the labourer and the row
+coat are the inline branch of `figure.ts`, and take their trade items (the leather apron, the hook,
+the pouch and the rag) from `dress()` too. Every garment is a shell off the body reference with a
+turned edge, a lining where it can be seen from inside, and its own opening. Long cloth below the
+belt (a skirt, a long coat, an apron, the foundry slab, the greatcoat) is **hinged at the knee**: see
+section 12. Under a coat only what the coat leaves open is built of the shirt (an arc, not a tube),
+a tall boot hides the trouser leg below its top, and a sleeve hides the forearm, so triangles go to
+the head, the hands, the collar and the hem. The Ordinance's colours have no restored twin and
+neither the Ordinance's cloth nor its mending is ever swapped: no scarf, no patch.
+
 ### Asymmetry
 
 One or two authored asymmetries per figure, and everything else mirrored. Choose from: a satchel
@@ -576,6 +597,11 @@ The seven gameplay archetypes keep their names and behaviour. Each maps to a set
 | guard | 12 |
 | ordinal | 13 |
 
+Built, all fourteen. Triangles at the standard seeds of the sheet: row coat 6,250, row skirt 6,328,
+elder 6,410, affluent 6,528, stallholder 5,660, shop merchant 5,958, labourer 5,408, foundry 6,486,
+young mechanic 6,796, older mechanic 5,992, courier 6,514, garrison 6,280, inspector 6,464, child
+6,190; every one at or under 6,800.
+
 Which casts appear depends on place: foundry workers at the Foundry and Cinder Row, stallholders
 and shop merchants at the Market, affluent residents on the east bank and the terraces and only as
 Terra recovers.
@@ -596,6 +622,28 @@ Every named or story-bearing person has a **fixed, authored look**, independent 
 | The masked stranger | as now, with the Weathervane mask |
 | Foundry overseer, ration warden, market beat | inspector cast, each with one distinguishing item |
 
+As built (`STORY` in `look.ts`; the spawn sites pass `look: '<name>'` to `Presentation.addWorker`,
+which takes effect under the new builder; a test holds each site to its name):
+
+| Look | Items built |
+|---|---|
+| `officer` (market-square) | tallest stature, iron hair, a book on a strap at the hip, the armband |
+| `clerk` (rook-yard) | no helm, spectacles, black sleeve guards |
+| `rookHand` (rook-yard) | labourer, a leather apron with bib and straps, a scrap hook on a belt loop |
+| `finchHand` (finch-run) | young mechanic, a brass winged valve on the right sleeve, a grease rag in the belt |
+| `embersChalker` (cinder-row) | row coat, chalk on the right cuff and fingers |
+| `embersLookout` (cinder-row) | courier with no satchel and the scarf drawn up over the mouth (hands in pockets is not built: the arms are posed by `animateLife`) |
+| `embersCourier` (cinder-row) | courier, a turquoise thread along the satchel strap |
+| `masked` (rook-yard, intro) | courier; the Weathervane mask, fitted to the skull (`mask.ts`) |
+| `overseer` (foundry-works) | inspector with a ring of brass keys |
+| `warden` (ration-line) | inspector with the book at the hip |
+| `beat` (market-square) | inspector with a baton |
+| `introGuard`, `introOrdinal` (intro) | a garrison soldier and an inspector for the opening scene |
+
+Items only a named person carries live in `Cast.story`: they are valid in a look and never dealt by the
+resolver. Every other asymmetry in a cast table is built by `wardrobe.ts` or `figure.ts`, and a test
+fails on a name that is built nowhere.
+
 ---
 
 ## 10. Colour
@@ -605,12 +653,16 @@ No colour is generated. Every colour on a person comes from a named swatch.
 - **A cast owns a palette of three or four colours and one accent.** Muted bases; the accent is
   small and sits near the chest or face.
 - **Legs and feet are darker than the chest**, but trousers, skirts and boots vary by cast. The
-  old crowd shared one pair of navy trousers and one pair of black boots.
+  old crowd shared one pair of navy trousers and one pair of black boots. The first (default)
+  trouser swatch of each cast is its own: row coat navy, elder stone, affluent slate, shop
+  merchant charcoal, labourer umber, foundry rust, young mechanic canvas, older mechanic
+  green-charcoal, courier grey-green, child leather; the Ordinance shares soot, as one outfit.
 - **Civilians:** umber, soot, oxblood, grey-green, bone, slate, dull mustard.
 - **Trades:** foundry leather and soot with a rust kerchief; market ochre, burgundy and cream;
   mechanics slate, canvas and brass.
 - **Ordinance:** green-charcoal, black leather, oxblood, bone. One outfit. The Ordinance never
-  dresses up for prosperity and never weathers into patches.
+  dresses up for prosperity and never weathers into patches: its swatches have no restored twin and
+  it has no mending patch (checked at stage 0 and 5 on the prosperity sheet).
 - **Embers:** Terra's own turquoise and ivory, as a thread or a ribbon and nothing larger.
 - **District** shifts the mix, not the swatches: the Lowworks and Cinder Row are sootier, the
   Market warmer, the east bank cleaner and cooler.
@@ -693,6 +745,27 @@ These are parameter sets on the one gait, not new systems.
 The existing stoop of early Terra and the registers of the Ordinance (halt, scrutiny) sit on top
 of these.
 
+### Long cloth and the knee hinge
+
+A skirt, a long coat, an apron and the foundry slab are built in two parts (`HEM_Y` in
+`wardrobe.ts`, the child group `hem` of `tails`, exposed on the figure as `hem`): from the belt to
+the knee, no deeper front to back than a lap needs, closed at its end by a dome; and from the knee
+to the hem, a bell. `animateLife` turns `tails` about the waist when the figure sits (and a little
+in a stride); it then counter-rotates `hem` about the knee so the lower part hangs from the knees
+(`hem.rotation.x = -tails.rotation.x`, in a stride 0.6 of it, so the hem trails), and narrows it
+front to back to 0.45 so it falls between the knees and does not run under the thighs through the
+seat. The old figures have no `hem`, and their pose is unchanged. Aprons open less in a stride
+than coats do (their drape length is capped at 0.5), and the greatcoat's depth is floored at 0.27
+so it stays a column.
+
+### The bite
+
+The new head's mouth is about 9 cm lower than the old one, so for a figure from the new builder the
+eating stroke (`activity === 'eat'`) stops 0.55 rad short at the shoulder, folds 0.7 rad more at
+the elbow and comes in with the shoulder width (`citizen-life.ts`, marked by `group.userData.next`).
+Solved with the sheet's `probe()`: the grip lands within 2 cm of the mouth's height and about 9 cm
+off its front, as the old pose does.
+
 ### Poses that must hold
 
 Seated, with thighs level. Arm raised overhead. Both arms forward with a load. Hand to mouth. Deep
@@ -752,11 +825,11 @@ profession read · fit with Terra.
 
 The rebuild must not buy quality with geometry.
 
-- **Triangles:** no more than the old average of about 5,000 for a figure, about 6,500 for the
-  most dressed. Spend them on the head, the hands, the collar and the hem, not on smooth tubes.
+- **Triangles:** no more than the old average of about 5,000 for a figure, about 6,800 for the
+  most dressed (the cap the cast is held to; see section 9 for the table). Spend them on the head, the hands, the collar and the hem, not on smooth tubes.
 - **Materials:** the same four per figure, shared across the crowd. No per-person materials.
 - **Draws:** the crowd stays batched; the number of draws does not grow with the population.
-- **Geometry is shared.** A part variant is built once and reused by everyone who wears it.
+- **Geometry is shared.** A part variant is built once and reused by everyone who wears it. The loft cache shares a part by key while a figure is assembled; `bakeCharacter` then merges each figure's parts per material, so a baked figure's three meshes (cloth, plain, face) are its own geometry, and `CrowdBatch` batches them by material (one material per mesh, the face material flagged `faceAtlas`).
 - **Distance:** parts under about two pixels (buttons, buckles, thin straps) are dropped first.
   The silhouette is the same at every distance.
 
