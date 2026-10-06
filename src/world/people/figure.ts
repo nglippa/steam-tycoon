@@ -44,6 +44,9 @@ export function buildFigure(want: Look, opts: FigureOpts, kit: Kit) {
   const rib = ribcage(d), pel = pelvisRings(d), neckR = neckRings(d), dk = JSON.stringify(d);
   const lifted = new T.Group(); lifted.position.y = LIFT; body.add(lifted); const pelLift = new T.Group(); pelLift.position.y = LIFT; pelvisG.add(pelLift);
   put0(lifted, loft(neckR, { seg: 10, capStart: 'flat', key: `neck/${dk}` }), skin);
+  const skinShade = kit.plain('#' + new T.Color(P.skin[look.skin]).multiply(new T.Color(.76, .72, .8)).getHexString());
+  // the jaw's cel shadow on the neck
+  put0(lifted, loft([d.chin - .05, d.chin - .022, d.chin + .004].map(y => { const r = ringAt(neckR, y); return { ...r, w: r.w + .0015, f: r.f + .0015, b: r.b + .0015 }; }), { seg: 12, key: `jawshade/${dk}` }), skinShade);
 
   // ---- what each cast wears
   const shirtM = col(lab ? pal.shirt : P.cloth.bone), trouM = col(pal.trousers), leather = sw('leather'), leatherDark = sw('leatherDark'), soot = sw('soot');
@@ -58,11 +61,11 @@ export function buildFigure(want: Look, opts: FigureOpts, kit: Kit) {
 
   // ================================================================ torso
   if (lab) {
-    put0(lifted, loft(shirtR, { seg: 11, lipEnd: .003, key: `shirt/${dk}` }), shirtM);
+    put0(lifted, loft(shirtR, { seg: 10, lipEnd: .003, key: `shirt/${dk}` }), shirtM);
     if (vested) { // a work waistcoat over the shirt in place of braces: the same shell as a gentleman's, in the 'braces' colour
       const vb = offset(rib, .022), vr = [1.125, 1.2, 1.3, 1.36, 1.41].map(y => ringAt(vb, y)); // narrowed above the chest: armholes, then straps toward the neck
       { const r = ringAt(vb, 1.41); vr.push({ ...r, y: 1.445, w: r.w * .86, f: r.f * .92, b: r.b * .92 }); }
-      put0(lifted, loft(vr, { seg: 12, lipEnd: .004, lipStart: .004, key: `workvest/${dk}` }), col(pal.braces));
+      put0(lifted, loft(vr, { seg: 10, lipEnd: .004, lipStart: .004, key: `workvest/${dk}` }), col(pal.braces));
       for (const y of steps(1.13, 1.28, 2)) button(lifted, surface(vb, y, 0, .004), brass, .0065);
       put0(lifted, plate(vb, [[1.43, -.34, .34], [1.38, -.27, .27], [1.33, -.16, .16], [1.28, -.04, .04]], .0, .003, 6), shirtM);
     } else placket(lifted, shirtR, shirtM, brass);
@@ -74,11 +77,11 @@ export function buildFigure(want: Look, opts: FigureOpts, kit: Kit) {
     const cr = ringAt(neckR, 1.52), collar = [1.49, 1.515, 1.545].map((y, i) => ({ y, w: cr.w + [.01, .016, .018][i], f: cr.f + [.01, .016, .018][i], b: cr.b + [.009, .015, .017][i], z: (cr.z ?? 0) + .003, n: 2.1 }));
     put0(lifted, loft(collar, { seg: 12, lipEnd: .003, key: `shirtcollar/${dk}` }), shirtM);
     const vestBase = offset(rib, .013), vest = [1.125, 1.2, 1.3, 1.36, 1.43].map(y => ringAt(vestBase, y));
-    put0(lifted, loft(vest, { seg: 12, lipEnd: .004, key: `vest/${dk}` }), vestM);
+    put0(lifted, loft(vest, { seg: 10, lipEnd: .004, key: `vest/${dk}` }), vestM);
     for (const y of steps(1.13, 1.28, 2)) button(lifted, surface(vestBase, y, 0, .004), brass, .0065);
     put0(lifted, plate(vestBase, [[1.43, -.34, .34], [1.38, -.27, .27], [1.33, -.16, .16], [1.28, -.04, .04]], .0, .003, 6), shirtM);
     // the coat: a shell 22 mm off the ribcage, hugging the shoulder and hanging from the chest, open or overlapped in front
-    put0(lifted, loft(coatR, { seg: 12, ...arc0, lipEnd: .003, key: `coat/${dk}/${arc0.start}/${arc0.arc}` }), coatM);
+    put0(lifted, loft(coatR, { seg: 10, ...arc0, lipEnd: .003, key: `coat/${dk}/${arc0.start}/${arc0.arc}` }), coatM);
     const ys = steps(1.5, 1.045, 5);
     if (!closed) for (const a of [g.aL, -g.aR]) put0(lifted, seam(coatR, ys, () => a, .002, .018, .005), coatM);
     else {
@@ -99,9 +102,9 @@ export function buildFigure(want: Look, opts: FigureOpts, kit: Kit) {
 
   // ================================================================ pelvis, trousers
   { const hips = offset(pel, .012), cut = hips.map((r, i) => i === 0 ? { ...r, y: 1.14, w: r.w + .004, f: r.f + .004, b: r.b + .004 } : r);
-    put0(pelLift, loft(cut, { seg: 14, capEnd: 'flat', key: `trousers/${dk}` }), trouM);
+    put0(pelLift, loft(cut, { seg: 12, capEnd: 'flat', key: `trousers/${dk}` }), trouM);
     const band = [1.065, 1.1, 1.145].map(y => { const r = ringAt(rib, Math.min(y, 1.13)), p = ringAt(pel, y); return { y, w: Math.max(r.w, p.w) + .017, f: Math.max(r.f, p.f) + .016, b: Math.max(r.b, p.b) + .014, z: p.z, n: 2.2 }; });
-    if (lab) put0(pelLift, loft(band, { seg: 14, lipEnd: .005, lipStart: .004 }), trouM);
+    if (lab) put0(pelLift, loft(band, { seg: 12, lipEnd: .005, lipStart: .004 }), trouM);
     if (lab && !vested) braces(pelLift, d, rib, pel, col(pal.braces), brass, asym.has('braceDown'));
     if (vested) braces(pelLift, d, rib, pel, col(pal.braces), brass, false, true);
     if (lab) { put0(pelLift, seam(hips, steps(1.13, .93, 3), () => 0, .003, .005, .003), trouM); }
@@ -115,14 +118,14 @@ export function buildFigure(want: Look, opts: FigureOpts, kit: Kit) {
   for (const side of [-1, 1]) {
     const sh = new T.Group(); sh.position.set(side * d.shX, RIG.shoulder + LIFT, 0); body.add(sh); arms.push(sh);
     const up = upperArm(d), off = lab ? .006 : coatOff - .003, fore = forearm(d);
-    put0(sh, loft(offset(up, off).filter((_, i) => i !== 2), { seg: 8, capStart: { round: d.rSh + off }, capEnd: { round: d.elbowR + off }, key: `sleeve/${off}/${dk}` }), coatM);
+    put0(sh, loft(offset(up, off).filter((_, i) => i !== 2), { seg: 7, capStart: { round: d.rSh + off }, capEnd: { round: d.elbowR + off }, key: `sleeve/${off}/${dk}` }), coatM);
     kit.bake(sh);
     const el = new T.Group(); el.position.set(0, -RIG.upperArm, 0); sh.add(el); elbows.push(el);
     const rolled = lab || (asym.has('sleeveRolled') && side < 0), at = (y: number, e: number) => { const r = ringAt(fore, y); return { ...r, w: r.w + e, f: r.f + e, b: r.b + e }; };
-    put0(el, loft(fore, { seg: 8, capStart: { round: d.elbowR }, key: `fore/${dk}` }), skin);
+    put0(el, loft(fore, { seg: 6, capStart: { round: d.elbowR }, key: `fore/${dk}` }), skin);
     if (rolled) {
       // a bare forearm under a rolled cuff: the roll is a thick band that belongs to the forearm and wears the same cap as the sleeve above it
-      put0(el, loft([at(0, .007), at(-.012, .015), at(-.05, .018)], { seg: 8, capStart: { round: d.elbowR + .007 }, lipEnd: .011, key: `roll/${dk}` }), coatM);
+      put0(el, loft([at(0, .007), at(-.012, .015), at(-.05, .018)], { seg: 6, capStart: { round: d.elbowR + .007 }, lipEnd: .011, key: `roll/${dk}` }), coatM);
     } else {
       // the coat's forearm to a turned cuff, the shirt's cuff showing a centimetre below it
       put0(el, loft([at(-.2, .009), at(-.243, .009)], { seg: 8, lipEnd: .004, key: `shirtcuff/${dk}` }), shirtM);
@@ -138,14 +141,14 @@ export function buildFigure(want: Look, opts: FigureOpts, kit: Kit) {
   for (const side of [-1, 1]) {
     const hip = new T.Group(); hip.position.set(side * d.hipX, RIG.hip + LIFT, 0); group.add(hip); legs.push(hip);
     const th = thighRings(d, side), inward = -side * .022, to = lab ? .008 : .006;
-    put0(hip, loft(offset(th, to).filter((_, i) => i !== 3), { seg: 8, capStart: { round: d.hipR + to }, capEnd: { round: d.kneeR + to }, key: `thigh/${side}/${lab}/${dk}` }), trouM);
+    put0(hip, loft(offset(th, to).filter((_, i) => i !== 3), { seg: 7, capStart: { round: d.hipR + to }, capEnd: { round: d.kneeR + to }, key: `thigh/${side}/${lab}/${dk}` }), trouM);
     kit.bake(hip);
     const knee = new T.Group(); knee.position.set(inward, -RIG.thigh, 0); hip.add(knee); knees.push(knee);
     const sn = shinRings(d), hem = -.452, shinCut = [...sn.filter(r => r.y > hem + .02), { ...ringAt(sn, hem), y: hem }];
-    put0(knee, loft(offset(shinCut, to, (_, i) => i === shinCut.length - 1 ? { w: .008, f: .006, b: .006 } : {}), { seg: 8, capStart: { round: d.kneeR + to }, lipEnd: .007, key: `shin/${lab}/${dk}` }), trouM);
+    put0(knee, loft(offset(shinCut, to, (_, i) => i === shinCut.length - 1 ? { w: .008, f: .006, b: .006 } : {}), { seg: 7, capStart: { round: d.kneeR + to }, lipEnd: .007, key: `shin/${lab}/${dk}` }), trouM);
     if (lab || true) { // the knee breaks: a kneecap plane at the front, a crease behind, and a turned-up cuff with a thickness over the shoe
       const so2 = offset(shinCut, to); put0(knee, plate(so2, [[-.005, -.85, .85], [-.06, -.75, .75], [-.115, -.5, .5]], .0, .008, 3), trouM);
-      const cuff = [-.4, -.452].map(y => { const r = ringAt(so2, y); return { ...r, w: r.w + .01, f: r.f + .01, b: r.b + .01 }; }); put0(knee, loft(cuff, { seg: 7, lipStart: .005, lipEnd: .006, key: `turnup/${lab}/${dk}` }), trouM); }
+      const cuff = [-.4, -.452].map(y => { const r = ringAt(so2, y); return { ...r, w: r.w + .01, f: r.f + .01, b: r.b + .01 }; }); put0(knee, loft(cuff, { seg: 6, lipStart: .005, lipEnd: .006, key: `turnup/${lab}/${dk}` }), trouM); }
     // the boot's shaft belongs to the shin and runs on into the foot, a visible thickness at its top
     const top = lab ? -.42 : -.36, so = lab ? .006 : .002, shaft = [top, -.46, -.495].map(y => { const r = ringAt(sn, y); return { ...r, w: r.w + so, f: r.f + so, b: r.b + so }; });
     put0(knee, loft(shaft, { seg: 5, lipStart: .004, capEnd: 'flat', key: `shaft/${lab}/${dk}` }), bootM);

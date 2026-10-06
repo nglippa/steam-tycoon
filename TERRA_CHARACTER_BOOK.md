@@ -133,7 +133,7 @@ Widths are full widths, front view, of the body under the clothes.
 | Chest depth | 0.20 | 0.23 | 0.27 |
 | Waist, broad / narrow | 0.26 / 0.23 | 0.30 / 0.27 | 0.37 / 0.33 |
 | Hips, broad / narrow | 0.32 / 0.34 | 0.36 / 0.38 | 0.40 / 0.43 |
-| Neck width | 0.114 | 0.13 | 0.152 |
+| Neck width | 0.098 | 0.108 | 0.128 |
 | Upper arm, widest | 0.075 | 0.09 | 0.11 |
 | Wrist | 0.045 | 0.05 | 0.058 |
 | Thigh, widest | 0.125 | 0.145 | 0.17 |
@@ -310,8 +310,8 @@ carries eyes, brows and mouth. Readable, restrained, never an emoji.
   on the eye line. Not spheres.
 - The head pivots at the top of the neck.
 
-Head width is about 0.72 h. The neck is about 0.6 of the head's width on a broad frame, a little
-under on a narrow one, and never under 0.42. The painted face is a front plane (ear to ear, chin to hairline) faded out toward the ears; the atlas is not wrapped round the head.
+Head width is about 0.72 h. The neck is about 0.5 of the head's width on a broad frame, a little
+under on a narrow one (never under 0.42), round in section, tapering slightly upward and tucking in under the jaw. A cel shadow lies under the jaw on the neck. The painted face is a front plane (ear to ear, chin to hairline) faded out toward the ears; the atlas is not wrapped round the head.
 
 ### Shading the head
 

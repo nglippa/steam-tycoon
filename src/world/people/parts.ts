@@ -29,8 +29,8 @@ export function foot(g: T.Group, d: Dims, upperM: T.Material, soleM: T.Material,
   const L = d.shoe / .285, X = (a: number) => a * L, sw = d.shoeW / .094, toe = soft ? 2.5 : 3;
   const fr = (a: number, w: number, top: number, bottom: number, n = 2.4): Ring => ({ y: X(a), w: w * sw, f: (top - bottom) / 2, b: (top - bottom) / 2, z: -(top + bottom) / 2, n });
   const turn = (rings: Ring[], o: object, key: string) => place(loft(rings, { ...o, key: `${key}/${d.shoe}/${d.shoeW}/${soft}` }), [0, 0, 0], [Math.PI / 2, 0, 0]);
-  put0(g, turn([fr(-.062, .028, .021, -.034), fr(-.04, .039, .03, -.034), fr(-.005, .044, .052, -.034), fr(.05, .0465, .034, -.034), fr(.12, .0475, .008, -.034, toe), fr(.19, .0455, -.008, -.034, toe), fr(.208, .036, -.014, -.034, toe), fr(.216, .016, -.02, -.034, toe)], { seg: 8, capStart: 'flat', capEnd: 'flat' }, 'foot'), upperM);
-  put0(g, turn([fr(-.068, .026, -.034, -.052, 2.5), fr(-.05, .042, -.034, -.052, 2.5), fr(.03, .0505, -.034, -.052, 2.5), fr(.12, .0535, -.034, -.052, 2.8), fr(.195, .0505, -.034, -.052, 3), fr(.217, .04, -.034, -.052, 3), fr(.225, .018, -.034, -.052, 3)], { seg: 8, capStart: 'flat', capEnd: 'flat' }, 'sole'), soleM);
+  put0(g, turn([fr(-.062, .028, .021, -.034), fr(-.04, .039, .03, -.034), fr(-.005, .044, .052, -.034), fr(.05, .0465, .034, -.034), fr(.12, .0475, .008, -.034, toe), fr(.19, .0455, -.008, -.034, toe), fr(.208, .036, -.014, -.034, toe), fr(.216, .016, -.02, -.034, toe)], { seg: 7, capStart: 'flat', capEnd: 'flat' }, 'foot'), upperM);
+  put0(g, turn([fr(-.068, .026, -.034, -.052, 2.5), fr(-.05, .042, -.034, -.052, 2.5), fr(.03, .0505, -.034, -.052, 2.5), fr(.12, .0535, -.034, -.052, 2.8), fr(.195, .0505, -.034, -.052, 3), fr(.217, .04, -.034, -.052, 3), fr(.225, .018, -.034, -.052, 3)], { seg: 7, capStart: 'flat', capEnd: 'flat' }, 'sole'), soleM);
   put0(g, turn([fr(-.066, .03, -.03, -.052, 2.4), fr(-.045, .04, -.03, -.052, 2.4), fr(-.012, .042, -.03, -.052, 2.4)], { seg: 8, capStart: 'flat', capEnd: 'flat' }, 'heel'), soleM);
 }
 

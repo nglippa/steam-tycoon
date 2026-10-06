@@ -16,18 +16,18 @@ export interface Dims {
   hand: number; shoe: number; shoeW: number;
 }
 
-const slim: Dims = { h: .275, chin: 1.575, shX: .203, rSh: .047, chestW: .30, waistW: .26, hipW: .32, chestD: .20, waistD: .165, hipD: .18, belly: 0, slope: .06, neckW: .114, neckD: .09, neckLean: .27, headFwd: .012,
+const slim: Dims = { h: .275, chin: 1.575, shX: .203, rSh: .047, chestW: .30, waistW: .26, hipW: .32, chestD: .20, waistD: .165, hipD: .18, belly: 0, slope: .06, neckW: .098, neckD: .09, neckLean: .27, headFwd: .012,
   armW: .075, elbowR: .034, foreW: .068, wristW: .045, hipX: .084, hipR: .064, thighW: .125, kneeR: .048, calfW: .095, calfBack: .014, ankleW: .06, hand: .185, shoe: .27, shoeW: .088 };
-const standard: Dims = { h: .285, chin: 1.60, shX: .233, rSh: .052, chestW: .335, waistW: .30, hipW: .36, chestD: .23, waistD: .19, hipD: .2, belly: 0, slope: .05, neckW: .13, neckD: .1, neckLean: .22, headFwd: .004,
+const standard: Dims = { h: .285, chin: 1.60, shX: .233, rSh: .052, chestW: .335, waistW: .30, hipW: .36, chestD: .23, waistD: .19, hipD: .2, belly: 0, slope: .05, neckW: .108, neckD: .1, neckLean: .22, headFwd: .004,
   armW: .09, elbowR: .038, foreW: .08, wristW: .05, hipX: .09, hipR: .07, thighW: .145, kneeR: .054, calfW: .108, calfBack: .016, ankleW: .066, hand: .19, shoe: .285, shoeW: .094 };
-const sturdy: Dims = { h: .295, chin: 1.616, shX: .258, rSh: .062, chestW: .38, waistW: .37, hipW: .40, chestD: .27, waistD: .245, hipD: .235, belly: .035, slope: .037, neckW: .152, neckD: .118, neckLean: .13, headFwd: -.004,
+const sturdy: Dims = { h: .295, chin: 1.616, shX: .258, rSh: .062, chestW: .38, waistW: .37, hipW: .40, chestD: .27, waistD: .245, hipD: .235, belly: .035, slope: .037, neckW: .128, neckD: .118, neckLean: .13, headFwd: -.004,
   armW: .11, elbowR: .045, foreW: .098, wristW: .058, hipX: .096, hipR: .082, thighW: .17, kneeR: .062, calfW: .125, calfBack: .02, ankleW: .075, hand: .2, shoe: .3, shoeW: .1 };
 
 /** The narrow frame: shoulders and hips about equal, a higher and smaller waist, a slimmer neck and wrist. Only what differs from the broad record. */
 const NARROW: Record<Family, Partial<Dims>> = {
-  slim: { shX: .178, chestW: .27, waistW: .23, hipW: .34, chestD: .19, neckW: .09, wristW: .042, hipD: .2 },
-  standard: { shX: .198, chestW: .30, waistW: .27, hipW: .38, chestD: .22, neckW: .098, wristW: .046, hipD: .225 },
-  sturdy: { shX: .218, chestW: .34, waistW: .33, hipW: .43, chestD: .255, neckW: .115, wristW: .054, hipD: .265 },
+  slim: { shX: .178, chestW: .27, waistW: .23, hipW: .34, chestD: .19, neckW: .084, wristW: .042, hipD: .2 },
+  standard: { shX: .198, chestW: .30, waistW: .27, hipW: .38, chestD: .22, neckW: .094, wristW: .046, hipD: .225 },
+  sturdy: { shX: .218, chestW: .34, waistW: .33, hipW: .43, chestD: .255, neckW: .114, wristW: .054, hipD: .265 },
 };
 export const dimsOf = (family: Family, frame: Frame): Dims => ({ ...{ slim, standard, sturdy }[family], ...(frame === 'narrow' ? NARROW[family] : {}) });
 
@@ -62,7 +62,7 @@ export function pelvis(d: Dims): Ring[] { return [
 ]; }
 
 /** The neck: an oval column that leans forward into the skull and enters behind the jaw. Rings are sole heights; the lean moves the centre forward with height. */
-export function neck(d: Dims): Ring[] { const lean = Math.tan(d.neckLean); return [1.47, 1.52, d.chin - .035, d.chin + .03].map((y, i) => ring(y, d.neckW * (1 - i * .03), d.neckD * (1 - i * .02), -.012 + (y - 1.47) * lean + d.headFwd * (i / 3), 2.15)); }
+export function neck(d: Dims): Ring[] { const lean = Math.tan(d.neckLean); return [1.47, 1.52, d.chin - .035, d.chin + .03].map((y, i) => ring(y, d.neckW * (1 - i * .06), d.neckD * 1.02 * (1 - i * .05), -.012 + (y - 1.47) * lean + d.headFwd * (i / 3), 2.15)); }
 
 /** Upper arm: local to the shoulder pivot. The cap (the deltoid) is the first ring; fullest a third of the way down, front and back unequal; a point at the back of the elbow. */
 export function upperArm(d: Dims): Ring[] { const a = d.armW / 2; return [

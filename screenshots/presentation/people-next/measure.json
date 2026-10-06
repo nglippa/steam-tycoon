@@ -5,11 +5,11 @@
     "height": 1.918,
     "head": 0.295,
     "headsTall": 6.5017,
-    "tris": 5016,
+    "tris": 5172,
     "meshes": 20,
     "nodes": 42,
-    "shoulderWidth": 0.652,
-    "hipWidth": 0.4145
+    "shoulderWidth": 0.6486,
+    "hipWidth": 0.424
   },
   {
     "role": "resident",
@@ -17,10 +17,10 @@
     "height": 1.857,
     "head": 0.275,
     "headsTall": 6.7527,
-    "tris": 6270,
+    "tris": 6456,
     "meshes": 22,
     "nodes": 44,
-    "shoulderWidth": 0.488,
+    "shoulderWidth": 0.4847,
     "hipWidth": 0.4165
   }
 ]

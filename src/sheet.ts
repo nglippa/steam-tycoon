@@ -1,5 +1,5 @@
 import * as T from 'three';
-import { citizen, citizenNext, setCitizenProsperity, type Citizen, type Expression } from './world/citizens';
+import { faceAtlasNext, citizen, citizenNext, setCitizenProsperity, type Citizen, type Expression } from './world/citizens';
 import { BUILT } from './world/people/figure';
 import { CASTS, type CastId, type Family, type Frame } from './world/people/look';
 import { animateLife, setLifeConditions, type Activity } from './world/citizen-life';
@@ -29,6 +29,14 @@ const exprs = (q.get('expr') ?? '').split(',').filter(Boolean); // &expr=neutral
 const lineup = seeds.length === 1, rows = exprs.length || combos.length ? 1 : lineup ? 1 : roles.length, cols = exprs.length ? exprs.length : combos.length ? combos.length : lineup ? roles.length : seeds.length;
 const cell = (r: number, c: number) => exprs.length ? { role: roles[0], seed: seeds[0] } : combos.length ? { role: CASTS[combos[c].cast].archetype, seed: seeds[c % seeds.length] } : { role: lineup ? roles[c] : roles[r], seed: lineup ? seeds[0] : seeds[c] };
 
+// ?atlas=next&rows=0,1&cols=0,1,2,3: the raw face atlas, unlit, on a flat quad (a dev view: what is really painted in a tile)
+if (q.get('atlas')) {
+  const c0 = document.querySelector<HTMLCanvasElement>('#sheet')!, r0 = new T.WebGLRenderer({ canvas: c0, preserveDrawingBuffer: true }); r0.setSize(innerWidth, innerHeight);
+  const rows0 = (q.get('rows') ?? '0,1').split(',').map(Number), cols0 = (q.get('cols') ?? '0,1,2,3').split(',').map(Number), sc = new T.Scene(); sc.background = new T.Color('#9a9a94');
+  const cam0 = new T.OrthographicCamera(0, cols0.length, 0, -rows0.length, -1, 1);
+  rows0.forEach((r, j) => cols0.forEach((cc, i) => { const t = faceAtlasNext.clone(); t.needsUpdate = true; t.repeat.set(1 / 16, 1 / 8); t.offset.set(cc / 16, r / 8); const m = new T.Mesh(new T.PlaneGeometry(.98, .98), new T.MeshBasicMaterial({ map: t, transparent: true })); m.position.set(i + .5, -j - .5, 0); m.scale.y = -1; sc.add(m); }));
+  r0.render(sc, cam0); document.body.dataset.ready = '1'; throw new Error('atlas view');
+}
 const canvas = document.querySelector<HTMLCanvasElement>('#sheet')!;
 const renderer = new T.WebGLRenderer({ canvas, antialias: sil, preserveDrawingBuffer: true });
 renderer.setPixelRatio(1); renderer.setSize(innerWidth, innerHeight); renderer.toneMapping = T.NoToneMapping; renderer.toneMappingExposure = 1.2; renderer.outputColorSpace = T.SRGBColorSpace;

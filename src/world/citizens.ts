@@ -201,7 +201,7 @@ const faceAtlas = paintAtlas(faceTypes);
 const IR = P.iris;
 const faceTypesNext: FaceType[] = [
   { rise: 58, w: 33, tilt: 2, lash: 11, iris: IR.slateBlue, brow: [3, 8, 0], nose: 'dash', mouth: 1.35, marks: 'none', sx: 68, by: 224, calm: true },
-  { rise: 60, w: 33, tilt: 4, lash: 11, iris: IR.brown, brow: [3, 10, -2], nose: 'dot', mouth: 1.25, marks: 'freckles', sx: 68, by: 224, calm: true },
+  { rise: 60, w: 33, tilt: 4, lash: 11, iris: IR.brown, brow: [3, 10, -2], nose: 'dot', mouth: 1.25, marks: 'none', sx: 68, by: 224, calm: true },
   { rise: 54, w: 34, tilt: -2, lash: 10, iris: IR.darkBrown, brow: [4, 4, 3], nose: 'hook', mouth: 1.45, marks: 'none', sx: 69, by: 226, calm: true },
   { rise: 58, w: 32, tilt: 3, lash: 11, iris: IR.greyGreen, brow: [3, 9, -2], nose: 'button', mouth: 1.25, marks: 'none', sx: 67, by: 224, calm: true },
   { rise: 55, w: 34, tilt: -4, lash: 10, iris: IR.grey, brow: [4, 5, 3], nose: 'dash', mouth: 1.35, marks: 'none', sx: 69, by: 226, calm: true },
@@ -209,7 +209,7 @@ const faceTypesNext: FaceType[] = [
   { rise: 54, w: 34, tilt: 4, lash: 10, iris: IR.greyGreen, brow: [4, 3, -3], nose: 'hook', mouth: 1.45, marks: 'scar', sx: 69, by: 226, calm: true },
   { rise: 58, w: 33, tilt: 0, lash: 11, iris: IR.darkBrown, brow: [3, 8, 2], nose: 'button', mouth: 1.3, marks: 'none', sx: 68, by: 224, calm: true },
 ];
-const faceAtlasNext = paintAtlas(faceTypesNext);
+export const faceAtlasNext = paintAtlas(faceTypesNext);
 /** Each band picks its own column: the shader reads the tile's height (the head's baked v) and takes the eye, brow or mouth column from the figure's `vFace`. Texture gradients come from the
  * unshifted uv, so the jump between columns does not pick a coarse mip at a seam. */
 const FACE_MAP = `vec3 fc=floor(vFace+.5);float ft=1.-fract(vMapUv.y*${FACE_TYPES}.);
@@ -223,7 +223,7 @@ const faceMaterial = (tone: number, next = false) => {
   m.onBeforeCompile = shader => { shader.uniforms.uFace = look;
     if (next) shader.vertexShader = 'attribute float faceMask;varying float vMask;\n' + shader.vertexShader.replace('void main() {', 'void main() {\nvMask = faceMask;');
     shader.vertexShader = 'uniform vec3 uFace;flat varying vec3 vFace;\n' + shader.vertexShader.replace('#include <color_vertex>', '#include <color_vertex>\n#ifdef USE_BATCHING_COLOR\nvColor=vec3(1.);vFace=batchingColor;\n#else\nvFace=uFace;\n#endif');
-    shader.fragmentShader = (next ? 'varying float vMask;\n' : '') + 'flat varying vec3 vFace;\n' + shader.fragmentShader.replace('#include <map_fragment>', next ? FACE_MAP.replace('fs.a)', 'fs.a*vMask)') : FACE_MAP).replace('#include <emissivemap_fragment>', 'totalEmissiveRadiance*=diffuseColor.rgb;'); };
+    shader.fragmentShader = (next ? 'varying float vMask;\n' : '') + 'flat varying vec3 vFace;\n' + shader.fragmentShader.replace('#include <map_fragment>', next ? FACE_MAP.replace('fs.a)', 'fs.a*vMask)').replace('diffuseColor.rgb=mix', `if(ft>=${tV(BAND[4])}&&ft<${tV(BAND[3])}&&dot(fs.rgb,vec3(.333))<.4)fs.rgb=diffuseColor.rgb*vec3(.5,.33,.35);diffuseColor.rgb=mix`) : FACE_MAP).replace('#include <emissivemap_fragment>', 'totalEmissiveRadiance*=diffuseColor.rgb;'); };
   m.customProgramCacheKey = () => next ? 'terra-face-bands-next' : 'terra-face-bands'; return thinLine(painted(m));
 };
 const faces = skinColors.map((_, i) => faceMaterial(i));
