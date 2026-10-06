@@ -1,7 +1,6 @@
 import * as T from 'three';
 import { loft, surface, sweep, merge, place, shared, type Ring, type SweepPt } from './loft';
 import type { Look, HairStyle, HeadShape } from './look';
-import { HAIR_FALLBACK } from './look';
 
 /** The head (Terra Character Book 6 and 7). Built in chin-origin coordinates, y up from the chin, z forward, then hung from the head group (whose pivot is the top of the neck).
  *  A cranium and a separate lower face, a flatter front plane, jaw planes rising to the ear, a small chin carried forward, a nose wedge in the geometry, flat shaped ears on the
@@ -29,9 +28,9 @@ export const headAt = (rings: Ring[], y: number, a: number, off = 0) => surface(
 /** Where the painted features land on the atlas tile. The atlas is painted for the old head; these maps put its eye line on the Book's eye line (a little under the middle), its mouth an
  *  eighth of a head above the chin and its brows above the eyes. Within a band the scale is the same up and across; the stretch is taken up in the plain skin between the bands. */
 export function faceUV(x: number, y: number, z: number, faceType: number, h: number, out: number[] = [0, 0]) {
-  const k = h / .285, a = Math.atan2(x / (.105 * k), (z + .012 * k) / (.11 * k)), u = .5 + .346 * Math.max(-2, Math.min(2, a));
+  const k = h / .285, u = .5 + x / (.318 * k); void z;
   // y above the chin -> a row of the 512 px tile: eyes at 300 (the eye line, .130 h up), the plain skin between the bands stretched, the mouth at 389 (.0356 up)
-  const kv = .0006 * k, km = .00068 * k, eye = .130 * k, gapTop = eye - 44 * kv, gapBot = .0527 * k;
+  const kv = .00062 * k, km = .00062 * k, eye = .130 * k, gapTop = eye - 44 * kv, gapBot = .0527 * k;
   const px = y >= gapTop ? 300 - (y - eye) / kv : y >= gapBot ? 344 + (gapTop - y) / (gapTop - gapBot) * 20 : 364 + (gapBot - y) / km;
   out[0] = u / 16; out[1] = (faceType + Math.max(10, Math.min(502, px)) / 512) / 8; return out;
 }
@@ -66,7 +65,10 @@ export function skull(look: Look, h: number): T.BufferGeometry {
     const g = merge([body.index ? body.toNonIndexed() : body, nose]);
     const p = g.attributes.position as T.BufferAttribute, uv = g.attributes.uv as T.BufferAttribute, o = [0, 0];
     for (let i = 0; i < p.count; i++) { faceUV(p.getX(i), p.getY(i), p.getZ(i), look.faceType, h, o); uv.setXY(i, o[0], o[1]); }
-    proxyNormals(g, h); return g;
+    proxyNormals(g, h);
+    // the painted face is a front plane: it fades out toward the ears, so nothing smears along the side of the head or lands on the back
+    const mask = new Float32Array(p.count), k = h / .285; for (let i = 0; i < p.count; i++) { const a = Math.abs(Math.atan2(p.getX(i) / (.105 * k), (p.getZ(i) + .012 * k) / (.11 * k))); mask[i] = 1 - T.MathUtils.smoothstep(a, .9, 1.3); }
+    g.setAttribute('faceMask', new T.BufferAttribute(mask, 1)); return g;
   });
 }
 
@@ -94,80 +96,130 @@ function patch(rings: Ring[], o: Patch): T.BufferGeometry {
   const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new T.Float32BufferAttribute(uv, 2)); g.setIndex(idx); g.computeVertexNormals(); return g;
 }
 /** A tapered, curved wedge of hair lying along the scalp, following one flow: points are [angle, height, lift off the scalp, half width]. */
-function strand(rings: Ring[], pts: number[][], thick = .011, seg = 6): T.BufferGeometry {
+function strand(rings: Ring[], pts: number[][], thick = .011, seg = 4): T.BufferGeometry {
   const sp: SweepPt[] = pts.map(([a, y, off, w], i) => { const q = headAt(rings, y, a, off), taper = i === pts.length - 1 ? .12 : 1; return { p: [q.p.x, q.p.y, q.p.z], a: w * taper, b: thick * (i === pts.length - 1 ? .2 : 1), n: [q.n.x, q.n.y, q.n.z] }; });
-  return sweep(sp, { seg: Math.min(seg, 5), capStart: true, capEnd: true });
+  return sweep(sp, { seg, capStart: true, capEnd: true });
 }
 const sm = (a: number, lo: number, hi: number) => T.MathUtils.smoothstep(a, lo, hi);
 
 export interface HairOut { hair: T.BufferGeometry[]; under: T.BufferGeometry[]; swing: T.BufferGeometry[] }
-/** Four styles are built (shortCrop, sidePart, sweptBack, lowBun); the others fall back to the nearest of these (HAIR_FALLBACK, TODO next task).
- *  Each has a fringe, sides and a back and top mass, a parting or sweep, and a variant under a hat: what shows below the band at the temples and the nape. */
+interface HS { hl: number; side: number; back: number; vol: number }
+/** Where each style begins (the hairline over the brow, above the ear, at the nape) and how much volume it carries (the cap stands 2 to 4 cm off the scalp). */
+const HS: Record<HairStyle, HS> = {
+  shortCrop: { hl: .212, side: .125, back: .09, vol: .016 }, sidePart: { hl: .212, side: .13, back: .07, vol: .02 }, sweptBack: { hl: .238, side: .15, back: .05, vol: .024 },
+  tousled: { hl: .212, side: .12, back: .07, vol: .026 }, bob: { hl: .2, side: .04, back: .03, vol: .016 }, lowBun: { hl: .222, side: .14, back: .1, vol: .012 },
+  highKnot: { hl: .226, side: .15, back: .11, vol: .01 }, ponytail: { hl: .222, side: .15, back: .11, vol: .01 }, longTied: { hl: .222, side: .15, back: .1, vol: .012 }, balding: { hl: .2, side: .13, back: .1, vol: .01 },
+};
+const ball = (r: number, key: string) => loft([{ y: -r, w: r * .3, f: r * .3, b: r * .3 }, { y: -r * .5, w: r * .9, f: r * .9, b: r * .9 }, { y: r * .5, w: r * .9, f: r * .9, b: r * .9 }, { y: r, w: r * .3, f: r * .3, b: r * .3 }], { seg: 8, capStart: 'flat', capEnd: 'flat', key });
+
+/** Ten styles (Book 7), each a fringe over the forehead in two or three overlapping tapered clumps, sides in front of the ear, a back mass with a nape, a parting or sweep that favours one side;
+ *  under a hat, the hair that shows below the band at the temples and nape. Strands are curved wedges that follow the scalp and leave it at the tips. */
 export function hairOf(look: Look, h: number, hatted: boolean): HairOut {
-  const k = h / .285, rings = skullRings(look.headShape, h), style: HairStyle = HAIR_FALLBACK[look.hairStyle], hair: T.BufferGeometry[] = [], under: T.BufferGeometry[] = [], swing: T.BufferGeometry[] = [];
-  const A = Math.PI, front = (a: number) => 1 - sm(Math.abs(a), .5, 1.25);   // 1 at the forehead, 0 at the temples and round the back
-  const nape = (a: number) => sm(Math.abs(a), 1.9, 2.7);
-  // where the hair begins: the hairline across the brow, the temple, above the ear, the nape
-  const lowOf = (hl: number, side: number, back: number) => (a: number) => (hl * front(a) + side * (1 - front(a)) * (1 - nape(a)) + back * nape(a)) * k;
+  const k = h / .285, rings = skullRings(look.headShape, h), style: HairStyle = look.hairStyle, c = HS[style], hair: T.BufferGeometry[] = [], under: T.BufferGeometry[] = [], swing: T.BufferGeometry[] = [];
+  const A = Math.PI, sg = (look.faceType + look.hairColour.length) % 2 ? 1 : -1, front = (a: number) => 1 - sm(Math.abs(a), .5, 1.25), nape = (a: number) => sm(Math.abs(a), 1.9, 2.7);
+  const low = (a: number) => (c.hl * front(a) + c.side * (1 - front(a)) * (1 - nape(a)) + (c.back - .022 * sm(Math.abs(a), 2.7, 3.1)) * nape(a)) * k;
+  const S = (pts: number[][], th = .012) => hair.push(strand(rings, pts, th));
+  const cap = (top: ((a: number) => number) | undefined, a0 = -A, a1 = A) => hair.push(patch(rings, { a0, a1, cols: 22, rows: 5, low, top, off: (s, a) => (.017 + c.vol * Math.sin(Math.min(1, s * 1.15) * Math.PI * .55) * (.55 + .45 * Math.cos(a)) + (style === 'sweptBack' ? .02 * (1 - front(a)) * s : 0)) * k }));
   if (hatted) {
-    // under a hat: a band of hair at the temples and the nape, below the sweatband
-    const band = (a: number) => (.172 - .045 * sm(Math.abs(a), .3, 1.4)) * k;
-    hair.push(patch(rings, { a0: -A, a1: A, cols: 20, rows: 2, low: lowOf(.19, .12, .06), top: a => band(a) + .004 * k, off: s => (.012 + .004 * s) * k }));
-    if (style !== 'lowBun') return { hair, under, swing };
-    const bun = loft([{ y: -.045, w: .02, f: .02, b: .02 }, { y: -.02, w: .042, f: .042, b: .042 }, { y: .02, w: .044, f: .044, b: .044 }, { y: .045, w: .02, f: .02, b: .02 }], { seg: 8, capStart: { round: .02 }, capEnd: { round: .02 }, key: `bun/${h}` });
-    swing.push(place(bun, [0, .07 * k, -.138 * k], [.3, 0, 0], k)); return { hair, under, swing };
+    cap(a => (.172 - .045 * sm(Math.abs(a), .3, 1.4)) * k + .004 * k);
+    if (style === 'bob') for (const a of [A - .5, A, A + .5]) S([[a, .13, .03, .03], [a, .07, .042, .03], [a, .03, .056, .012]]);
+  } else if (style === 'balding') {
+    cap(a => .17 * k, .85, 2 * A - .85);
+    for (const s of [-1, 1]) S([[s * 1.3, .17, .02, .02], [s * 1.35, .12, .026, .022], [s * 1.4, .08, .028, .01]]);
+  } else {
+    cap(undefined);
+    // the fringe: overlapping clumps down over the forehead, longest on the side of the parting
+    if (style === 'shortCrop') ([[.75, .188], [.15, .2], [-.6, .192]] as const).forEach(([a, y]) => S([[a * sg * .7, .268, .03, .03], [a * sg, .236, .04, .032], [a * sg * 1.04, .205, .046, .026], [a * sg * 1.08, y, .042, .01]]));
+    if (style === 'sidePart') {
+      S([[.34 * sg, .276, .022, .034], [.1 * sg, .236, .04, .042], [-.4 * sg, .2, .046, .04], [-.95 * sg, .17, .036, .026], [-1.3 * sg, .14, .026, .01]], .015);
+      S([[.5 * sg, .262, .026, .026], [.3 * sg, .226, .04, .03], [-.1 * sg, .192, .044, .024], [-.5 * sg, .176, .038, .01]]);
+      S([[.7 * sg, .25, .03, .026], [.62 * sg, .21, .04, .022], [.5 * sg, .182, .038, .01]]);
+      under.push(strand(rings, [[.28 * sg, .262, .023, .004], [.26 * sg, .24, .029, .0045], [.25 * sg, .218, .032, .0045]], .004));
+    }
+    if (style === 'tousled') {
+      ([[.9, .2], [.45, .17], [-.05, .195], [-.55, .18], [-1.0, .21]] as const).forEach(([a, y], i) => S([[a * sg * .7, .268, .03, .03], [a * sg, .232, .044 + (i % 2) * .01, .03], [a * sg * 1.05, y + .02, .058 + (i % 2) * .012, .024], [a * sg * 1.1, y, .062, .01]]));
+      S([[.3 * sg, .27, .03, .03], [.34 * sg, .29, .058, .026], [.4 * sg, .31, .082, .01]]);
+    }
+    if (style === 'bob') ([.8, .2, -.4, -.9] as const).forEach(a => S([[a * sg * .8, .262, .03, .034], [a * sg, .23, .04, .034], [a * sg, .19, .042, .03], [a * sg, .178, .04, .012]]));
+    if (style === 'lowBun' || style === 'highKnot' || style === 'ponytail' || style === 'longTied') for (const s of [-1, 1]) {
+      S([[s * .1, .27, .03, .03], [s * .5, .236, .04, .034], [s * 1.0, .192, .036, .03], [s * 1.4, .15, .03, .012]]);
+      under.push(strand(rings, [[0, .268, .023, .0035], [0, .24, .029, .0045], [0, .216, .032, .0045]], .004));
+    }
+    if (style === 'sweptBack') {
+      ([[-1.2, -2.6, .13], [-.6, -2.9, .11], [0, 3.14, .12], [.6, 2.9, .11], [1.2, 2.6, .13]] as const).forEach(([a0, aEnd, yEnd]) => S([[a0 * .8, .252, .03, .03], [a0, .272, .036, .028], [(a0 + aEnd) * .5, .25, .044, .03], [aEnd * .85, .2, .054, .028], [aEnd, yEnd, .064, .016]], .014));
+    }
+    // sides in front of the ear
+    if (style !== 'sweptBack') for (const s of [-1, 1]) S(style === 'bob' ? [[s * 1.2, .2, .026, .03], [s * 1.3, .12, .036, .036], [s * 1.4, .05, .04, .03], [s * 1.45, .025, .034, .012]] : [[s * 1.28, .2, .024, .022], [s * 1.33, .15, .03, .022], [s * 1.38, .105, .032, .01]]);
+    else for (const s of [-1, 1]) S([[s * 1.5, .21, .02, .022], [s * 1.9, .17, .028, .022], [s * 2.4, .11, .034, .018], [s * 2.7, .06, .03, .01]]);
+    // the back mass ends in clumps below the cap, the nape shaped
+    if (['shortCrop', 'sidePart', 'tousled', 'bob'].includes(style)) [A - .55, A, A + .55].forEach((a, i) => S([[a, .17, .03, .03], [a, .1, .04, .03], [a, c.back - (i === 1 ? .03 : .008), style === 'bob' ? .056 : .046, .012]]));
   }
-  const hl = style === 'sweptBack' ? .236 : style === 'lowBun' ? .222 : .214, sideLow = style === 'shortCrop' ? .118 : style === 'sweptBack' ? .15 : .128;
-  const back = style === 'shortCrop' ? .088 : style === 'lowBun' ? .1 : .052;
-  const vol = style === 'sweptBack' ? .03 : style === 'sidePart' ? .028 : style === 'lowBun' ? .016 : .022;
-  hair.push(patch(rings, { a0: -A, a1: A, cols: 20, rows: 5, low: lowOf(hl, sideLow, back),
-    off: (s, a) => (.011 + vol * Math.sin(Math.min(1, s * 1.15) * Math.PI * .55) * (.55 + .45 * Math.cos(a * 1.0)) + (style === 'sweptBack' ? .02 * (1 - front(a)) * s : 0)) * k }));
-  // the part / sweep: a darker line in the scalp mass, a little proud of it
-  if (style === 'sidePart') under.push(strand(rings, [[.28, .262, .023, .004], [.26, .24, .029, .0045], [.25, .218, .032, .0045]], .004, 4));
-  if (style === 'lowBun') under.push(strand(rings, [[0, .268, .023, .004], [0, .24, .029, .0045], [0, .218, .032, .0045]], .004, 4));
-  if (style === 'shortCrop') {
-    // short, forward-combed fringe wedges of different lengths
-    [[.9, .206, 0], [.45, .212, .01], [0, .205, 0], [-.5, .21, .006], [-1.0, .198, 0]].forEach(([a, y0, d], i) => hair.push(strand(rings, [[a * .9, .262, .026, .026], [a, .238, .034, .026], [a, y0 - d, .036 + (i % 2) * .004, .022], [a * 1.06, y0 - .022 - (i % 2) * .012, .032, .012]], .012)));
-    for (const s of [-1, 1]) hair.push(strand(rings, [[s * 1.55, .19, .02, .02], [s * 1.8, .16, .024, .02], [s * 2.2, .12, .028, .018], [s * 2.5, .095, .026, .01]], .012));
-  } else if (style === 'sidePart') {
-    // a heavy fringe swept across the brow from the parting, with a lighter wedge beneath it, and the side tucked behind the ear
-    hair.push(strand(rings, [[.34, .276, .022, .034], [.26, .252, .034, .04], [.06, .226, .044, .044], [-.4, .202, .046, .04], [-.85, .176, .04, .03], [-1.25, .15, .03, .018], [-1.45, .13, .022, .008]], .016));
-    hair.push(strand(rings, [[.5, .262, .026, .026], [.42, .238, .036, .032], [.25, .21, .042, .028], [-.1, .192, .042, .024], [-.45, .178, .036, .014]], .012));
-    hair.push(strand(rings, [[-.6, .26, .028, .03], [-.9, .232, .036, .03], [-1.3, .2, .04, .026], [-1.6, .17, .036, .02], [-1.9, .14, .03, .01]], .014));
-    for (const s of [1]) hair.push(strand(rings, [[s * 1.5, .2, .022, .024], [s * 1.8, .17, .026, .022], [s * 2.2, .13, .03, .018], [s * 2.6, .09, .028, .01]], .012));
-  } else if (style === 'sweptBack') {
-    // combed back from a high hairline, the tips standing a little off the nape: five strands from the front, fanned, each ending on the back of the skull
-    ([[-1.2, -2.6, .13], [-.6, -2.9, .11], [0, 3.14, .12], [.6, 2.9, .11], [1.2, 2.6, .13]] as const).forEach(([a0, aEnd, yEnd]) => hair.push(strand(rings, [[a0 * .8, .252, .03, .03], [a0, .272, .036, .028], [(a0 + aEnd) * .5, .25, .044, .03], [aEnd * .85, .2, .054, .028], [aEnd, yEnd, .064, .016]], .014)));
-    for (const s of [-1, 1]) hair.push(strand(rings, [[s * 1.5, .21, .02, .022], [s * 1.9, .17, .028, .022], [s * 2.4, .11, .034, .018], [s * 2.7, .06, .03, .01]], .012));
-  } else { // lowBun: smooth, a middle part, pulled back over the ears to a bun at the nape
-    const bun = loft([{ y: -.048, w: .02, f: .02, b: .02 }, { y: -.022, w: .044, f: .044, b: .044 }, { y: .022, w: .046, f: .046, b: .046 }, { y: .048, w: .02, f: .02, b: .02 }], { seg: 8, capStart: { round: .02 }, capEnd: { round: .02 }, key: `bun/${h}` });
-    swing.push(place(bun, [0, .068 * k, -.142 * k], [.35, 0, 0], k));
-    for (const s of [-1, 1]) hair.push(strand(rings, [[s * .32, .256, .026, .03], [s * .55, .222, .034, .034], [s * 1.0, .182, .03, .03], [s * 1.5, .15, .028, .026], [s * 2.2, .108, .034, .02]], .013));
+  // what hangs or is tied at the back
+  const tie = (y: number, z: number) => place(ball(.036 * k, `knot/${h}`), [0, y * k, z * k]);
+  if (style === 'lowBun') swing.push(place(ball(.044 * k, `bun/${h}`), [0, .07 * k, -.14 * k], [.35, 0, 0]));
+  if (style === 'highKnot') swing.push(tie(.262, -.07));
+  if (style === 'ponytail' || style === 'longTied') {
+    const wide = style === 'longTied' ? .05 : .026, len = style === 'longTied' ? -.13 : -.17;
+    swing.push(sweep([[0, .2, -.108], [0, .17, -.14], [0, .09, -.162], [0, len * .5, -.16], [0, len, -.14]].map(([x, y, z], i, arr) => ({ p: [x * k, y * k, z * k] as [number, number, number], a: wide * k * (i === arr.length - 1 ? .45 : 1), b: .02 * k * (i === arr.length - 1 ? .5 : 1), n: [1, 0, 0] as [number, number, number] })), { seg: 5, capStart: true, capEnd: true }));
+    swing.push(place(loft([{ y: -.012, w: .03, f: .03, b: .03 }, { y: .012, w: .03, f: .03, b: .03 }], { seg: 8, key: `tieband/${h}` }), [0, .18 * k, -.125 * k], [.35, 0, 0], k));
   }
   return { hair, under, swing };
 }
 
-/** Headwear built over the same skull rings: a flat cap, a soft cap. Others are TODO (next task). */
-export function hatOf(look: Look, h: number): { cloth: T.BufferGeometry[]; trim: T.BufferGeometry[] } {
-  const k = h / .285, rings = skullRings(look.headShape, h), cloth: T.BufferGeometry[] = [], trim: T.BufferGeometry[] = [], A = Math.PI;
-  if (look.hat === 'flatCap' || look.hat === 'softCap') {
-    const soft = look.hat === 'softCap', rim = (a: number) => (.185 - .062 * sm(Math.abs(a), .25, 1.6) - .01 * sm(Math.abs(a), 2.4, 3.1)) * k;
-    // the crown: a soft dome, fuller at the front, pulled down at the back, the rim tilted forward over the brow
-    cloth.push(patch(rings, { a0: -A, a1: A, cols: 20, rows: 4, lid: true, low: rim, top: (a) => (soft ? .268 : .258) * k,
-      off: (s, a) => (.010 + (soft ? .028 : .04) * Math.sin(Math.min(1, s * 1.3) * Math.PI * .5) * (.78 + .22 * Math.cos(a))) * k, fwd: (s, a) => (soft ? .006 : .016) * s * s * Math.max(0, Math.cos(a)) * k }));
-    // the visor: a stiff curved peak that leaves the rim over the brow
-    const root = [{ y: .19 * k, w: .104 * k, f: .108 * k, b: .1 * k, z: -.006 * k }, { y: .183 * k, w: .118 * k, f: .14 * k, b: .1 * k, z: -.006 * k, n: 2.2 }, { y: .168 * k, w: .124 * k, f: .176 * k, b: .1 * k, z: -.006 * k, n: 2.4 }];
-    cloth.push(loft(root, { seg: 10, start: -.95, arc: 1.9, lipEnd: .004 * k, key: `visor/${h}` }));
-    trim.push(loft([{ y: .184 * k, w: .1055 * k, f: .106 * k, b: .098 * k, z: -.006 * k }, { y: .176 * k, w: .1065 * k, f: .108 * k, b: .1 * k, z: -.006 * k }], { seg: 18, start: -A, arc: Math.PI * 2 }));
+/** Headwear, authored on the same skull rings and sized to this head. */
+export function hatOf(look: Look, h: number): { cloth: T.BufferGeometry[]; trim: T.BufferGeometry[]; metal: T.BufferGeometry[] } {
+  const k = h / .285, rings = skullRings(look.headShape, h), cloth: T.BufferGeometry[] = [], trim: T.BufferGeometry[] = [], metal: T.BufferGeometry[] = [], A = Math.PI;
+  const rr = (y: number, r: number, z = -.006): Ring => ({ y: y * k, w: r * k, f: r * 1.05 * k, b: r * .95 * k, z: z * k, n: 2.15 });
+  const dome = (prof: number[][], key: string, o: object = {}) => loft(prof.map(([y, r]) => rr(y, r)), { seg: 18, capEnd: 'flat', key: `${key}/${h}/${look.headShape}`, ...o });
+  const brim = (y0: number, r0: number, y1: number, r1: number, key: string, o: object = {}) => loft([{ ...rr(y0, r0) }, { ...rr(y1, r1), f: r1 * 1.12 * k }], { seg: 18, lipEnd: .005 * k, lipStart: .004 * k, key: `${key}/${h}/${look.headShape}`, ...o });
+  const rim = (a: number) => (.185 - .062 * sm(Math.abs(a), .25, 1.6) - .01 * sm(Math.abs(a), 2.4, 3.1)) * k;
+  const hat = look.hat;
+  if (hat === 'flatCap' || hat === 'softCap') {
+    // eight soft panels pulled forward over a short stiff peak: wider than the head, low, flat on top, a button at the middle
+    const flat = hat === 'flatCap', top = (flat ? .242 : .262) * k, off = (s: number, a: number) => (.012 + (flat ? .05 : .034) * Math.sin(Math.min(1, s * 1.5) * Math.PI * .5) * (.8 + .2 * Math.cos(a)) - (flat ? .006 : .002) * s) * k;
+    cloth.push(patch(rings, { a0: -A, a1: A, cols: 16, rows: 3, lid: true, low: rim, top: () => top, off, fwd: (s, a) => (flat ? .026 : .01) * s * s * Math.max(0, Math.cos(a)) * k }));
+    metal.push(place(ball(.01 * k, `button/${h}`), [0, top + .008 * k, -.004 * k]));
+    cloth.push(loft([rr(.188, .106), { ...rr(.18, .118), f: .15 * k }, { ...rr(.168, .124), f: .165 * k }], { seg: 12, start: -.8, arc: 1.6, lipEnd: .004 * k, key: `peak/${h}` }));
+    trim.push(loft([rr(.19, .1085, -.006), rr(.176, .1095, -.006)], { seg: 18, key: `band/${h}/${look.headShape}` }));
   }
-  return { cloth, trim };
+  if (hat === 'bowler') {
+    cloth.push(dome([[.158, .112], [.2, .119], [.25, .11], [.285, .088], [.305, .04]], 'bowler')); cloth.push(brim(.165, .118, .172, .16, 'bowlerbrim'));
+    trim.push(loft([rr(.165, .1195), rr(.19, .1215)], { seg: 18, key: `bowlerband/${h}/${look.headShape}` }));
+  }
+  if (hat === 'topHat') {
+    cloth.push(dome([[.165, .108], [.25, .106], [.34, .112], [.41, .114]], 'topcrown')); cloth.push(brim(.17, .12, .176, .168, 'topbrim'));
+    trim.push(loft([rr(.168, .109), rr(.2, .108)], { seg: 18, key: `topband/${h}/${look.headShape}` }));
+  }
+  if (hat === 'kepi') {
+    cloth.push(dome([[.15, .112], [.2, .115], [.255, .131], [.268, .129]], 'kepi'));
+    cloth.push(loft([rr(.19, .108), { ...rr(.176, .116), f: .15 * k }, { ...rr(.16, .12), f: .16 * k }], { seg: 12, start: -.8, arc: 1.6, lipEnd: .004 * k, key: `kepipeak/${h}` }));
+    trim.push(loft([rr(.15, .1125), rr(.18, .1145)], { seg: 18, key: `kepiband/${h}/${look.headShape}` })); metal.push(place(ball(.012 * k, `pin/${h}`), [0, .205 * k, .124 * k]));
+  }
+  if (hat === 'helm') {
+    cloth.push(dome([[.14, .116], [.2, .123], [.26, .11], [.31, .07], [.326, .02]], 'helm'));
+    cloth.push(loft([rr(.15, .118), { ...rr(.108, .152), f: .14 * k }], { seg: 12, start: A - 1.35, arc: 2.7, lipEnd: .005 * k, key: `helmguard/${h}` }));
+    cloth.push(loft([rr(.19, .114), { ...rr(.178, .12), f: .14 * k }], { seg: 12, start: -.9, arc: 1.8, lipEnd: .004 * k, key: `helmbrow/${h}` }));
+    trim.push(sweep([[0, .318, .085], [0, .338, .0], [0, .318, -.1]].map(([x, y, z]) => ({ p: [x * k, y * k, z * k] as [number, number, number], a: .005 * k, b: .02 * k, n: [1, 0, 0] as [number, number, number] })), { seg: 4, capStart: true, capEnd: true }));
+  }
+  if (hat === 'headscarf' || hat === 'kerchief') {
+    cloth.push(patch(rings, { a0: -A, a1: A, cols: 22, rows: 4, lid: true, low: a => (.19 - .1 * sm(Math.abs(a), .5, 2.2)) * k, off: (s, a) => (.02 + .02 * Math.sin(Math.min(1, s * 1.3) * Math.PI * .5) + .006 * Math.cos(a)) * k }));
+    cloth.push(place(ball(.026 * k, `scarfknot/${h}`), [0, .1 * k, -.145 * k]));
+    for (const x of [-.02, .02]) cloth.push(sweep([[x, .1, -.15], [x * 2, .06, -.16], [x * 2.6, .02, -.158]].map(([xx, y, z], i) => ({ p: [xx * k, y * k, z * k] as [number, number, number], a: .014 * k * (1 - i * .25), b: .006 * k, n: [0, 0, 1] as [number, number, number] })), { seg: 4, capStart: true, capEnd: true }));
+  }
+  if (hat === 'bonnet') {
+    cloth.push(patch(rings, { a0: -A, a1: A, cols: 22, rows: 4, lid: true, low: a => (.2 - .1 * sm(Math.abs(a), .6, 2.2)) * k, off: (s, a) => (.022 + .03 * Math.sin(Math.min(1, s * 1.3) * Math.PI * .5) + .01 * Math.cos(a)) * k }));
+    cloth.push(loft([rr(.2, .112), { ...rr(.17, .14), f: .17 * k }], { seg: 12, start: -1.5, arc: 3, lipEnd: .004 * k, key: `bonnetbrim/${h}` }));
+    trim.push(loft([rr(.19, .1135), rr(.2, .115)], { seg: 18, key: `bonnetband/${h}/${look.headShape}` }));
+  }
+  if (hat === 'elderHat') { cloth.push(dome([[.156, .113], [.22, .12], [.262, .092], [.278, .035]], 'elder')); cloth.push(brim(.162, .122, .152, .2, 'elderbrim')); }
+  return { cloth, trim, metal };
 }
 
-/** Facial hair, from the same rings. */
+/** Facial hair: attached to the lip and jaw, never painted. */
 export function facialOf(look: Look, h: number): T.BufferGeometry[] {
   const k = h / .285, rings = skullRings(look.headShape, h), out: T.BufferGeometry[] = [];
-  if (look.facial === 'moustache') out.push(strand(rings, [[-.38, .052, .006, .009], [-.18, .056, .012, .011], [0, .0575, .0125, .012], [.18, .056, .012, .011], [.38, .052, .006, .009]], .008, 6));
+  if (look.facial === 'moustache') out.push(strand(rings, [[-.5, .046, .005, .009], [-.25, .0505, .011, .0105], [0, .0525, .0125, .011], [.25, .0505, .011, .0105], [.5, .046, .005, .009]], .009, 5));
   if (look.facial === 'sideburns') for (const s of [-1, 1]) out.push(strand(rings, [[s * 1.42, .15, .006, .016], [s * 1.38, .115, .008, .017], [s * 1.34, .075, .006, .014]], .007));
-  if (look.facial === 'beard') out.push(patch(rings, { a0: -1.55, a1: 1.55, cols: 20, rows: 4, low: () => .0, top: a => (.062 + .03 * sm(Math.abs(a), .9, 1.5)) * k, off: (s, a) => (.007 + .004 * Math.cos(a)) * k }));
+  if (look.facial === 'beard') out.push(patch(rings, { a0: -1.55, a1: 1.55, cols: 16, rows: 3, low: () => .0, top: a => (.058 + .03 * sm(Math.abs(a), .9, 1.5)) * k, off: (s, a) => (.007 + .004 * Math.cos(a)) * k }));
   return out;
 }

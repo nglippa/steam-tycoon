@@ -16,11 +16,11 @@ export interface Dims {
   hand: number; shoe: number; shoeW: number;
 }
 
-const slim: Dims = { h: .275, chin: 1.585, shX: .203, rSh: .047, chestW: .30, waistW: .26, hipW: .32, chestD: .20, waistD: .165, hipD: .18, belly: 0, slope: .06, neckW: .106, neckD: .09, neckLean: .27, headFwd: .012,
+const slim: Dims = { h: .275, chin: 1.575, shX: .203, rSh: .047, chestW: .30, waistW: .26, hipW: .32, chestD: .20, waistD: .165, hipD: .18, belly: 0, slope: .06, neckW: .114, neckD: .09, neckLean: .27, headFwd: .012,
   armW: .075, elbowR: .034, foreW: .068, wristW: .045, hipX: .084, hipR: .064, thighW: .125, kneeR: .048, calfW: .095, calfBack: .014, ankleW: .06, hand: .185, shoe: .27, shoeW: .088 };
-const standard: Dims = { h: .285, chin: 1.61, shX: .233, rSh: .052, chestW: .335, waistW: .30, hipW: .36, chestD: .23, waistD: .19, hipD: .2, belly: 0, slope: .05, neckW: .12, neckD: .1, neckLean: .22, headFwd: .004,
+const standard: Dims = { h: .285, chin: 1.60, shX: .233, rSh: .052, chestW: .335, waistW: .30, hipW: .36, chestD: .23, waistD: .19, hipD: .2, belly: 0, slope: .05, neckW: .13, neckD: .1, neckLean: .22, headFwd: .004,
   armW: .09, elbowR: .038, foreW: .08, wristW: .05, hipX: .09, hipR: .07, thighW: .145, kneeR: .054, calfW: .108, calfBack: .016, ankleW: .066, hand: .19, shoe: .285, shoeW: .094 };
-const sturdy: Dims = { h: .295, chin: 1.62, shX: .258, rSh: .062, chestW: .38, waistW: .37, hipW: .40, chestD: .27, waistD: .245, hipD: .235, belly: .035, slope: .037, neckW: .142, neckD: .118, neckLean: .13, headFwd: -.004,
+const sturdy: Dims = { h: .295, chin: 1.616, shX: .258, rSh: .062, chestW: .38, waistW: .37, hipW: .40, chestD: .27, waistD: .245, hipD: .235, belly: .035, slope: .037, neckW: .152, neckD: .118, neckLean: .13, headFwd: -.004,
   armW: .11, elbowR: .045, foreW: .098, wristW: .058, hipX: .096, hipR: .082, thighW: .17, kneeR: .062, calfW: .125, calfBack: .02, ankleW: .075, hand: .2, shoe: .3, shoeW: .1 };
 
 /** The narrow frame: shoulders and hips about equal, a higher and smaller waist, a slimmer neck and wrist. Only what differs from the broad record. */
@@ -47,7 +47,7 @@ export function ribcage(d: Dims): Ring[] { return [
   // the shoulder girdle: the trapezius runs from the neck out to the point of the shoulder, thin in depth
   ring(1.535 - d.slope, (d.shX - .008) * 2, d.chestD * .5, -.002, 2.1),
   ring(1.535 - d.slope * .5, d.shX * 1.2, d.chestD * .47, -.004, 2.1),
-  ring(1.535 - d.slope * .18, d.neckW * 1.7, d.neckD * 1.0, -.004, 2.1),
+  ring(1.535 - d.slope * .18, d.neckW * 1.9, d.neckD * 1.05, -.004, 2.1),
   ring(1.538, d.neckW * 1.15, d.neckD * .92, -.002, 2.1),
 ]; }
 

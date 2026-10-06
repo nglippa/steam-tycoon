@@ -90,7 +90,8 @@ function bakeCharacter(group:T.Group,cloth:T.Material=coloredToon){
 // Types vary eye shape, brows, nose, mouth and marks independently, so a crowd reads as different people drawn by one hand.
 export const FACE_TYPES = 8, FACE_COLS = 16;
 type Nose = 'dash' | 'dot' | 'hook' | 'button'; type Mark = 'none' | 'freckles' | 'stubble' | 'mole' | 'bags' | 'scar' | 'lines';
-type FaceType = { rise: number; w: number; tilt: number; lash: number; iris: string; brow: [thick: number, arch: number, tilt: number]; nose: Nose; mouth: number; marks: Mark };
+type FaceType = { rise: number; w: number; tilt: number; lash: number; iris: string; brow: [thick: number, arch: number, tilt: number]; nose: Nose; mouth: number; marks: Mark;
+  /** the new head's face (all optional; the old atlas leaves them out): eye centre offset from the midline, brow height, no blush, one highlight */ sx?: number; by?: number; calm?: boolean };
 const faceTypes: FaceType[] = [
   { rise: 64, w: 33, tilt: 2, lash: 11, iris: '#3d6b9a', brow: [5, 8, 0], nose: 'dash', mouth: 1, marks: 'none' },
   { rise: 69, w: 34, tilt: 6, lash: 12, iris: '#7a4b35', brow: [4, 11, -2], nose: 'dot', mouth: .8, marks: 'freckles' },
@@ -107,7 +108,7 @@ type Ctx = CanvasRenderingContext2D;
 /** Eyes: 0 open, 1 narrowed, 2 wide, 3 shut, 4 happy arc, 5 heavy-lidded, 6 narrowed glance left, 7 narrowed glance right, 8 glare, 9 earnest (looking up), 14 smiling (lower lid lifted), 15 worried (lid rising to the inner corner, a thin brow bar above).
  * The Ordinance's eyes are 10 hard, 11 hard and narrowed, 12 and 13 hard glances: a straight lid line sloping down to the nose cuts the top of a small dull iris, under a heavy brow bar that is part of the eye. */
 function paintEye(c: Ctx, f: FaceType, side: number, v: number) {
-  const x = 256 + side * 50, y = 300, inner = x - side * f.w, outer = x + side * f.w, up = f.tilt;
+  const x = 256 + side * (f.sx ?? 50), y = 300, inner = x - side * f.w, outer = x + side * f.w, up = f.tilt;
   c.strokeStyle = '#120f16';
   if (v === 3 || v === 4) { c.lineWidth = 6; c.beginPath();
     if (v === 4) { c.moveTo(inner, y - 3); c.quadraticCurveTo(x, y - 38, outer, y - 8 - up); } else { c.moveTo(inner, y - 8); c.quadraticCurveTo(x, y + 12, outer + side * 3, y - 12 - up); }
@@ -134,7 +135,7 @@ function paintEye(c: Ctx, f: FaceType, side: number, v: number) {
   c.fillStyle = iris; c.beginPath(); c.ellipse(ix, iy, rx, ry, 0, 0, Math.PI * 2); c.fill();
   c.strokeStyle = 'rgba(18,15,30,.75)'; c.lineWidth = 3; c.beginPath(); c.ellipse(ix, iy, rx, ry, 0, 0, Math.PI * 2); c.stroke();
   c.fillStyle = '#120f1e'; c.beginPath(); c.ellipse(ix, iy - ry * .08, rx * (v === 2 ? .36 : .46), ry * (v === 2 ? .4 : .5), 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#ffffff'; c.beginPath(); c.ellipse(ix - side * -7 - 8, iy - ry * .42, 7.5, 9, 0, 0, Math.PI * 2); c.fill(); c.beginPath(); c.arc(ix + 9, iy + ry * .46, 3.2, 0, Math.PI * 2); c.fill();
+  c.fillStyle = '#ffffff'; c.beginPath(); c.ellipse(ix - side * -7 - 8, iy - ry * .42, 7.5, 9, 0, 0, Math.PI * 2); c.fill(); if (!f.calm) { c.beginPath(); c.arc(ix + 9, iy + ry * .46, 3.2, 0, Math.PI * 2); c.fill(); }
   // The lid's shadow is a soft fade at the top edge of the eye, not a block.
   const shade = c.createLinearGradient(0, y - H * 1.1, 0, y - H * .5); shade.addColorStop(0, 'rgba(22,16,34,.4)'); shade.addColorStop(1, 'rgba(22,16,34,0)'); c.fillStyle = shade; c.fillRect(inner - 40, y - H * 1.2, 120, H * .8);
   c.restore();
@@ -147,7 +148,7 @@ function paintEye(c: Ctx, f: FaceType, side: number, v: number) {
 // [inner end, outer end, raise, arch factor, arch added, thickness factor]
 const BROW = [[0, 2, 0, 1, 0, 1], [-4, -6, -20, 1, 6, 1], [-18, 6, -4, 0, 0, 1], [12, -12, 2, 0, 0, 1.3], [6, 0, 10, .2, 0, 1.25], [-6, -8, -18, 1, 6, 1], [-2, -4, -10, 1, 5, 1], [-6, 12, 8, .4, 0, .95]];
 function paintBrow(c: Ctx, f: FaceType, side: number, v: number) {
-  const x = 256 + side * 50, xi = x - side * (f.w - 4), xo = x + side * (f.w + 4), [thick, arch, set] = f.brow, by = 214;
+  const x = 256 + side * (f.sx ?? 50), xi = x - side * (f.w - 4), xo = x + side * (f.w + 4), [thick, arch, set] = f.brow, by = f.by ?? 214;
   const [di, dO, up, am, aa, tk] = v === 5 && side < 0 ? [6, 2, 8, .5, 0, 1.15] : BROW[v];
   c.strokeStyle = 'rgba(28,20,24,.9)'; c.lineWidth = thick * tk * 1.4; c.beginPath(); c.moveTo(xi, by + up + di + set); c.quadraticCurveTo(x, by + up + (di + dO) / 2 - 2 * (arch * am + aa), xo, by + up + dO - set * .5); c.stroke();
 }
@@ -165,7 +166,7 @@ function paintMouth(c: Ctx, f: FaceType, v: number) {
 function paintFace(c: Ctx, f: FaceType, col: number) {
   const y = 300;
   // Soft cheek colour under every expression.
-  for (const side of [-1, 1]) { const blush = c.createRadialGradient(256 + side * 66, y + 50, 2, 256 + side * 66, y + 50, 30); blush.addColorStop(0, 'rgba(238,143,138,.2)'); blush.addColorStop(1, 'rgba(238,143,138,0)'); c.fillStyle = blush; c.fillRect(256 + side * 66 - 32, y + 18, 64, 64); }
+  if (!f.calm) for (const side of [-1, 1]) { const blush = c.createRadialGradient(256 + side * 66, y + 50, 2, 256 + side * 66, y + 50, 30); blush.addColorStop(0, 'rgba(238,143,138,.2)'); blush.addColorStop(1, 'rgba(238,143,138,0)'); c.fillStyle = blush; c.fillRect(256 + side * 66 - 32, y + 18, 64, 64); }
   // Marks: the small particular things that make a stranger someone.
   if (f.marks === 'freckles') { c.fillStyle = 'rgba(120,62,44,.55)'; for (const side of [-1, 1]) for (let k = 0; k < 7; k++) { c.beginPath(); c.arc(256 + side * (44 + (k * 13) % 34), y + 40 + (k * 7) % 18, 2.6, 0, Math.PI * 2); c.fill(); } }
   if (f.marks === 'stubble') { c.fillStyle = 'rgba(40,30,32,.22)'; for (let k = 0; k < 140; k++) { const a = (k * 2.399) % Math.PI, r = 78 + (k * 7) % 40; c.fillRect(256 + Math.cos(a) * r * .95 - 1, 382 + Math.sin(a) * r * .55 - 1, 2.4, 2.4); } }
@@ -183,9 +184,9 @@ function paintFace(c: Ctx, f: FaceType, col: number) {
   if (f.nose === 'button') { c.beginPath(); c.moveTo(251, 354); c.quadraticCurveTo(257, 361, 263, 354); c.stroke(); }
   paintMouth(c, f, col < 12 ? col : 0);
 }
-const faceAtlas = (() => {
+const paintAtlas = (types: FaceType[]) => {
   const W = 256 * FACE_COLS, H = 256 * FACE_TYPES, canvas = document.createElement('canvas'); canvas.width = W; canvas.height = H; const c = canvas.getContext('2d', { willReadFrequently: true })!;
-  for (let type = 0; type < FACE_TYPES; type++) for (let col = 0; col < FACE_COLS; col++) { c.save(); c.translate(col * 256, type * 256); c.scale(.5, .5); paintFace(c, faceTypes[type], col); c.restore(); }
+  for (let type = 0; type < FACE_TYPES; type++) for (let col = 0; col < FACE_COLS; col++) { c.save(); c.translate(col * 256, type * 256); c.scale(.5, .5); paintFace(c, types[type], col); c.restore(); }
   // Straight alpha, with the transparent texels carrying a skin-ish colour so mip levels do not darken the edge of a feature.
   const data = new Uint8Array(c.getImageData(0, 0, W, H).data.buffer), mid = skinColors.map(s => new T.Color(s)).reduce((a, s) => a.add(s), new T.Color(0, 0, 0)).multiplyScalar(1 / skinColors.length).convertLinearToSRGB();
   const [mr, mg, mb] = [mid.r, mid.g, mid.b].map(v => Math.round(v * 255));
@@ -193,7 +194,22 @@ const faceAtlas = (() => {
   canvas.width = canvas.height = 0;
   const map = new T.DataTexture(data, W, H, T.RGBAFormat); map.colorSpace = T.SRGBColorSpace; map.generateMipmaps = true; map.minFilter = T.LinearMipmapLinearFilter; map.magFilter = T.LinearFilter; map.anisotropy = 8; map.needsUpdate = true;
   return map;
-})();
+};
+const faceAtlas = paintAtlas(faceTypes);
+/** The new head's faces: the same atlas layout and painters, eyes one eye-width apart and a fifth of the head wide (the tile is a front plane about 32 cm across), irises from palette.iris, a calm
+ * single highlight, thin brows close to the eye, a short mouth line, no blush, and a mark on at most three of the eight. */
+const IR = P.iris;
+const faceTypesNext: FaceType[] = [
+  { rise: 58, w: 33, tilt: 2, lash: 11, iris: IR.slateBlue, brow: [3, 8, 0], nose: 'dash', mouth: 1.35, marks: 'none', sx: 68, by: 224, calm: true },
+  { rise: 60, w: 33, tilt: 4, lash: 11, iris: IR.brown, brow: [3, 10, -2], nose: 'dot', mouth: 1.25, marks: 'freckles', sx: 68, by: 224, calm: true },
+  { rise: 54, w: 34, tilt: -2, lash: 10, iris: IR.darkBrown, brow: [4, 4, 3], nose: 'hook', mouth: 1.45, marks: 'none', sx: 69, by: 226, calm: true },
+  { rise: 58, w: 32, tilt: 3, lash: 11, iris: IR.greyGreen, brow: [3, 9, -2], nose: 'button', mouth: 1.25, marks: 'none', sx: 67, by: 224, calm: true },
+  { rise: 55, w: 34, tilt: -4, lash: 10, iris: IR.grey, brow: [4, 5, 3], nose: 'dash', mouth: 1.35, marks: 'none', sx: 69, by: 226, calm: true },
+  { rise: 60, w: 32, tilt: 2, lash: 11, iris: IR.hazel, brow: [3, 10, 0], nose: 'dot', mouth: 1.2, marks: 'none', sx: 67, by: 224, calm: true },
+  { rise: 54, w: 34, tilt: 4, lash: 10, iris: IR.greyGreen, brow: [4, 3, -3], nose: 'hook', mouth: 1.45, marks: 'scar', sx: 69, by: 226, calm: true },
+  { rise: 58, w: 33, tilt: 0, lash: 11, iris: IR.darkBrown, brow: [3, 8, 2], nose: 'button', mouth: 1.3, marks: 'none', sx: 68, by: 224, calm: true },
+];
+const faceAtlasNext = paintAtlas(faceTypesNext);
 /** Each band picks its own column: the shader reads the tile's height (the head's baked v) and takes the eye, brow or mouth column from the figure's `vFace`. Texture gradients come from the
  * unshifted uv, so the jump between columns does not pick a coarse mip at a seam. */
 const FACE_MAP = `vec3 fc=floor(vFace+.5);float ft=1.-fract(vMapUv.y*${FACE_TYPES}.);
@@ -201,15 +217,17 @@ float fcol=ft>=${tV(BAND[1])}&&ft<${tV(BAND[0])}?fc.y:ft>=${tV(BAND[2])}&&ft<${t
 vec4 fs=textureGrad(map,vMapUv+vec2(fcol/${FACE_COLS}.,0.),dFdx(vMapUv),dFdy(vMapUv));diffuseColor.rgb=mix(diffuseColor.rgb,fs.rgb,fs.a);`;
 /** A face material: the shared atlas over one skin tone. The three shared ones are batched (the feature numbers ride on the instance colour); a figure outside the
  * crowd batch takes its own (`uFace`, written by `setExpression`). */
-const faceMaterial = (tone: number) => {
-  const look = { value: new T.Vector3() }, m = new T.MeshToonMaterial({ map: faceAtlas, color: skinColors[tone], gradientMap: ramp, emissive: P.neutral.paper, emissiveIntensity: .12 });
+const faceMaterial = (tone: number, next = false) => {
+  const look = { value: new T.Vector3() }, m = new T.MeshToonMaterial({ map: next ? faceAtlasNext : faceAtlas, color: skinColors[tone], gradientMap: ramp, emissive: P.neutral.paper, emissiveIntensity: .12 });
   m.userData.faceAtlas = true; m.userData.look = look.value;
   m.onBeforeCompile = shader => { shader.uniforms.uFace = look;
+    if (next) shader.vertexShader = 'attribute float faceMask;varying float vMask;\n' + shader.vertexShader.replace('void main() {', 'void main() {\nvMask = faceMask;');
     shader.vertexShader = 'uniform vec3 uFace;flat varying vec3 vFace;\n' + shader.vertexShader.replace('#include <color_vertex>', '#include <color_vertex>\n#ifdef USE_BATCHING_COLOR\nvColor=vec3(1.);vFace=batchingColor;\n#else\nvFace=uFace;\n#endif');
-    shader.fragmentShader = 'flat varying vec3 vFace;\n' + shader.fragmentShader.replace('#include <map_fragment>', FACE_MAP).replace('#include <emissivemap_fragment>', 'totalEmissiveRadiance*=diffuseColor.rgb;'); };
-  m.customProgramCacheKey = () => 'terra-face-bands'; return thinLine(painted(m));
+    shader.fragmentShader = (next ? 'varying float vMask;\n' : '') + 'flat varying vec3 vFace;\n' + shader.fragmentShader.replace('#include <map_fragment>', next ? FACE_MAP.replace('fs.a)', 'fs.a*vMask)') : FACE_MAP).replace('#include <emissivemap_fragment>', 'totalEmissiveRadiance*=diffuseColor.rgb;'); };
+  m.customProgramCacheKey = () => next ? 'terra-face-bands-next' : 'terra-face-bands'; return thinLine(painted(m));
 };
 const faces = skinColors.map((_, i) => faceMaterial(i));
+const facesNext = skinColors.map((_, i) => faceMaterial(i, true));
 const contactShape=new T.CircleGeometry(.28,14);
 const contactInk=new T.MeshBasicMaterial({color:'#253d40',transparent:true,opacity:.19,depthWrite:false});
 function hairChunk(g:T.Group,points:number[][],z:number,depth:number,material:Material){const shape=new T.Shape();points.forEach(([x,y],i)=>i?shape.lineTo(x,y):shape.moveTo(x,y));shape.closePath();const mesh=new T.Mesh(new T.ExtrudeGeometry(shape,{depth,bevelEnabled:true,bevelThickness:.018,bevelSize:.012,bevelSegments:2,curveSegments:4}),material);mesh.position.z=z;g.add(mesh);return mesh;}
@@ -478,7 +496,7 @@ export type NextOpts={solo?:boolean;mask?:boolean;look?:string;cast?:CastId;fami
 export function citizenNext(coat:Material=mats.rust,seed=0,archetype:Archetype='worker',opts:NextOpts={}):Citizen{
   void coat;
   const look=resolveLook(seed,archetype,{look:opts.look,cast:opts.cast,family:opts.family,frame:opts.frame,casts:opts.casts});
-  const kit:Kit={cloth:(c,l)=>outfitMaterial(c,l),plain:plainMaterial,skin,face:tone=>opts.solo?faceMaterial(tone):faces[tone],bake:g=>bakeCharacter(g,coloredToonNext),contact:new T.Mesh(contactShape,contactInk)};
+  const kit:Kit={cloth:(c,l)=>outfitMaterial(c,l),plain:plainMaterial,skin,face:tone=>opts.solo?faceMaterial(tone,true):facesNext[tone],bake:g=>bakeCharacter(g,coloredToonNext),contact:new T.Mesh(contactShape,contactInk)};
   const fig=buildFigure(look,opts,kit);
   const {faceMat,...nodes}=fig;
   return finish(nodes,faceMat,seed,archetype,opts);

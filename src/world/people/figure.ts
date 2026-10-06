@@ -58,25 +58,27 @@ export function buildFigure(want: Look, opts: FigureOpts, kit: Kit) {
 
   // ================================================================ torso
   if (lab) {
-    put0(lifted, loft(shirtR, { seg: 14, lipEnd: .003, key: `shirt/${dk}` }), shirtM);
+    put0(lifted, loft(shirtR, { seg: 11, lipEnd: .003, key: `shirt/${dk}` }), shirtM);
     if (vested) { // a work waistcoat over the shirt in place of braces: the same shell as a gentleman's, in the 'braces' colour
-      const vb = offset(rib, .022), vr = [1.075, 1.2, 1.3, 1.36, 1.41].map(y => ringAt(vb, y)); // narrowed above the chest: armholes, then straps toward the neck
+      const vb = offset(rib, .022), vr = [1.125, 1.2, 1.3, 1.36, 1.41].map(y => ringAt(vb, y)); // narrowed above the chest: armholes, then straps toward the neck
       { const r = ringAt(vb, 1.41); vr.push({ ...r, y: 1.445, w: r.w * .86, f: r.f * .92, b: r.b * .92 }); }
-      put0(lifted, loft(vr, { seg: 12, lipEnd: .004, key: `workvest/${dk}` }), col(pal.braces));
-      for (const y of steps(1.13, 1.4, 4)) button(lifted, surface(vb, y, 0, .001), brass, .0065);
+      put0(lifted, loft(vr, { seg: 12, lipEnd: .004, lipStart: .004, key: `workvest/${dk}` }), col(pal.braces));
+      for (const y of steps(1.13, 1.28, 2)) button(lifted, surface(vb, y, 0, .004), brass, .0065);
+      put0(lifted, plate(vb, [[1.43, -.34, .34], [1.38, -.27, .27], [1.33, -.16, .16], [1.28, -.04, .04]], .0, .003, 6), shirtM);
     } else placket(lifted, shirtR, shirtM, brass);
-    put0(lifted, around(shirtR, 1.405, Math.PI - .9, Math.PI + .9, .002, .008, .0035), shirtM);
+    put0(lifted, around(shirtR, 1.405, Math.PI - .9, Math.PI + .9, .002, .008, .0035, 5), shirtM);
     put0(lifted, seam(shirtR, steps(1.4, 1.1, 5), () => Math.PI, .002, .007, .0035), shirtM);
     kerchiefBand(lifted, neckR, neckM);
   } else {
     // the shirt's turned collar, the waistcoat over it, the coat over both
     const cr = ringAt(neckR, 1.52), collar = [1.49, 1.515, 1.545].map((y, i) => ({ y, w: cr.w + [.01, .016, .018][i], f: cr.f + [.01, .016, .018][i], b: cr.b + [.009, .015, .017][i], z: (cr.z ?? 0) + .003, n: 2.1 }));
     put0(lifted, loft(collar, { seg: 12, lipEnd: .003, key: `shirtcollar/${dk}` }), shirtM);
-    const vestBase = offset(rib, .013), vest = [1.075, 1.2, 1.3, 1.36, 1.43].map(y => ringAt(vestBase, y));
+    const vestBase = offset(rib, .013), vest = [1.125, 1.2, 1.3, 1.36, 1.43].map(y => ringAt(vestBase, y));
     put0(lifted, loft(vest, { seg: 12, lipEnd: .004, key: `vest/${dk}` }), vestM);
-    for (const y of steps(1.13, 1.4, 4)) button(lifted, surface(vestBase, y, 0, .001), brass, .0065);
+    for (const y of steps(1.13, 1.28, 2)) button(lifted, surface(vestBase, y, 0, .004), brass, .0065);
+    put0(lifted, plate(vestBase, [[1.43, -.34, .34], [1.38, -.27, .27], [1.33, -.16, .16], [1.28, -.04, .04]], .0, .003, 6), shirtM);
     // the coat: a shell 22 mm off the ribcage, hugging the shoulder and hanging from the chest, open or overlapped in front
-    put0(lifted, loft(coatR, { seg: 14, ...arc0, lipEnd: .003, key: `coat/${dk}/${arc0.start}/${arc0.arc}` }), coatM);
+    put0(lifted, loft(coatR, { seg: 12, ...arc0, lipEnd: .003, key: `coat/${dk}/${arc0.start}/${arc0.arc}` }), coatM);
     const ys = steps(1.5, 1.045, 5);
     if (!closed) for (const a of [g.aL, -g.aR]) put0(lifted, seam(coatR, ys, () => a, .002, .018, .005), coatM);
     else {
@@ -87,7 +89,7 @@ export function buildFigure(want: Look, opts: FigureOpts, kit: Kit) {
     // collar (stood at the back, turned over at the front) and lapels that lie ON the chest and curve with it
     const nc = ringAt(neckR, 1.52), cc = [1.488, 1.516, 1.552].map((y, i) => ({ y, w: nc.w + [.021, .03, .038][i], f: nc.f + [.021, .03, .036][i], b: nc.b + [.02, .03, .038][i], z: (nc.z ?? 0) + .004, n: 2.1 }));
     put0(lifted, loft(cc, { seg: 14, ...(closed ? { start: 0, arc: Math.PI * 2 } : { start: .7, arc: Math.PI * 2 - 1.4 }), lipEnd: .007, lipStart: .004, key: `collar/${dk}/${closed}` }), coatM);
-    if (!closed) for (const [s, e] of [[1, g.aL], [-1, -g.aR]] as const) put0(lifted, plate(coatR, [[1.488, .25], [1.43, .5], [1.36, .55], [1.28, .45], [1.2, .18]].map(([y, w]) => [y, e, e + s * w]), .0, .007, 6), coatM);
+    if (!closed) for (const [s, e] of [[1, g.aL], [-1, -g.aR]] as const) put0(lifted, plate(coatR, [[1.488, .25], [1.43, .5], [1.36, .55], [1.28, .45], [1.2, .18]].map(([y, w]) => [y, e, e + s * w]), .0, .007, 3), coatM);
     // the back is designed too: a centre seam, a yoke seam across the shoulder blades, a waist strap with two buttons
     put0(lifted, seam(coatR, steps(1.5, 1.045, 8), () => Math.PI, .002, .006, .0035), coatM);
     put0(lifted, around(coatR, 1.41, Math.PI - .85, Math.PI + .85, .002, .006, .0035, 6), coatM);
@@ -97,13 +99,14 @@ export function buildFigure(want: Look, opts: FigureOpts, kit: Kit) {
 
   // ================================================================ pelvis, trousers
   { const hips = offset(pel, .012), cut = hips.map((r, i) => i === 0 ? { ...r, y: 1.14, w: r.w + .004, f: r.f + .004, b: r.b + .004 } : r);
-    put0(pelLift, loft(cut, { seg: 16, capEnd: 'flat', key: `trousers/${dk}` }), trouM);
+    put0(pelLift, loft(cut, { seg: 14, capEnd: 'flat', key: `trousers/${dk}` }), trouM);
     const band = [1.065, 1.1, 1.145].map(y => { const r = ringAt(rib, Math.min(y, 1.13)), p = ringAt(pel, y); return { y, w: Math.max(r.w, p.w) + .017, f: Math.max(r.f, p.f) + .016, b: Math.max(r.b, p.b) + .014, z: p.z, n: 2.2 }; });
-    if (lab) put0(pelLift, loft(band, { seg: 16, lipEnd: .005, lipStart: .004 }), trouM);
+    if (lab) put0(pelLift, loft(band, { seg: 14, lipEnd: .005, lipStart: .004 }), trouM);
     if (lab && !vested) braces(pelLift, d, rib, pel, col(pal.braces), brass, asym.has('braceDown'));
     if (vested) braces(pelLift, d, rib, pel, col(pal.braces), brass, false, true);
+    if (lab) { put0(pelLift, seam(hips, steps(1.13, .93, 3), () => 0, .003, .005, .003), trouM); }
     // back pockets, on the seat
-    if (lab) for (const s of [-1, 1]) put0(pelLift, plate(hips, [[1.0, s * 2.5, s * 3.0], [.92, s * 2.5, s * 3.0]], .0, .007, 4), trouM);
+    if (lab) for (const s of [-1, 1]) put0(pelLift, plate(hips, [[1.0, s * 2.5, s * 3.0], [.92, s * 2.5, s * 3.0]], .0, .007, 2), trouM);
   }
   kit.bake(body); kit.bake(pelvisG);
 
@@ -112,7 +115,7 @@ export function buildFigure(want: Look, opts: FigureOpts, kit: Kit) {
   for (const side of [-1, 1]) {
     const sh = new T.Group(); sh.position.set(side * d.shX, RIG.shoulder + LIFT, 0); body.add(sh); arms.push(sh);
     const up = upperArm(d), off = lab ? .006 : coatOff - .003, fore = forearm(d);
-    put0(sh, loft(offset(up, off), { seg: 10, capStart: { round: d.rSh + off }, capEnd: { round: d.elbowR + off }, key: `sleeve/${off}/${dk}` }), coatM);
+    put0(sh, loft(offset(up, off).filter((_, i) => i !== 2), { seg: 8, capStart: { round: d.rSh + off }, capEnd: { round: d.elbowR + off }, key: `sleeve/${off}/${dk}` }), coatM);
     kit.bake(sh);
     const el = new T.Group(); el.position.set(0, -RIG.upperArm, 0); sh.add(el); elbows.push(el);
     const rolled = lab || (asym.has('sleeveRolled') && side < 0), at = (y: number, e: number) => { const r = ringAt(fore, y); return { ...r, w: r.w + e, f: r.f + e, b: r.b + e }; };
@@ -135,16 +138,19 @@ export function buildFigure(want: Look, opts: FigureOpts, kit: Kit) {
   for (const side of [-1, 1]) {
     const hip = new T.Group(); hip.position.set(side * d.hipX, RIG.hip + LIFT, 0); group.add(hip); legs.push(hip);
     const th = thighRings(d, side), inward = -side * .022, to = lab ? .008 : .006;
-    put0(hip, loft(offset(th, to), { seg: 10, capStart: { round: d.hipR + to }, capEnd: { round: d.kneeR + to }, key: `thigh/${side}/${lab}/${dk}` }), trouM);
+    put0(hip, loft(offset(th, to).filter((_, i) => i !== 3), { seg: 8, capStart: { round: d.hipR + to }, capEnd: { round: d.kneeR + to }, key: `thigh/${side}/${lab}/${dk}` }), trouM);
     kit.bake(hip);
     const knee = new T.Group(); knee.position.set(inward, -RIG.thigh, 0); hip.add(knee); knees.push(knee);
     const sn = shinRings(d), hem = -.452, shinCut = [...sn.filter(r => r.y > hem + .02), { ...ringAt(sn, hem), y: hem }];
-    put0(knee, loft(offset(shinCut, to, (_, i) => i === shinCut.length - 1 ? { w: .008, f: .006, b: .006 } : {}), { seg: 10, capStart: { round: d.kneeR + to }, lipEnd: .007, key: `shin/${lab}/${dk}` }), trouM);
+    put0(knee, loft(offset(shinCut, to, (_, i) => i === shinCut.length - 1 ? { w: .008, f: .006, b: .006 } : {}), { seg: 8, capStart: { round: d.kneeR + to }, lipEnd: .007, key: `shin/${lab}/${dk}` }), trouM);
+    if (lab || true) { // the knee breaks: a kneecap plane at the front, a crease behind, and a turned-up cuff with a thickness over the shoe
+      const so2 = offset(shinCut, to); put0(knee, plate(so2, [[-.005, -.85, .85], [-.06, -.75, .75], [-.115, -.5, .5]], .0, .008, 3), trouM);
+      const cuff = [-.4, -.452].map(y => { const r = ringAt(so2, y); return { ...r, w: r.w + .01, f: r.f + .01, b: r.b + .01 }; }); put0(knee, loft(cuff, { seg: 7, lipStart: .005, lipEnd: .006, key: `turnup/${lab}/${dk}` }), trouM); }
     // the boot's shaft belongs to the shin and runs on into the foot, a visible thickness at its top
     const top = lab ? -.42 : -.36, so = lab ? .006 : .002, shaft = [top, -.46, -.495].map(y => { const r = ringAt(sn, y); return { ...r, w: r.w + so, f: r.f + so, b: r.b + so }; });
-    put0(knee, loft(shaft, { seg: 8, lipStart: .004, capEnd: 'flat', key: `shaft/${lab}/${dk}` }), bootM);
+    put0(knee, loft(shaft, { seg: 5, lipStart: .004, capEnd: 'flat', key: `shaft/${lab}/${dk}` }), bootM);
     kit.bake(knee);
-    const ankle = new T.Group(); ankle.position.y = -RIG.shin; knee.add(ankle); ankles.push(ankle);
+    const ankle = new T.Group(); ankle.position.y = -RIG.shin; ankle.rotation.y = side * .06; knee.add(ankle); ankles.push(ankle);
     foot(ankle, d, bootM, soleM, !lab); kit.bake(ankle);
   }
 
@@ -159,7 +165,7 @@ export function buildFigure(want: Look, opts: FigureOpts, kit: Kit) {
   swing.position.set(0, CHIN_TO_PIVOT + .1 * k, headZ - pivotZ - .12 * k);
   for (const gg of hairs.swing) put0(swing, place(gg, [0, -.1 * k, .12 * k]), hairMat);
   for (const gg of facialOf(look, h)) put0(hg, gg, hairMat);
-  const hat = hatOf(look, h); for (const gg of hat.cloth) put0(hg, gg, capM); for (const gg of hat.trim) put0(hg, gg, leatherDark);
+  const hat = hatOf(look, h); for (const gg of hat.cloth) put0(hg, gg, capM); for (const gg of hat.trim) put0(hg, gg, leatherDark); for (const gg of hat.metal) put0(hg, gg, brass);
   kit.bake(head);
   kit.bake(swing); head.add(swing);
   const face = head.children.find(o => o instanceof T.Mesh && o.material === faceMat) as T.Mesh;
@@ -189,8 +195,8 @@ function coatSkirt(tails: T.Group, skirt: { drop: number; depth: number }, d: Di
   const Wtop = d.waistW + .052, Whem = 2 * (d.hipX + d.thighW / 2 + .04) + .05, Dtop = d.waistD + d.belly + .05, Dhem = d.hipD + .066 + d.belly * .6;
   const rings: Ring[] = Y.map(y => { const u = t(y), p = ringAt(pel, Math.min(1.13, Math.max(.86, y))), W = Math.max(Wtop + (Whem - Wtop) * Math.sqrt(u), p.w * 2 + .05); return ring(y - base, W, Math.max(Dtop + (Dhem - Dtop) * u, (p.f + p.b) + .062), (p.z ?? 0) + .006 * u, 2.2 + u * .1); });
   const arc = closed ? { start: 0, arc: Math.PI * 2 } : { start: g.aL, arc: Math.PI * 2 - g.aL - g.aR }, lip = .012, dk = JSON.stringify(d);
-  put0(tails, loft(rings, { seg: 12, ...arc, lipEnd: lip, lipDepth: .0001, key: `skirt/${dk}/${arc.start}` }), coatM);
-  put0(tails, loft(offset(rings, -lip).slice().reverse(), { seg: 10, ...arc, key: `lining/${dk}/${arc.start}` }), coatM);
+  put0(tails, loft(rings, { seg: 10, ...arc, lipEnd: lip, lipDepth: .0001, key: `skirt/${dk}/${arc.start}` }), coatM);
+  put0(tails, loft(offset(rings, -lip).slice().reverse(), { seg: 8, ...arc, key: `lining/${dk}/${arc.start}` }), coatM);
   const ys = steps(rings[0].y, rings[4].y, 5);
   if (!closed) for (const a of [g.aL, -g.aR]) put0(tails, seam(rings, ys, () => a, .001, .02, .006), coatM);
   put0(tails, seam(rings, ys, () => Math.PI, .001, .008, .004), coatM);
@@ -206,7 +212,7 @@ function coatSkirt(tails: T.Group, skirt: { drop: number; depth: number }, d: Di
 /** A shirt placket: a strip down the front a little off centre, with its buttons. */
 function placket(g: T.Group, rings: Ring[], m: T.Material, brass: T.Material) {
   put0(g, strip(rings, steps(1.4, 1.15, 5), () => .006, false, .0075, .016, .0035), m);
-  for (const y of [1.37, 1.29, 1.21]) button(g, surface(rings, y, .05, .0095), brass, .0065);
+  for (const y of [1.34, 1.22]) button(g, surface(rings, y, .05, .0095), brass, .0065);
 }
 
 /** Braces: two straps that wrap the torso (they follow the shirt's surface, so they neither float nor cut across the chest), up from the waistband buttons, over the shoulder, and crossing
@@ -217,9 +223,8 @@ function braces(g: T.Group, d: Dims, rib: Ring[], pel: Ring[], m: T.Material, br
     const down = oneDown && side > 0 && !vest, pts: SweepPt[] = [], x0 = side * .075, topY = 1.535 - d.slope * .3 - .012, off = vest ? .02 : .0085, y0 = vest ? 1.38 : 1.1, half = vest ? .021 : .0125;
     const at = (rings: Ring[], y: number, x: number, back: boolean) => { const q = onFace(rings, y, x, back, off); pts.push({ p: [q.p.x, q.p.y, q.p.z], a: half, b: .0035, n: [q.n.x, q.n.y, q.n.z] }); };
     if (down) for (let t = 6; t >= 1; t--) at(hips, 1.1 - t * .035, x0 + side * (.045 + t * .016), false);
-    for (const y of steps(y0, topY, 6)) at(shirt, y, x0 + side * (.01 + (y - 1.1) * .06), false);
-    if (!down) for (const y of steps(topY, y0, 6)) { const u = vest ? 0 : (topY - y) / (topY - 1.1); at(shirt, y, (x0 + side * (.01 + (topY - 1.1) * .06)) * (1 - u) + (-side * .06) * u, true); }
+    for (const y of steps(y0, topY, 4)) at(shirt, y, x0 + side * (.01 + (y - 1.1) * .06), false);
+    if (!down) for (const y of steps(topY, y0, 4)) { const u = vest ? 0 : (topY - y) / (topY - 1.1); at(shirt, y, (x0 + side * (.01 + (topY - 1.1) * .06)) * (1 - u) + (-side * .06) * u, true); }
     put0(g, sweep(pts, { seg: 4, capStart: true, capEnd: true }), m);
-    if (!vest) button(g, onFace(shirt, 1.1, x0, false, .009), brass, .008);
   }
 }

@@ -2,25 +2,25 @@
   {
     "role": "worker",
     "seed": 3,
-    "height": 1.922,
+    "height": 1.918,
     "head": 0.295,
-    "headsTall": 6.5153,
-    "tris": 5494,
-    "meshes": 21,
-    "nodes": 43,
-    "shoulderWidth": 0.6477,
-    "hipWidth": 0.424
+    "headsTall": 6.5017,
+    "tris": 5016,
+    "meshes": 20,
+    "nodes": 42,
+    "shoulderWidth": 0.652,
+    "hipWidth": 0.4145
   },
   {
     "role": "resident",
     "seed": 3,
-    "height": 1.867,
+    "height": 1.857,
     "head": 0.275,
-    "headsTall": 6.7891,
-    "tris": 6598,
+    "headsTall": 6.7527,
+    "tris": 6270,
     "meshes": 22,
     "nodes": 44,
-    "shoulderWidth": 0.4815,
-    "hipWidth": 0.4201
+    "shoulderWidth": 0.488,
+    "hipWidth": 0.4165
   }
 ]

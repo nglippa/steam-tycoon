@@ -1,5 +1,5 @@
 import * as T from 'three';
-import { citizen, citizenNext, setCitizenProsperity, type Citizen } from './world/citizens';
+import { citizen, citizenNext, setCitizenProsperity, type Citizen, type Expression } from './world/citizens';
 import { BUILT } from './world/people/figure';
 import { CASTS, type CastId, type Family, type Frame } from './world/people/look';
 import { animateLife, setLifeConditions, type Activity } from './world/citizen-life';
@@ -22,11 +22,12 @@ const ACTIVITY: Record<string, Activity> = { stand: 'walk', stride: 'walk', sit:
 const sil = q.get('sil') === '1', px = Number(q.get('px')) || 0, stage = Math.min(5, Math.max(0, Number(q.get('stage')) || 0));
 const next = q.get('build') === 'new', force = { cast: (q.get('cast') as CastId | null) ?? undefined, family: (q.get('family') as Family | null) ?? undefined, frame: (q.get('frame') as Frame | null) ?? undefined, look: q.get('look') ?? undefined };
 const combos = (q.get('combos') ?? '').split(',').filter(Boolean).map(c => { const [cast, family, frame] = c.split('.'); return { cast: cast as CastId, family: family as Family, frame: frame as Frame }; });
-const make = (seed: number, role: Archetype, c = 0) => next ? citizenNext(mats.rust, seed, role, { solo: true, casts: BUILT, ...force, ...(combos[c] ?? {}) }) : citizen(mats.rust, seed, role, { solo: true });
+const make = (seed: number, role: Archetype, c = 0) => next ? citizenNext(mats.rust, seed, role, { solo: true, casts: BUILT, ...force, ...(combos[exprs.length ? 0 : c] ?? {}) }) : citizen(mats.rust, seed, role, { solo: true });
 const WALK = 1; // m/s, the pace the stride is simulated at
 // Roles run along one row when there is a single seed; otherwise roles are rows and seeds are columns.
-const lineup = seeds.length === 1, rows = combos.length ? 1 : lineup ? 1 : roles.length, cols = combos.length ? combos.length : lineup ? roles.length : seeds.length;
-const cell = (r: number, c: number) => combos.length ? { role: CASTS[combos[c].cast].archetype, seed: seeds[c % seeds.length] } : { role: lineup ? roles[c] : roles[r], seed: lineup ? seeds[0] : seeds[c] };
+const exprs = (q.get('expr') ?? '').split(',').filter(Boolean); // &expr=neutral,happy,... one head through several expressions
+const lineup = seeds.length === 1, rows = exprs.length || combos.length ? 1 : lineup ? 1 : roles.length, cols = exprs.length ? exprs.length : combos.length ? combos.length : lineup ? roles.length : seeds.length;
+const cell = (r: number, c: number) => exprs.length ? { role: roles[0], seed: seeds[0] } : combos.length ? { role: CASTS[combos[c].cast].archetype, seed: seeds[c % seeds.length] } : { role: lineup ? roles[c] : roles[r], seed: lineup ? seeds[0] : seeds[c] };
 
 const canvas = document.querySelector<HTMLCanvasElement>('#sheet')!;
 const renderer = new T.WebGLRenderer({ canvas, antialias: sil, preserveDrawingBuffer: true });
@@ -67,7 +68,7 @@ let tallest = 0;
 for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
   const { role, seed } = cell(r, c), n = make(seed, role, c);
   n.group.traverse(o => { if (o instanceof T.Mesh && o.geometry instanceof T.CircleGeometry) o.visible = false; }); // the contact disc is for pavement; the backdrop is a wall
-  simulate(n); scene.add(n.group); n.group.position.set(0, 0, 0); n.group.updateMatrixWorld(true);
+  simulate(n); if (exprs.length) n.setExpression(exprs[c] as Expression, exprs[c] === 'blink'); scene.add(n.group); n.group.position.set(0, 0, 0); n.group.updateMatrixWorld(true);
   const sole = Math.min(...n.ankles.map(a => new T.Box3().setFromObject(a).min.y)), x = (c - (cols - 1) / 2) * SX, y = (rows - 1 - r) * SY;
   n.group.position.set(x, y - sole, 0); n.group.updateMatrixWorld(true);
   tallest = Math.max(tallest, new T.Box3().setFromObject(n.head).max.y - y);

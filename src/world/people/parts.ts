@@ -13,12 +13,13 @@ export function hand(d: Dims, side: number): T.BufferGeometry {
   const palm = loft([
     { y: 0, w: .0125 * w, f: .0255 * w, b: .0255 * w, n: 2.3 }, { y: -.022 * s, w: .0155 * w, f: .031 * w, b: .028 * w, x: .002, n: 2.4 },
     { y: -.055 * s, w: .0135, f: .04 * w, b: .037 * w, x: .001, n: 2.6 }, { y: -.085 * s, w: .0105, f: .043 * w, b: .04 * w, n: 2.8 },
-  ], { seg: 8, capEnd: 'flat' });
+  ], { seg: 6, capEnd: 'flat' });
   // the curl, in the (x medial, y down) plane: knuckle, first, second and third joint, tip
-  const C = [[.004, -.084], [.014, -.104], [.034, -.114], [.05, -.103], [.049, -.087]];
-  const finger = (z: number, wide: number, th: number, open: number, len: number): T.BufferGeometry => sweep(C.map(([x, y], i) => ({ p: [x * s * (1 - open * (i / 4) * .18), (-.084 + (y + .084) * len) * s, z] as Pt, a: wide * (1 - i * .06) * (i === 4 ? .7 : 1), b: th * (1 - i * .06) * (i === 4 ? .65 : 1), n: [1, 0, 0] as Pt })), { seg: 4, capStart: true, capEnd: true });
-  const thumb = sweep([[.004, -.045, .038], [.012, -.062, .052], [.024, -.082, .058], [.034, -.098, .06]].map(([x, y, z], i) => ({ p: [x, y * s, z] as Pt, a: .0105 - i * .0012, b: .0095 - i * .0013, n: [.7, 0, -.7] as Pt })), { seg: 4, capStart: true, capEnd: true });
-  const g = merge([palm, finger(.0285 * w, .0145, .0105, 1, 1.04), finger(-.0125 * w, .0265, .0098, 0, .98), thumb]);
+  const C = [[.004, -.084], [.012, -.106], [.028, -.118], [.042, -.108], [.044, -.092]];
+  // fingers together: one broad, flat mass (the four fingers), curled loosely toward the palm; the thumb lies alongside the index side
+  const mass = sweep(C.map(([x, y], i) => ({ p: [x * s * (1 - i * .03), y * s, -.004 * w] as Pt, a: .0345 * w * (1 - i * .07) * (i === 4 ? .75 : 1), b: .0105 * (1 - i * .07) * (i === 4 ? .7 : 1), n: [1, 0, 0] as Pt })), { seg: 5, capStart: true, capEnd: true });
+  const thumb = sweep([[.006, -.05, .038], [.014, -.07, .047], [.022, -.088, .05], [.028, -.101, .049]].map(([x, y, z], i) => ({ p: [x, y * s, z * w] as Pt, a: .0105 - i * .0011, b: .0095 - i * .0012, n: [1, 0, 0] as Pt })), { seg: 4, capStart: true, capEnd: true });
+  const g = merge([palm, mass, thumb]);
   return side > 0 ? mirrorX(g) : g;
 }
 
@@ -28,8 +29,8 @@ export function foot(g: T.Group, d: Dims, upperM: T.Material, soleM: T.Material,
   const L = d.shoe / .285, X = (a: number) => a * L, sw = d.shoeW / .094, toe = soft ? 2.5 : 3;
   const fr = (a: number, w: number, top: number, bottom: number, n = 2.4): Ring => ({ y: X(a), w: w * sw, f: (top - bottom) / 2, b: (top - bottom) / 2, z: -(top + bottom) / 2, n });
   const turn = (rings: Ring[], o: object, key: string) => place(loft(rings, { ...o, key: `${key}/${d.shoe}/${d.shoeW}/${soft}` }), [0, 0, 0], [Math.PI / 2, 0, 0]);
-  put0(g, turn([fr(-.062, .028, .021, -.034), fr(-.044, .039, .03, -.034), fr(-.01, .044, .052, -.034), fr(.035, .046, .04, -.034), fr(.09, .047, .016, -.034), fr(.15, .046, -.002, -.034, toe), fr(.19, .037, -.008, -.034, toe), fr(.212, .018, -.016, -.034, toe)], { seg: 8, capStart: 'flat', capEnd: 'flat' }, 'foot'), upperM);
-  put0(g, turn([fr(-.068, .026, -.034, -.052, 2.5), fr(-.05, .042, -.034, -.052, 2.5), fr(0, .0475, -.034, -.052, 2.5), fr(.09, .0535, -.034, -.052, 2.5), fr(.15, .052, -.034, -.052, 2.6), fr(.195, .043, -.034, -.052, 2.8), fr(.222, .02, -.034, -.052, 3)], { seg: 8, capStart: 'flat', capEnd: 'flat' }, 'sole'), soleM);
+  put0(g, turn([fr(-.062, .028, .021, -.034), fr(-.04, .039, .03, -.034), fr(-.005, .044, .052, -.034), fr(.05, .0465, .034, -.034), fr(.12, .0475, .008, -.034, toe), fr(.19, .0455, -.008, -.034, toe), fr(.208, .036, -.014, -.034, toe), fr(.216, .016, -.02, -.034, toe)], { seg: 8, capStart: 'flat', capEnd: 'flat' }, 'foot'), upperM);
+  put0(g, turn([fr(-.068, .026, -.034, -.052, 2.5), fr(-.05, .042, -.034, -.052, 2.5), fr(.03, .0505, -.034, -.052, 2.5), fr(.12, .0535, -.034, -.052, 2.8), fr(.195, .0505, -.034, -.052, 3), fr(.217, .04, -.034, -.052, 3), fr(.225, .018, -.034, -.052, 3)], { seg: 8, capStart: 'flat', capEnd: 'flat' }, 'sole'), soleM);
   put0(g, turn([fr(-.066, .03, -.03, -.052, 2.4), fr(-.045, .04, -.03, -.052, 2.4), fr(-.012, .042, -.03, -.052, 2.4)], { seg: 8, capStart: 'flat', capEnd: 'flat' }, 'heel'), soleM);
 }
 

@@ -64,7 +64,7 @@ move. The rebuild changes what hangs on them.
 | Pivot | Height | Notes |
 |---|---|---|
 | Sole | 0 | Flat. The gait rolls it heel to ball. |
-| Ankle | 0.045 | |
+| Ankle | 0.045 | The built rig's ankle pivot. `gait.ts` assumes the flat sole is `SOLE` = 0.052 under the ankle, so the shoe's sole plane is built at -0.052 and a standing figure is 7 mm taller on the sheet than the table says (height is measured to the lowest point of the shoe). |
 | Knee | 0.54 | Shin length 0.495 |
 | Hip joint | 0.97 | Thigh length 0.43. Half-spacing 0.09 × family width. |
 | Crotch | 0.845 | |
@@ -95,18 +95,17 @@ Terra's adults stand **about 6⅔ heads tall**. That is a little bigger in the h
 7½, which keeps the anime influence and keeps a face readable at ten metres, and it is nowhere
 near the old four.
 
-With the chin at 1.61 and **h** = 0.285, a standard adult is 1.895 units tall. The mouth lands
-within 3 cm of where the old head put it, so hand-to-mouth poses need only a small retune.
+With the chin at 1.60 and **h** = 0.285, a standard adult is 1.885 units tall (the chin is 1.575 for slim and 1.616 for sturdy, so that every family stands 6.5 to 6.8 heads on the sheet). The mouth lands at 1.636, about 9 cm below where the old head put it (1.725), so the hand-to-mouth pose (the bite) needs a retune of about 9 cm; the head was not raised and the neck was not lengthened to avoid it.
 
 | Landmark | Height | Rule |
 |---|---|---|
-| Crown | 1.895 | chin + h |
-| Hairline | 1.83 | |
-| Brow | 1.775 | |
-| Eye line | 1.74 | just below the middle of the head |
-| Nose tip | 1.68 | a quarter of a head above the chin |
-| Mouth | 1.645 | an eighth of a head above the chin |
-| Chin | 1.61 | |
+| Crown | 1.885 | chin + h |
+| Hairline | 1.82 | |
+| Brow | 1.765 | |
+| Eye line | 1.73 | just below the middle of the head |
+| Nose tip | 1.67 | a quarter of a head above the chin |
+| Mouth | 1.636 | an eighth of a head above the chin |
+| Chin | 1.60 | |
 | Pit of the neck | 1.49 | the neck shows about 0.4 h in front |
 | Top of the shoulder | 1.47 | |
 | Chest line | 1.355 | a third of the way from chin to crotch |
@@ -119,8 +118,7 @@ within 3 cm of where the old head put it, so hand-to-mouth poses need only a sma
 A family is an authored set of ring tables, not a width multiplier. Each has its own neck, slope of
 shoulder, belly and limb profile. Do not derive one from another by scaling.
 
-Each family comes in two frames. The **broad** frame is shoulder-led: shoulders wider than hips by
-about 1.18 to 1. The **narrow** frame has shoulders and hips about equal, a higher and smaller
+Each family comes in two frames. The **broad** frame is shoulder-led: the table gives shoulders wider than hips by about 1.5 to 1 (.57 against .36 for a standard adult; measured on the built, dressed figure .58 against .38). The **narrow** frame has shoulders and hips about equal, a higher and smaller
 waist, and a slimmer neck and wrist. Frames are not tied to a wardrobe; a narrow-framed foundry
 worker and a broad-framed stallholder are both valid.
 
@@ -135,7 +133,7 @@ Widths are full widths, front view, of the body under the clothes.
 | Chest depth | 0.20 | 0.23 | 0.27 |
 | Waist, broad / narrow | 0.26 / 0.23 | 0.30 / 0.27 | 0.37 / 0.33 |
 | Hips, broad / narrow | 0.32 / 0.34 | 0.36 / 0.38 | 0.40 / 0.43 |
-| Neck width | 0.095 | 0.105 | 0.125 |
+| Neck width | 0.114 | 0.13 | 0.152 |
 | Upper arm, widest | 0.075 | 0.09 | 0.11 |
 | Wrist | 0.045 | 0.05 | 0.058 |
 | Thigh, widest | 0.125 | 0.145 | 0.17 |
@@ -312,8 +310,8 @@ carries eyes, brows and mouth. Readable, restrained, never an emoji.
   on the eye line. Not spheres.
 - The head pivots at the top of the neck.
 
-Head width is about 0.74 h. The neck is about half the head's width on a broad frame and a little
-under on a narrow one.
+Head width is about 0.72 h. The neck is about 0.6 of the head's width on a broad frame, a little
+under on a narrow one, and never under 0.42. The painted face is a front plane (ear to ear, chin to hairline) faded out toward the ears; the atlas is not wrapped round the head.
 
 ### Shading the head
 

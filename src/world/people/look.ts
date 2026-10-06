@@ -41,10 +41,6 @@ export const HAT_HAIR: Record<Hat, readonly HairStyle[]> = {
   bowler: ['shortCrop', 'sidePart', 'balding'], topHat: ['sweptBack', 'sidePart', 'shortCrop'], kepi: ['shortCrop'], helm: ['shortCrop', 'sweptBack'],
   bonnet: ['lowBun', 'highKnot', 'bob'], headscarf: ['lowBun', 'bob', 'tousled'], elderHat: ['balding', 'shortCrop', 'lowBun', 'sidePart'], kerchief: ['shortCrop', 'tousled', 'balding'],
 };
-/** The hair styles the figure builder draws today; the rest fall back to the nearest of these (TODO next task). */
-export const HAIR_BUILT: readonly HairStyle[] = ['shortCrop', 'sidePart', 'sweptBack', 'lowBun'];
-export const HAIR_FALLBACK: Record<HairStyle, HairStyle> = { shortCrop: 'shortCrop', sidePart: 'sidePart', sweptBack: 'sweptBack', lowBun: 'lowBun', tousled: 'shortCrop', bob: 'sidePart', highKnot: 'lowBun', ponytail: 'lowBun', longTied: 'lowBun', balding: 'shortCrop' };
-
 const young: readonly HairColour[] = ['soot', 'umber', 'chestnut', 'auburn', 'straw'], aged: readonly HairColour[] = ['iron', 'white'], mid: readonly HairColour[] = ['soot', 'umber', 'chestnut', 'iron'];
 const allShapes: readonly HeadShape[] = ['oval', 'square', 'long', 'heart'];
 const o = (id: string, palettes: Record<string, readonly Swatch[]>): Outfit => ({ id, palettes });
@@ -53,8 +49,8 @@ const o = (id: string, palettes: Record<string, readonly Swatch[]>): Outfit => (
 export const CASTS: Record<CastId, Cast> = {
   rowCoat: { id: 'rowCoat', archetype: 'resident', families: ['slim', 'standard'], frames: ['broad', 'narrow'], headShapes: allShapes, hair: ['shortCrop', 'sidePart', 'tousled', 'bob', 'lowBun', 'ponytail'], hairColours: young, hats: ['none', 'flatCap', 'softCap'], facial: ['none', 'sideburns', 'moustache'],
     slots: ['coat', 'waistcoat', 'trousers', 'cap', 'scarf'], asymmetries: ['unevenFront', 'scarfTail', 'pouchHip', 'sleeveRolled'],
-    outfits: [o('rowCoat.open', { ash: ['slate', 'stone', 'charcoal', 'slate', 'oxblood'], umber: ['umber', 'mustard', 'soot', 'umber', 'greyGreen'], moss: ['greyGreen', 'canvas', 'umber', 'greyGreen', 'bone'] }),
-      o('rowCoat.closed', { ash: ['charcoal', 'stone', 'soot', 'charcoal', 'mustard'], oxblood: ['oxblood', 'canvas', 'charcoal', 'umber', 'stone'], stone: ['stone', 'umber', 'slate', 'stone', 'oxblood'] })] },
+    outfits: [o('rowCoat.open', { ash: ['slate', 'stone', 'charcoal', 'slate', 'oxblood'], umber: ['umber', 'mustard', 'slate', 'umber', 'greyGreen'], moss: ['greyGreen', 'canvas', 'umber', 'greyGreen', 'bone'] }),
+      o('rowCoat.closed', { ash: ['charcoal', 'stone', 'umber', 'charcoal', 'mustard'], oxblood: ['oxblood', 'canvas', 'slate', 'umber', 'stone'], stone: ['stone', 'umber', 'slate', 'stone', 'oxblood'] })] },
   rowSkirt: { id: 'rowSkirt', archetype: 'resident', families: ['slim', 'standard'], frames: ['narrow'], headShapes: allShapes, hair: ['lowBun', 'bob', 'ponytail', 'highKnot', 'longTied'], hairColours: young, hats: ['none', 'headscarf'], facial: ['none'],
     slots: ['shawl', 'bodice', 'skirt', 'scarf'], asymmetries: ['scarfTail', 'pouchHip', 'apronTie'],
     outfits: [o('rowSkirt.shawl', { ash: ['slate', 'bone', 'umber', 'greyGreen'], plum: ['oxblood', 'cream', 'charcoal', 'bone'] }), o('rowSkirt.plain', { moss: ['greyGreen', 'bone', 'umber', 'mustard'], umber: ['umber', 'cream', 'slate', 'oxblood'] })] },
@@ -72,8 +68,8 @@ export const CASTS: Record<CastId, Cast> = {
     outfits: [o('shopMerchant.waistcoat', { wine: ['burgundy', 'cream', 'charcoal', 'bone', 'soot'], ochre: ['mustard', 'bone', 'umber', 'cream', 'charcoal'] })] },
   labourer: { id: 'labourer', archetype: 'worker', families: ['sturdy', 'standard'], frames: ['broad'], headShapes: allShapes, hair: ['shortCrop', 'tousled', 'sidePart'], hairColours: young, hats: ['flatCap', 'none', 'softCap'], facial: ['none', 'sideburns', 'moustache', 'beard'],
     slots: ['shirt', 'trousers', 'braces', 'cap', 'kerchief'], asymmetries: ['pouchHip', 'ragBelt', 'braceDown'],
-    outfits: [o('labourer.braced', { dust: ['canvas', 'umber', 'leatherDark', 'slate', 'rust'], soot: ['stone', 'charcoal', 'leatherDark', 'soot', 'oxblood'], moss: ['greyGreen', 'slate', 'leather', 'umber', 'mustard'] }),
-      o('labourer.vested', { umber: ['bone', 'umber', 'oxblood', 'umber', 'greyGreen'], grey: ['canvas', 'charcoal', 'slate', 'stone', 'rust'] })] },
+    outfits: [o('labourer.braced', { dust: ['canvas', 'umber', 'leatherDark', 'slate', 'rust'], soot: ['stone', 'charcoal', 'leatherDark', 'soot', 'oxblood'], moss: ['greyGreen', 'stone', 'leather', 'umber', 'mustard'] }),
+      o('labourer.vested', { umber: ['bone', 'rust', 'oxblood', 'umber', 'greyGreen'], grey: ['canvas', 'slate', 'charcoal', 'stone', 'rust'] })] },
   foundry: { id: 'foundry', archetype: 'worker', families: ['sturdy'], frames: ['broad', 'narrow'], headShapes: ['square', 'oval', 'long'], hair: ['shortCrop', 'tousled', 'balding'], hairColours: young, hats: ['kerchief', 'none'], facial: ['none', 'sideburns', 'beard'],
     slots: ['shirt', 'trousers', 'apron', 'kerchief'], asymmetries: ['gauntletTucked', 'gogglesUp', 'pouchHip'],
     outfits: [o('foundry.apron', { soot: ['charcoal', 'soot', 'leather', 'rust'], umber: ['umber', 'charcoal', 'leatherDark', 'oxblood'] })] },

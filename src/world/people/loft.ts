@@ -63,12 +63,13 @@ export function loft(input: Ring[], o: LoftOpts = {}): T.BufferGeometry {
     const flat = grow(e, t), wall = { ...flat, y: e.y + inner * depth };
     if (end === 'end') rings.push(flat, wall); else rings.unshift(wall, flat);
   };
+  let fanStart = false, fanEnd = false;
   if (o.lipStart) lip('start', o.lipStart); if (o.lipEnd) lip('end', o.lipEnd);
   // Rounded caps: a quarter sphere of radius R of rings past the end, scaled by cos(phi) at sin(phi) R out.
   const round = (end: 'start' | 'end', R: number) => {
     const e = end === 'end' ? rings[rings.length - 1] : rings[0], out = end === 'end' ? dir : -dir, extra: Ring[] = [];
-    for (const phi of [.55, 1.05, 1.42]) { const s = Math.cos(phi); extra.push({ ...e, y: e.y + out * Math.sin(phi) * R, w: e.w * s, f: e.f * s, b: e.b * s }); }
-    if (end === 'end') rings.push(...extra); else rings.unshift(...extra.reverse());
+    for (const phi of [.7, 1.3]) { const s = Math.cos(phi); extra.push({ ...e, y: e.y + out * Math.sin(phi) * R, w: e.w * s, f: e.f * s, b: e.b * s }); }
+    if (end === 'end') { rings.push(...extra); fanEnd = true; } else { rings.unshift(...extra.reverse()); fanStart = true; }
   };
   if (o.capStart && o.capStart !== 'flat') round('start', o.capStart.round);
   if (o.capEnd && o.capEnd !== 'flat') round('end', o.capEnd.round);
@@ -81,7 +82,7 @@ export function loft(input: Ring[], o: LoftOpts = {}): T.BufferGeometry {
   // Flat caps: a fan to the ring's centre.
   const fan = (ring: number, atEnd: boolean) => { const r = rings[ring], c = pos.length / 3; pos.push(r.x ?? 0, r.y, r.z ?? 0); uv.push(.5, ring / (R - 1));
     for (let i = 0; i < seg; i++) { const a = ring * (seg + 1) + i; const up = atEnd ? dir > 0 : dir < 0; if (up) idx.push(a + 1, a, c); else idx.push(a, a + 1, c); } };
-  if (o.capStart === 'flat') fan(0, false); if (o.capEnd === 'flat') fan(R - 1, true);
+  if (o.capStart === 'flat' || fanStart) fan(0, false); if (o.capEnd === 'flat' || fanEnd) fan(R - 1, true);
   const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new T.Float32BufferAttribute(uv, 2)); g.setIndex(idx); g.computeVertexNormals();
   if (closed) { // one smooth normal across the seam
     const nrm = g.attributes.normal as T.BufferAttribute;
