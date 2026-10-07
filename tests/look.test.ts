@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { ARCHETYPE_CASTS, CASTS, HAT_HAIR, STORY, hash, invalid, paletteOf, resolveLook, type Look } from '../src/world/people/look.ts';
 import { palette, type Archetype } from '../src/world/palette.ts';
+import { peopleNext } from '../src/world/people/figure.ts';
 
 const ARCHETYPES = Object.keys(ARCHETYPE_CASTS) as Archetype[], SEEDS = Array.from({ length: 1000 }, (_, i) => i);
 const all = ARCHETYPES.flatMap(a => SEEDS.map(s => ({ a, s, look: resolveLook(s, a) })));
@@ -91,7 +92,10 @@ test('every story character resolves to a valid authored look, and each spawn si
   const sites: Record<string, string[]> = { 'market-square.ts': ['officer', 'beat'], 'rook-yard.ts': ['rookHand', 'clerk', 'masked'], 'finch-run.ts': ['finchHand'], 'cinder-row.ts': ['embersChalker', 'embersLookout', 'embersCourier'], 'foundry-works.ts': ['overseer'], 'ration-line.ts': ['warden'], 'intro.ts': ['introGuard', 'introOrdinal', 'masked'] };
   for (const name of Object.keys(STORY)) { const l = resolveLook(0, 'resident', { look: name }); assert.equal(invalid(l), undefined, `${name}: ${invalid(l)}`); assert.deepEqual(l, { ...STORY[name], asymmetries: [...STORY[name].asymmetries] }); }
   const named = new Set<string>();
-  for (const [file, names] of Object.entries(sites)) { const src = readFileSync(new URL(`../src/world/${file}`, import.meta.url), 'utf8'); for (const n of names) { assert.ok(src.includes(`'${n}'`) && (file === 'intro.ts' ? true : src.includes(`look: '${n}'`)), `${file} does not ask for ${n}`); assert.ok(n in STORY, n); named.add(n); } }
+  // intro.ts builds its figures through a local `make(role, seed, act, mask, look)`, which must hand the look on to person(); the others pass `look:` to addWorker or person()
+  const intro = readFileSync(new URL('../src/world/intro.ts', import.meta.url), 'utf8');
+  assert.ok(/\bperson\([^;]*\{[^}]*\blook\b[^}]*\}\)/.test(intro.slice(intro.indexOf('const make = ('), intro.indexOf('const make = (') + 400)), 'intro.ts: make() does not pass its look to person()');
+  for (const [file, names] of Object.entries(sites)) { const src = readFileSync(new URL(`../src/world/${file}`, import.meta.url), 'utf8'); for (const n of names) { assert.ok(file === 'intro.ts' ? new RegExp(`\\bmake\\([^()]*'${n}'\\)`).test(src) : src.includes(`look: '${n}'`), `${file} does not ask for ${n}`); assert.ok(n in STORY, n); named.add(n); } }
   for (const name of Object.keys(STORY)) assert.ok(named.has(name), `${name} is not placed anywhere`);
 });
 
@@ -105,14 +109,16 @@ test('the story-only items are never dealt by the resolver', () => {
   for (const { look } of all) for (const a of look.asymmetries) assert.ok(!(CASTS[look.cast].story ?? []).includes(a), `${look.cast} was dealt ${a}`);
 });
 
-test('the switch: no place outside citizens.ts and the dev sheet builds a person except through person()', async () => {
+test('the switch: no place outside citizens.ts (the builders and person() itself) and the dev sheet calls a builder except through person()', async () => {
   const { readdirSync, readFileSync } = await import('node:fs');
   const walk = (dir: URL): URL[] => readdirSync(dir, { withFileTypes: true }).flatMap(e => e.isDirectory() ? walk(new URL(`${e.name}/`, dir)) : [new URL(e.name, dir)]);
-  for (const f of walk(new URL('../src/', import.meta.url))) { if (/citizens\.ts$|sheet\.ts$/.test(f.pathname) || !f.pathname.endsWith('.ts')) continue; assert.ok(!/\bcitizen(Next)?\(mats\./.test(readFileSync(f, 'utf8')), `${f.pathname} builds a person directly`); }
+  for (const f of walk(new URL('../src/', import.meta.url))) { if (/citizens\.ts$|sheet\.ts$/.test(f.pathname) || !f.pathname.endsWith('.ts')) continue; const code = readFileSync(f, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, ''); assert.ok(!/\bcitizen(Next)?\(/.test(code), `${f.pathname} builds a person directly`); }
 });
 
 test('the switch: the new figures are the default and ?people=old forces the old builder', async () => {
+  for (const q of ['', '?people=new', '?seed=4', '?people=']) assert.equal(peopleNext(q), true, q);
+  for (const q of ['?people=old', '?seed=4&people=old']) assert.equal(peopleNext(q), false, q);
   const { readFileSync } = await import('node:fs');
-  const src = readFileSync(new URL('../src/world/citizens.ts', import.meta.url), 'utf8'), line = src.split('\n').find(l => l.startsWith('export const PEOPLE'))!;
-  assert.ok(line.includes("get('people')!=='old'") && line.includes('catch{return true;}'), line);
+  const line = readFileSync(new URL('../src/world/citizens.ts', import.meta.url), 'utf8').split('\n').find(l => l.startsWith('export const PEOPLE'))!;
+  assert.ok(line.includes('peopleNext(location.search)') && line.includes('catch{return true;}'), line);
 });

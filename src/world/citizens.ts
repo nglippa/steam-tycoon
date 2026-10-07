@@ -5,7 +5,7 @@ import { palette as P, wardrobes, type Archetype } from './palette';
 import { box, cyl, sphere, torus, bake, mats, thinLine, seeded, type Material } from './assets';
 import { painted } from './tone';
 import { resolveLook, type Look, type CastId, type LookFamily, type Frame } from './people/look';
-import { buildFigure, type Kit } from './people/figure';
+import { buildFigure, peopleNext, type Kit } from './people/figure';
 
 const ramp = new T.DataTexture(new Uint8Array([128, 202, 255]), 3, 1, T.RedFormat);
 ramp.minFilter = ramp.magFilter = T.NearestFilter; ramp.generateMipmaps = false; ramp.needsUpdate = true;
@@ -526,7 +526,7 @@ export function citizenNext(coat:Material=mats.rust,seed=0,archetype:Archetype='
 
 // ---- The switch (People XIV). Every place that makes a person goes through `person()`, which picks the old builder or the new one from this one flag.
 /** `next`: the whole game uses the new figure builder. On by default; `?people=old` forces the old builder (kept in the code for now, for comparison). */
-export const PEOPLE={next:(()=>{try{return new URLSearchParams(location.search).get('people')!=='old';}catch{return true;}})()};
+export const PEOPLE={next:(()=>{try{return peopleNext(location.search);}catch{return true;}})()};
 /** What a spawn site knows about the person: `look` is a named story character (people/look.ts `STORY`), `child` asks for the child cast. Both are inert under the old builder. */
 export type PersonOpts={solo?:boolean;mask?:boolean;look?:string;child?:boolean};
 export function person(coat:Material=mats.rust,seed=0,archetype:Archetype='worker',opts:PersonOpts={}):Citizen{
