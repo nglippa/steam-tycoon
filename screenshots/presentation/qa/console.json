@@ -1,0 +1,63 @@
+{
+  "sheet": [
+    {
+      "page": "sheet.html (all sheet loads)",
+      "url": "http://127.0.0.1:5741/sheet.html?\u2026",
+      "messages": [
+        {
+          "type": "error",
+          "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+          "at": "http://127.0.0.1:5741/favicon.ico"
+        }
+      ]
+    }
+  ],
+  "game-new": [
+    {
+      "page": "game people=new (captures)",
+      "url": "http://127.0.0.1:5741/?dev=1&intro=0&view=street&people=new&weather=clear&level=2",
+      "messages": [],
+      "loadMs": 2626
+    },
+    {
+      "page": "game people=new site=3 (captures)",
+      "url": "http://127.0.0.1:5741/?dev=1&intro=0&view=street&people=new&weather=clear&level=2&site=3",
+      "messages": [],
+      "loadMs": 2501
+    },
+    {
+      "page": "game people=new site=5 (captures)",
+      "url": "http://127.0.0.1:5741/?dev=1&intro=0&view=street&people=new&weather=clear&level=2&site=5",
+      "messages": [],
+      "loadMs": 2477
+    }
+  ],
+  "perf-new": [
+    {
+      "page": "game people=new (perf)",
+      "url": "http://127.0.0.1:5741/?dev=1&intro=0&view=street&people=new&weather=clear&level=2",
+      "messages": [],
+      "loadMs": 2660
+    }
+  ],
+  "perf-old": [
+    {
+      "page": "game people=old (perf)",
+      "url": "http://127.0.0.1:5741/?dev=1&intro=0&view=street&people=old&weather=clear&level=2",
+      "messages": [],
+      "loadMs": 3072
+    }
+  ],
+  "intro-new": [
+    {
+      "page": "intro people=new",
+      "url": "http://127.0.0.1:5741/?dev=1&people=new&weather=clear",
+      "messages": [],
+      "loadMs": 2770
+    }
+  ],
+  "summary": {
+    "gameLoads": "no console errors or warnings, page errors, failed requests or HTTP >= 400 in any game load (captures people=new x3 loads, perf people=new, perf people=old, intro people=new)",
+    "sheet": "one error per sheet.html load: 404 for /favicon.ico (sheet.html declares no icon, the browser asks for /favicon.ico and the dev server has none). Nothing else."
+  }
+}
