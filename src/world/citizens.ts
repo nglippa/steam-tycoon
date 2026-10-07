@@ -215,7 +215,9 @@ const paintAtlas = (types: FaceType[]) => {
   const map = new T.DataTexture(data, W, H, T.RGBAFormat); map.colorSpace = T.SRGBColorSpace; map.generateMipmaps = true; map.minFilter = T.LinearMipmapLinearFilter; map.magFilter = T.LinearFilter; map.anisotropy = 8; map.needsUpdate = true;
   return map;
 };
-const faceAtlas = paintAtlas(faceTypes);
+/** Each atlas (4096 x 2048, about 33 MB of heap) is painted on first use, so a game only ever paints the one its builder draws. */
+let atlasOld: T.DataTexture | undefined, atlasNext: T.DataTexture | undefined;
+const faceAtlas = () => atlasOld ??= paintAtlas(faceTypes);
 /** The new head's faces: the same atlas layout and painters, eyes one eye-width apart and a fifth of the head wide (the tile is a front plane about 32 cm across), irises from palette.iris, a calm
  * single highlight, thin brows close to the eye, a short mouth line, no blush, and a mark on at most three of the eight. */
 const IR = P.iris;
@@ -229,7 +231,7 @@ export const faceTypesNext: FaceType[] = [
   { rise: 54, w: 34, tilt: 4, lash: 10, iris: IR.greyGreen, brow: [4, 3, -3], nose: 'hook', mouth: 1.25, marks: 'scar', sx: 69, by: 234, calm: true },
   { rise: 58, w: 33, tilt: 0, lash: 11, iris: IR.darkBrown, brow: [3, 8, 2], nose: 'button', mouth: 1.25, marks: 'none', sx: 68, by: 232, calm: true },
 ];
-export const faceAtlasNext = paintAtlas(faceTypesNext);
+export const faceAtlasNext = () => atlasNext ??= paintAtlas(faceTypesNext);
 /** Each band picks its own column: the shader reads the tile's height (the head's baked v) and takes the eye, brow or mouth column from the figure's `vFace`. Texture gradients come from the
  * unshifted uv, so the jump between columns does not pick a coarse mip at a seam. */
 const FACE_MAP = `vec3 fc=floor(vFace+.5);float ft=1.-fract(vMapUv.y*${FACE_TYPES}.);
@@ -238,7 +240,7 @@ vec4 fs=textureGrad(map,vMapUv+vec2(fcol/${FACE_COLS}.,0.),dFdx(vMapUv),dFdy(vMa
 /** A face material: the shared atlas over one skin tone. The three shared ones are batched (the feature numbers ride on the instance colour); a figure outside the
  * crowd batch takes its own (`uFace`, written by `setExpression`). */
 const faceMaterial = (tone: number, next = false) => {
-  const look = { value: new T.Vector3() }, m = new T.MeshToonMaterial({ map: next ? faceAtlasNext : faceAtlas, color: skinColors[tone], gradientMap: ramp, emissive: P.neutral.paper, emissiveIntensity: .12 });
+  const look = { value: new T.Vector3() }, m = new T.MeshToonMaterial({ map: next ? faceAtlasNext() : faceAtlas(), color: skinColors[tone], gradientMap: ramp, emissive: P.neutral.paper, emissiveIntensity: .12 });
   m.userData.faceAtlas = true; m.userData.look = look.value;
   m.onBeforeCompile = shader => { shader.uniforms.uFace = look;
     if (next) shader.vertexShader = 'attribute float faceMask;varying float vMask;\n' + shader.vertexShader.replace('void main() {', 'void main() {\nvMask = faceMask;');
@@ -246,8 +248,10 @@ const faceMaterial = (tone: number, next = false) => {
     shader.fragmentShader = (next ? 'varying float vMask;\n' : '') + 'flat varying vec3 vFace;\n' + shader.fragmentShader.replace('#include <map_fragment>', next ? FACE_MAP.replace('fs.a)', 'fs.a*vMask)').replace('diffuseColor.rgb=mix', `if(ft>=${tV(BAND[4])}&&ft<${tV(BAND[3])}&&dot(fs.rgb,vec3(.333))<.4)fs.rgb=diffuseColor.rgb*mix(vec3(.64,.43,.44),vec3(.42,.27,.3),smoothstep(.24,.29,dot(fs.rgb,vec3(.333))));diffuseColor.rgb=mix`) : FACE_MAP).replace('#include <emissivemap_fragment>', 'totalEmissiveRadiance*=diffuseColor.rgb;'); };
   m.customProgramCacheKey = () => next ? 'terra-face-bands-next' : 'terra-face-bands'; return thinLine(painted(m));
 };
-const faces = skinColors.map((_, i) => faceMaterial(i));
-const facesNext = skinColors.map((_, i) => faceMaterial(i, true));
+/** The three shared face materials of each builder, made (with their atlas) on first use. */
+let shared: Material[] | undefined, sharedNext: Material[] | undefined;
+const faces = () => shared ??= skinColors.map((_, i) => faceMaterial(i));
+const facesNext = () => sharedNext ??= skinColors.map((_, i) => faceMaterial(i, true));
 const contactShape=new T.CircleGeometry(.28,14);
 const contactInk=new T.MeshBasicMaterial({color:'#253d40',transparent:true,opacity:.19,depthWrite:false});
 function hairChunk(g:T.Group,points:number[][],z:number,depth:number,material:Material){const shape=new T.Shape();points.forEach(([x,y],i)=>i?shape.lineTo(x,y):shape.moveTo(x,y));shape.closePath();const mesh=new T.Mesh(new T.ExtrudeGeometry(shape,{depth,bevelEnabled:true,bevelThickness:.018,bevelSize:.012,bevelSegments:2,curveSegments:4}),material);mesh.position.z=z;g.add(mesh);return mesh;}
@@ -381,7 +385,7 @@ export function citizen(coat:Material=mats.rust,seed=0,archetype:Archetype='work
   const faceType=(seed*5+Math.floor(seed/3)*3+archetype.length)%FACE_TYPES,skullShape=(seed*11+Math.floor(seed/2))%3,taper=[.1,.16,.26][skullShape],cheek=[1.04,1,.97][skullShape];
   // Anime head: a round cranium, soft cheeks and a small chin carried forward.
   const rings=[[-.228,.048,.042,.034],[-.2,.092*jaw,.094,.026],[-.15,.126*jaw,.13,.012],[-.11,.145,.142,.004],[-.07,.163,.154,0],[.03,.18,.172,-.006],[.13,.168,.163,-.016],[.205,.112,.112,-.022],[.245,.004,.004,-.022]];
-  const faceMat=opts.solo?faceMaterial(skinTone):faces[skinTone],skull=tailored(head,rings,faceMat,24,-Math.PI,Math.PI*2);
+  const faceMat=opts.solo?faceMaterial(skinTone):faces()[skinTone],skull=tailored(head,rings,faceMat,24,-Math.PI,Math.PI*2);
   const uv=skull.geometry.attributes.uv;for(let j=0;j<rings.length;j++)for(let i=0;i<=24;i++){uv.setX(j*25+i,uv.getX(j*25+i)/FACE_COLS);uv.setY(j*25+i,(faceType+1-(Math.max(-.22,rings[j][0])+.22)/.465)/FACE_TYPES);}
   // A soft head: the jaw narrows gently toward a small rounded chin and the front stays curved,
   // so no plane change is hard enough for the ink pass to draw a crease across the cheek.
@@ -517,7 +521,7 @@ export type NextOpts={solo?:boolean;mask?:boolean;look?:string;/** dev: bare hea
 export function citizenNext(coat:Material=mats.rust,seed=0,archetype:Archetype='worker',opts:NextOpts={}):Citizen{
   void coat;
   const look={...resolveLook(seed,archetype,{look:opts.look,cast:opts.cast,family:opts.family,frame:opts.frame,casts:opts.casts}),...opts.over};
-  const kit:Kit={cloth:(c,l)=>outfitMaterial(c,l),plain:plainMaterial,skin,face:tone=>opts.solo?faceMaterial(tone,true):facesNext[tone],bake:g=>bakeCharacter(g,coloredToonNext),contact:new T.Mesh(contactShape,contactInk)};
+  const kit:Kit={cloth:(c,l)=>outfitMaterial(c,l),plain:plainMaterial,skin,face:tone=>opts.solo?faceMaterial(tone,true):facesNext()[tone],bake:g=>bakeCharacter(g,coloredToonNext),contact:new T.Mesh(contactShape,contactInk)};
   const fig=buildFigure(look,opts,kit);
   fig.group.userData.next=true; // the new builder's mark: a few poses are tuned to its head (citizen-life.ts)
   const {faceMat,...nodes}=fig;
