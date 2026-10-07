@@ -767,6 +767,9 @@ flattened back to .19); the hem's top is cut narrow inside the upper part, so it
 **Rule: cloth has weight (People XIX).** The hem trails the upper part on a softer, underdamped spring: it lags, swings past and settles, and it bends at the knee, sideways too. It never turns
 with the lap as one board.
 
+**Rule: an apron's back is designed (People XIX).** Seen from behind, an apron shows its straps and ties over the back garment: a bib's straps cross on the back and meet the band at the
+waist. Every lining faces in (`inward` in `loft.ts`), so the inside of an apron, a skirt or a coat is drawn as cloth, never an empty outline.
+
 ### The bite
 
 The new head's mouth is about 9 cm lower than the old one, so for a figure from the new builder the

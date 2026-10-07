@@ -135,6 +135,12 @@ export function merge(list: T.BufferGeometry[]): T.BufferGeometry {
 }
 export const triangles = (g: T.BufferGeometry) => (g.index ? g.index.count : g.attributes.position.count) / 3;
 
+/** The same surface facing the other way (a lining: its faces look in, so the cloth's inside is drawn): the winding turned and the normals reversed. Returns a clone. */
+export function inward(g: T.BufferGeometry): T.BufferGeometry {
+  const c = g.clone(), ix = c.index!; for (let t = 0; t < ix.count; t += 3) { const a = ix.getX(t + 1); ix.setX(t + 1, ix.getX(t + 2)); ix.setX(t + 2, a); }
+  const n = c.attributes.normal as T.BufferAttribute; if (n) for (let i = 0; i < n.count; i++) n.setXYZ(i, -n.getX(i), -n.getY(i), -n.getZ(i));
+  return c;
+}
 /** The mirror image (x -> -x) of a geometry, with the winding turned back so it still faces out. */
 export function mirrorX(g: T.BufferGeometry): T.BufferGeometry {
   const c = g.clone(); c.applyMatrix4(new T.Matrix4().makeScale(-1, 1, 1)); const ix = c.index;

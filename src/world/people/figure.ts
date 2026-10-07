@@ -1,5 +1,5 @@
 import * as T from 'three';
-import { loft, sweep, place, plate, offset, ringAt, surface, onFace, type Ring, type SweepPt } from './loft';
+import { loft, sweep, place, plate, offset, ringAt, surface, onFace, shared, inward, type Ring, type SweepPt } from './loft';
 import { dimsOf, CHILD_SCALE, ribcage, pelvis as pelvisRings, neck as neckRings, upperArm, forearm, thigh as thighRings, shin as shinRings, ring, RIG, type Dims } from './body';
 import { paletteOf, type CastId, type Look } from './look';
 import { skull, ear, facialOf, skullRings, CHIN_TO_PIVOT } from './head';
@@ -222,7 +222,7 @@ function coatSkirt(tails: T.Group, skirt: { drop: number; depth: number }, cloth
   const rings: Ring[] = Y.map(y => { const u = t(y), p = ringAt(pel, Math.min(1.13, Math.max(.86, y))), W = Math.max(Wtop + (Whem - Wtop) * Math.sqrt(u), p.w * 2 + .05); return ring(y - base, W, Math.max(Dtop + (Dhem - Dtop) * u, (p.f + p.b) + .062), (p.z ?? 0) + .006 * u, 2.2 + u * .1); });
   const arc = closed ? { start: 0, arc: Math.PI * 2 } : { start: g.aL, arc: Math.PI * 2 - g.aL - g.aR }, lip = .012, dk = JSON.stringify(d);
   put0(tails, loft(rings, { seg: 10, ...arc, lipEnd: lip, lipDepth: .0001, key: `skirt/${dk}/${arc.start}` }), coatM);
-  put0(tails, loft(offset(rings, -lip).slice().reverse(), { seg: 8, ...arc, key: `lining/${dk}/${arc.start}` }), coatM);
+  put0(tails, shared(`lining/${dk}/${arc.start}`, () => inward(loft(offset(rings, -lip), { seg: 8, ...arc }))), coatM); // the lining faces in
   const ys = steps(rings[0].y, rings[4].y, 5);
   if (!closed) for (const a of [g.aL, -g.aR]) put0(tails, seam(rings, ys, () => a, .001, .02, .006), coatM);
   put0(tails, seam(rings, ys, () => Math.PI, .001, .008, .004), coatM);
