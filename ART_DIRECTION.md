@@ -2,7 +2,7 @@
 
 The visual language applies to architecture, lighting, materials, skyline, citizens and movement. The reference is [Messenger by Abeto](https://messenger.abeto.co/): graphic silhouettes, restrained illustrated surfaces, expressive characters and playful motion. Terra adapts that direction into original steampunk geometry and local procedural artwork; no reference assets are bundled.
 
-Copper, soot, cream and turquoise define the palette. Broad painted surfaces and subdued masonry marks replace photographic noise. Copper and brass read as matte painted enamel, with warm windows and aether accents kept distinct. A depth-based ink pass emphasizes close silhouettes and major structural creases, fading across distant geometry; stable, subtle paper grain avoids temporal flicker. Printed paper controls, irregular borders and a tall stacked title extend that language into the interface.
+Copper, soot, cream and turquoise define the palette. Broad painted surfaces and subdued masonry marks replace photographic noise. Copper and brass read as matte painted enamel, with warm windows and aether accents kept distinct. A depth-based ink pass emphasizes close silhouettes and major structural creases, fading with distance and with the fog; far lines are drawn steady so they do not crawl. There is no paper grain in the post. Printed paper controls, irregular borders and a tall stacked title extend that language into the interface.
 
 ## Authored world families
 
@@ -29,7 +29,7 @@ The opening camera drifts over the city, then eases into the street on entry. Ci
 
 ## Performance and scope
 
-World art is built from local procedural assets; no remote asset service is required. Static additions are merged by material. Articulated citizens use material-based BatchedMesh submission, with their existing transforms driving each part. Street lighting uses four dynamic lights plus the foundry source, supported by emissive details. Shadow maps refresh periodically. Full quality caps pixel density at 1.5× and uses up to four samples in the ink render target; performance quality uses 1× and disables target multisampling while retaining outlines. Idle title screens and hidden pages render less often; active income still uses elapsed wall time.
+World art is built from local procedural assets; no remote asset service is required. Static additions are merged by material. Articulated citizens use material-based BatchedMesh submission, with their existing transforms driving each part. Street lighting uses four dynamic lights plus the foundry source, supported by emissive details. Shadow maps refresh periodically. Full quality caps pixel density at 1.5× within a 4.4 MP budget (performance 2.4 MP) and uses up to four samples in the ink render target; performance quality uses 1× and disables target multisampling while retaining outlines. Sustained slow frames step the budget down a fifth at a time, twice at most (to .64), and five seconds of easy frames step it back up; the ink keeps its line width on screen while strained. Idle title screens and hidden pages render less often; active income still uses elapsed wall time.
 
 This is original stylized procedural game art. Citizens still use lightweight ambient choreography, and decorative upper structures do not imply new climbable paths. The existing industrial ramp remains the accessible elevated route.
 
@@ -57,7 +57,7 @@ Clear skies use soft blue and a warm horizon, overcast uses blue-lavender, sunse
 ## Painted light and scale — September 25, 2026
 
 - **One lighting language.** `src/world/tone.ts` replaces per-material banding with a single hard terminator shared by world materials and citizens: a warm lit color and a colored (blue-violet) shadow color, keyed by weather, hour and prosperity in `atmosphere.ts`. Hemisphere light is neutral; all color comes from the keys. Never reintroduce gray shadows or metalness on painted materials.
-- **Ink.** The ink pass draws silhouettes from depth jumps against the nearer surface (including against the sky) and creases, fading only past ~55–240 m.
+- **Ink.** The ink pass draws silhouettes from depth jumps against the nearer surface (including against the sky) and creases. Strength fades from 40 m to .4 at 140 m and then with the scene's fog (see *Ink by distance*, October 2026).
 - **Sky.** Saturated cerulean with flat-based anime cumulus whose lower band takes a colored shadow. Early prosperity adds a cool soot haze (never sepia); it clears by stage 4.
 - **Color blocking.** Each business owns one wall paint (`facadePaints`): salvage ochre, civic navy, Finch teal, blackened foundry, tavern wine, ivory Exchange. Ivory stone trim sits on colored walls. Roads are a dark painted-sett mass; sidewalks are light.
 - **Scale.** The clock tower is ~48 m (ivory shaft, navy clock stage, open pressure lantern, verdigris bell roof). The Great Main, a 1.7 m pressure artery on lattice pylons, crosses the street 14 m overhead from the municipal boiler. The backdrop is three planes: flat rooftops, the Pressure Spires, and Veyr's snow ridge.
@@ -105,7 +105,7 @@ Anime steampunk, art-directed by **Messenger and Borderlands**: steampunk grime 
 
 ## Ink, palette and sky — September 26, 2026
 
-- **Ink** (`ink-renderer.ts`): an 8-direction depth kernel plus interior lines where color blocks meet (luma edges, not on sky). Line weight is about 2.3 px near and 1 px far, modulated along the line. Sample positions wobble by stable screen-space noise, so edges read hand-drawn without flicker. Lines persist to about 320 m at reduced strength. Ink is a color-aware navy-grey, not black.
+- **Ink** (`ink-renderer.ts`): an 8-direction depth kernel plus interior lines where color blocks meet (luma edges, not on sky). Line weight is about 2.3 px near and 1 px far, modulated along the line. Sample positions wobble by stable screen-space noise, so edges read hand-drawn without flicker; the wobble and the weight noise calm away between 15 and 60 m. Beyond about 160 m only outer silhouettes remain, and those fade with the fog except a faint outline against the sky. Ink is a color-aware navy-grey, not black.
 - **Palette:** one family (sage, slate, ivory, soft teal) with muted trade identities (ochre, slate blue, soft teal, charcoal slate, brick rose, ivory). Roofs are slate-teal, terracotta and verdigris. Shadow keys are lifted and near-neutral teal-grey (clear shade ≈ 0.74/0.82/0.86). Saturation is reserved for characters, signage, furnace and lamp glow, and progression.
 - **Sky:** a turquoise top over a pale mint horizon. Clouds are torn flat fbm masses with hard ragged edges and one tone step (lit crown, shaded underside), plus high wisps. Dusk is not gated by daylight, so evenings turn peach and rose.
 
@@ -130,7 +130,7 @@ Messenger's lesson applied: lightness and cohesion come from value, not hue. The
 - **Hand-painted inked surfaces** (`assets.surface`): brick, plaster-over-brick with cracks and fallen patches (4 m tile), ashlar, cobbles, slate, corrugated sheet and planks. Each has inked construction lines, chipped light edges and grime at the foot. Painted walls (trade paints, housing, plaster) all carry the plaster map.
 - **Enclosure:** every composed business gains inserted storeys jettied 1.15 m over the pavement on timber corbels (`architecture.businessLift`, `liftCrown`). The trade's crown (towers, dome, drum, stacks) is lifted on top unchanged. The tavern is 16 m, residential blocks 16–24 m and the gate rows 17–21 m. The street reads as a stone canyon.
 - **Palette and light:** sandstone, umber, soot, slate and oxblood with verdigris accents. The sun is backlit and raking (ahead of the main view, about 28° up): the tall walls shade most of the street, light patches cross it, and the distance is bleached and hazy. Shadows are cool (clear shade 0.36/0.40/0.55). Night is near-black blue-violet with amber windows and lamp pools. Rain is wet grey.
-- **Ink:** near-black, 3 px near to 1.2 px far, with the hand-drawn wobble kept (Messenger).
+- **Ink:** near-black, 3 px near to 1.2 px far, with the hand-drawn wobble kept up close (Messenger).
 - **Sky:** Messenger's torn flat clouds on a dusty, sun-bleached blue.
 - **Night:** hemisphere light 0.28 and sun 0.12 at night; the night sky is near black. Additive lamp pools and wall halos (`presentation.nightLights`), plus door sconces on every house. Windows glow harder.
 - **Density:** wrought-iron balconies with scroll railings and brackets, painted protest slogans ("WHO OWNS THE STEAM?"), clutter pockets hugging walls with colliders, and additive sun shafts aligned to the sun ray, anchored in the sunlit half of each street (`presentation.density`, `setShafts`).
@@ -238,3 +238,15 @@ Rules are in the `figure-construction` skill (`references/faces.md`, `cloth.md`,
 ## People: the Character Book (2026-10-06)
 
 `TERRA_CHARACTER_BOOK.md` is the source of truth for how people are designed, built, varied, animated and checked. Where it disagrees with an older people section in this file, the book wins; it lists the sections it replaces. What this file says about motion, staging, gaze, grips, held things and how cloth opens over the legs remains in force.
+
+## Ink by distance — October 7, 2026
+
+The ink pass (`ink-renderer.ts`) is one full-screen quad; these rules hold it by distance without a new pass. Distances are the line's nearer side (the kernel's nearest tap).
+- **Near (under ~25 m) is the hand-drawn line and does not change:** 3 px weight thinning to 1.2 px by 80 m, the weight noise and the wobble.
+- **Calm, 15–60 m:** the wobble and the weight noise fade out, so mid and far lines are steady and do not crawl as the view turns. Calm is taken at the nearest of four taps 3 px away, so the sky half of a near outline keeps the near hand.
+- **Mid, 30–90 m:** creases need a larger depth step (.02–.05 rising to .035–.09).
+- **Far, 90–160 m:** creases are gone; silhouettes keep their ink only where they are outer edges, against the sky or with the background at least 1.3–1.8× farther.
+- **Fade and fog:** strength is `1 − .6·smoothstep(40, 140)`, times `1 − .75·fog`, where fog is the scene's own FogExp2 factor at that distance. Fogged lines take a darker tone of the fog (.45 of the fog colour) instead of near-black. Far outer edges against the sky keep at least .3, because the skyline planes and isles are tinted, not fogged, and lose their towers without it.
+- **Ink only darkens:** the composite is `min(colour, mix(colour, ink, k))`, so a fog-toned line never shows light across smoke or a dark wall.
+- **Line width follows the resolution:** under strain the kernel shrinks with the pixel ratio (never below one buffer pixel), so lines keep their width on screen.
+- Measure with `tools/ink-measure.mjs` (ink share per band on one frame for the old and new pass, crawl over a six-frame yaw, frame time, and the strained pixel ratio). Captures are in `screenshots/presentation/ink/`.
