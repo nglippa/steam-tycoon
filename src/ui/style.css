@@ -189,7 +189,7 @@ body.touch .controls,body.touch #crosshair{display:none}
 body.touch .identity{margin-left:calc(44px + var(--sp-2))}
 body.touch #hud{left:max(var(--sp-4),var(--sal))}
 body.touch #hud-bottom{top:calc(var(--hud-top) + var(--hud-h) + var(--sp-2));bottom:auto;left:max(var(--sp-4),var(--sal));right:auto}
-body.touch .objective{width:min(300px,calc(100vw - 2*var(--sp-4)))}
+body.touch .objective{width:min(340px,calc(100vw - 2*var(--sp-4)))}
 body.touch.toasting .objective{visibility:hidden}
 /* With a panel open on a small screen, the ribbon and the ticket step aside rather than sit under the sheet. */
 @media(max-width:700px),(max-height:520px) and (pointer:coarse){body:has(#panel:not([hidden])) .ribbon,body:has(#panel:not([hidden])) #hud-bottom,body:has(#panel:not([hidden])) #marker,body:has(#pause:not([hidden])) .identity,body:has(#pause:not([hidden])) .ribbon,body:has(#pause:not([hidden])) #hud-bottom,body:has(#pause:not([hidden])) #marker{visibility:hidden}}
