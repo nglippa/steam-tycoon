@@ -1,6 +1,6 @@
 import * as T from 'three';
 
-const IDENTITY=new T.Matrix4(),PLAIN=new T.Color(0,0,0),scratch=new T.Color();
+const SPENT=new T.BufferGeometry(),IDENTITY=new T.Matrix4(),PLAIN=new T.Color(0,0,0),scratch=new T.Color();
 /** Keep the existing articulated models, but submit shared materials together. */
 export class CrowdBatch {
   holder=new T.Group();
@@ -18,7 +18,8 @@ export class CrowdBatch {
       const batch=new T.BatchedMesh(sources.length,vertices,indices,material);batch.castShadow=false;batch.receiveShadow=true;batch.frustumCulled=false;batch.sortObjects=false;root.add(batch);
       const ids=new Map<T.BufferGeometry,number>();
       for(const [original,geo] of geometryMap){ids.set(original,batch.addGeometry(geo));geo.dispose();}
-      for(const source of sources){const id=batch.addInstance(ids.get(source.geometry)!);source.updateMatrix();source.matrixAutoUpdate=false;source.visible=false;if(material.userData.faceAtlas)batch.setColorAt(id,PLAIN);this.entries.push({source,batch,id,actor:owner.get(source)!});}
+      // The batch now owns the vertices. The source meshes only keep their matrices and the face word, so they let go of their own copy (a baked figure's three meshes are unique to it: about 60 MB of heap for the whole crowd).
+      for(const source of sources){const id=batch.addInstance(ids.get(source.geometry)!);source.geometry=SPENT;source.updateMatrix();source.matrixAutoUpdate=false;source.visible=false;if(material.userData.faceAtlas)batch.setColorAt(id,PLAIN);this.entries.push({source,batch,id,actor:owner.get(source)!});}
     }
     // An articulated person is ~40 nodes and none of them draws any more: the batches do. Left in the scene,
     // 192 people are 7,800 nodes the renderer walks twice a frame (matrices, then visibility) for nothing.

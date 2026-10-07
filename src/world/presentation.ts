@@ -2,7 +2,7 @@ import * as T from 'three';
 import { Atlas, place, type Placed } from './sign-atlas';
 import { box,holed,cyl,sphere,torus,beam,gear,barrel,crate,sign,arch,bake,mats,seeded,illustrated,tree,bareTree,blossom,windowUnit,printed,windowGlass,asProp } from './assets';
 import { V,pipe,cable,crest,gauge,lampHead,railing,canopy,artMats,roof,pressureRing,wingedValve,bench,pressureStation,mailPost,fabricOf,poster,meterBox,labeledCrate,stencilBarrel,stove,workbench,cafeTable,anvil,pipeStack } from './art-kit';
-import { person as makePerson, type Citizen } from './citizens';
+import { person as makePerson, PEOPLE, type Citizen } from './citizens';
 import type { Archetype } from './palette';
 import { animateLife, turnTaking, eased, type Activity } from './citizen-life';
 import { reducedMotion } from '../motion';
@@ -493,7 +493,8 @@ export class Presentation {
   addWorker(x:number,z:number,yaw:number,kind:Activity,o:{y?:number;role?:Archetype;minStage?:number;maxStage?:number;time?:'any'|'day'|'night';scale?:number;/** a named story character (people/look.ts): takes effect under the new builder */look?:string;partner?:number;path?:[number,number,number];tool?:string;when?:()=>boolean;essential?:boolean;mask?:boolean}={}) {
     if(kind==='sit'&&o.tool==='mug')kind='eat';// whoever sits with a mug drinks from it
     const role=o.role??(kind==='gauge'||kind==='valve'||kind==='clipboard'?'engineer':kind==='browse'||(z<0&&kind==='read')?'merchant':kind==='read'||kind==='watch'||kind==='lean'?'resident':'worker');
-    const person=makePerson(mats.rust,this.workers.length+43,role,{mask:o.mask,look:o.look,child:o.scale!==undefined&&o.scale<.8});const y=o.y!==undefined?o.y+.18:this.city.groundHeight(x,z);person.group.position.set(x,y,z);person.group.rotation.y=yaw;if(o.scale)person.group.scale.multiplyScalar(o.scale);this.root.add(person.group);
+    const child=o.scale!==undefined&&o.scale<.8,person=makePerson(mats.rust,this.workers.length+43,role,{mask:o.mask,look:o.look,child});const y=o.y!==undefined?o.y+.18:this.city.groundHeight(x,z);person.group.position.set(x,y,z);person.group.rotation.y=yaw;if(o.scale&&!(child&&PEOPLE.next))person.group.scale.multiplyScalar(o.scale);// the child cast has its own stature: it is not an adult scaled down
+    this.root.add(person.group);
     // Held things sit in the right hand's grip socket, authored grip-first: the handle runs through
     // the fist along z and the rest hangs off it (figure-construction: arms-hands). Crates are
     // carried against the body between both palms.
