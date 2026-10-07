@@ -81,7 +81,7 @@ const measure = (sel, kids) => page.evaluate(([sel, kids]) => {
   return { selector: sel, ...one(el), children: Object.fromEntries(kids.map(k => { const c = el.querySelector(k); return [k, c ? one(c) : null]; })) };
 }, [sel, kids]);
 const PERSISTENT = [
-  ['identityPlate', '#hud .identity', ['svg', '.id-over', '#ward-name']],
+  ['identityPlate', '#hud .identity', ['svg', '#ward-name']],
   ['compassRibbon', '#hud .ribbon', ['.tape', '#clock', '#weather', '#ward', '#curfew']],
   ['treasury', '#hud .treasury', ['small', '.coin', '#crowns', '.income']],
   ['objectiveTicket', '#hud-bottom .objective', ['.overline', '#objective', '.steps', '#step-no', '#stage']],
@@ -99,10 +99,15 @@ if (sets.includes('hud')) {
   const area = Object.values(measureOut.persistent).reduce((s, e) => s + e.w * e.h, 0);
   measureOut.persistentAreaPx = Math.round(area); measureOut.persistentAreaPercent = +(area / (1280 * 720) * 100).toFixed(2);
   measureOut.hud = await measure('#hud', []); measureOut.hudBottom = await measure('#hud-bottom', []);
+  // The top band: from the top of the viewport to the bottom of the tallest top plate.
+  measureOut.topBandPx = Math.max(...['identityPlate', 'compassRibbon', 'treasury'].map(k => measureOut.persistent[k].y + measureOut.persistent[k].h));
   // toast
   await page.evaluate(() => window.__TERRA__.ui.toast('The Copper Finch reopens. By morning, someone has chalked a small ember on its cellar door.', 60000));
   await settle(700); await shot('hud-toast', { set: 'hud', note: 'a toast showing', lock: lk });
   measureOut.transient.toast = await measure('#toast', ['.t-over']);
+  // A ward change: the toast with its overline.
+  await page.evaluate(() => window.__TERRA__.ui.toast('Heavy occupation. More patrols · Curfew enforced · Commerce suppressed.', 60000, 'Cinder Row · Occupation 80%'));
+  await settle(400); measureOut.transient.toastWard = await measure('#toast', ['.t-over']);
   await page.evaluate(() => window.__TERRA__.ui.toast('Commission approved. The civic engineers are on their way.', 100));
   await settle(1500);
   // interaction prompt

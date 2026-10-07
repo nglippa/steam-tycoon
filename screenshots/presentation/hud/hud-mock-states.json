@@ -1,0 +1,880 @@
+{
+ "note": "Static mock (real style.css and the interface.ts template over screenshots/presentation/people-game/01-street-north.png); boxes in CSS px. Not the real game.",
+ "focus": {
+  "tag": "BUTTON",
+  "focused": true,
+  "outline": "solid 3px rgb(34, 111, 108)",
+  "controlsOpacity": "0",
+  "h": 24
+ },
+ "states": {
+  "desk-normal": {
+   "persistentPct": 7.11,
+   "topBand": 56,
+   "boxes": {
+    "identity": {
+     "x": 28,
+     "y": 12,
+     "w": 202,
+     "h": 44
+    },
+    "ribbon": {
+     "x": 428.8,
+     "y": 12,
+     "w": 422.4,
+     "h": 44
+    },
+    "treasury": {
+     "x": 1111.7,
+     "y": 12,
+     "w": 140.3,
+     "h": 44
+    },
+    "objective": {
+     "x": 28,
+     "y": 632,
+     "w": 340,
+     "h": 60
+    },
+    "hints": {
+     "x": 870.2,
+     "y": 662,
+     "w": 381.8,
+     "h": 30
+    },
+    "toast": null,
+    "prompt": null,
+    "dialogue": null
+   }
+  },
+  "desk-prompt": {
+   "persistentPct": 7.11,
+   "topBand": 56,
+   "boxes": {
+    "identity": {
+     "x": 28,
+     "y": 12,
+     "w": 202,
+     "h": 44
+    },
+    "ribbon": {
+     "x": 428.8,
+     "y": 12,
+     "w": 422.4,
+     "h": 44
+    },
+    "treasury": {
+     "x": 1111.7,
+     "y": 12,
+     "w": 140.3,
+     "h": 44
+    },
+    "objective": {
+     "x": 28,
+     "y": 632,
+     "w": 340,
+     "h": 60
+    },
+    "hints": {
+     "x": 870.2,
+     "y": 662,
+     "w": 381.8,
+     "h": 30
+    },
+    "toast": null,
+    "prompt": {
+     "x": 539.5,
+     "y": 417.6,
+     "w": 201,
+     "h": 37
+    },
+    "dialogue": null
+   }
+  },
+  "desk-toast": {
+   "persistentPct": 7.11,
+   "topBand": 56,
+   "boxes": {
+    "identity": {
+     "x": 28,
+     "y": 12,
+     "w": 202,
+     "h": 44
+    },
+    "ribbon": {
+     "x": 428.8,
+     "y": 12,
+     "w": 422.4,
+     "h": 44
+    },
+    "treasury": {
+     "x": 1111.7,
+     "y": 12,
+     "w": 140.3,
+     "h": 44
+    },
+    "objective": {
+     "x": 28,
+     "y": 632,
+     "w": 340,
+     "h": 60
+    },
+    "hints": {
+     "x": 870.2,
+     "y": 662,
+     "w": 381.8,
+     "h": 30
+    },
+    "toast": {
+     "x": 343.8,
+     "y": 64,
+     "w": 592.5,
+     "h": 28
+    },
+    "prompt": null,
+    "dialogue": null
+   }
+  },
+  "desk-toast-ward": {
+   "persistentPct": 7.11,
+   "topBand": 56,
+   "boxes": {
+    "identity": {
+     "x": 28,
+     "y": 12,
+     "w": 202,
+     "h": 44
+    },
+    "ribbon": {
+     "x": 428.8,
+     "y": 12,
+     "w": 422.4,
+     "h": 44
+    },
+    "treasury": {
+     "x": 1111.7,
+     "y": 12,
+     "w": 140.3,
+     "h": 44
+    },
+    "objective": {
+     "x": 28,
+     "y": 632,
+     "w": 340,
+     "h": 60
+    },
+    "hints": {
+     "x": 870.2,
+     "y": 662,
+     "w": 381.8,
+     "h": 30
+    },
+    "toast": {
+     "x": 320,
+     "y": 64,
+     "w": 640,
+     "h": 47
+    },
+    "prompt": null,
+    "dialogue": null
+   }
+  },
+  "desk-dialogue": {
+   "persistentPct": 7.11,
+   "topBand": 56,
+   "boxes": {
+    "identity": {
+     "x": 28,
+     "y": 12,
+     "w": 202,
+     "h": 44
+    },
+    "ribbon": {
+     "x": 428.8,
+     "y": 12,
+     "w": 422.4,
+     "h": 44
+    },
+    "treasury": {
+     "x": 1111.7,
+     "y": 12,
+     "w": 140.3,
+     "h": 44
+    },
+    "objective": {
+     "x": 28,
+     "y": 632,
+     "w": 340,
+     "h": 60
+    },
+    "hints": {
+     "x": 870.2,
+     "y": 662,
+     "w": 381.8,
+     "h": 30
+    },
+    "toast": null,
+    "prompt": null,
+    "dialogue": {
+     "x": 320,
+     "y": 561.6,
+     "w": 640,
+     "h": 54.4
+    }
+   }
+  },
+  "desk-curfew-worst": {
+   "persistentPct": 7.57,
+   "topBand": 56,
+   "boxes": {
+    "identity": {
+     "x": 28,
+     "y": 12,
+     "w": 202,
+     "h": 44
+    },
+    "ribbon": {
+     "x": 396.7,
+     "y": 12,
+     "w": 486.7,
+     "h": 44
+    },
+    "treasury": {
+     "x": 1079.8,
+     "y": 12,
+     "w": 172.3,
+     "h": 44
+    },
+    "objective": {
+     "x": 28,
+     "y": 632,
+     "w": 340,
+     "h": 60
+    },
+    "hints": {
+     "x": 870.2,
+     "y": 662,
+     "w": 381.8,
+     "h": 30
+    },
+    "toast": null,
+    "prompt": null,
+    "dialogue": null
+   }
+  },
+  "desk-curfew-on": {
+   "persistentPct": 7.11,
+   "topBand": 56,
+   "boxes": {
+    "identity": {
+     "x": 28,
+     "y": 12,
+     "w": 202,
+     "h": 44
+    },
+    "ribbon": {
+     "x": 428.8,
+     "y": 12,
+     "w": 422.4,
+     "h": 44
+    },
+    "treasury": {
+     "x": 1111.7,
+     "y": 12,
+     "w": 140.3,
+     "h": 44
+    },
+    "objective": {
+     "x": 28,
+     "y": 632,
+     "w": 340,
+     "h": 60
+    },
+    "hints": {
+     "x": 870.2,
+     "y": 662,
+     "w": 381.8,
+     "h": 30
+    },
+    "toast": null,
+    "prompt": null,
+    "dialogue": null
+   }
+  },
+  "desk-band-liberated": {
+   "persistentPct": 7.11,
+   "topBand": 56,
+   "boxes": {
+    "identity": {
+     "x": 28,
+     "y": 12,
+     "w": 202,
+     "h": 44
+    },
+    "ribbon": {
+     "x": 428.8,
+     "y": 12,
+     "w": 422.4,
+     "h": 44
+    },
+    "treasury": {
+     "x": 1111.7,
+     "y": 12,
+     "w": 140.3,
+     "h": 44
+    },
+    "objective": {
+     "x": 28,
+     "y": 632,
+     "w": 340,
+     "h": 60
+    },
+    "hints": {
+     "x": 870.2,
+     "y": 662,
+     "w": 381.8,
+     "h": 30
+    },
+    "toast": null,
+    "prompt": null,
+    "dialogue": null
+   }
+  },
+  "desk-band-low": {
+   "persistentPct": 7.11,
+   "topBand": 56,
+   "boxes": {
+    "identity": {
+     "x": 28,
+     "y": 12,
+     "w": 202,
+     "h": 44
+    },
+    "ribbon": {
+     "x": 428.8,
+     "y": 12,
+     "w": 422.4,
+     "h": 44
+    },
+    "treasury": {
+     "x": 1111.7,
+     "y": 12,
+     "w": 140.3,
+     "h": 44
+    },
+    "objective": {
+     "x": 28,
+     "y": 632,
+     "w": 340,
+     "h": 60
+    },
+    "hints": {
+     "x": 870.2,
+     "y": 662,
+     "w": 381.8,
+     "h": 30
+    },
+    "toast": null,
+    "prompt": null,
+    "dialogue": null
+   }
+  },
+  "desk-band-controlled": {
+   "persistentPct": 7.11,
+   "topBand": 56,
+   "boxes": {
+    "identity": {
+     "x": 28,
+     "y": 12,
+     "w": 202,
+     "h": 44
+    },
+    "ribbon": {
+     "x": 428.8,
+     "y": 12,
+     "w": 422.4,
+     "h": 44
+    },
+    "treasury": {
+     "x": 1111.7,
+     "y": 12,
+     "w": 140.3,
+     "h": 44
+    },
+    "objective": {
+     "x": 28,
+     "y": 632,
+     "w": 340,
+     "h": 60
+    },
+    "hints": {
+     "x": 870.2,
+     "y": 662,
+     "w": 381.8,
+     "h": 30
+    },
+    "toast": null,
+    "prompt": null,
+    "dialogue": null
+   }
+  },
+  "desk-band-lockdown": {
+   "persistentPct": 7.11,
+   "topBand": 56,
+   "boxes": {
+    "identity": {
+     "x": 28,
+     "y": 12,
+     "w": 202,
+     "h": 44
+    },
+    "ribbon": {
+     "x": 428.8,
+     "y": 12,
+     "w": 422.4,
+     "h": 44
+    },
+    "treasury": {
+     "x": 1111.7,
+     "y": 12,
+     "w": 140.3,
+     "h": 44
+    },
+    "objective": {
+     "x": 28,
+     "y": 632,
+     "w": 340,
+     "h": 60
+    },
+    "hints": {
+     "x": 870.2,
+     "y": 662,
+     "w": 381.8,
+     "h": 30
+    },
+    "toast": null,
+    "prompt": null,
+    "dialogue": null
+   }
+  },
+  "desk-marker-edge": {
+   "persistentPct": 7.11,
+   "topBand": 56,
+   "boxes": {
+    "identity": {
+     "x": 28,
+     "y": 12,
+     "w": 202,
+     "h": 44
+    },
+    "ribbon": {
+     "x": 428.8,
+     "y": 12,
+     "w": 422.4,
+     "h": 44
+    },
+    "treasury": {
+     "x": 1111.7,
+     "y": 12,
+     "w": 140.3,
+     "h": 44
+    },
+    "objective": {
+     "x": 28,
+     "y": 632,
+     "w": 340,
+     "h": 60
+    },
+    "hints": {
+     "x": 870.2,
+     "y": 662,
+     "w": 381.8,
+     "h": 30
+    },
+    "toast": null,
+    "prompt": null,
+    "dialogue": null
+   }
+  },
+  "desk-hint-off": {
+   "persistentPct": 7.11,
+   "topBand": 56,
+   "boxes": {
+    "identity": {
+     "x": 28,
+     "y": 12,
+     "w": 202,
+     "h": 44
+    },
+    "ribbon": {
+     "x": 428.8,
+     "y": 12,
+     "w": 422.4,
+     "h": 44
+    },
+    "treasury": {
+     "x": 1111.7,
+     "y": 12,
+     "w": 140.3,
+     "h": 44
+    },
+    "objective": {
+     "x": 28,
+     "y": 632,
+     "w": 340,
+     "h": 60
+    },
+    "hints": {
+     "x": 870.2,
+     "y": 662,
+     "w": 381.8,
+     "h": 30
+    },
+    "toast": null,
+    "prompt": null,
+    "dialogue": null
+   }
+  },
+  "desk-ledger": {
+   "persistentPct": 7.11,
+   "topBand": 56,
+   "boxes": {
+    "identity": {
+     "x": 28,
+     "y": 12,
+     "w": 202,
+     "h": 44
+    },
+    "ribbon": {
+     "x": 428.8,
+     "y": 12,
+     "w": 422.4,
+     "h": 44
+    },
+    "treasury": {
+     "x": 1111.7,
+     "y": 12,
+     "w": 140.3,
+     "h": 44
+    },
+    "objective": {
+     "x": 28,
+     "y": 632,
+     "w": 340,
+     "h": 60
+    },
+    "hints": {
+     "x": 870.2,
+     "y": 662,
+     "w": 381.8,
+     "h": 30
+    },
+    "toast": null,
+    "prompt": null,
+    "dialogue": null
+   }
+  },
+  "desk-pause": {
+   "persistentPct": 7.11,
+   "topBand": 56,
+   "boxes": {
+    "identity": {
+     "x": 28,
+     "y": 12,
+     "w": 202,
+     "h": 44
+    },
+    "ribbon": {
+     "x": 428.8,
+     "y": 12,
+     "w": 422.4,
+     "h": 44
+    },
+    "treasury": {
+     "x": 1111.7,
+     "y": 12,
+     "w": 140.3,
+     "h": 44
+    },
+    "objective": {
+     "x": 28,
+     "y": 632,
+     "w": 340,
+     "h": 60
+    },
+    "hints": {
+     "x": 870.2,
+     "y": 662,
+     "w": 381.8,
+     "h": 30
+    },
+    "toast": null,
+    "prompt": null,
+    "dialogue": null
+   }
+  },
+  "desk-welcome": {
+   "persistentPct": 0,
+   "topBand": 0,
+   "boxes": {
+    "identity": null,
+    "ribbon": null,
+    "treasury": null,
+    "objective": null,
+    "hints": null,
+    "toast": null,
+    "prompt": null,
+    "dialogue": null
+   }
+  },
+  "desk-long-objective": {
+   "persistentPct": 7.77,
+   "topBand": 56,
+   "boxes": {
+    "identity": {
+     "x": 28,
+     "y": 12,
+     "w": 202,
+     "h": 44
+    },
+    "ribbon": {
+     "x": 428.8,
+     "y": 12,
+     "w": 422.4,
+     "h": 44
+    },
+    "treasury": {
+     "x": 1111.7,
+     "y": 12,
+     "w": 140.3,
+     "h": 44
+    },
+    "objective": {
+     "x": 28,
+     "y": 614,
+     "w": 340,
+     "h": 78
+    },
+    "hints": {
+     "x": 870.2,
+     "y": 662,
+     "w": 381.8,
+     "h": 30
+    },
+    "toast": null,
+    "prompt": null,
+    "dialogue": null
+   }
+  },
+  "narrow-normal": {
+   "persistentPct": 11.61,
+   "topBand": 56,
+   "boxes": {
+    "identity": {
+     "x": 22,
+     "y": 12,
+     "w": 202,
+     "h": 44
+    },
+    "ribbon": {
+     "x": 248,
+     "y": 12,
+     "w": 304,
+     "h": 44
+    },
+    "treasury": {
+     "x": 637.7,
+     "y": 12,
+     "w": 140.3,
+     "h": 44
+    },
+    "objective": {
+     "x": 22,
+     "y": 518,
+     "w": 340,
+     "h": 60
+    },
+    "hints": {
+     "x": 548,
+     "y": 548,
+     "w": 230,
+     "h": 30
+    },
+    "toast": null,
+    "prompt": null,
+    "dialogue": null
+   }
+  },
+  "narrow-prompt": {
+   "persistentPct": 11.61,
+   "topBand": 56,
+   "boxes": {
+    "identity": {
+     "x": 22,
+     "y": 12,
+     "w": 202,
+     "h": 44
+    },
+    "ribbon": {
+     "x": 248,
+     "y": 12,
+     "w": 304,
+     "h": 44
+    },
+    "treasury": {
+     "x": 637.7,
+     "y": 12,
+     "w": 140.3,
+     "h": 44
+    },
+    "objective": {
+     "x": 22,
+     "y": 518,
+     "w": 340,
+     "h": 60
+    },
+    "hints": {
+     "x": 548,
+     "y": 548,
+     "w": 230,
+     "h": 30
+    },
+    "toast": null,
+    "prompt": {
+     "x": 299.5,
+     "y": 348,
+     "w": 201,
+     "h": 37
+    },
+    "dialogue": null
+   }
+  },
+  "narrow-toast-ward": {
+   "persistentPct": 11.61,
+   "topBand": 56,
+   "boxes": {
+    "identity": {
+     "x": 22,
+     "y": 12,
+     "w": 202,
+     "h": 44
+    },
+    "ribbon": {
+     "x": 248,
+     "y": 12,
+     "w": 304,
+     "h": 44
+    },
+    "treasury": {
+     "x": 637.7,
+     "y": 12,
+     "w": 140.3,
+     "h": 44
+    },
+    "objective": {
+     "x": 22,
+     "y": 518,
+     "w": 340,
+     "h": 60
+    },
+    "hints": {
+     "x": 548,
+     "y": 548,
+     "w": 230,
+     "h": 30
+    },
+    "toast": {
+     "x": 80,
+     "y": 64,
+     "w": 640,
+     "h": 47
+    },
+    "prompt": null,
+    "dialogue": null
+   }
+  },
+  "narrow-dialogue": {
+   "persistentPct": 11.61,
+   "topBand": 56,
+   "boxes": {
+    "identity": {
+     "x": 22,
+     "y": 12,
+     "w": 202,
+     "h": 44
+    },
+    "ribbon": {
+     "x": 248,
+     "y": 12,
+     "w": 304,
+     "h": 44
+    },
+    "treasury": {
+     "x": 637.7,
+     "y": 12,
+     "w": 140.3,
+     "h": 44
+    },
+    "objective": {
+     "x": 22,
+     "y": 518,
+     "w": 340,
+     "h": 60
+    },
+    "hints": {
+     "x": 548,
+     "y": 548,
+     "w": 230,
+     "h": 30
+    },
+    "toast": null,
+    "prompt": null,
+    "dialogue": {
+     "x": 80,
+     "y": 441.6,
+     "w": 640,
+     "h": 54.4
+    }
+   }
+  },
+  "narrow-curfew-worst": {
+   "persistentPct": 13.46,
+   "topBand": 74,
+   "boxes": {
+    "identity": {
+     "x": 22,
+     "y": 12,
+     "w": 202,
+     "h": 44
+    },
+    "ribbon": {
+     "x": 232,
+     "y": 12,
+     "w": 336,
+     "h": 62
+    },
+    "treasury": {
+     "x": 605.8,
+     "y": 12,
+     "w": 172.3,
+     "h": 44
+    },
+    "objective": {
+     "x": 22,
+     "y": 518,
+     "w": 340,
+     "h": 60
+    },
+    "hints": {
+     "x": 548,
+     "y": 548,
+     "w": 230,
+     "h": 30
+    },
+    "toast": null,
+    "prompt": null,
+    "dialogue": null
+   }
+  }
+ }
+}
