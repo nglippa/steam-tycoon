@@ -81,7 +81,7 @@ ui.onExit = () => { dialogue.hide(); const load = Consignment.carried(); if (loa
 function frame(now: number) { requestAnimationFrame(frame); if ((document.hidden || !ui.started) && now-last < (document.hidden ? 250 : 1000/24)) return; const raw = Math.max(0, (now - last) / 1000); /* the first frame's stamp can predate `last` (a long start-up): time never runs backwards */ const dt = Math.min(.05, raw); last = now; fps = T.MathUtils.lerp(fps, 1 / Math.max(.001, raw), .035); time += dt;
   // Sustained slow frames (under ~50 a second for a couple of seconds, not one hitch): give up a fifth of the pixels, twice
   // at most. Sustained easy frames give them back one step at a time.
-  if (ui.started && !document.hidden && !reviewMode) { slow = raw > 1 / 50 && raw < .25 ? slow + raw : Math.max(0, slow - raw * 2); easy = slow === 0 && raw < .25 ? easy + raw : 0;
+  if (ui.started && !document.hidden && !reviewMode) { slow = raw > 1 / 50 && raw < .25 ? Math.min(2.5, slow + raw) : Math.max(0, slow - raw * 2); easy = slow === 0 && raw < .25 ? easy + raw : 0;
     if (slow > 2 && strain > .65) { strain *= .8; slow = 0; easy = 0; if (recovered) patience = Math.min(40, patience * 2); recovered = false; applyRatio(); }
     else if (easy > patience && strain < 1) { strain = Math.min(1, strain / .8); easy = 0; recovered = true; applyRatio(); } }
   // The opening holds the day, the treasury and the autosave still.
