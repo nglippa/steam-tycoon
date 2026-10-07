@@ -525,8 +525,8 @@ export function citizenNext(coat:Material=mats.rust,seed=0,archetype:Archetype='
 }
 
 // ---- The switch (People XIV). Every place that makes a person goes through `person()`, which picks the old builder or the new one from this one flag.
-/** `next`: the whole game uses the new figure builder. Off by default; `?people=new` turns it on for a dev session (`?dev=1&people=new`), `?people=old` forces it off. Flip the default here when the new cast is accepted. */
-export const PEOPLE={next:(()=>{try{const q=new URLSearchParams(location.search),v=q.get('people');return v==='new'?(q.get('dev')==='1'||!!import.meta.env?.DEV):false;}catch{return false;}})()};
+/** `next`: the whole game uses the new figure builder. On by default; `?people=old` forces the old builder (kept in the code for now, for comparison). */
+export const PEOPLE={next:(()=>{try{return new URLSearchParams(location.search).get('people')!=='old';}catch{return true;}})()};
 /** What a spawn site knows about the person: `look` is a named story character (people/look.ts `STORY`), `child` asks for the child cast. Both are inert under the old builder. */
 export type PersonOpts={solo?:boolean;mask?:boolean;look?:string;child?:boolean};
 export function person(coat:Material=mats.rust,seed=0,archetype:Archetype='worker',opts:PersonOpts={}):Citizen{

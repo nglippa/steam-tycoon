@@ -110,3 +110,9 @@ test('the switch: no place outside citizens.ts and the dev sheet builds a person
   const walk = (dir: URL): URL[] => readdirSync(dir, { withFileTypes: true }).flatMap(e => e.isDirectory() ? walk(new URL(`${e.name}/`, dir)) : [new URL(e.name, dir)]);
   for (const f of walk(new URL('../src/', import.meta.url))) { if (/citizens\.ts$|sheet\.ts$/.test(f.pathname) || !f.pathname.endsWith('.ts')) continue; assert.ok(!/\bcitizen(Next)?\(mats\./.test(readFileSync(f, 'utf8')), `${f.pathname} builds a person directly`); }
 });
+
+test('the switch: the new figures are the default and ?people=old forces the old builder', async () => {
+  const { readFileSync } = await import('node:fs');
+  const src = readFileSync(new URL('../src/world/citizens.ts', import.meta.url), 'utf8'), line = src.split('\n').find(l => l.startsWith('export const PEOPLE'))!;
+  assert.ok(line.includes("get('people')!=='old'") && line.includes('catch{return true;}'), line);
+});
