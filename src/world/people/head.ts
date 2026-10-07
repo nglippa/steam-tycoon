@@ -27,6 +27,24 @@ export function faceUV(x: number, y: number, z: number, faceType: number, h: num
   out[0] = u / 16; out[1] = (faceType + Math.max(10, Math.min(502, px)) / 512) / 8; return out;
 }
 
+/** The face's value pattern per skin tone (Book 6, "Value per skin tone"). One atlas serves all three skins, and at the distance the game is played at (a face 4 to 8 px wide) the painted
+ *  features are averaged away: an eye of white, iris and lash comes out about the value of a mid skin, so a mid or dark face went blank. So the skin itself carries the face's big value
+ *  shapes, scaled to its tone: a shadowed band over the brows and eyes, a lighter plane on the forehead, the cheekbones, the bridge of the nose and the lower lip, a shade under the nose.
+ *  Multipliers on the lit skin, per tone [eye band, lighter planes, under the nose], as they are seen close: barely there on the light skin, which already reads by its dark features,
+ *  and strongest on the dark skin, where the features are lighter than the skin and need a dark band to sit in and a lighter rim round it. */
+export const FACE_VALUE: readonly (readonly [number, number, number])[] = [[.93, 1.02, .95], [.8, 1.12, .86], [.76, 1.3, .8]];
+/** The same shapes in GLSL, in the tile's own 512-unit coordinates (the layout `faceUV` maps: eye line row 300, mouth 389, eyes 68 either side of the midline), faded with the face mask.
+ *  They are drawn for the distance they are seen at: no shape is narrower than about a pixel (`w` is the tile units one pixel covers), so a face a few pixels wide still lands its eye band
+ *  on a row of pixels, and as the face shrinks below the size where its painted features can be told apart, each shape doubles its depth. `FACE_PAINT_HEAD` goes at the top of the
+ *  fragment shader; `FACE_PAINT` after the atlas sample (`ft` and `vMask` are in scope), before the features are laid over the skin. */
+export const FACE_PAINT_HEAD = 'uniform vec3 uPaint;float fpG(float dx,float dy,float sx,float sy,float w){sx=max(sx,w*.45);sy=max(sy,w*.4);return exp(-(dx*dx/(2.*sx*sx)+dy*dy/(2.*sy*sy)));}\n';
+export const FACE_PAINT = `{float fu=fract(vMapUv.x*16.)*512.,fv=(1.-ft)*512.,ex=abs(fu-256.),w=fwidth(fv)+fwidth(fu),far=smoothstep(16.,70.,w);
+float g_eye=fpG(ex-66.,fv-284.,40.,25.,w);
+float g_lit=max(max(fpG(ex,fv-176.,67.,16.,w),fpG(ex-80.,fv-354.-50.*far,25.,12.,w)),max(fpG(fu-262.,fv-326.,7.,21.,w),fpG(ex,fv-400.,16.,5.,w)));
+float g_nose=fpG(ex,fv-367.,14.,5.5,w);vec3 k=1.+(uPaint-1.)*(1.+1.4*far);
+diffuseColor.rgb*=mix(1.,k.x,g_eye*vMask)*mix(1.,k.y,g_lit*vMask)*mix(1.,k.z,g_nose*vMask);}
+`;
+
 /** Normals from a proxy ellipsoid, blended to the true normals toward the jaw and neck. */
 function proxyNormals(g: T.BufferGeometry, h: number, shape: HeadShape, nose = false) {
   const L = landmarks(h, shape), k = h / .285, p = g.attributes.position as T.BufferAttribute, n = g.attributes.normal as T.BufferAttribute, v = new T.Vector3(), t = new T.Vector3();

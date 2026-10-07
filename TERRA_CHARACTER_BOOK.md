@@ -356,6 +356,20 @@ Placed by the formula, as fractions of H up from the chin (restrained anime), an
 The atlas layout, the expression set and the packing stay as they are. Feature positions are
 repainted to the landmarks above and aligned to the built nose.
 
+### Value per skin tone
+
+At the game's distance a face is 4 to 8 px wide and the painted features average away: an eye of
+white, iris and lash comes out near the value of a mid skin, so mid and dark faces went blank while
+light ones kept a dark eye row. The skin itself therefore carries the face's big value shapes,
+scaled to its tone (`FACE_VALUE` and `FACE_PAINT` in `head.ts`, applied by the face material, no
+new texture or draw): a shadowed band over the brows and eyes; lighter planes on the forehead, the
+cheekbones, the bridge of the nose and the lower lip; a shade under the nose. Close up they are
+modelling, not make-up (eye band no deeper than x.74, lighter planes no more than x1.3); the darker
+the skin, the deeper the band and the lighter the planes, so the step from cheek to eye band is at
+least 1.35 on the mid and dark skins. No shape is drawn narrower than about a pixel, and once the
+face is too small for its painted features to be told apart each shape doubles its depth, so the
+eye row lands on every tone at ~50 px. `tests/face-value.test.ts` holds the ordering and the limits.
+
 ---
 
 ## 7. Hair and hats
