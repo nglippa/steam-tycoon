@@ -96,8 +96,9 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
   // Stride keeps lengthening above a brisk walk (the intro's guards leave at 2.9 m/s), so cadence stays that of a walk, then a stride.
   const hobble=n.skirt.drop>.3?.86:1,A=turning?.13:Math.min(.6,(Math.min(.42,Math.max(.12,.16+.3*m.speed))+Math.max(0,m.speed-1.2)*.1)*(pr.stride/.44)*hobble);
   // Each leg's sweep is latched at its own heel strike and its planted foot is pinned by the distance walked (gait.ts), so it stays put through starts, stops and turns.
+  // The distance is taken in the figure's own units (its stature is a group scale): a person scaled to .96 would otherwise slide 4 % of every stance forward.
   const gp=GAIT[mn.trait]??(occupier?PATROL:BASE),want=turning?MIN:LEG*A*gp.s/STANCE;
-  m.stride=Math.PI*2*advance(m.latch,m.stride/(Math.PI*2),moved,dt,want,gp.s,turning?2.4*pr.cad/(Math.PI*2):0);
+  m.stride=Math.PI*2*advance(m.latch,m.stride/(Math.PI*2),moved/n.group.scale.z,dt,want,gp.s,turning?2.4*pr.cad/(Math.PI*2):0);
   const c=m.stride,seated=activity==='sit'||activity==='eat',tired=weariness*(activity==='guard'?.3:1);
   const w=seated?0:clamp01(g/.35),q=clamp01((want-MIN)/.1);
   walking.stance=gp.s;walking.want=want;walking.clear=.07*gp.clear*(.5+.5*q);walking.knee=gp.knee*(load>1?1.15:1);walking.pelvis=gp.pel;walk(walking,m.latch,c/(Math.PI*2),gait);
