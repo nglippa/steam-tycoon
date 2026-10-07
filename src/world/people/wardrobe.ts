@@ -7,6 +7,7 @@ import { hand, foot, put0, strip, seam, around, steps, button, kerchiefBand, ker
 import { palette as P } from '../palette';
 import { landmarks } from './headform';
 import { skullRings } from './head';
+import { bands, type Garment } from '../drape';
 
 /** The ten civilian wardrobes (Terra Character Book 8 and 9). Every garment is a shell measured from the body reference: turned edges, an opening, a thickness, a lining wherever the shell can be
  *  seen from inside. Cloth is the stitched cloth map; leather and metal are the PLAIN material (no map: smooth, so they do not read as stitched) with a darker swatch, a lighter edge binding
@@ -14,13 +15,15 @@ import { skullRings } from './head';
 const LIFT = .01;
 export interface X {
   look: Look; d: Dims; k: number; kit: Kit; asym: Set<string>; pal: Record<string, string>; rib: Ring[]; pel: Ring[]; neckR: Ring[]; dk: string;
-  lifted: T.Group; pelLift: T.Group; body: T.Group; group: T.Group; pelvisG: T.Group; tails: T.Group; hem: T.Group; skirt: { drop: number; depth: number }; scarf: T.Group; worn: T.Group; finery: T.Group;
+  lifted: T.Group; pelLift: T.Group; body: T.Group; group: T.Group; pelvisG: T.Group; tails: T.Group; hem: T.Group; skirt: { drop: number; depth: number }; /** the hinged garments, as the legs see them (drape.ts) */ cloth: Garment[]; scarf: T.Group; worn: T.Group; finery: T.Group;
   skin: T.Material; brass: T.Material; neckM: T.Material;
   out: { arms: T.Group[]; elbows: T.Group[]; grips: T.Group[]; legs: T.Group[]; knees: T.Group[]; ankles: T.Group[] };
 }
 /** The hinge of long cloth below the belt (Book 12): a child of `tails` pivoted at the knee, in tails-local y. The part of a long skirt, coat, apron or slab from the waist to the knee lies along the
  *  thigh when the figure sits; the part below hangs from the knees. `animateLife` counter-rotates `hem` against `tails`. */
 export const HEM_Y = -.5;
+/** The deepest the long cloth above the knee may be, front or back (People XIX: deep enough to hold a walking knee; seated, `animateLife` flattens it to a lap of .19). */
+export const LAP = .3;
 export const WARDROBE = ['garrison', 'inspector', 'rowSkirt', 'elder', 'affluent', 'stallholder', 'shopMerchant', 'foundry', 'youngMechanic', 'olderMechanic', 'courier', 'child'] as const;
 
 /** The same garment in better times: cleaner, lighter and a little more colour. */
@@ -46,12 +49,16 @@ export function dress(x: X) {
   const down = (rings: Ring[]) => rings.map(r => ({ ...r, y: r.y - HEM_Y }));
   const hinged = (rings: Ring[]) => rings[rings.length - 1].y < HEM_Y - .06;
   /** the part above the knee is no deeper front to back than a thigh and its lap need (so a seated lap is a lap, not a table); the hem flares from the knee */
-  const slimmer = (r: Ring): Ring => ({ ...r, f: Math.min(r.f, .19), b: Math.min(r.b, .19) });
-  const splitAt = (rings: Ring[]) => { const knee = slimmer(ringAt(rings, HEM_Y)); return { up: [...rings.filter(r => r.y > HEM_Y).map(slimmer), { ...knee, y: HEM_Y - .03 }], lo: down([{ ...knee, y: HEM_Y + .03 }, ...rings.filter(r => r.y < HEM_Y)]) }; };
+  const slimmer = (r: Ring): Ring => ({ ...r, f: Math.min(r.f, LAP), b: Math.min(r.b, LAP) });
+  /** (the hem's top, inside the upper part, is cut narrower front to back, so when the hem flares in a stride (drape.ts opens it on its own) it still starts inside the upper part) */
+  const splitAt = (rings: Ring[]) => { const knee = slimmer(ringAt(rings, HEM_Y)), tuck = (r: Ring, k: number): Ring => ({ ...r, f: r.f * k, b: r.b * k });
+    return { up: [...rings.filter(r => r.y > HEM_Y).map(slimmer), { ...knee, y: HEM_Y - .03 }], lo: down([tuck({ ...knee, y: HEM_Y + .03 }, .7), tuck({ ...knee, y: HEM_Y - .015 }, .9), { ...knee, y: HEM_Y - .03 }, ...rings.filter(r => r.y < HEM_Y - .03)]) }; };
   /** a shell of rings that may be long: whole in `tails` when it ends above the knee, otherwise hinged, with the hem's turned lip on the lower half */
   const longShell = (rings: Ring[], o: Parameters<typeof loft>[1], m: T.Material, k2: string, lip = .008) => {
-    if (!hinged(rings)) { shellBoth(tails, rings, o, m, k2, lip); return; }
+    if (!hinged(rings)) { shellBoth(tails, rings, o, m, k2, lip); if (rings[rings.length - 1].y < -.15) x.cloth.push({ up: bands(rings, lip), lo: [], panel: (o?.arc ?? Math.PI * 2) < Math.PI }); return; } // one part, ending above the knee: it follows the thighs
     const s = splitAt(rings); shellBoth(tails, s.up, o, m, k2 + '/up', lip, false, .07); shellBoth(hem, s.lo, o, m, k2 + '/lo', lip);
+    // the cloth as the legs see it (to its lining): an apron or slab, less than half way round, has no back to clear
+    x.cloth.push({ up: bands(s.up, lip), lo: bands(s.lo, lip), panel: (o?.arc ?? Math.PI * 2) < Math.PI });
   };
   /** a strip down a long shell at a fixed angle, from y0 to y1, continued across the hinge */
   const stripe = (rings: Ring[], y0: number, y1: number, ang: number, off: number, half: number, thick: number, m: T.Material, n = 5) => {
@@ -117,8 +124,10 @@ export function dress(x: X) {
     return vb;
   };
   /** the apron: a bib to the chest (optional) in the torso group, and a front slab over the skirt or thighs in the tails group, with a neck strap, a waist tie and edge binding */
-  const apron = (m: T.Material, o: { hemY: number; hemW?: number; aw?: number; bib?: boolean; strapM?: T.Material; leather?: boolean; hemD?: number }) => {
-    const aw = o.aw ?? 1.0, rings = offset(skirtRings(o.hemY, o.hemW ?? 2 * (d.hipX + d.thighW / 2 + .045), o.hemD ?? d.hipD + .09, 1.2, o.hemY < .6 ? 6 : 5), .014), arc = { start: -aw, arc: aw * 2 };
+  /** `over`: the skirt it is tied over (its rings): the apron is kept at least 1.4 cm outside it everywhere, so the skirt and its pleats never show through it, and only the skirt need hold the legs */
+  const apron = (m: T.Material, o: { hemY: number; hemW?: number; aw?: number; bib?: boolean; strapM?: T.Material; leather?: boolean; hemD?: number; over?: Ring[] }) => {
+    const aw = o.aw ?? 1.0, own = offset(skirtRings(o.hemY, o.hemW ?? 2 * (d.hipX + d.thighW / 2 + .045), o.hemD ?? d.hipD + .09, 1.2, o.hemY < .6 ? 6 : 5), .014), arc = { start: -aw, arc: aw * 2 };
+    const rings = o.over ? own.map(r => { const u = ringAt(o.over!, r.y); return { ...r, w: Math.max(r.w, u.w + .014), f: Math.max(r.f, u.f + (u.z ?? 0) - (r.z ?? 0) + .014) }; }) : own;
     longShell(rings, arc, m, `apron/${o.hemY}/${o.leather}`, .008);
     const bind = o.leather ? edgeM : m, y0 = rings[0].y, y1 = rings[rings.length - 1].y;
     for (const a of [-aw, aw]) stripe(rings, y0, y1, a * .98, .001, .007, .004, bind);
@@ -288,7 +297,7 @@ export function dress(x: X) {
     for (let i = 0; i < 7; i++) stripe(rings, rings[0].y, rings[rings.length - 1].y, (i / 7) * Math.PI * 2 + .4, .002, .012, .006, skirtM, 6);
     skirt.drop = .34; skirt.depth = .34;
     if (asym.has('pouchHip')) pouch(tails, rings, -.2, 1.15, 1.6, leatherM);
-    if (asym.has('apronTie')) { const ap = c(P.cloth.bone); apron(ap, { hemY: .44, hemW: .5, hemD: .6, aw: .8 }); }
+    if (asym.has('apronTie')) { const ap = c(P.cloth.bone); apron(ap, { hemY: .44, hemW: .5, hemD: .6, aw: .8, over: rings }); }
     arms({ upM: blouse, off: .017, cuffM: blouse, rolled: s => false });
     legs({ thighM: c(P.cloth.soot), boot: leatherDM, sole: lea(shade(LEATHERD, .7)), soft: true, turnup: false, top: -.3 });
   }
@@ -331,7 +340,7 @@ export function dress(x: X) {
     longShell(rings, { start: 0, arc: Math.PI * 2 }, skirtM, 'stallskirt', .014);
     hemLoft(rings, .006, .008, 'stallhem', c(shade(I('skirt'), .8)));
     skirt.drop = .34; skirt.depth = .34;
-    apron(ap, { hemY: .36, hemW: .5, hemD: .6, aw: .95, bib: true, strapM: tie });
+    apron(ap, { hemY: .36, hemW: .5, hemD: .6, aw: .95, bib: true, strapM: tie, over: rings });
     if (asym.has('pouchHip')) pouch(lifted, offset(rib, .04), 1.06, -1.5, -1.1, leatherM);
     arms({ upM: blouse, off: .017, rolled: () => true });
     legs({ thighM: c(P.cloth.soot), boot: leatherDM, sole: lea(shade(LEATHERD, .7)), heavy: true, turnup: false, top: -.3 });

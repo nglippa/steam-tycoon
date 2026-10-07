@@ -13,7 +13,7 @@ import { palette, type Archetype } from './world/palette';
 import { mats } from './world/assets';
 
 /** Dev-only cast sheet (sheet.html): solo figures posed by the game's own `animateLife` and drawn through the game's ink pass. Not imported by the game.
- * ?roles=worker,guard &seeds=0,1,2 | 0-19 &view=front|quarter|side|back &pose=stand|stride|sit|raise|carry|bite|halt &sil=1 &px=50 &stage=0..5 &light=game &labels=0 &zoom=3 &fy=.9
+ * ?roles=worker,guard &seeds=0,1,2 | 0-19 &view=front|quarter|side|back &pose=stand|stride|sit|raise|carry|bite|halt &at=0..47 (a stride's frame) &sil=1 &px=50 &stage=0..5 &light=game &labels=0 &zoom=3 &fy=.9
  * &build=old|new (the figure builder; default old) and, for the new one, &cast=labourer &family=slim|standard|sturdy &frame=broad|narrow to force part of the look, &look=officer for a story character;
  * &combos=labourer.sturdy.broad,rowCoat.slim.narrow,... one figure per entry (cast.family.frame) on a single row, for the family sheet; &still=1 the unposed figure (no head turned to the viewer) */
 const q = new URLSearchParams(location.search);
@@ -31,6 +31,7 @@ const combos = (q.get('combos') ?? '').split(',').filter(Boolean).map(c => { con
 const looks = (q.get('looks') ?? '').split(',').filter(Boolean); // &looks=officer,clerk,... one story character each
 const make = (seed: number, role: Archetype, c = 0) => next ? citizenNext(mats.rust, seed, role, { solo: true, bare: q.get('bare') === '1', casts: BUILT, ...force, ...(looks.length ? { look: looks[c], mask: looks[c] === 'masked' } : {}), ...(({ shape, ...rest }) => ({ ...rest, over: { ...(force.over as object), ...(parseSet(sets[exprs.length ? 0 : c] ?? '') as object), ...(shape ? { headShape: shape } : {}) } as never }))(combos[exprs.length ? 0 : c] ?? {} as never) }) : citizen(mats.rust, seed, role, { solo: true });
 const WALK = 1; // m/s, the pace the stride is simulated at
+const at = q.get('at') !== null ? Number(q.get('at')) : -1; // &at=k: the stride's k-th frame (30 Hz) of its window instead of the peak knee, to see every phase of the walk
 // Roles run along one row when there is a single seed; otherwise roles are rows and seeds are columns.
 const exprs = (q.get('expr') ?? '').split(',').filter(Boolean); // &expr=neutral,happy,... one head through several expressions
 const lineup = seeds.length === 1, rows = exprs.length || combos.length || looks.length ? 1 : lineup ? 1 : roles.length, cols = exprs.length ? exprs.length : looks.length ? looks.length : combos.length ? combos.length : lineup ? roles.length : seeds.length;
@@ -73,7 +74,7 @@ function simulate(n: Citizen) {
   for (let i = 0; i < warm + window; i++) {
     const t = i * dt; if (how === 'stride') n.group.position.copy(fwd).multiplyScalar(t * WALK); // gait speed is read from real displacement
     animateLife(n, ACTIVITY[how] ?? 'walk', dt, t, false, player);
-    if (i >= warm && window) { const s = how === 'stride' ? Math.max(n.knees[0].rotation.x, n.knees[1].rotation.x) : -n.elbows[0].rotation.x; if (s > best) { best = s; snap = save(n.group); } }
+    if (i >= warm && window) { const s = how === 'stride' ? (at >= 0 ? -Math.abs(i - warm - at) : Math.max(n.knees[0].rotation.x, n.knees[1].rotation.x)) : -n.elbows[0].rotation.x; if (s > best) { best = s; snap = save(n.group); } }
   }
   snap?.forEach(([o, p, r, s]) => { o.position.copy(p); o.quaternion.copy(r); o.scale.copy(s); });
 }

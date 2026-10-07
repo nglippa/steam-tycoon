@@ -2,6 +2,7 @@ import * as T from 'three';
 import type { Citizen, Expression } from './citizens';
 import type { Archetype } from './palette';
 import { walk, advance, MIN, pose, legZ, STANCE, REST, type Params } from '../simulation/gait';
+import { drape, readLegs, rest, LAP_SEATED } from './drape';
 import { isOccupier, conduct, bodyFor, faceAllowed, moodOfTone, stepMood, nearBand, type Trait, type MoodIn } from '../simulation/occupation';
 export type Activity='talk'|'browse'|'guard'|'carry'|'walk'|'read'|'hammer'|'sweep'|'warm'|'gauge'|'valve'|'argue'|'sit'|'eat'|'lean'|'watch'|'clipboard'|'repair';
 /** `seed` and `trait` cast one scene by hand: who is let out (0..1, low is out in a harder street) and how they carry themselves. */
@@ -172,17 +173,21 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
   if(umbrella){umbrella.visible=raining;if(raining){n.arms[1].rotation.set(-.55,0,-.1);n.elbows[1].rotation.x=-1.3;}}
   // Secondary motion: damped springs driven by gait, acceleration and turning.
   const near=(player.x-pos.x)**2+(player.z-pos.z)**2;
-  if(!calm&&near<1600){
+  const lively=!calm&&near<1600,follows=!!(n.drape&&!seated);
+  if(lively){
     const tailTarget=-g*.1-clamp01(Math.abs(accel))*Math.sign(accel)*.12+Math.sin(c*2)*.03*g,hairTarget=.08+g*.22-m.turn*.05;
     m.tailV+=((tailTarget-m.tail)*55-m.tailV*8)*dt;m.tail+=m.tailV*dt;m.hairV+=((hairTarget-m.hair)*35-m.hairV*6)*dt;m.hair+=m.hairV*dt;
     n.tails.rotation.set(seated?-1.25:m.tail,0,g*Math.sin(c)*.035-m.turn*.03);n.swing.rotation.set(m.hair,0,Math.sin(c)*.08*g-m.turn*.08);n.scarf.rotation.x=m.tail*.8+Math.sin(phase*2.2)*.02;
-  } else {n.tails.rotation.set(seated?-1.25:0,0,0);n.swing.rotation.set(.05,0,0);n.scarf.rotation.x=0;}
-  // The knee hinge of long cloth (new builder only; the old figures have none): the cloth below the knee hangs from the knees whatever the lap does, and trails a little in a stride.
-  if(n.hem){n.hem.rotation.x=-n.tails.rotation.x*(seated?1:.6);n.hem.scale.z=seated?.45:1;}
+  } else {n.tails.rotation.set(seated?-1.25:follows?n.tails.rotation.x:0,0,0);n.swing.rotation.set(.05,0,0);n.scarf.rotation.x=0;}
+  // The knee hinge of long cloth (new builder only; the old figures have none): seated, the cloth below the knee hangs from the knees whatever the lap does. Standing and walking, the
+  // new builder's long cloth follows the legs (drape.ts, solved below once the legs are placed).
+  if(n.hem&&!follows){n.hem.rotation.x=-n.tails.rotation.x*(seated?1:.6);n.hem.scale.z=seated?.45:1;}
   // Drape. Cloth never lets a leg through: the hem is carried by whichever thigh reaches furthest, front and
   // back together, so a skirt, coat or apron opens into an oval over the stride and closes as the legs pass.
-  if(n.skirt.depth){const reach=seated?0:Math.max(...n.legs.map(leg=>Math.abs(Math.tan(Math.min(1.1,Math.abs(leg.rotation.x))))*n.skirt.drop))+.1,want=Math.max(1,reach/n.skirt.depth);
-    m.drape+=(want-m.drape)*Math.min(1,dt*(want>m.drape?30:9));const open=Math.max(m.drape,want);n.tails.scale.set(1-Math.min(.12,(open-1)*.12),1,open);}
+  if(n.skirt.depth&&!follows){const reach=seated?0:Math.max(...n.legs.map(leg=>Math.abs(Math.tan(Math.min(1.1,Math.abs(leg.rotation.x))))*n.skirt.drop))+.1,want=Math.max(1,reach/n.skirt.depth);
+    m.drape+=(want-m.drape)*Math.min(1,dt*(want>m.drape?30:9));const open=Math.max(m.drape,want);n.tails.scale.set(1-Math.min(.12,(open-1)*.12),1,open);
+    // seated, the cloth above the knee that a walking knee needs is flattened to a lap (the new builder's long cloth keeps its depth for the walk)
+    if(seated&&n.drape)n.tails.scale.z*=Math.min(1,LAP_SEATED/n.drape.lap);}
   // Brief, staggered glances; turns are led by the head.
   const dx=player.x-pos.x,dz=player.z-pos.z,close=dx*dx+dz*dz<14;
   const glance=close&&(phase%mn.glance)<1.35;
@@ -232,6 +237,9 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
   // The thighs keep the line of walk (the foot is not swung round by the pelvis) and the weight-shift tilt keeps the planted feet in place.
   n.legs.forEach(leg=>{hipPoint.set(leg.userData.hipX??=leg.position.x,pelvis,0).applyEuler(n.pelvis.rotation).add(n.pelvis.position);leg.position.copy(hipPoint);
     leg.rotation.y=(1-w)*n.pelvis.rotation.y;if(!seated)leg.rotation.z-=sway/REST;});
+  // Long cloth follows the legs, now they are where they will be drawn: a lifted knee never pierces it, the upper part leads with the knees and the hem trails it with weight
+  // (beyond 40 m it is solved every third frame, and standing still it eases back to plumb).
+  if(follows){if(w>.02){if(lively||(m.cloth.tick=(m.cloth.tick+1)%3)===0){readLegs(n.pelvis,n.tails,n.legs,n.knees,n.ankles);drape(n.drape!,m.cloth,n.tails,n.hem,dt,g,n.tails.rotation.z,lively?m.tail*.6:-g*.06,lively);}}else rest(m.cloth,n.tails,n.hem,dt,n.tails.rotation.z);}
   // Head stabilization: the head cancels torso lean and twist.
   const blend=1-Math.exp(-dt*(occupier?8:4));n.head.rotation.y=T.MathUtils.lerp(n.head.rotation.y,T.MathUtils.clamp(headYaw-n.body.rotation.y,occupier?-.85:-.6,occupier?.85:.6),blend);
   n.head.rotation.x=T.MathUtils.lerp(n.head.rotation.x,pitch-n.body.rotation.x*.8+nod+(speaking?Math.sin(phase*2)*.03:0),blend);

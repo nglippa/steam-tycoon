@@ -760,6 +760,13 @@ seat. The old figures have no `hem`, and their pose is unchanged. Aprons open le
 than coats do (their drape length is capped at 0.5), and the greatcoat's depth is floored at 0.27
 so it stays a column.
 
+**Rule: a lifted knee never pierces cloth (People XIX).** Long cloth follows the legs (`drape.ts`): each frame the part above the knee turns and opens, and the hem turns and flares about
+the knee, just as far as it takes for every leg ring, the knee and a striding foot to stay inside it, front and side. Above the knee the cloth keeps its depth for the walk (a seated lap is
+flattened back to .19); the hem's top is cut narrow inside the upper part, so its flare never steps out at the knee; an apron over a skirt is built outside the skirt.
+
+**Rule: cloth has weight (People XIX).** The hem trails the upper part on a softer, underdamped spring: it lags, swings past and settles, and it bends at the knee, sideways too. It never turns
+with the lap as one board.
+
 ### The bite
 
 The new head's mouth is about 9 cm lower than the old one, so for a figure from the new builder the
