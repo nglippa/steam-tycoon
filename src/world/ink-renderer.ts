@@ -80,17 +80,20 @@ export class InkRenderer {
         // Texture contrast on grazing surfaces (distant ground) is aliasing, not a drawn line.
         float slope = (abs(l - r) + abs(u - d)) / (c0 * 2. * length(o / texel));
         float colorEdge = smoothstep(.16, .3, gl / max(lc, .18)) * solid * (1. - smoothstep(14., 42., nearest)) * (1. - smoothstep(.0012, .0025, slope));
-        // Far lines would break into flickering dashes: take them down early to a light steady line.
-        float fade = 1. - smoothstep(40., 140., nearest) * .75;
-        // The scene's own FogExp2 at the line's nearer side: lines thin out in the haze with the geometry under them.
+        // Far lines would break into flickering dashes: take them down to a light steady line. The scene's own FogExp2 at
+        // the line's nearer side does the rest, so lines thin out in the haze with the geometry under them.
+        float fade = 1. - smoothstep(40., 140., nearest) * .6;
         float fogF = 1. - exp(-fogDensity * fogDensity * nearest * nearest);
-        fade *= 1. - .9 * fogF;
+        fade *= 1. - .75 * fogF;
+        // Far shapes against the sky (the skyline planes and isles are tinted, not fogged) keep a faint outline.
+        fade = max(fade, .3 * step(far * .9, farthest) * tFar);
         float ink = max(max(silhouette, crease * .85 * (1. - text)), colorEdge * .6 * (1. - text)) * fade;
         // Ink is a deep, color-aware navy-grey rather than black.
         vec3 inkColor = mix(vec3(.06, .05, .05), color * .25, .2);
         // In haze the pen takes a darker tone of the fog, not black (fog colour is linear, like the target).
-        inkColor = mix(inkColor, fogColor * .55, fogF);
-        color = mix(color, inkColor, clamp(ink, 0., 1.) * .95);
+        inkColor = mix(inkColor, fogColor * .45, fogF);
+        // Ink only ever darkens: a fog-toned line must not show up light across smoke or a dark wall.
+        color = min(color, mix(color, inkColor, clamp(ink, 0., 1.) * .95));
         // Dreary grade: soot-tinted desaturation, crushed highlights, lifted smoky blacks and a
         // heavy vignette. Recovery (prosperity) gives back some colour, never the full candy.
         float gradeL = dot(color, vec3(.299, .587, .114));
