@@ -157,7 +157,9 @@ What separates the families beyond width:
 more bend at the knee, shorter stride.
 
 **Children** are their own authored family at about 5½ heads with a narrow frame. A child is never
-an adult scaled down.
+an adult scaled down: its proportions are its own, built on the adult rig, and the builder then
+sets the whole figure at .72 (times its stature), so the crown stands at about 1.36 m, at an
+adult's chest to shoulder. The child owns that size; a spawn site never scales it again.
 
 ---
 

@@ -24,7 +24,9 @@ const sturdy: Dims = { h: .295, chin: 1.616, shX: .258, rSh: .062, chestW: .38, 
   armW: .11, elbowR: .045, foreW: .098, wristW: .058, hipX: .096, hipR: .082, thighW: .17, kneeR: .062, calfW: .125, calfBack: .02, ankleW: .075, hand: .2, shoe: .3, shoeW: .1 };
 
 /** The child (Book 3): its own authored family at about 5.5 heads, not a scaled adult. On the adult rig (joints are not moved) the head is larger, the neck short, the shoulders, chest and limbs narrow,
- *  the belly a little forward, the hands and feet small; the group is then scaled to about .72 by the spawn sites, which is what makes it a child's size (the crown stands at 1.885 on the rig). */
+ *  the belly a little forward, the hands and feet small. The crown stands at 1.885 on the rig, an adult's height; the figure builder then scales the whole child by `CHILD_SCALE` (with its stature),
+ *  which is what makes it a child's size: the crown at about 1.36 m, at an adult's chest to shoulder. Spawn sites never scale a child of the new builder. */
+export const CHILD_SCALE = .72;
 const child: Dims = { h: .335, chin: 1.55, shX: .165, rSh: .04, chestW: .25, waistW: .245, hipW: .27, chestD: .175, waistD: .165, hipD: .17, belly: .02, slope: .07, neckW: .092, neckD: .085, neckLean: .12, headFwd: .01,
   armW: .062, elbowR: .028, foreW: .056, wristW: .037, hipX: .07, hipR: .052, thighW: .108, kneeR: .04, calfW: .08, calfBack: .01, ankleW: .05, hand: .15, shoe: .22, shoeW: .075 };
 

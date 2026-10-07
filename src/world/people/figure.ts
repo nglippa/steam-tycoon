@@ -1,6 +1,6 @@
 import * as T from 'three';
 import { loft, sweep, place, plate, offset, ringAt, surface, onFace, type Ring, type SweepPt } from './loft';
-import { dimsOf, ribcage, pelvis as pelvisRings, neck as neckRings, upperArm, forearm, thigh as thighRings, shin as shinRings, ring, RIG, type Dims } from './body';
+import { dimsOf, CHILD_SCALE, ribcage, pelvis as pelvisRings, neck as neckRings, upperArm, forearm, thigh as thighRings, shin as shinRings, ring, RIG, type Dims } from './body';
 import { paletteOf, type CastId, type Look } from './look';
 import { skull, ear, facialOf, skullRings, CHIN_TO_PIVOT } from './head';
 import { hairOf } from './hair';
@@ -23,6 +23,11 @@ export interface FigureOpts { solo?: boolean; mask?: boolean; /** dev: no hair, 
 
 /** Every cast is built: ten and the two of the Ordinance from wardrobe.ts, and the labourer and the row coat in the inline branch below. */
 export const BUILT: readonly CastId[] = ['labourer', 'rowCoat', ...WARDROBE];
+
+/** The switch (People XIV) as pure functions, used by citizens.ts and the spawn sites: the new builder unless the page's query asks for `people=old`; and the scale a spawn site applies,
+ *  which is never a second one for a child of the new builder (that figure owns its size, `CHILD_SCALE`). */
+export const peopleNext = (search: string) => new URLSearchParams(search).get('people') !== 'old';
+export const siteScale = (scale: number | undefined, child: boolean, next: boolean) => scale && !(child && next) ? scale : 1;
 
 const LIFT = .01;
 
@@ -199,7 +204,7 @@ export function buildFigure(look: Look, opts: FigureOpts, kit: Kit) {
   kit.bake(worn); kit.bake(finery);
   // the old rig lowers everything the body carries by .14 (animateLife is solved against it)
   body.position.y -= .14; pelvisG.position.y -= .14; for (const l of legs) l.position.y -= .14;
-  group.scale.setScalar(look.stature);
+  group.scale.setScalar(look.stature * (look.family === 'child' ? CHILD_SCALE : 1)); // the child owns its size (body.ts)
   group.traverse(o => { if (o instanceof T.Mesh) o.castShadow = false; });
   return { group, body, pelvis: pelvisG, legs, knees, ankles, arms, elbows, grips, head, tails, hem: hem.children.length ? hem : undefined, skirt, swing, scarf, worn, finery, face, faceMat };
 }
