@@ -38,3 +38,9 @@ test('a seated lap is a lap: the long cloth that holds a walking knee is flatten
     assert.ok(n.tails.scale.z * n.drape!.lap <= .19 + 1e-6, `${combo}: a lap ${(n.tails.scale.z * n.drape!.lap).toFixed(3)} m deep`);
   }
 });
+
+test('no hand or forearm passes through what is carried at the hip: pouches, the tool roll, the hook, the Ordinance\'s ledger, truncheon, keys and pouch, standing, walking and on guard', async () => {
+  const { intoProps } = await import('./people-rig.ts'), { BUILT } = await import('../src/world/people/figure.ts'), { CASTS } = await import('../src/world/people/look.ts');
+  for (const cast of BUILT) for (const seed of [1, 2, 4, 11]) { const fam = CASTS[cast].families[seed % CASTS[cast].families.length], combo = `${cast}.${fam}.${CASTS[cast].frames[seed % CASTS[cast].frames.length]}`;
+    for (const [a, sp] of [['walk', 0], ['walk', 1.2], ['guard', 0]] as const) { const r = intoProps(combo, seed, a, sp, 90); assert.ok(r.worst <= 0, `${combo} s${seed} ${a} ${sp}: a hand or forearm ${(r.worst * 100).toFixed(1)} cm inside a prop (${r.where})`); } }
+});

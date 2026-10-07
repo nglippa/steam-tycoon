@@ -45,3 +45,18 @@ export function through(combo: string, seed: number, activity: import('../src/wo
 let animate: (n: Citizen, a: import('../src/world/citizen-life.ts').Activity, dt: number, t: number, p: T.Vector3) => void = () => { throw new Error('people-rig: call useLife(animateLife) first'); };
 /** The rig does not import animateLife itself (a test may want the module fresh); hand it in once. */
 export const useLife = (f: typeof animate) => { animate = f; };
+
+/** How deep a hand or forearm goes into a carried prop (a pouch, a tool roll, a ledger, a truncheon: meshes marked userData.prop), over `frames` frames of `activity` at `speed`: each arm
+ *  vertex is taken into the prop's own frame and tested against its box, shrunk by 2 mm. Returns the deepest (m) and where. */
+export function intoProps(combo: string, seed: number, activity: import('../src/world/citizen-life.ts').Activity, speed: number, frames = 150) {
+  const n = make(combo, seed), player = new T.Vector3(0, 1.7, 25), dt = 1 / 60, props: T.Mesh[] = [], v = new T.Vector3(), inv = new T.Matrix4();
+  n.group.traverse(o => { if (o instanceof T.Mesh && o.userData.prop) props.push(o); });
+  for (const p of props) p.geometry.computeBoundingBox();
+  let worst = 0, where = '';
+  for (let f = 0; f < 120 + frames; f++) { n.group.position.set(0, 0, f * dt * speed); animate(n, activity, dt, f * dt, player); if (f < 120 || f % 2) continue; n.group.updateMatrixWorld(true);
+    for (const p of props) { inv.copy(p.matrixWorld).invert(); const bb = p.geometry.boundingBox!;
+      for (const el of n.elbows) el.traverse(o => { if (!(o instanceof T.Mesh)) return; const pa = o.geometry.attributes.position;
+        for (let k = 0; k < pa.count; k += 2) { v.fromBufferAttribute(pa, k).applyMatrix4(o.matrixWorld).applyMatrix4(inv);
+          const d = Math.min(v.x - bb.min.x, bb.max.x - v.x, v.y - bb.min.y, bb.max.y - v.y, v.z - bb.min.z, bb.max.z - v.z) - .002; if (d > worst) { worst = d; where = `frame ${f}, ${p.parent === n.tails ? 'on the coat skirt' : 'on the body'}`; } } }); } }
+  return { worst, where, props: props.length };
+}

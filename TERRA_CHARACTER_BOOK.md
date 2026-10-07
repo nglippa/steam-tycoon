@@ -770,6 +770,9 @@ with the lap as one board.
 **Rule: an apron's back is designed (People XIX).** Seen from behind, an apron shows its straps and ties over the back garment: a bib's straps cross on the back and meet the band at the
 waist. Every lining faces in (`inward` in `loft.ts`), so the inside of an apron, a skirt or a coat is drawn as cloth, never an empty outline.
 
+**Rule: what is carried at the hip clears the arm (People XIX).** Pouches, the tool roll, the hook and the Ordinance's ledger, truncheon, keys and crossbelt pouch hang in front of the hip
+(about .6 to 1 rad from the centre front), never at the side where the arm hangs and swings; the tool roll hangs upright. No hand or forearm passes through one standing, walking or on guard.
+
 ### The bite
 
 The new head's mouth is about 9 cm lower than the old one, so for a figure from the new builder the

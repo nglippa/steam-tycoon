@@ -211,7 +211,9 @@ export function dress(x: X) {
   };
 
   // ---------------------------------------------------------------- props
-  const pouch = (g: T.Group, rings: Ring[], y: number, a0: number, a1: number, m: T.Material) => { put0(g, plate(rings, [[y, a0, a1], [y - .1, a0, a1]], .0, .014, 4), m); put0(g, plate(rings, [[y + .004, a0 - .02, a1 + .02], [y - .04, a0 - .02, a1 + .02]], .0, .02, 4), edgeM); };
+  /** marks what `f` adds to `g` as a carried prop (userData.prop), so a test can keep the hands and forearms out of it */
+  const prop = (g: T.Object3D, f: () => void) => { const n0 = g.children.length; f(); for (const o of g.children.slice(n0)) o.userData.prop = true; };
+  const pouch = (g: T.Group, rings: Ring[], y: number, a0: number, a1: number, m: T.Material) => prop(g, () => { put0(g, plate(rings, [[y, a0, a1], [y - .1, a0, a1]], .0, .014, 4), m); put0(g, plate(rings, [[y + .004, a0 - .02, a1 + .02], [y - .04, a0 - .02, a1 + .02]], .0, .02, 4), edgeM); });
   const belt = (m: T.Material, y: number, off = .03, hw = .02) => { const b = [y - hw + .002, y + hw - .002].map(yy => ringAt(offset(rib, off), Math.max(1.04, Math.min(1.1, yy)))); put0(lifted, loft([{ ...b[0], y: y - hw }, { ...b[1], y: y + hw }], { seg: 10, lipStart: .003, lipEnd: .003, key: key(`belt/${y}/${off}/${hw}`) }), m); const q = surface(offset(rib, off), y, 0, .004); put0(lifted, new T.Mesh(new T.BoxGeometry(hw > .025 ? .056 : .036, hw > .025 ? .05 : .03, .008), brass).geometry, brass, q.p.toArray() as Pt); };
 
   // ---------------------------------------------------------------- the casts
@@ -227,15 +229,18 @@ export function dress(x: X) {
     button(sh, { p: new T.Vector3(side * -(inner - .008) * .995, top + .003 + inner * .1, 0), n: new T.Vector3(0, 1, 0) }, brass, .0085);
   };
   /** a book hung from the belt at the hip */
-  const ledger = (g: T.Group, rings: Ring[], y: number, a: number, cover: T.Material) => {
+  const ledger = (g: T.Group, rings: Ring[], y: number, a: number, cover: T.Material) => prop(g, () => ledger0(g, rings, y, a, cover));
+  const ledger0 = (g: T.Group, rings: Ring[], y: number, a: number, cover: T.Material) => {
     const q = surface(rings, y, a, .022), set = (geo: T.BufferGeometry, m: T.Material, dz = 0, dy = 0) => { const mm = put0(g, geo, m, [q.p.x + q.n.x * dz, q.p.y + dy, q.p.z + q.n.z * dz]); mm.quaternion.setFromUnitVectors(new T.Vector3(0, 0, 1), q.n); return mm; };
     set(new T.BoxGeometry(.105, .15, .034), cover); set(new T.BoxGeometry(.094, .14, .026), c(P.cloth.bone), .004); set(new T.BoxGeometry(.016, .152, .036), cover, 0, 0).position.add(new T.Vector3(.0, 0, 0)); set(new T.BoxGeometry(.02, .02, .01), brass, .02, -.05);
     put0(g, sweep([[0, .06, .02], [.012, .09, .02]].map(([xx, yy, zz]) => ({ p: [q.p.x + xx, q.p.y + yy, q.p.z + q.n.z * .02] as Pt, a: .004, b: .004, n: [0, 0, 1] as Pt })), { seg: 4, capStart: true, capEnd: true }), brass);
   };
   /** a hanging baton (the Ordinance's truncheon) */
-  const truncheon = (g: T.Group, rings: Ring[], y: number, a: number, m: T.Material) => { const q = surface(rings, y, a, .03), rod = loft([{ y: -.17, w: .013, f: .013, b: .013 }, { y: -.04, w: .017, f: .017, b: .017 }, { y: .1, w: .02, f: .02, b: .02 }, { y: .15, w: .014, f: .014, b: .014 }], { seg: 7, capStart: 'flat', capEnd: 'flat', key: key('baton') }); put0(g, rod, m, q.p.toArray() as Pt, [-.08, 0, Math.sign(a) * -.1]); put0(g, new T.Mesh(new T.CylinderGeometry(.0145, .0145, .012, 7)).geometry, brass, [q.p.x, q.p.y - .175, q.p.z + .01]); };
+  const truncheon = (g: T.Group, rings: Ring[], y: number, a: number, m: T.Material) => prop(g, () => truncheon0(g, rings, y, a, m));
+  const truncheon0 = (g: T.Group, rings: Ring[], y: number, a: number, m: T.Material) => { const q = surface(rings, y, a, .03), rod = loft([{ y: -.17, w: .013, f: .013, b: .013 }, { y: -.04, w: .017, f: .017, b: .017 }, { y: .1, w: .02, f: .02, b: .02 }, { y: .15, w: .014, f: .014, b: .014 }], { seg: 7, capStart: 'flat', capEnd: 'flat', key: key('baton') }); put0(g, rod, m, q.p.toArray() as Pt, [-.08, 0, Math.sign(a) * -.1]); put0(g, new T.Mesh(new T.CylinderGeometry(.0145, .0145, .012, 7)).geometry, brass, [q.p.x, q.p.y - .175, q.p.z + .01]); };
   /** a ring of keys on the belt */
-  const keyRing = (g: T.Group, rings: Ring[], y: number, a: number) => { const q = surface(rings, y, a, .02), ring = Array.from({ length: 11 }, (_, i) => { const t = i / 10 * Math.PI * 2; return { p: [q.p.x + Math.cos(t) * .026, q.p.y - .03 + Math.sin(t) * .026, q.p.z + q.n.z * .01] as Pt, a: .0033, b: .0033, n: [0, 0, 1] as Pt }; });
+  const keyRing = (g: T.Group, rings: Ring[], y: number, a: number) => prop(g, () => keyRing0(g, rings, y, a));
+  const keyRing0 = (g: T.Group, rings: Ring[], y: number, a: number) => { const q = surface(rings, y, a, .02), ring = Array.from({ length: 11 }, (_, i) => { const t = i / 10 * Math.PI * 2; return { p: [q.p.x + Math.cos(t) * .026, q.p.y - .03 + Math.sin(t) * .026, q.p.z + q.n.z * .01] as Pt, a: .0033, b: .0033, n: [0, 0, 1] as Pt }; });
     put0(g, sweep(ring, { seg: 4, closed: true }), brass); for (const [dx, len] of [[-.02, .06], [.0, .075], [.02, .055]]) put0(g, new T.Mesh(new T.BoxGeometry(.012, len, .005)).geometry, brass, [q.p.x + dx, q.p.y - .06 - len / 2, q.p.z + q.n.z * .012]); };
   if (id === 'garrison') {
     const coat = c(I('greatcoat')), trou = c(I('trousers')), strap = lea(I('crossbelt')), black = lea(P.cloth.leatherDark), side = Math.round(look.stature * 1000) % 2 ? 1 : -1;
@@ -254,7 +259,7 @@ export function dress(x: X) {
     put0(lifted, sweep(W([[1.5, sd * 1.3], [1.44, sd * .9], [1.36, sd * .46], [1.27, -sd * .05], [1.18, -sd * .6], [1.11, -sd * 1.1], [1.07, -sd * 1.5]]), { seg: 4, capStart: true, capEnd: true }), strap);
     put0(lifted, sweep(W([[1.5, sd * 1.3], [1.44, sd * 1.9], [1.34, sd * 2.45], [1.22, sd * 2.95], [1.12, -sd * 2.75], [1.07, -sd * 2.3]]), { seg: 4, capStart: true, capEnd: true }), strap);
     { const q = surface(r.cR, 1.27, -sd * .05, .013); put0(lifted, new T.Mesh(new T.BoxGeometry(.04, .034, .008), brass).geometry, brass, q.p.toArray() as Pt); }
-    pouch(tails, r.rings!, -.02, -sd * 1.05, -sd * 1.75, black); }
+    pouch(tails, r.rings!, -.02, -sd * .62, -sd * 1.02, black); } // (props sit in front of the hip, clear of the hanging and swinging arm: Book 12)
     arms({ upM: coat, off: .027, cuffM: coat, glove: black, board: board(coat, black, .066, .04, .034, false) });
     legs({ thighM: trou, boot: black, sole: lea(shade(LEATHERD, .55)), top: -.1, heavy: true, turnup: false, fit: .004, bootCuff: black });
   }
@@ -275,9 +280,9 @@ export function dress(x: X) {
     // the back: a belt strap with its two buttons, and a pleat either side of the seam
     put0(lifted, around(r.cR, 1.15, Math.PI - .8, Math.PI + .8, .004, .02, .006, 6), coat); for (const a of [Math.PI - .8, Math.PI + .8]) button(lifted, surface(r.cR, 1.15, a, .011), brass, .008);
     for (const a of [Math.PI - .3, Math.PI + .3]) stripe(r.rings!, r.rings![0].y - .08, HEM_Y + .02, a, .002, .01, .005, coat, 6);
-    if (asym.has('ledger')) ledger(tails, r.rings!, -.1, -side * 1.4, black);
-    if (asym.has('truncheon')) truncheon(tails, r.rings!, -.1, side * 1.35, black);
-    if (asym.has('keyRing')) keyRing(tails, r.rings!, -.08, side * 1.35);
+    if (asym.has('ledger')) ledger(tails, r.rings!, -.1, -side * .7, black);
+    if (asym.has('truncheon')) truncheon(tails, r.rings!, -.1, side * .9, black);
+    if (asym.has('keyRing')) keyRing(tails, r.rings!, -.08, side * .82);
     if (asym.has('whistle')) { const ch = [[1.43, .2], [1.37, .5], [1.31, .72], [1.27, .8]].map(([y, a]) => { const q = surface(r.cR, y, a * side, .008); return { p: q.p.toArray() as Pt, a: .0035, b: .0035, n: q.n.toArray() as Pt }; }); put0(lifted, sweep(ch, { seg: 4, capStart: true, capEnd: true }), brass); const q = surface(r.cR, 1.255, .82 * side, .012); put0(lifted, new T.Mesh(new T.CylinderGeometry(.007, .007, .03, 6)).geometry, brass, q.p.toArray() as Pt, [0, 0, 1.2]); }
     arms({ upM: coat, off: .023, cuffM: coat, glove: black, board: board(black, coat, .1, .05, .044, true), armband: { m: band, side }, guard: asym.has('sleeveGuards') ? c(P.cloth.soot) : undefined });
     legs({ thighM: trou, boot: black, sole: lea(shade(LEATHERD, .55)), top: -.08, turnup: false, fit: .004, bootCuff: black });
@@ -285,10 +290,10 @@ export function dress(x: X) {
   // the two casts whose bodies are built inline (figure.ts) take their trade items from here: the labourer's apron, hook, pouch and rag
   if (id === 'labourer') {
     if (asym.has('leatherApron')) apron(lea(P.cloth.leather), { hemY: .46, hemW: .5, hemD: .5, aw: .92, bib: true, strapM: leatherDM, leather: true });
-    if (asym.has('hook')) { // a scrap hook on a belt loop at the hip
-      const q = surface(offset(rib, .04), 1.06, 1.35, .004), hk = [[0, 0, 0], [0, -.07, .004], [0, -.13, .02], [.02, -.17, .04], [.035, -.15, .045]].map(([a, b, c2], i) => ({ p: [q.p.x + a, q.p.y + b, q.p.z + c2] as Pt, a: .0065 - i * .0004, b: .0065 - i * .0004, n: [0, 0, 1] as Pt }));
-      put0(lifted, sweep(hk, { seg: 5, capStart: true, capEnd: true }), steel); put0(lifted, plate(offset(rib, .04), [[1.1, 1.2, 1.5], [1.04, 1.2, 1.5]], .0, .008, 3), leatherDM); }
-    if (asym.has('pouchHip')) pouch(lifted, offset(rib, .04), 1.07, -1.55, -1.1, leatherM);
+    if (asym.has('hook')) prop(lifted, () => { // a scrap hook on a belt loop at the hip
+      const q = surface(offset(rib, .04), 1.06, .95, .004), hk = [[0, 0, 0], [0, -.07, .004], [0, -.13, .02], [.02, -.17, .04], [.035, -.15, .045]].map(([a, b, c2], i) => ({ p: [q.p.x + a, q.p.y + b, q.p.z + c2] as Pt, a: .0065 - i * .0004, b: .0065 - i * .0004, n: [0, 0, 1] as Pt }));
+      put0(lifted, sweep(hk, { seg: 5, capStart: true, capEnd: true }), steel); put0(lifted, plate(offset(rib, .04), [[1.1, .8, 1.1], [1.04, .8, 1.1]], .0, .008, 3), leatherDM); });
+    if (asym.has('pouchHip')) pouch(lifted, offset(rib, .04), 1.07, -1.02, -.62, leatherM);
     if (asym.has('ragBelt')) { const q = surface(offset(rib, .04), 1.06, -1.0, .004); put0(lifted, sweep([0, .3, .6, 1].map(t => ({ p: [q.p.x - t * .012, q.p.y - t * .2, q.p.z + .004 + t * .02] as Pt, a: .024, b: .004, n: [0, 0, 1] as Pt })), { seg: 4, capStart: true, capEnd: true }), c(P.cloth.bone)); }
   }
   if (id === 'rowSkirt') {
@@ -301,7 +306,7 @@ export function dress(x: X) {
     hemLoft(rings, .006, .008, 'hemband', c(shade(I('skirt'), .8)));
     for (let i = 0; i < 7; i++) stripe(rings, rings[0].y, rings[rings.length - 1].y, (i / 7) * Math.PI * 2 + .4, .002, .012, .006, skirtM, 6);
     skirt.drop = .34; skirt.depth = .34;
-    if (asym.has('pouchHip')) pouch(tails, rings, -.2, 1.15, 1.6, leatherM);
+    if (asym.has('pouchHip')) pouch(tails, rings, -.2, .62, 1.02, leatherM);
     if (asym.has('apronTie')) { const ap = c(P.cloth.bone); apron(ap, { hemY: .44, hemW: .5, hemD: .6, aw: .8, over: rings }); }
     arms({ upM: blouse, off: .017, cuffM: blouse, rolled: s => false });
     legs({ thighM: c(P.cloth.soot), boot: leatherDM, sole: lea(shade(LEATHERD, .7)), soft: true, turnup: false, top: -.3 });
@@ -346,7 +351,7 @@ export function dress(x: X) {
     hemLoft(rings, .006, .008, 'stallhem', c(shade(I('skirt'), .8)));
     skirt.drop = .34; skirt.depth = .34;
     apron(ap, { hemY: .36, hemW: .5, hemD: .6, aw: .95, bib: true, strapM: tie, over: rings });
-    if (asym.has('pouchHip')) pouch(lifted, offset(rib, .04), 1.06, -1.5, -1.1, leatherM);
+    if (asym.has('pouchHip')) pouch(lifted, offset(rib, .04), 1.06, -1.02, -.62, leatherM);
     arms({ upM: blouse, off: .017, rolled: () => true });
     legs({ thighM: c(P.cloth.soot), boot: leatherDM, sole: lea(shade(LEATHERD, .7)), heavy: true, turnup: false, top: -.3 });
   }
@@ -369,7 +374,7 @@ export function dress(x: X) {
     const bibR = offset(rib, .02); put0(lifted, plate(bibR, [[1.42, -.32, .32], [1.34, -.5, .5], [1.2, -.62, .62], [1.1, -.66, .66]], .0, .006, 6), apM);
     bibStraps(s => surface(bibR, 1.42, s * .28, .008).p, .012, edgeM); void strap; // in the binding's lighter leather, so they read across a dark shirt
     put0(lifted, loft([1.08, 1.13].map(y => ringAt(offset(rib, .028), Math.min(y, 1.1))), { seg: 10, lipStart: .003, lipEnd: .003, key: key('slabbelt') }), strap); for (const s of [-1, 1]) button(lifted, surface(offset(rib, .03), 1.11, s * .14, .004), steel, .008);
-    if (asym.has('pouchHip')) pouch(lifted, offset(rib, .04), 1.07, 1.1, 1.55, leatherM);
+    if (asym.has('pouchHip')) pouch(lifted, offset(rib, .04), 1.07, .62, 1.02, leatherM);
     arms({ upM: sh, off: .015, rolled: () => true, gauntlet: gaunt, glove: gaunt });
     legs({ thighM: trou, boot: leatherDM, sole: lea(shade(LEATHERD, .6)), heavy: true, top: -.3, turnup: false, bootCuff: leatherM });
   }
@@ -378,9 +383,9 @@ export function dress(x: X) {
     shirt(sh, { placket: true, collar: true, yoke: false, front: 1.1 });
     const r = jacket(jk, { off: .02, aL: .45, aR: .45, hem: .86, hemW: .46, hemD: .34, buttons: 2, lapel: false, stand: false });
     belt(leatherM, 1.07, .05);
-    const hipR = offset(rib, .05), side = asym.has('toolRoll') ? 1.2 : -1.2;
-    pouch(lifted, hipR, 1.05, side, side + .5, leatherM);
-    if (asym.has('toolRoll')) { const q = surface(hipR, 1.04, -1.25, .03), roll = loft([{ y: -.12, w: .036, f: .036, b: .036 }, { y: 0, w: .042, f: .042, b: .042 }, { y: .12, w: .036, f: .036, b: .036 }], { seg: 7, capStart: 'flat', capEnd: 'flat', key: key('toolroll') }); const m = put0(lifted, roll, c(I('roll')), q.p.toArray() as Pt, [0, 0, 1.4]); m.rotation.set(0, 0, Math.PI / 2); put0(lifted, around(hipR, 1.05, -1.42, -1.08, .02, .008, .004, 5), leatherDM); }
+    const hipR = offset(rib, .05), side = asym.has('toolRoll') ? 1 : -1;
+    pouch(lifted, hipR, 1.05, side * .6, side * 1.0, leatherM);
+    if (asym.has('toolRoll')) prop(lifted, () => { const q = surface(hipR, .99, -.78, .028), roll = loft([{ y: -.075, w: .026, f: .026, b: .026 }, { y: 0, w: .031, f: .031, b: .031 }, { y: .075, w: .026, f: .026, b: .026 }], { seg: 7, capStart: 'flat', capEnd: 'flat', key: key('toolroll2') }); put0(lifted, roll, c(I('roll')), q.p.toArray() as Pt, [0, 0, -.12]); put0(lifted, around(hipR, 1.05, -.95, -.6, .02, .008, .004, 5), leatherDM); }); // a roll of tools hung upright from the belt in front of the hip, where the forearm never passes const m = put0(lifted, roll, c(I('roll')), q.p.toArray() as Pt, [0, 0, 1.4]); m.rotation.set(0, 0, Math.PI / 2); put0(lifted, around(hipR, 1.05, -1.42, -1.08, .02, .008, .004, 5), leatherDM); });
     if (asym.has('ragBelt')) put0(tails, sweep([0, .3, .6, 1].map(t => ({ p: [-.17 - t * .012, -.04 - t * .2, r.rings![0].f + .03] as Pt, a: .024, b: .004, n: [0, 0, 1] as Pt })), { seg: 4, capStart: true, capEnd: true }), c(P.cloth.bone));
     // Finch's winged valve, in brass on the right sleeve: a disc and a wing either side
     const valve = (sh: T.Group, side: number) => { if (side < 0 || !asym.has('valveSleeve')) return; const X0 = d.armW / 2 + .017 + .004;

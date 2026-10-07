@@ -231,7 +231,7 @@ function coatSkirt(tails: T.Group, skirt: { drop: number; depth: number }, cloth
   for (const s of [-1, 1]) button(tails, surface(rings, .02, Math.PI + s * .22, .008), brass, .0075);
   // flap pockets on the hips, and a leather pouch on one of them
   for (const s of [-1, 1]) put0(tails, plate(rings, [[-.065, s * .72, s * 1.18], [-.135, s * .72, s * 1.18]], .0, .007, 5), coatM);
-  if (asym.has('pouchHip')) put0(tails, plate(rings, [[-.05, 1.45, 1.8], [-.17, 1.45, 1.8]], .0, .014, 4), leather);
+  if (asym.has('pouchHip')) put0(tails, plate(rings, [[-.05, 1.95, 2.3], [-.17, 1.95, 2.3]], .0, .014, 4), leather).userData.prop = true; // behind the hip, clear of the swinging arm
   skirt.drop = .2; skirt.depth = .19;
   cloth.push({ up: bands(rings, lip), lo: [], panel: false }); // one part, above the knee: it follows the thighs (drape.ts)
 }
