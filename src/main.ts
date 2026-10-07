@@ -43,11 +43,11 @@ city.presentation.rookYard.inWorld = () => player.locked && !intro.active;
 city.presentation.rookYard.onLine = line => { if (!player.locked || intro.active) return false; dialogue.flash(line); return true; }; city.presentation.finchRun.onLine = city.presentation.rookYard.onLine; city.presentation.wardCall.onLine = city.presentation.rookYard.onLine;
 // Resolution is a pixel budget, not a fixed ratio: a laptop panel gets the full 1.5x, a 4K or 5K window is capped
 // at the same number of pixels instead of four times the fill. `strain` steps the budget down when frames run slow, to
-// no less than .64 of it, and steps back up after five seconds of easy frames (ten, twenty… if it had to step down again).
+// no less than .64 of it, and steps back up after five seconds of easy frames (ten, twenty… to forty at most, if it had to step down again).
 let strain = 1, slow = 0, easy = 0, patience = 5, recovered = false;
 function pixelRatio(s = strain) { const high = economy.state.settings.quality === 'high', budget = Math.sqrt((high ? 4.4e6 : 2.4e6) * s / (innerWidth * innerHeight)); return Math.max(.6, Math.min(devicePixelRatio, touch ? (high ? 1.25 : 1) : high ? 1.5 : 1, budget)); }
 function applyRatio() { renderer.setPixelRatio(pixelRatio()); inkRenderer.lineScale = pixelRatio() / pixelRatio(1); }
-function quality() { const high = economy.state.settings.quality === 'high'; inkRenderer.setQuality(high); strain = 1; patience = 5; applyRatio(); renderer.shadowMap.enabled = high; renderer.shadowMap.needsUpdate = true; atmosphere.rain.geometry.setDrawRange(0, high ? 3000 : 1100); }
+function quality() { const high = economy.state.settings.quality === 'high'; inkRenderer.setQuality(high); strain = 1; slow = easy = 0; patience = 5; recovered = false; applyRatio(); renderer.shadowMap.enabled = high; renderer.shadowMap.needsUpdate = true; atmosphere.rain.geometry.setDrawRange(0, high ? 3000 : 1100); }
 // Phones and tablets: touch controls, no pointer lock, the lighter renderer on a fresh game.
 const touch = isTouch(); let touchControls: TouchControls | undefined;
 if (touch) { document.body.classList.add('touch'); player.touch = true; if (economy.state.playtime < 1) economy.state.settings.quality = 'low';
