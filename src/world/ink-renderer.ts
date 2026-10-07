@@ -12,6 +12,7 @@ export class InkRenderer {
     uniforms: {
       picture: { value: this.target.texture }, depth: { value: this.target.depthTexture },
       texel: { value: new T.Vector2(1, 1) }, near: { value: .08 }, far: { value: 500 }, recovery: { value: 0 },
+      fogColor: { value: new T.Color() }, fogDensity: { value: 0 },
     },
     vertexShader: 'varying vec2 uvInk; void main(){uvInk=uv;gl_Position=vec4(position.xy,0.,1.);}',
     fragmentShader: `
@@ -19,6 +20,7 @@ export class InkRenderer {
       uniform sampler2D picture, depth;
       uniform vec2 texel;
       uniform float near, far, recovery;
+      uniform vec3 fogColor; uniform float fogDensity;
       float distanceAt(vec2 uv) {
         float d = texture2D(depth, uv).r;
         return (near * far) / (far - d * (far - near));
@@ -69,9 +71,14 @@ export class InkRenderer {
         float colorEdge = smoothstep(.16, .3, gl / max(lc, .18)) * solid * (1. - smoothstep(14., 42., nearest)) * (1. - smoothstep(.0012, .0025, slope));
         // Far lines would break into flickering dashes: take them down early to a light steady line.
         float fade = 1. - smoothstep(40., 140., nearest) * .75;
+        // The scene's own FogExp2 at the line's nearer side: lines thin out in the haze with the geometry under them.
+        float fogF = 1. - exp(-fogDensity * fogDensity * nearest * nearest);
+        fade *= 1. - .9 * fogF;
         float ink = max(max(silhouette, crease * .85 * (1. - text)), colorEdge * .6 * (1. - text)) * fade;
         // Ink is a deep, color-aware navy-grey rather than black.
         vec3 inkColor = mix(vec3(.06, .05, .05), color * .25, .2);
+        // In haze the pen takes a darker tone of the fog, not black (fog colour is linear, like the target).
+        inkColor = mix(inkColor, fogColor * .55, fogF);
         color = mix(color, inkColor, clamp(ink, 0., 1.) * .95);
         // Dreary grade: soot-tinted desaturation, crushed highlights, lifted smoky blacks and a
         // heavy vignette. Recovery (prosperity) gives back some colour, never the full candy.
@@ -105,6 +112,9 @@ export class InkRenderer {
     }
     this.material.uniforms.near.value = camera.near;
     this.material.uniforms.far.value = camera.far;
+    const fog = scene.fog as T.FogExp2 | null;
+    this.material.uniforms.fogDensity.value = fog?.density ?? 0;
+    if (fog) this.material.uniforms.fogColor.value.copy(fog.color);
     this.renderer.setRenderTarget(this.target);
     this.renderer.render(scene, camera);
     this.renderer.setRenderTarget(null);
