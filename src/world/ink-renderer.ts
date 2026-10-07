@@ -12,7 +12,7 @@ export class InkRenderer {
     uniforms: {
       picture: { value: this.target.texture }, depth: { value: this.target.depthTexture },
       texel: { value: new T.Vector2(1, 1) }, near: { value: .08 }, far: { value: 500 }, recovery: { value: 0 },
-      fogColor: { value: new T.Color() }, fogDensity: { value: 0 },
+      fogColor: { value: new T.Color() }, fogDensity: { value: 0 }, lineScale: { value: 1 },
     },
     vertexShader: 'varying vec2 uvInk; void main(){uvInk=uv;gl_Position=vec4(position.xy,0.,1.);}',
     fragmentShader: `
@@ -20,7 +20,7 @@ export class InkRenderer {
       uniform sampler2D picture, depth;
       uniform vec2 texel;
       uniform float near, far, recovery;
-      uniform vec3 fogColor; uniform float fogDensity;
+      uniform vec3 fogColor; uniform float fogDensity, lineScale;
       float distanceAt(vec2 uv) {
         float d = texture2D(depth, uv).r;
         return (near * far) / (far - d * (far - near));
@@ -35,10 +35,16 @@ export class InkRenderer {
         vec4 sample0 = texture2D(picture, uvInk); vec3 color = sample0.rgb;
         float text = 1. - step(.25, sample0.a); // printed surfaces: keep silhouettes, skip interior ink
         float centerDist = distanceAt(uvInk);
-        // Line weight: heavy near the eye, thinning with distance, modulated along its length.
-        float weight = mix(3.0, 1.2, smoothstep(6., 80., centerDist)) * (.8 + .45 * vnoise(px * .045));
+        // Calm: past ~15 m the pen stops wandering, so far lines hold still while the view turns. Taken at the nearest of
+        // four taps, so the outer half of a near silhouette against the sky keeps the near hand.
+        vec2 reach = texel * 3.;
+        float calm = smoothstep(15., 60., min(min(centerDist, min(distanceAt(uvInk + vec2(reach.x, 0.)), distanceAt(uvInk - vec2(reach.x, 0.)))),
+                                                    min(distanceAt(uvInk + vec2(0., reach.y)), distanceAt(uvInk - vec2(0., reach.y)))));
+        // Line weight: heavy near the eye, thinning with distance, modulated along its length (near lines only). lineScale
+        // keeps the width in CSS pixels when the resolution steps down; one buffer pixel is the least a line can be.
+        float weight = max(1., mix(3.0, 1.2, smoothstep(6., 80., centerDist)) * lineScale * mix(.8 + .45 * vnoise(px * .045), 1., calm));
         // Wobble: sample points drift a little, so straight edges read hand-drawn.
-        vec2 wob = (vec2(vnoise(px * .02), vnoise(px * .02 + 17.3)) - .5) * 1.6;
+        vec2 wob = (vec2(vnoise(px * .02), vnoise(px * .02 + 17.3)) - .5) * 1.6 * (1. - calm);
         vec2 uv = uvInk + wob * texel;
         // Line class: printed (a<.25) / thin people+props (a~.5) / world (a=1). Neighbours decide,
         // so both sides of a character's silhouette get the thin line.
@@ -54,13 +60,18 @@ export class InkRenderer {
         float a1 = distanceAt(uv + o * vec2(.7, .7)), a2 = distanceAt(uv + o * vec2(-.7, .7));
         float a3 = distanceAt(uv - o * vec2(.7, .7)), a4 = distanceAt(uv - o * vec2(-.7, .7));
         float nearest = min(min(min(c0, l), min(r, u)), min(min(d, a1), min(min(a2, a3), a4)));
+        float farthest = max(max(max(c0, l), max(r, u)), max(max(d, a1), max(max(a2, a3), a4)));
+        // Outer edges: against the sky, or with the background well behind. Inner edges (a cornice, a chimney on its own
+        // roof) are a small depth ratio. Bands: mid thins the creases, far keeps outer silhouettes only.
+        float outer = max(step(far * .9, farthest), smoothstep(1.3, 1.8, farthest / nearest));
+        float tMid = smoothstep(30., 90., nearest), tFar = smoothstep(90., 160., nearest);
         // A flat surface is linear in 1/z at any viewing angle, so the second difference of inverse
         // distance is ~0 on a plane (even grazing ground) and large only at creases and silhouettes.
         float ic = 1. / c0;
         float e = max(max(abs(1. / l + 1. / r - 2. * ic), abs(1. / u + 1. / d - 2. * ic)),
                       max(abs(1. / a1 + 1. / a3 - 2. * ic), abs(1. / a2 + 1. / a4 - 2. * ic))) * c0;
-        float silhouette = smoothstep(.07, .18, e);
-        float crease = smoothstep(.02, .05, e);
+        float silhouette = smoothstep(.07, .18, e) * mix(1., outer, tFar);
+        float crease = smoothstep(mix(.02, .035, tMid), mix(.05, .09, tMid), e) * (1. - tFar);
         // Interior lines where color blocks meet (frames, trims, clothing panels) — not on sky.
         float lc = luma(texture2D(picture, uv).rgb);
         float gl = abs(luma(texture2D(picture, uv - vec2(o.x, 0.)).rgb) - luma(texture2D(picture, uv + vec2(o.x, 0.)).rgb))
@@ -96,6 +107,8 @@ export class InkRenderer {
     renderer.info.autoReset = false;
     this.scene.add(new T.Mesh(new T.PlaneGeometry(2, 2), this.material));
   }
+  /** Rendered pixel ratio over the unstrained one: lines keep their width on screen when the resolution steps down. */
+  set lineScale(scale: number) { this.material.uniforms.lineScale.value = scale; }
   setRecovery(stage: number) { this.material.uniforms.recovery.value = Math.min(1, stage / 5); }
   setQuality(high: boolean) {
     const samples = high ? Math.min(4, this.renderer.capabilities.maxSamples) : 0;
