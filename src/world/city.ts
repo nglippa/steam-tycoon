@@ -485,8 +485,8 @@ export class City {
       const profile=sceneFor(i),npc=person(mats.rust,i,profile.role);if(profile.trait)npc.manner=mannerOf(profile.role,seedOf(i),profile.trait);
       this.cast.push({d:districtAt(profile.x,profile.z),kind:routeKind(profile),standing:standingOf(profile.role),seed:profile.seed??seedOf(i),period:profile.route?(profile.route*2+5)/(profile.speed??.4):0});
       if(profile.activity==='carry'){const cargo=new T.Group();cargo.position.set(0,1.05,.31);npc.body.add(cargo);box(cargo,0,0,0,.43,.32,.33,mats.wood);for(const y of [-.11,.11])box(cargo,0,y,.175,.45,.035,.02,mats.cream);asProp(cargo);bake(cargo);}
-      if(profile.activity==='walk'&&i%3!==1){const umbrella=new T.Group();umbrella.position.set(.2,0,.12);npc.body.add(umbrella);cyl(umbrella,0,1.75,0,.012,1.1,mats.iron);
-        const shade=new T.Mesh(new T.ConeGeometry(.62,.3,8,1,true),fabricOf([mats.teal,mats.red,artMats.ochre,mats.cream][i%4]));shade.position.y=2.3;umbrella.add(shade);sphere(umbrella,0,2.46,0,.03,mats.brass);asProp(umbrella);bake(umbrella);umbrella.visible=false;npc.group.userData.umbrella=umbrella;}
+      if(profile.activity==='walk'&&i%3!==1){/* held in the right hand: the shaft runs through the grip socket (the closed hand), kept upright by the wrist (citizen-life.ts) */const hand=npc.grips[1].children.length?0:1,umbrella=new T.Group();npc.grips[hand].add(umbrella);npc.group.userData.umbrellaHand=hand;/* (an elder's stick or basket keeps the right hand: the umbrella goes in the left) */cyl(umbrella,0,.45,0,.012,1.2,mats.iron);
+        const shade=new T.Mesh(new T.ConeGeometry(.62,.3,8,1,true),fabricOf([mats.teal,mats.red,artMats.ochre,mats.cream][i%4]));shade.position.y=1.1;umbrella.add(shade);sphere(umbrella,0,1.26,0,.03,mats.brass);asProp(umbrella);bake(umbrella);umbrella.visible=false;npc.group.userData.umbrella=umbrella;}
       if(profile.activity==='read'){const ledger=new T.Group();ledger.position.set(0,1.2,.29);ledger.rotation.x=-.55;npc.body.add(ledger);box(ledger,0,0,0,.27,.035,.32,mats.cream);asProp(ledger);bake(ledger);}
       this.root.add(npc.group);this.npcs.push(npc);
     }

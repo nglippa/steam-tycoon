@@ -2,6 +2,7 @@ import * as T from 'three';
 import type { Citizen, Expression } from './citizens';
 import type { Archetype } from './palette';
 import { walk, advance, MIN, pose, legZ, STANCE, REST, type Params } from '../simulation/gait';
+import { drape, readLegs, rest, LAP_SEATED } from './drape';
 import { isOccupier, conduct, bodyFor, faceAllowed, moodOfTone, stepMood, nearBand, type Trait, type MoodIn } from '../simulation/occupation';
 export type Activity='talk'|'browse'|'guard'|'carry'|'walk'|'read'|'hammer'|'sweep'|'warm'|'gauge'|'valve'|'argue'|'sit'|'eat'|'lean'|'watch'|'clipboard'|'repair';
 /** `seed` and `trait` cast one scene by hand: who is let out (0..1, low is out in a harder street) and how they carry themselves. */
@@ -107,7 +108,7 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
   const shift=Math.tanh(3*Math.sin(phase*.21+n.phase))*(1-g)*(occupier&&mn.trait!=='bored'?.4:1);
   // The pelvis rides the height the stance legs allow, sways over the planted foot, drops on the swing side and turns with the stride;
   // the thorax answers against it (figure-construction: contrapposto), so the walk has torsion and not a rigid block.
-  n.body.position.set(shift*.022+w*gait.sway,bodyHeight+w*(gait.H-REST)+.13*(1-1/n.group.scale.y)/* the pavement sits .13 under the origin, in the figure's own scale */-(seated?.46:0)+breath*.003*(1-g),0);
+  n.body.position.set(shift*.022+w*gait.sway,bodyHeight+w*(gait.H-REST)+.13*(1-1/n.group.scale.y)/* the pavement sits .13 under the origin, in the figure's own scale */-(seated?.46-.42*(1/n.group.scale.y-1)/* seated, the seat stays .42 m over the pavement whatever the stature: the spawn sites put a bench, a crate or a step there */:0)+breath*.003*(1-g),0);
   n.body.rotation.set(g*(pr.lean+tired*.05)+w*gp.lean+(1-g)*tired*.06-(activity==='lean'?.07:0)-(activity==='carry'?.08:0)+(seated?-.06:0),-.7*twist+m.turn*.06,shift*.025-.5*roll);
   n.legs.forEach((leg,k)=>{leg.position.y=hipHeight-(seated?.46:0);
     if(seated){leg.position.z=0;leg.rotation.set(-1.42,0,(k?-1:1)*.06);n.knees[k].rotation.x=1.4+(activity==='eat'&&k?Math.sin(phase)*.05:0);n.ankles[k].rotation.x=0;return;}
@@ -169,20 +170,25 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
     if(activity==='eat'){const bite=ease(clamp01(Math.max(0,Math.sin(phase*.9))*1.25)),mug=n.group.userData.upright;sip=bite;
       const nx=n.group.userData.next,lo=nx?.55:0;/* the new head's mouth is about 9 cm lower and the shoulders are set differently: the stroke stops shorter, folds more and comes in with the shoulder width (solved with the sheet's probe(): the hand lands within 2 cm of the mouth's height and about 9 cm off its front, as the old pose does) */n.arms[0].rotation.set(-.4-((mug?1.01:1.24)-lo)*bite,.21*bite,.05+(mug?.3:.49)*bite+(nx?.3+(Math.abs(n.arms[0].position.x)-.233)*3:0)*bite);n.elbows[0].rotation.x=-.8-(mug?.84:.49)*bite-(nx?.7:0)*bite;if(bite>.8)expression='smiling';}}
   const umbrella=n.group.userData.umbrella as T.Object3D|undefined;
-  if(umbrella){umbrella.visible=raining;if(raining){n.arms[1].rotation.set(-.55,0,-.1);n.elbows[1].rotation.x=-1.3;}}
+  const uh=(n.group.userData.umbrellaHand as number|undefined)??1;
+  if(umbrella){umbrella.visible=raining;if(raining){n.arms[uh].rotation.set(-.55,0,uh?-.1:.1);n.elbows[uh].rotation.x=-1.3;}}
   // Secondary motion: damped springs driven by gait, acceleration and turning.
   const near=(player.x-pos.x)**2+(player.z-pos.z)**2;
-  if(!calm&&near<1600){
+  const lively=!calm&&near<1600,follows=!!(n.drape&&!seated);
+  if(lively){
     const tailTarget=-g*.1-clamp01(Math.abs(accel))*Math.sign(accel)*.12+Math.sin(c*2)*.03*g,hairTarget=.08+g*.22-m.turn*.05;
     m.tailV+=((tailTarget-m.tail)*55-m.tailV*8)*dt;m.tail+=m.tailV*dt;m.hairV+=((hairTarget-m.hair)*35-m.hairV*6)*dt;m.hair+=m.hairV*dt;
     n.tails.rotation.set(seated?-1.25:m.tail,0,g*Math.sin(c)*.035-m.turn*.03);n.swing.rotation.set(m.hair,0,Math.sin(c)*.08*g-m.turn*.08);n.scarf.rotation.x=m.tail*.8+Math.sin(phase*2.2)*.02;
-  } else {n.tails.rotation.set(seated?-1.25:0,0,0);n.swing.rotation.set(.05,0,0);n.scarf.rotation.x=0;}
-  // The knee hinge of long cloth (new builder only; the old figures have none): the cloth below the knee hangs from the knees whatever the lap does, and trails a little in a stride.
-  if(n.hem){n.hem.rotation.x=-n.tails.rotation.x*(seated?1:.6);n.hem.scale.z=seated?.45:1;}
+  } else {n.tails.rotation.set(seated?-1.25:follows?n.tails.rotation.x:0,0,0);n.swing.rotation.set(.05,0,0);n.scarf.rotation.x=0;}
+  // The knee hinge of long cloth (new builder only; the old figures have none): seated, the cloth below the knee hangs from the knees whatever the lap does. Standing and walking, the
+  // new builder's long cloth follows the legs (drape.ts, solved below once the legs are placed).
+  if(n.hem&&!follows){n.hem.rotation.x=-n.tails.rotation.x*(seated?1:.6);n.hem.scale.z=seated?.45:1;}
   // Drape. Cloth never lets a leg through: the hem is carried by whichever thigh reaches furthest, front and
   // back together, so a skirt, coat or apron opens into an oval over the stride and closes as the legs pass.
-  if(n.skirt.depth){const reach=seated?0:Math.max(...n.legs.map(leg=>Math.abs(Math.tan(Math.min(1.1,Math.abs(leg.rotation.x))))*n.skirt.drop))+.1,want=Math.max(1,reach/n.skirt.depth);
-    m.drape+=(want-m.drape)*Math.min(1,dt*(want>m.drape?30:9));const open=Math.max(m.drape,want);n.tails.scale.set(1-Math.min(.12,(open-1)*.12),1,open);}
+  if(n.skirt.depth&&!follows){const reach=seated?0:Math.max(...n.legs.map(leg=>Math.abs(Math.tan(Math.min(1.1,Math.abs(leg.rotation.x))))*n.skirt.drop))+.1,want=Math.max(1,reach/n.skirt.depth);
+    m.drape+=(want-m.drape)*Math.min(1,dt*(want>m.drape?30:9));const open=Math.max(m.drape,want);n.tails.scale.set(1-Math.min(.12,(open-1)*.12),1,open);
+    // seated, the cloth above the knee that a walking knee needs is flattened to a lap (the new builder's long cloth keeps its depth for the walk)
+    if(seated&&n.drape)n.tails.scale.z*=Math.min(1,LAP_SEATED/n.drape.lap);}
   // Brief, staggered glances; turns are led by the head.
   const dx=player.x-pos.x,dz=player.z-pos.z,close=dx*dx+dz*dz<14;
   const glance=close&&(phase%mn.glance)<1.35;
@@ -232,6 +238,9 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
   // The thighs keep the line of walk (the foot is not swung round by the pelvis) and the weight-shift tilt keeps the planted feet in place.
   n.legs.forEach(leg=>{hipPoint.set(leg.userData.hipX??=leg.position.x,pelvis,0).applyEuler(n.pelvis.rotation).add(n.pelvis.position);leg.position.copy(hipPoint);
     leg.rotation.y=(1-w)*n.pelvis.rotation.y;if(!seated)leg.rotation.z-=sway/REST;});
+  // Long cloth follows the legs, now they are where they will be drawn: a lifted knee never pierces it, the upper part leads with the knees and the hem trails it with weight
+  // (beyond 40 m it is solved every third frame, and standing still it eases back to plumb).
+  if(follows){if(w>.02){if(lively||(m.cloth.tick=(m.cloth.tick+1)%3)===0){readLegs(n.pelvis,n.tails,n.legs,n.knees,n.ankles);drape(n.drape!,m.cloth,n.tails,n.hem,dt,g,n.tails.rotation.z,lively?m.tail*.6:-g*.06,lively);}}else rest(m.cloth,n.tails,n.hem,dt,n.tails.rotation.z);}
   // Head stabilization: the head cancels torso lean and twist.
   const blend=1-Math.exp(-dt*(occupier?8:4));n.head.rotation.y=T.MathUtils.lerp(n.head.rotation.y,T.MathUtils.clamp(headYaw-n.body.rotation.y,occupier?-.85:-.6,occupier?.85:.6),blend);
   n.head.rotation.x=T.MathUtils.lerp(n.head.rotation.x,pitch-n.body.rotation.x*.8+nod+(speaking?Math.sin(phase*2)*.03:0),blend);
@@ -245,6 +254,8 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
     n.arms[0].rotation.x=p[0];n.arms[0].rotation.z=p[1];n.arms[1].rotation.x=p[2];n.arms[1].rotation.z=p[3];n.elbows[0].rotation.x=p[4];n.elbows[1].rotation.x=p[5]; }
   // A held mug is kept level through whatever the forearm does, and tipped to the lips on a sip (the wrist is the grip socket).
   if(n.group.userData.upright)n.grips[0].rotation.x=-(n.arms[0].rotation.x+n.elbows[0].rotation.x)-.44*sip;
+  // An umbrella's shaft runs through the closed right hand; the wrist keeps it upright over the head.
+  if(umbrella&&raining)n.grips[uh].rotation.set(-(n.arms[uh].rotation.x+n.elbows[uh].rotation.x+n.body.rotation.x),0,-n.arms[uh].rotation.z-n.body.rotation.z);
   // Last word on the face: nobody smiles under the Ordinance's eye, and the Ordinance does not smile at all.
   if(!faceAllowed(n.archetype,expression))expression='cold';else if(!cd.smile&&(expression==='happy'||expression==='smiling'||expression==='hopeful'))expression='neutral';
   // Only the blink and, near the camera, a speaking mouth move between decisions; the Ordinance blinks less.

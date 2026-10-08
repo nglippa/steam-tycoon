@@ -827,6 +827,31 @@ seat. The old figures have no `hem`, and their pose is unchanged. Aprons open le
 than coats do (their drape length is capped at 0.5), and the greatcoat's depth is floored at 0.27
 so it stays a column.
 
+**Rule: a lifted knee never pierces cloth (People XIX).** Long cloth follows the legs (`drape.ts`): each frame the part above the knee turns and opens, and the hem turns and flares about
+the knee, just as far as it takes for every leg ring, the knee and a striding foot to stay inside it, front and side. Above the knee the cloth keeps its depth for the walk (a seated lap is
+flattened back to .19); the hem's top is cut narrow inside the upper part, so its flare never steps out at the knee; an apron over a skirt is built outside the skirt.
+
+**Rule: cloth has weight (People XIX).** The hem trails the upper part on a softer, underdamped spring: it lags, swings past and settles, and it bends at the knee, sideways too. It never turns
+with the lap as one board.
+
+**Rule: an apron's back is designed (People XIX).** Seen from behind, an apron shows its straps and ties over the back garment: a bib's straps cross on the back and meet the band at the
+waist. Every lining faces in (`inward` in `loft.ts`), so the inside of an apron, a skirt or a coat is drawn as cloth, never an empty outline.
+
+**Rule: what is carried at the hip clears the arm (People XIX).** Pouches, the tool roll, the hook and the Ordinance's ledger, truncheon, keys and crossbelt pouch hang in front of the hip
+(about .6 to 1 rad from the centre front), never at the side where the arm hangs and swings; the tool roll hangs upright. No hand or forearm passes through one standing, walking or on guard.
+
+**Rule: nothing stands off the silhouette as a sliver (People XIX).** Ties, tails and straps lie on what they cross (an apron's tie tails on the seat, a headscarf's tails at the nape,
+bib straps on the shirt); a greatcoat's vent is two lapped edges, not a slit; a button sits on its cloth, not half off the edge; an apron's lower half is never cut narrower than its upper.
+
+**Rule: a held thing is in the hand (People XIX).** An umbrella hangs in the free hand's grip socket, its shaft through the closed fist, and the wrist keeps it upright over the head,
+standing or walking; an elder's stick keeps the right hand, so the umbrella goes in the left.
+
+**Rule: nobody sits on air (People XIX).** A seat is .42 m over the pavement whoever sits (stature does not raise it, so a child's feet hang); every seated spawn has a bench, a crate,
+a step or a rim under the pelvis, within a few centimetres (audited in the running game by a ray down from the posed hips).
+
+**Rule: the stride clock runs in the figure's own units (People XIX).** The distance walked is divided by the figure's scale before it drives the gait, so stature never makes a planted
+foot skate; the flat-footed ankle holds within a millimetre or so (tests/walk.test.ts).
+
 ### The bite
 
 The new head's mouth is about 9 cm lower than the old one, so for a figure from the new builder the

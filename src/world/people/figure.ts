@@ -1,5 +1,5 @@
 import * as T from 'three';
-import { loft, sweep, place, plate, offset, ringAt, surface, onFace, type Ring, type SweepPt } from './loft';
+import { loft, sweep, place, plate, offset, ringAt, surface, onFace, shared, inward, type Ring, type SweepPt } from './loft';
 import { dimsOf, CHILD_SCALE, ribcage, pelvis as pelvisRings, neck as neckRings, upperArm, forearm, thigh as thighRings, shin as shinRings, ring, RIG, type Dims } from './body';
 import { paletteOf, type CastId, type Look } from './look';
 import { skull, ear, facialOf, skullRings, CHIN_TO_PIVOT } from './head';
@@ -9,6 +9,7 @@ import { maskOf } from './mask';
 import { hand, foot, put0, strip, seam, around, steps, button, kerchiefBand, kerchiefTails } from './parts';
 import { palette as P } from '../palette';
 import { dress, headgear, WARDROBE, HEM_Y } from './wardrobe';
+import { bands, type Drape, type Garment } from '../drape';
 
 /** The people builder (Terra Character Book 5 and 8): a figure from a resolved Look, on the rig `animateLife` and `gait.ts` are solved against. A body reference (body.ts) that is mostly
  *  never drawn, garments as shells measured from it, the head built as a head (head.ts), hands and shoes (parts.ts). It returns the node set the old `citizen()` returns before its tail. */
@@ -65,7 +66,7 @@ export function buildFigure(look: Look, opts: FigureOpts, kit: Kit) {
   const tails = new T.Group(); tails.position.y = 1.08; pelvisG.add(tails);
   const skirt = { drop: 0, depth: 0 }, hem = new T.Group(); hem.position.y = HEM_Y;
   const worn = new T.Group(); body.add(worn); const finery = new T.Group(); body.add(finery); finery.visible = false;
-  const X = { look, d, k, kit, asym, pal, rib, pel, neckR, dk, lifted, pelLift, body, group, pelvisG, tails, hem, skirt, scarf, worn, finery, skin, brass, neckM, out: { arms, elbows, grips, legs, knees, ankles } };
+  const cloth: Garment[] = [], X = { look, d, k, kit, asym, pal, rib, pel, neckR, dk, lifted, pelLift, body, group, pelvisG, tails, hem, skirt, cloth, scarf, worn, finery, skin, brass, neckM, out: { arms, elbows, grips, legs, knees, ankles } };
   if (fresh) { dress(X); kit.bake(lifted); kit.bake(pelLift); }
   else {
   // ================================================================ torso
@@ -198,7 +199,7 @@ export function buildFigure(look: Look, opts: FigureOpts, kit: Kit) {
   // ================================================================ the scarf, the cloth below the belt, mending and finery
   if (!ordinance) kerchiefTails(scarf, neckM, asym.has('scarfTail'));
   kit.bake(scarf);
-  if (!lab && !fresh) coatSkirt(tails, skirt, d, pel, coatM, g, closed, asym, leather, brass);
+  if (!lab && !fresh) coatSkirt(tails, skirt, cloth, d, pel, coatM, g, closed, asym, leather, brass);
   kit.bake(tails); if (hem.children.length) { kit.bake(hem); tails.add(hem); } // baking merges a group's children away, so the hinge joins its parent after it is baked
   if (!ordinance) put0(worn, plate(lab ? shirtR : coatR, [[1.27, -.9, -.62], [1.2, -.9, -.62]], .0, .004, 3), sw('umber'));
   kit.bake(worn); kit.bake(finery);
@@ -206,18 +207,22 @@ export function buildFigure(look: Look, opts: FigureOpts, kit: Kit) {
   body.position.y -= .14; pelvisG.position.y -= .14; for (const l of legs) l.position.y -= .14;
   group.scale.setScalar(look.stature * (look.family === 'child' ? CHILD_SCALE : 1)); // the child owns its size (body.ts)
   group.traverse(o => { if (o instanceof T.Mesh) o.castShadow = false; });
-  return { group, body, pelvis: pelvisG, legs, knees, ankles, arms, elbows, grips, head, tails, hem: hem.children.length ? hem : undefined, skirt, swing, scarf, worn, finery, face, faceMat };
+  // the long cloth follows the legs (drape.ts): its hinged garments, and the leg's radii with a centimetre of clearance (the trouser, the kneecap plate, the boot)
+  // (an apron over a skirt is built outside it, so the skirt is what the legs must stay inside: a front panel is checked only where it is the only long cloth)
+  const legsIn = cloth.some(c => !c.panel) ? cloth.filter(c => !c.panel) : cloth;
+  const drape: Drape | undefined = cloth.length ? { garments: legsIn, hinge: HEM_Y, thigh: d.thighW / 2 + .014, knee: d.kneeR + .02, calf: d.calfW / 2 + .012, lap: Math.max(...cloth.map(c => { const r = c.up[c.up.length - 1]; return Math.max(r.f + r.z, r.b - r.z); })) } : undefined;
+  return { group, body, pelvis: pelvisG, legs, knees, ankles, arms, elbows, grips, head, tails, hem: hem.children.length ? hem : undefined, drape, skirt, swing, scarf, worn, finery, face, faceMat };
 }
 
 /** The coat's skirts: a shell that hangs from the waist on the PELVIS, flares past the hips to a hem wider than they are and standing off the legs, with a lining so a seated figure is not
  *  hollow, a turned hem, edge facings, flap pockets and the same front opening as the coat above it. */
-function coatSkirt(tails: T.Group, skirt: { drop: number; depth: number }, d: Dims, pel: Ring[], coatM: T.Material, g: { aL: number; aR: number }, closed: boolean, asym: Set<string>, leather: T.Material, brass: T.Material) {
+function coatSkirt(tails: T.Group, skirt: { drop: number; depth: number }, cloth: Garment[], d: Dims, pel: Ring[], coatM: T.Material, g: { aL: number; aR: number }, closed: boolean, asym: Set<string>, leather: T.Material, brass: T.Material) {
   const Y = [1.12, 1.04, .96, .86, .73], base = 1.07, t = (y: number) => (1.12 - y) / (1.12 - .73);
   const Wtop = d.waistW + .052, Whem = 2 * (d.hipX + d.thighW / 2 + .04) + .05, Dtop = d.waistD + d.belly + .05, Dhem = d.hipD + .066 + d.belly * .6;
   const rings: Ring[] = Y.map(y => { const u = t(y), p = ringAt(pel, Math.min(1.13, Math.max(.86, y))), W = Math.max(Wtop + (Whem - Wtop) * Math.sqrt(u), p.w * 2 + .05); return ring(y - base, W, Math.max(Dtop + (Dhem - Dtop) * u, (p.f + p.b) + .062), (p.z ?? 0) + .006 * u, 2.2 + u * .1); });
   const arc = closed ? { start: 0, arc: Math.PI * 2 } : { start: g.aL, arc: Math.PI * 2 - g.aL - g.aR }, lip = .012, dk = JSON.stringify(d);
   put0(tails, loft(rings, { seg: 10, ...arc, lipEnd: lip, lipDepth: .0001, key: `skirt/${dk}/${arc.start}` }), coatM);
-  put0(tails, loft(offset(rings, -lip).slice().reverse(), { seg: 8, ...arc, key: `lining/${dk}/${arc.start}` }), coatM);
+  put0(tails, shared(`lining/${dk}/${arc.start}`, () => inward(loft(offset(rings, -lip), { seg: 8, ...arc }))), coatM); // the lining faces in
   const ys = steps(rings[0].y, rings[4].y, 5);
   if (!closed) for (const a of [g.aL, -g.aR]) put0(tails, seam(rings, ys, () => a, .001, .02, .006), coatM);
   put0(tails, seam(rings, ys, () => Math.PI, .001, .008, .004), coatM);
@@ -226,8 +231,9 @@ function coatSkirt(tails: T.Group, skirt: { drop: number; depth: number }, d: Di
   for (const s of [-1, 1]) button(tails, surface(rings, .02, Math.PI + s * .22, .008), brass, .0075);
   // flap pockets on the hips, and a leather pouch on one of them
   for (const s of [-1, 1]) put0(tails, plate(rings, [[-.065, s * .72, s * 1.18], [-.135, s * .72, s * 1.18]], .0, .007, 5), coatM);
-  if (asym.has('pouchHip')) put0(tails, plate(rings, [[-.05, 1.45, 1.8], [-.17, 1.45, 1.8]], .0, .014, 4), leather);
+  if (asym.has('pouchHip')) put0(tails, plate(rings, [[-.05, 1.95, 2.3], [-.17, 1.95, 2.3]], .0, .014, 4), leather).userData.prop = true; // behind the hip, clear of the swinging arm
   skirt.drop = .2; skirt.depth = .19;
+  cloth.push({ up: bands(rings, lip), lo: [], panel: false }); // one part, above the knee: it follows the thighs (drape.ts)
 }
 
 /** A shirt placket: a strip down the front a little off centre, with its buttons. */

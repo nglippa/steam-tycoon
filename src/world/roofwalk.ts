@@ -132,7 +132,7 @@ export class Roofwalk {
       sign(cont, 'SIGNALLING FORBIDDEN', 'MIRRORS AND LAMPS WILL BE SEIZED', -15.5, BLOCK + .75, W.zS - .12, 1.5, .55, '#cbbf9f').rotation.y = Math.PI;
       { const L = this.search; L.position.set(-17.6, BLOCK + 1.6, 16.4); const aim = new T.Group(); aim.rotation.x = -1.2; L.add(aim); cyl(aim, 0, 0, 0, .3, .5, O.iron); cyl(aim, 0, -.26, 0, .25, .03, mats.glow); lightCone(aim, 2.2, 16).position.y = -.28; }
       // LIBERATED: the works' own flag, a garden in boxes, a table where the post stood, bunting from the loft to the block.
-      const free = st.layer(shown.free); box(free, -17.2, BLOCK + 4.3, 11.2, 1.3, .8, .03, mats.teal); wash(free, [mats.cream, mats.teal, artMats.wine, artMats.ochre]);
+      const free = st.layer(shown.free); crate(free, -19.5, TERRACE, 19.5, .28); /* the mug sitter's crate */ box(free, -17.2, BLOCK + 4.3, 11.2, 1.3, .8, .03, mats.teal); wash(free, [mats.cream, mats.teal, artMats.wine, artMats.ochre]);
       for (const [x, z, ax, m] of [[-21.4, 22.1, true, mats.red], [-18.6, 22.1, true, artMats.ochre], [-13.85, 8.7, false, mats.red], [-13.85, 19.2, false, artMats.ochre], [-20.6, 5.85, true, mats.red]] as const) planter(free, x, TERRACE, z, ax, m);
       box(free, -19.5, TERRACE + .78, 20.4, 1.6, .07, .9, mats.wood); for (const dx of [-.7, .7]) box(free, -19.5 + dx, TERRACE + .39, 20.4, .07, .78, .8, mats.wood); for (const dx of [-.5, .5]) cyl(free, -19.5 + dx, TERRACE + .24, 19.5, .2, .48, mats.wood); for (const dx of [-.3, .2]) cyl(free, -19.5 + dx, TERRACE + .88, 20.4, .05, .1, mats.copper); city.collider(-19.5, 20.4, 1.6, .9, TERRACE + .9, undefined, () => st.phase < 4, TERRACE - .2);
       { const line = cable(free, V(-22.6, 16.6, 7.2), V(-17.9, BLOCK + 3, 11.2), .5); for (let k = 1; k < 9; k++) { const q = line.getPoint(k / 9); box(free, q.x, q.y - .16, q.z, .26, .3, .02, [mats.red, mats.cream, mats.teal, artMats.ochre][k % 4]).rotation.y = .7; } }
@@ -163,7 +163,7 @@ export class Roofwalk {
       city.collider(x + side * .7, z, 1.2, 2.4, 1.1, undefined, () => !this.chartered); p.addWorker(x + side * 1.5, z, yaw, 'browse', { role: 'merchant', when: () => this.chartered }); }
     const c1 = p.addWorker(8.1, 9.6, Math.PI / 2 + .4, 'talk', { role: 'resident', when: () => this.chartered }), c2 = p.addWorker(8.3, 11.3, Math.PI / 2 - .5, 'talk', { role: 'courier', when: () => this.chartered }); p.workers[c1].partner = c2; p.workers[c2].partner = c1;
     bake(this.pennants);
-    p.addWorker(-14.4, 13.4, -Math.PI / 2, 'sit', { y: BLOCK - G, role: 'courier', time: 'night' });
+    p.addWorker(-14.4, 13.4, -Math.PI / 2, 'sit', { y: BLOCK - G + .24, role: 'courier', time: 'night' }); // on the coping, not sunk into it
   }
   sync(research: readonly string[]) { const e = this.city.economy; this.roofs.sync(spacePhase(e.state.sites, 'market'), e.stage); this.governors.visible = research.includes('governors'); this.pennants.visible = this.chartered = research.includes('charter'); }
   update(time: number, calm: boolean) { this.search.rotation.y = 1.57 + Math.sin((calm ? time * .3 : time) * .19) * .8; if (this.governors.visible) for (const a of this.spin) a.rotation.y = time * (calm ? 1.2 : 5); }

@@ -225,7 +225,7 @@ export class Presentation {
     box(g,-25.7,.2,9.3,.7,.35,.4,mats.red);box(g,-25.7,.42,9.3,.5,.08,.25,mats.iron);
     this.addWorker(-25.6,8,-Math.PI/2,'repair',{maxStage:2});this.addWorker(-25.9,8.2,-Math.PI/2,'clipboard',{minStage:3,role:'engineer'});
     // Lunch on the benches.
-    this.addWorker(-7.0,22,Math.PI/2,'eat',{role:'worker',tool:'eat'});this.addWorker(7.0,-6,-Math.PI/2,'sit',{role:'resident',minStage:2});
+    this.addWorker(-7.0,22,Math.PI/2,'eat',{role:'worker',tool:'eat'});this.addWorker(7.0,-7.0,-Math.PI/2,'sit',{role:'resident',minStage:2});/* on the bench at (7.1, -7.4), not past its end */
     // A child and parent watching the airship from Clock Square.
     this.addWorker(3.3,-36.5,Math.PI,'watch',{role:'resident',scale:.72});this.addWorker(4.2,-36.1,Math.PI+.2,'watch',{role:'resident'});
     // The calliope: a street machine that gathers a crowd once Terra recovers.
@@ -235,7 +235,7 @@ export class Presentation {
     this.addWorker(-8.9,-47.9,.4,'valve',{role:'engineer',minStage:2});
     for(const [x,z,yaw] of [[-7.3,-44.6,Math.PI+.25],[-6.3,-45.4,-2.2],[-8.6,-44.5,2.9]] as const)this.addWorker(x,z,yaw,'watch',{minStage:2});
     // Terrace life: two on the benches, a guard at the tower door, a flower seller with trade.
-    for(const a of [.75,3.95]){const bx=Math.sin(a)*7.25,bz=TERRACE.z+Math.cos(a)*7.25;this.addWorker(bx,bz,a+Math.PI,'sit',{y:TERRACE.rise,role:a<2?'resident':'merchant'});}
+    for(const a of [.75,3.95]){const bx=Math.sin(a)*7.4,bz=TERRACE.z+Math.cos(a)*7.4;this.addWorker(bx,bz,a+Math.PI,'sit',{y:TERRACE.rise,role:a<2?'resident':'merchant'});}
     this.addWorker(1.6,-40.9,0,'guard',{y:TERRACE.rise,role:'guard'});
     this.addWorker(6.2,-53.4,-2.2,'browse',{y:TERRACE.rise,role:'merchant',minStage:3});
     // Balconies: residents above the street once homes are cared for.
@@ -270,15 +270,15 @@ export class Presentation {
     this.addWorker(-13.15,17,Math.PI/2,'lean',{role:'courier'});
     this.addWorker(24.85,21,Math.PI/2,'lean',{role:'worker'});
     this.addWorker(-42.6,33,Math.PI/2,'lean',{role:'resident',minStage:1});
-    this.addWorker(-42.4,4.3,Math.PI/2,'sit',{role:'resident'});
-    this.addWorker(-42.4,-19.4,Math.PI/2,'eat',{role:'worker',tool:'eat',minStage:1});
+    this.addWorker(-42.4,4.3,Math.PI/2,'sit',{y:-.02,role:'resident'});/* down onto the bench (2 cm over it) */
+    this.addWorker(-42.4,-19.4,Math.PI/2,'eat',{y:-.03,role:'worker',tool:'eat',minStage:1});/* down onto the bench (3 cm over it) */
     this.addWorker(-42.4,49.6,Math.PI/2,'sit',{role:'resident',scale:.74,minStage:2});
     // Early Terra is poor, not empty: a brazier circle, a blanket seller, a lamp repair and an argument.
     const brazier=new T.Group();brazier.position.set(-40.6,0,12);g.add(brazier);cyl(brazier,0,.45,0,.34,.9,mats.rust);for(const y of [.2,.7])cyl(brazier,0,y,0,.36,.06,mats.iron);cyl(brazier,0,.93,0,.28,.05,artMats.ember);sphere(brazier,0,.98,0,.16,artMats.furnace);
     for(const a of [0,2.1,4.2])this.addWorker(-40.6+Math.sin(a)*.95,12+Math.cos(a)*.95,a+Math.PI,'warm',{maxStage:1,role:a>3?'resident':'worker'});
     this.steamOrigins.push(V(-40.6,1.1,12));
     box(g,-7.9,.1,60.8,1.6,.04,2.2,artMats.wine);for(let k=0;k<5;k++)box(g,-7.6-(k%2)*.5,.22,60.1+k*.35,.28,.22,.24,[mats.copper,mats.iron,artMats.ochre][k%3]);
-    this.addWorker(-8.5,60.9,Math.PI/2,'sit',{maxStage:1,role:'resident'});this.addWorker(-6.6,60.2,-Math.PI/2+.3,'browse',{maxStage:1,role:'worker'});
+    crate(g,-8.5,.05,60.9,.43);this.addWorker(-8.5,60.9,Math.PI/2,'sit',{maxStage:1,role:'resident'});/* on a crate by the rug */this.addWorker(-6.6,60.2,-Math.PI/2+.3,'browse',{maxStage:1,role:'worker'});
     const ladder=new T.Group();ladder.position.set(9.3,0,38);ladder.rotation.z=.2;g.add(ladder);for(const x of [-.25,.25])box(ladder,x,2,0,.06,4,.06,mats.wood);for(let y=.4;y<4;y+=.45)box(ladder,0,y,0,.5,.05,.05,mats.wood);
     this.addWorker(8.9,38.6,Math.PI,'repair',{maxStage:1,y:1.2,role:'worker'});this.addWorker(8.4,37.2,-Math.PI/2+.5,'clipboard',{maxStage:1,role:'engineer'});
     const r1=this.addWorker(-40.6,36.3,.8,'argue',{maxStage:1,role:'resident'});const r2=this.addWorker(-39.7,37.3,-2.4,'argue',{maxStage:1,role:'worker'});this.workers[r1].partner=r2;this.workers[r2].partner=r1;

@@ -22,3 +22,12 @@ test('a planted foot stays put whatever the figure\'s stature: the flat-footed a
     assert.ok(worst < .003, `${label} at ${speed} m/s (stature ${n.group.scale.x.toFixed(3)}): the flat foot's ankle drifts ${(worst * 100).toFixed(2)} cm`);
   }
 });
+
+test('a seated figure\'s seat is at one height whoever sits (the spawn sites put a bench, a crate or a step under it: People XIX)', () => {
+  // the hip joints, seated, above the pavement (which lies .13 under the figure's origin in its own scale): every adult within 2.5 cm of every other
+  const hs: [string, number][] = [];
+  for (const [label, combo, seed] of REPS) { const n = make(combo, seed), player = new T.Vector3(0, 1.7, 25); for (let i = 0; i < 90; i++) animateLife(n, 'sit', 1 / 60, i / 60, false, player); n.group.updateMatrixWorld(true);
+    const hip = n.legs[0].getWorldPosition(new T.Vector3()).y, pave = new T.Vector3(0, -.13, 0).applyMatrix4(n.group.matrixWorld).y; hs.push([label, hip - pave]); }
+  const lo = Math.min(...hs.map(h => h[1])), hi = Math.max(...hs.map(h => h[1]));
+  assert.ok(hi - lo < .025 && lo > .4 && hi < .56, `seated hip heights ${hs.map(([l, h]) => `${l} ${h.toFixed(3)}`).join(', ')}`);
+});
