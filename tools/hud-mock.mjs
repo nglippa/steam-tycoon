@@ -37,7 +37,8 @@ put('ward-name', q.get('ward') || 'THE LOWWORKS'); put('stage', q.get('stage') |
 const band = q.get('band') || 'heavy', tag = $('#ward'); tag.dataset.band = band; put('ward', q.get('tag') || ({ liberated: 'FREE 12%', low: 'LOW 30%', controlled: 'HELD 55%', heavy: 'HEAVY 80%', lockdown: 'LOCKDOWN 100%' })[band]);
 if (q.get('curfew')) { put('curfew', q.get('curfew')); $('#curfew').classList.toggle('on', q.get('curfew') === 'CURFEW'); }
 if (q.get('objective')) put('objective', q.get('objective'));
-if (q.has('pin')) { const p = $('#rb-pin'); p.hidden = false; p.style.transform = 'translate3d(' + (+q.get('pin')) + 'px,0,0)'; if (q.get('side')) p.dataset.side = q.get('side'); }
+if (q.has('pin')) { const p = $('#rb-pin'), half = Math.max(0, $('#hud .tape').clientWidth / 2 - 12), side = q.get('side'); p.hidden = false; if (side) p.dataset.side = side; // parked as interface.ts parks it
+  p.style.transform = 'translate3d(' + (side ? (side === 'l' ? -half : half) : Math.max(-half, Math.min(half, +q.get('pin')))) + 'px,0,0)'; }
 const s = q.get('state') || 'normal';
 for (const c of (q.get('body') || '').split(',').filter(Boolean)) document.body.classList.add(c);
 if (s === 'welcome') { document.body.classList.remove('started', 'playing'); } else $('#welcome').hidden = true;
@@ -56,7 +57,7 @@ const WORST = 'weather=INDUSTRIAL%20FOG&curfew=KNOWN%20TO%20THE%20PATROLS&band=l
 const STATES = [
   ['normal', ''], ['prompt', 'state=prompt'], ['toast', 'state=toast'], ['toast-ward', `state=toast&${WARD}`],
   ['dialogue', 'state=dialogue'], ['curfew-worst', WORST],
-  ['curfew-on', 'curfew=CURFEW&clock=22:30&weather=DRIZZLE'], ['band-liberated', 'band=liberated'], ['band-low', 'band=low'], ['band-controlled', 'band=controlled&pin=60'], ['band-lockdown', 'band=lockdown&pin=200&side=r'],
+  ['curfew-on', 'curfew=CURFEW&clock=22:30&weather=DRIZZLE'], ['band-liberated', 'band=liberated'], ['band-low', 'band=low'], ['band-controlled', 'band=controlled&pin=60'], ['band-lockdown', 'band=lockdown&pin=200&side=r'], ['pin-left', 'clock=23:00&curfew=CURFEW&pin=-200&side=l&heading=40'],
   ['marker-edge', 'state=marker&edge=1&mx=40&my=300'], ['hint-off', 'body=hint-off'], ['ledger', 'state=ledger'], ['pause', 'state=pause'], ['welcome', 'state=welcome'],
   ['long-ward', 'ward=THE%20WEATHERSIDE&band=lockdown&crowns=12.4k&rate=%2B231.9'],
   ['long-objective', 'objective=Build%20toward%20Commerce.%20Every%20commission%20changes%20Terra.&stage=PROSPERITY%202%20/%205%20%C2%B7%20INDUSTRY'],

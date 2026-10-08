@@ -33,7 +33,7 @@ export class Interface {
     <header id="hud">
       <div class="identity">${crest}<b id="ward-name">THE LOWWORKS</b></div>
       <div class="ribbon" role="group" aria-label="Compass, clock and ward">
-        <div class="tape" aria-hidden="true"><div class="strip" id="strip">${COMPASS_LABELS}</div><i class="index"></i><i class="rb-pin" id="rb-pin" hidden></i></div>
+        <div class="tape" aria-hidden="true"><div class="strip" id="strip">${COMPASS_LABELS}</div><i class="index"></i></div><i class="rb-pin" id="rb-pin" hidden aria-hidden="true"></i>
         <div class="meta"><span id="clock">17:16</span><i id="phase" class="phase" data-phase="day" role="img" aria-label="Day" title="Day"></i><span id="curfew"></span><span id="weather">DRIZZLE</span><span class="occupation"><span class="ward-noun">OCCUPATION</span><b id="ward" class="tag" data-band="heavy">HEAVY 80%</b></span></div>
       </div>
       <div class="treasury"><div class="amount"><small>TREASURY</small><span class="coin" aria-hidden="true">♜</span><strong id="crowns">35</strong></div><span class="income"><b id="rate">+0</b> Crowns / sec</span></div>
@@ -173,7 +173,7 @@ export class Interface {
     if (!m.on) { m.on = true; el.hidden = false; pin.hidden = false; }
     const dx = this.aim.x - this.player.position.x, dz = this.aim.z - this.player.position.z, dist = Math.hypot(dx, dz);
     // The ribbon pin: the bearing of the target against the heading, parked at either end when it is round the back.
-    const rel = ((Math.atan2(dx, -dz) * 180 / Math.PI - heading + 540) % 360) - 180, half = Math.max(0, v.rib / 2 - 20), px = Math.max(-half, Math.min(half, rel * K)), side = Math.abs(rel * K) > half ? (rel < 0 ? 'l' : 'r') : '';
+    const rel = ((Math.atan2(dx, -dz) * 180 / Math.PI - heading + 540) % 360) - 180, half = Math.max(0, v.rib / 2 - 12), px = Math.max(-half, Math.min(half, rel * K)), side = Math.abs(rel * K) > half ? (rel < 0 ? 'l' : 'r') : '';
     pin.style.transform = `translate3d(${px}px,0,0)`; if (m.pin !== side) { m.pin = side; if (side) pin.dataset.side = side; else delete pin.dataset.side; }
     // The world marker, in camera space so that "behind" is exact.
     const c = this.cam.copy(this.aim).applyMatrix4(cam.matrixWorldInverse), e = cam.projectionMatrix.elements, front = c.z < -.05; let sx = 0, sy = 0, edge = true;
