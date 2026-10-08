@@ -331,7 +331,8 @@ export function dress(x: X) {
     longShell(rings, { start: 0, arc: Math.PI * 2 }, skirtM, 'stallskirt', .014);
     hemLoft(rings, .006, .008, 'stallhem', c(shade(I('skirt'), .8)));
     skirt.drop = .34; skirt.depth = .34;
-    apron(ap, { hemY: .36, hemW: .5, hemD: .6, aw: .95, bib: true, strapM: tie });
+    apron(ap, { hemY: .36, hemW: .5, hemD: .6, aw: .95, bib: look.outfit !== 'stallholder.shawl', strapM: tie });
+    if (look.outfit === 'stallholder.shawl') shawl(wool(I('scarf')), c(mix(I('scarf'), P.cloth.bone, .5))); // People XX: the shawl outfit
     if (asym.has('pouchHip')) pouch(lifted, offset(rib, .04), 1.06, -1.5, -1.1, leatherM);
     arms({ upM: blouse, off: .017, rolled: () => true });
     legs({ thighM: c(P.cloth.soot), boot: leatherDM, sole: lea(shade(LEATHERD, .7)), heavy: true, turnup: false, top: -.3 });
@@ -375,20 +376,30 @@ export function dress(x: X) {
     arms({ upM: jk, off: .017, shirtCuff: sh, glove, board: valve });
     legs({ thighM: trou, boot: leatherM, sole: lea(shade(LEATHERD, .6)), top: -.08, turnup: false, heavy: false, bootCuff: leatherDM, fit: .005 });
   }
-  if (id === 'olderMechanic') {
+  if (id === 'olderMechanic' && look.outfit !== 'olderMechanic.apron') {
     const coat = c(I('shopCoat')), sh = c(I('shirt')), trou = wool(I('trousers'));
     shirt(sh, { placket: false, collar: true, yoke: false, front: .3 });
     const r = jacket(coat, { closed: true, off: .02, hem: .48, hemW: .54, hemD: .46, curve: 1, buttons: 5, stand: true });
     for (const s of [-1, 1]) put0(tails, plate(r.rings!, [[-.1, s * .6, s * 1.15], [-.24, s * .6, s * 1.15]], .0, .008, 4), coat);
     put0(lifted, plate(r.cR, [[1.3, -1.25, -.8], [1.22, -1.25, -.8]], .0, .007, 3), coat);
     if (asym.has('ragBelt')) put0(tails, sweep([0, .3, .6, 1].map(t => ({ p: [.15 + t * .01, -.04 - t * .22, r.rings![0].f + .03] as Pt, a: .025, b: .004, n: [0, 0, 1] as Pt })), { seg: 4, capStart: true, capEnd: true }), c(P.cloth.bone));
-    arms({ upM: coat, off: .019, shirtCuff: sh });
+    arms({ upM: coat, off: .019, shirtCuff: sh, rolled: () => true });
+    legs({ thighM: trou, boot: leatherDM, sole: lea(shade(LEATHERD, .7)), top: -.34, turnup: true });
+  }
+  if (id === 'olderMechanic' && look.outfit === 'olderMechanic.apron') { // People XX: shirt sleeves rolled and a light canvas work apron to the shin, a rule in the bib pocket
+    const apM = c(I('shopCoat')), sh = c(I('shirt')), trou = wool(I('trousers'));
+    shirt(sh, { placket: true, collar: true }); belt(leatherDM, 1.07, .036, .018);
+    apron(apM, { hemY: .34, hemW: .5, hemD: .52, aw: .9, bib: true, strapM: leatherDM });
+    { const q = surface(offset(rib, .024), 1.36, .3, .004); put0(lifted, new T.Mesh(new T.BoxGeometry(.012, .09, .006)).geometry, steel, q.p.toArray() as Pt); }
+    if (asym.has('ragBelt')) put0(lifted, sweep([0, .3, .6, 1].map(t => { const q = surface(offset(rib, .04), 1.06, -1.0, .004); return { p: [q.p.x - t * .012, q.p.y - t * .2, q.p.z + .004 + t * .02] as Pt, a: .024, b: .004, n: [0, 0, 1] as Pt }; }), { seg: 4, capStart: true, capEnd: true }), c(P.cloth.bone));
+    arms({ upM: sh, off: .012, rolled: () => true });
     legs({ thighM: trou, boot: leatherDM, sole: lea(shade(LEATHERD, .7)), top: -.34, turnup: true });
   }
   if (id === 'courier') {
     const jk = wool(I('jacket')), sh = c(I('shirt')), trou = wool(I('trousers')), bag = lea(I('satchel')), strapSide = asym.has('satchelStrap') ? -1 : 1;
-    shirt(sh, { placket: true, collar: true, yoke: false, front: .8 });
-    const r = jacket(jk, { off: .02, aL: .2, aR: .2, hem: .88, hemW: .4, hemD: .32, buttons: 3, lapel: false });
+    const cut = look.outfit === 'courier.coat' ? 'coat' : look.outfit === 'courier.vest' ? 'vest' : 'jacket'; // People XX: a short jacket, a buttoned coat to mid-thigh, or shirt sleeves and a waistcoat
+    shirt(sh, { placket: true, collar: true, yoke: false, front: cut === 'vest' ? undefined : .8 });
+    const r = cut === 'vest' ? { cR: waistcoat(jk, { buttons: 4 }), rings: undefined } : jacket(jk, cut === 'coat' ? { off: .02, closed: true, hem: .64, hemW: .46, hemD: .36, buttons: 4, stand: true } : { off: .02, aL: .2, aR: .2, hem: .88, hemW: .4, hemD: .32, buttons: 3, lapel: false });
     belt(leatherDM, 1.06, .045);
     // the satchel strap wraps the jacket's own surface: over the shoulder, across the chest, round the side to the bag on the opposite hip
     const sd = strapSide, pts: SweepPt[] = [[1.52, sd * 1.35], [1.46, sd * .85], [1.38, sd * .42], [1.28, -sd * .05], [1.18, -sd * .6], [1.08, -sd * 1.05], [1.0, -sd * 1.5]].map(([y, a]) => { const q = surface(r.cR, y, a, .008); return { p: q.p.toArray() as Pt, a: .02, b: .005, n: q.n.toArray() as Pt }; });
@@ -400,7 +411,7 @@ export function dress(x: X) {
     put0(bg, loft([{ y: -.1, w: .115, f: .045, b: .045, n: 2.6 }, { y: 0, w: .125, f: .052, b: .052, n: 2.6 }, { y: .1, w: .12, f: .048, b: .048, n: 2.6 }], { seg: 10, capStart: 'flat', capEnd: 'flat', key: key('bag') }), bag, [0, -.04, .05]);
     put0(bg, plate([{ y: .1, w: .125, f: .05, b: .05, z: .05, n: 2.6 }, { y: -.0, w: .13, f: .056, b: .056, z: .05, n: 2.6 }], [[.1, -1.1, 1.1], [.0, -1.15, 1.15], [-.04, -.7, .7]], .0, .008, 6), edgeM, [0, -.04, 0]);
     put0(bg, new T.Mesh(new T.BoxGeometry(.03, .026, .008), brass).geometry, brass, [0, -.07, .112]); }
-    arms({ upM: jk, off: .017, shirtCuff: sh });
+    arms(cut === 'vest' ? { upM: sh, off: .011, rolled: () => true } : { upM: jk, off: .017, shirtCuff: sh });
     legs({ thighM: trou, boot: leatherM, sole: lea(shade(LEATHERD, .55)), heavy: true, top: -.22, turnup: false, fit: .004, bootCuff: leatherDM });
   }
   if (id === 'child') {

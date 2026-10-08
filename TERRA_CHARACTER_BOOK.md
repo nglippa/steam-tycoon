@@ -736,6 +736,23 @@ Rules:
 - Identical twins are a bug, unless authored.
 - The whitelists are data, in one place, and are covered by a test (section 14).
 
+### Variation minimums
+
+Measured as QA II measured them (seeds 0 to 19 of each street archetype under the street's cast
+weights, 100 figures) and held by `tests/variation.test.ts`:
+
+- **Outfits:** every street archetype has at least three authored outfits, and every street outfit
+  at least three palettes from the cloth swatches. A new outfit is a different garment (the
+  courier's buttoned coat to mid-thigh, or shirt sleeves and a waistcoat; the stallholder's shawl
+  over a bibless apron; the older mechanic's canvas work apron), never a recolour.
+- **Neighbours:** outfit and palette are drawn as one combination, and neighbouring seeds (the spawn
+  order) draw from alternate halves of the cast's combinations, so two of a cast side by side never
+  match; at most 10 of the 95 neighbouring pairs of the QA rows may share an outfit and palette
+  (People XX: 0, from 30). The Ordinance keeps its one uniform.
+- **Faces:** at least 40 distinct faces (skin, head shape, face row) in every hundred (People XX: 56,
+  from 21). All eight atlas rows are dealt, six to each head shape, and the face is drawn from the
+  seed mixed with the cast, so one seed is never the same face in every cast.
+
 ---
 
 ## 12. Animation

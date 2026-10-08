@@ -33,8 +33,9 @@ export interface Cast {
   /** the face rows this cast is drawn from, where it narrows the head shape's rows (the older mechanic's heavier brows) */ faceRows?: readonly number[];
 }
 
-/** Faces are rows of the atlas. Rows 2 (teal), 3 (violet) and 7 (red) carry irises the Book forbids; they stay out of every table until the atlas is repainted. */
-export const FACE_ROWS: Record<HeadShape, readonly number[]> = { oval: [0, 1, 5], square: [4, 6, 0], long: [4, 5, 1], heart: [1, 5, 6] };
+/** Faces are rows of the atlas. The new builder's atlas (citizens.ts `faceTypesNext`) paints all eight rows with the Book's irises, so every row is dealt: six to each head shape, the hooked
+ *  nose and the heavier brows (2, 4, 6) to the square and long heads, the button and dot noses (1, 3, 5, 7) to the oval and heart. */
+export const FACE_ROWS: Record<HeadShape, readonly number[]> = { oval: [0, 1, 5, 3, 7, 2], square: [4, 6, 0, 2, 7, 3], long: [4, 5, 1, 2, 6, 7], heart: [1, 5, 6, 3, 0, 7] };
 /** Which hair a hat leaves room for. A hat never sits on a full head of hair (Book 7). */
 export const HAT_HAIR: Record<Hat, readonly HairStyle[]> = {
   none: ['shortCrop', 'sidePart', 'sweptBack', 'tousled', 'bob', 'lowBun', 'highKnot', 'ponytail', 'longTied', 'balding'],
@@ -54,35 +55,39 @@ export const CASTS: Record<CastId, Cast> = {
       o('rowCoat.closed', { ash: ['charcoal', 'stone', 'navy', 'charcoal', 'mustard'], oxblood: ['oxblood', 'canvas', 'slate', 'umber', 'stone'], stone: ['stone', 'umber', 'navy', 'stone', 'oxblood'] })] },
   rowSkirt: { id: 'rowSkirt', archetype: 'resident', families: ['slim', 'standard'], frames: ['narrow'], headShapes: allShapes, hair: ['lowBun', 'bob', 'ponytail', 'highKnot', 'longTied'], hairColours: young, hats: ['none', 'headscarf'], facial: [['none', 1]],
     slots: ['shawl', 'bodice', 'skirt', 'scarf'], asymmetries: ['scarfTail', 'pouchHip', 'apronTie'],
-    outfits: [o('rowSkirt.shawl', { ash: ['slate', 'bone', 'umber', 'greyGreen'], plum: ['oxblood', 'cream', 'charcoal', 'bone'] }), o('rowSkirt.plain', { moss: ['greyGreen', 'bone', 'umber', 'mustard'], umber: ['umber', 'cream', 'slate', 'oxblood'] })] },
+    outfits: [o('rowSkirt.shawl', { ash: ['slate', 'bone', 'umber', 'greyGreen'], plum: ['oxblood', 'cream', 'charcoal', 'bone'], ochre: ['mustard', 'cream', 'umber', 'slate'] }), o('rowSkirt.plain', { moss: ['greyGreen', 'bone', 'umber', 'mustard'], umber: ['umber', 'cream', 'slate', 'oxblood'], slate: ['slate', 'bone', 'charcoal', 'rust'] })] },
   elder: { id: 'elder', archetype: 'resident', families: ['slim'], frames: ['broad', 'narrow'], headShapes: ['oval', 'long', 'square'], hair: ['balding', 'shortCrop', 'lowBun', 'sidePart'], hairColours: aged, hats: ['elderHat', 'softCap', 'none'], facial: [['none', 4], ['moustache', 2], ['beard', 1]], elder: true,
     slots: ['coat', 'waistcoat', 'trousers', 'hat'], asymmetries: ['stick', 'basket', 'scarfTail'],
-    outfits: [o('elder.longCoat', { ash: ['charcoal', 'stone', 'stone', 'charcoal'], umber: ['umber', 'bone', 'slate', 'umber'] })] },
+    outfits: [o('elder.longCoat', { ash: ['charcoal', 'stone', 'stone', 'charcoal'], umber: ['umber', 'bone', 'slate', 'umber'], moss: ['greyGreen', 'bone', 'umber', 'greyGreen'] })] },
   affluent: { id: 'affluent', archetype: 'resident', families: ['slim', 'standard'], frames: ['broad', 'narrow'], headShapes: ['oval', 'long', 'heart'], hair: ['sweptBack', 'sidePart', 'lowBun', 'highKnot'], hairColours: young, hats: ['topHat', 'bonnet'], facial: [['none', 1]],
     slots: ['frock', 'waistcoat', 'trousers', 'hat', 'trim'], asymmetries: ['watchChain', 'unevenFront'],
-    outfits: [o('affluent.frock', { oxblood: ['burgundy', 'cream', 'slate', 'soot', 'mustard'], navy: ['navy', 'bone', 'stone', 'soot', 'ochre'] })] },
+    outfits: [o('affluent.frock', { oxblood: ['burgundy', 'cream', 'slate', 'soot', 'mustard'], navy: ['navy', 'bone', 'stone', 'soot', 'ochre'], moss: ['greyGreen', 'cream', 'charcoal', 'soot', 'ochre'] })] },
   stallholder: { id: 'stallholder', archetype: 'merchant', families: ['standard', 'sturdy'], frames: ['broad', 'narrow'], headShapes: allShapes, hair: ['lowBun', 'bob', 'tousled'], hairColours: young, hats: ['headscarf', 'none'], facial: [['none', 1]],
     slots: ['blouse', 'skirt', 'apron', 'scarf'], asymmetries: ['apronTie', 'pouchHip', 'scarfTail'],
-    outfits: [o('stallholder.apron', { ochre: ['cream', 'ochre', 'canvas', 'burgundy'], wine: ['bone', 'burgundy', 'stone', 'mustard'] })] },
+    outfits: [o('stallholder.apron', { ochre: ['cream', 'ochre', 'canvas', 'burgundy'], wine: ['bone', 'burgundy', 'stone', 'mustard'], slate: ['bone', 'slate', 'canvas', 'oxblood'] }),
+      o('stallholder.shawl', { moss: ['cream', 'greyGreen', 'bone', 'umber'], rust: ['bone', 'rust', 'canvas', 'slate'], navy: ['cream', 'navy', 'stone', 'mustard'] })] },
   shopMerchant: { id: 'shopMerchant', archetype: 'merchant', families: ['standard', 'sturdy'], frames: ['broad', 'narrow'], headShapes: allShapes, hair: ['sidePart', 'shortCrop', 'balding'], hairColours: mid, hats: ['bowler', 'none'], facial: [['none', 4], ['sideburns', 1]],
     slots: ['waistcoat', 'shirt', 'trousers', 'apron', 'hat'], asymmetries: ['watchChain', 'pencilEar', 'sleeveGarters'],
-    outfits: [o('shopMerchant.waistcoat', { wine: ['burgundy', 'cream', 'charcoal', 'greyGreen', 'soot'], ochre: ['mustard', 'bone', 'navy', 'slate', 'charcoal'] })] },
+    outfits: [o('shopMerchant.waistcoat', { wine: ['burgundy', 'cream', 'charcoal', 'greyGreen', 'soot'], ochre: ['mustard', 'bone', 'navy', 'slate', 'charcoal'], slate: ['slate', 'cream', 'umber', 'canvas', 'soot'] })] },
   labourer: { id: 'labourer', archetype: 'worker', families: ['sturdy', 'standard'], frames: ['broad'], headShapes: allShapes, hair: ['shortCrop', 'tousled', 'sidePart'], hairColours: young, hats: ['flatCap', 'none', 'softCap'], facial: [['none', 4], ['sideburns', 1]],
     slots: ['shirt', 'trousers', 'braces', 'cap', 'kerchief'], asymmetries: ['pouchHip', 'ragBelt', 'braceDown'], story: ['leatherApron', 'hook'],
     outfits: [o('labourer.braced', { dust: ['canvas', 'umber', 'leatherDark', 'slate', 'rust'], soot: ['stone', 'charcoal', 'leatherDark', 'soot', 'oxblood'], moss: ['greyGreen', 'stone', 'leather', 'umber', 'mustard'] }),
-      o('labourer.vested', { umber: ['bone', 'rust', 'oxblood', 'umber', 'greyGreen'], grey: ['canvas', 'slate', 'charcoal', 'stone', 'rust'] })] },
+      o('labourer.vested', { umber: ['bone', 'rust', 'oxblood', 'umber', 'greyGreen'], grey: ['canvas', 'slate', 'charcoal', 'stone', 'rust'], ochre: ['cream', 'umber', 'ochre', 'charcoal', 'oxblood'] })] },
   foundry: { id: 'foundry', archetype: 'worker', families: ['sturdy'], frames: ['broad', 'narrow'], headShapes: ['square', 'oval', 'long'], hair: ['shortCrop', 'tousled', 'balding'], hairColours: young, hats: ['kerchief', 'none'], facial: [['none', 4], ['sideburns', 1]],
     slots: ['shirt', 'trousers', 'apron', 'kerchief'], asymmetries: ['gogglesUp', 'pouchHip'],
-    outfits: [o('foundry.apron', { soot: ['charcoal', 'rust', 'leather', 'rust'], umber: ['umber', 'greyGreen', 'leatherDark', 'oxblood'] })] },
+    outfits: [o('foundry.apron', { soot: ['charcoal', 'rust', 'leather', 'rust'], umber: ['umber', 'greyGreen', 'leatherDark', 'oxblood'], grey: ['stone', 'charcoal', 'leather', 'slate'] })] },
   youngMechanic: { id: 'youngMechanic', archetype: 'engineer', families: ['slim', 'standard'], frames: ['broad', 'narrow'], headShapes: allShapes, hair: ['tousled', 'sweptBack', 'shortCrop', 'ponytail'], hairColours: young, hats: ['softCap', 'none'], facial: [['none', 4], ['sideburns', 1]],
     slots: ['jacket', 'shirt', 'trousers', 'roll', 'cap'], asymmetries: ['toolRoll', 'gogglesUp', 'ragBelt'], story: ['valveSleeve'],
-    outfits: [o('youngMechanic.jacket', { slate: ['slate', 'bone', 'canvas', 'leather', 'slate'], moss: ['greyGreen', 'cream', 'umber', 'leatherDark', 'greyGreen'] })] },
+    outfits: [o('youngMechanic.jacket', { slate: ['slate', 'bone', 'canvas', 'leather', 'slate'], moss: ['greyGreen', 'cream', 'umber', 'leatherDark', 'greyGreen'], umber: ['umber', 'bone', 'charcoal', 'leatherDark', 'umber'] })] },
   olderMechanic: { id: 'olderMechanic', archetype: 'engineer', families: ['standard', 'sturdy'], frames: ['broad', 'narrow'], headShapes: allShapes, hair: ['balding', 'shortCrop', 'sidePart'], hairColours: ['iron'], hats: ['flatCap', 'none'], facial: [['moustache', 5], ['beard', 1], ['none', 1]], faceRows: [2, 4, 6],
     slots: ['shopCoat', 'shirt', 'trousers', 'cap'], asymmetries: ['spectacles', 'pencilEar', 'ragBelt'],
-    outfits: [o('olderMechanic.shopCoat', { canvas: ['canvas', 'bone', 'greenCharcoal', 'umber'], slate: ['slate', 'cream', 'navy', 'slate'] })] },
+    outfits: [o('olderMechanic.shopCoat', { canvas: ['canvas', 'bone', 'greenCharcoal', 'umber'], stone: ['stone', 'cream', 'navy', 'umber'], bone: ['bone', 'cream', 'umber', 'leather'] }),
+      o('olderMechanic.apron', { canvas: ['canvas', 'bone', 'charcoal', 'umber'], bone: ['bone', 'cream', 'navy', 'slate'], stone: ['stone', 'cream', 'umber', 'greenCharcoal'] })] },
   courier: { id: 'courier', archetype: 'courier', families: ['slim'], frames: ['broad', 'narrow'], headShapes: allShapes, hair: ['shortCrop', 'tousled', 'ponytail', 'bob'], hairColours: young, hats: ['softCap'], facial: [['none', 1]],
     slots: ['jacket', 'shirt', 'trousers', 'satchel', 'scarf', 'cap'], asymmetries: ['satchelStrap', 'scarfTail'], story: ['threadStrap', 'noSatchel', 'scarfUp'],
-    outfits: [o('courier.jacket', { oxblood: ['oxblood', 'bone', 'greyGreen', 'leather', 'mustard', 'umber'], slate: ['slate', 'cream', 'umber', 'leather', 'oxblood', 'slate'] })] },
+    outfits: [o('courier.jacket', { oxblood: ['oxblood', 'bone', 'greyGreen', 'leather', 'mustard', 'umber'], slate: ['slate', 'cream', 'umber', 'leather', 'oxblood', 'slate'], moss: ['greyGreen', 'bone', 'umber', 'leather', 'oxblood', 'greyGreen'] }),
+      o('courier.coat', { umber: ['umber', 'cream', 'slate', 'leatherDark', 'mustard', 'umber'], navy: ['navy', 'bone', 'charcoal', 'leather', 'rust', 'navy'], rust: ['rust', 'bone', 'charcoal', 'leather', 'slate', 'charcoal'] }),
+      o('courier.vest', { mustard: ['mustard', 'cream', 'umber', 'leather', 'slate', 'umber'], stone: ['stone', 'bone', 'navy', 'leatherDark', 'oxblood', 'slate'], moss: ['greyGreen', 'cream', 'charcoal', 'leather', 'mustard', 'greyGreen'] })] },
   garrison: { id: 'garrison', archetype: 'guard', families: ['standard', 'sturdy'], frames: ['broad'], headShapes: ['square', 'oval', 'long'], hair: ['shortCrop'], hairColours: mid, hats: ['kepi'], facial: [['none', 4], ['moustache', 1], ['sideburns', 1]],
     slots: ['greatcoat', 'trousers', 'crossbelt', 'kepi'], asymmetries: ['crossbelt'],
     outfits: [o('garrison.greatcoat', { ordinance: ['greenCharcoal', 'soot', 'leatherDark', 'greenCharcoal'] })] },
@@ -108,6 +113,8 @@ export function hash(seed: number, stream: number): number {
 const unit = (seed: number, stream: number) => hash(seed, stream) / 4294967296;
 const pick = <T>(list: readonly T[], seed: number, stream: number): T => list[Math.floor(unit(seed, stream) * list.length)];
 const weighted = <T>(list: readonly (readonly [T, number])[], seed: number, stream: number): T => { const total = list.reduce((a, [, w]) => a + w, 0); let r = unit(seed, stream) * total; for (const [v, w] of list) { r -= w; if (r < 0) return v; } return list[list.length - 1][0]; };
+/** Every cast's place in the table: mixed into the face's streams, so one seed is a different face in every cast. */
+const CAST_N: Record<string, number> = {};
 /** The stream numbers, one per step of Book 11. */
 const S = { cast: 1, family: 2, frame: 3, stature: 4, skin: 5, shape: 6, face: 7, hat: 8, hair: 9, hairColour: 10, facial: 11, outfit: 12, palette: 13, asym: 14, asymCount: 15 } as const;
 
@@ -140,10 +147,15 @@ export function resolveLook(seed: number, archetype: Archetype, opts: LookOpts =
   const pool = ARCHETYPE_CASTS[archetype].filter(([c]) => !opts.casts || opts.casts.includes(c));
   const cast = CASTS[opts.cast ?? weighted(pool.length ? pool : ARCHETYPE_CASTS[archetype], seed, S.cast)];
   const family = opts.family ?? pick(cast.families, seed, S.family), frame = opts.frame ?? pick(cast.frames, seed, S.frame);
-  const stature = Math.round((.96 + .08 * unit(seed, S.stature)) * 1000) / 1000, skin = Math.floor(unit(seed, S.skin) * 3) as 0 | 1 | 2;
-  const headShape = pick(cast.headShapes, seed, S.shape), rows = FACE_ROWS[headShape].filter(r => !cast.faceRows || cast.faceRows.includes(r)), faceType = pick(rows.length ? rows : FACE_ROWS[headShape], seed, S.face);
+  // the face is drawn from the seed mixed with the cast (Book 11, "Variation"): never a function of the seed alone, so the same seed is a different person in every cast
+  const fs = hash(seed, 1000 + (CAST_N[cast.id] ??= Object.keys(CASTS).indexOf(cast.id)));
+  const stature = Math.round((.96 + .08 * unit(seed, S.stature)) * 1000) / 1000, skin = Math.floor(unit(fs, S.skin) * 3) as 0 | 1 | 2;
+  const headShape = pick(cast.headShapes, fs, S.shape), rows = FACE_ROWS[headShape].filter(r => !cast.faceRows || cast.faceRows.includes(r)), faceType = pick(rows.length ? rows : FACE_ROWS[headShape], fs, S.face);
   const hat = pick(cast.hats, seed, S.hat), hairStyle = pick(cast.hair.filter(h => HAT_HAIR[hat].includes(h)), seed, S.hair), hairColour = pick(cast.hairColours, seed, S.hairColour);
-  const facial = weighted(cast.facial, seed, S.facial), outfit = pick(cast.outfits, seed, S.outfit), pal = pick(Object.keys(outfit.palettes), seed, S.palette);
+  // outfit and palette are one authored combination, and neighbouring seeds (the spawn order) draw from alternate halves of the cast's combinations, so two of a cast side by side never
+  // wear the same outfit in the same colours (Book 11)
+  const combos = cast.outfits.flatMap(o2 => Object.keys(o2.palettes).map(p => [o2, p] as const)), half = combos.filter((_, i) => i % 2 === (seed & 1));
+  const facial = weighted(cast.facial, seed, S.facial), [outfit, pal] = pick(half.length ? half : combos, seed, S.outfit);
   const n = Math.min(cast.asymmetries.length, 1 + Math.floor(unit(seed, S.asymCount) * 2)), pool2 = [...cast.asymmetries], asymmetries: string[] = [];
   for (let i = 0; i < n; i++) asymmetries.push(pool2.splice(Math.floor(unit(seed, S.asym + 100 * i) * pool2.length), 1)[0]);
   return { cast: cast.id, family, frame, stature, skin, headShape, faceType, hairStyle, hairColour, hat, facial, outfit: outfit.id, palette: pal, asymmetries };
