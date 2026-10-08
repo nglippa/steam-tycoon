@@ -33,6 +33,18 @@ test('no point of a walker\'s sole goes into the pavement at any phase of the st
   }
 });
 
+test('no point of a standing figure\'s sole goes into the pavement: the free foot rests on its toe, and nothing sinks as a walk starts or stops', () => {
+  // People XXII: standing, the free knee bends up to .19 rad and its foot pitched toe down with the shin, the toe 2.8-5.5 cm into the pavement; the weighted foot was 7-10 mm in (the rest hip
+  // height is 7 mm short of a straight leg and its sole, and the breath bobbed the feet). Over a whole weight shift (40 s at 15 Hz), then a start to 1 m/s and a stop, every representative.
+  const v = new T.Vector3();
+  for (const [label, combo, seed] of REPS) { const n = make(combo, seed), player = new T.Vector3(0, 1.7, 25), dt = 1 / 60; let z = 0, low = 9, at = '';
+    for (let i = 0; i < 60 * 50; i++) { const t = i * dt, sp = t < 40 ? 0 : t < 46 ? Math.min(1, (t - 40) * 2, (46 - t) * 2) : 0; z += sp * dt; n.group.position.set(0, 0, z); animateLife(n, 'walk', dt, t, false, player);
+      if (i < 60 || (t < 40 && i % 4)) continue; n.group.updateMatrixWorld(true); const pave = n.group.position.y - .13;
+      n.ankles.forEach(a => a.traverse(o => { if (!(o instanceof T.Mesh)) return; const pa = o.geometry.attributes.position; for (let j = 0; j < pa.count; j++) { v.fromBufferAttribute(pa, j).applyMatrix4(o.matrixWorld); if (v.y - pave < low) { low = v.y - pave; at = `${t < 40 ? 'standing' : 'starting or stopping'}, ${t.toFixed(2)} s`; } } })); }
+    assert.ok(low >= -.002, `${label}: a sole goes ${(-low * 100).toFixed(2)} cm into the pavement (${at})`);
+  }
+});
+
 test('a seated figure\'s seat is at one height whoever sits (the spawn sites put a bench, a crate or a step under it: People XIX)', () => {
   // the hip joints, seated, above the pavement (which lies .13 under the figure's origin in its own scale): every adult within 2.5 cm of every other
   const hs: [string, number][] = [];

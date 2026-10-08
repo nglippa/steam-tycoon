@@ -853,6 +853,10 @@ standing or walking; an elder's stick keeps the right hand, so the umbrella goes
 **Rule: nobody sits on air (People XIX).** A seat is .42 m over the pavement whoever sits (stature does not raise it, so a child's feet hang); every seated spawn has a bench, a crate,
 a step or a rim under the pelvis, within a few centimetres (audited in the running game by a ray down from the posed hips).
 
+**Rule: a standing foot is on the pavement (People XXII).** Standing, the free foot rests on its toe with the heel up, and the weighted foot is flat on the pavement: `citizen-life.ts`
+`standFeet` raises the figure by whatever a flat weighted sole is under it (the rest hip height is 7 mm short of a straight leg and its sole) and turns each ankle just far enough that no
+edge of its sole goes under. The breath's bob fades with the stand, not the walk. Within 2 mm standing, starting and stopping (tests/walk.test.ts).
+
 **Rule: the stride clock runs in the figure's own units (People XIX).** The distance walked is divided by the figure's scale before it drives the gait, so stature never makes a planted
 foot skate; the flat-footed ankle holds within a millimetre or so (tests/walk.test.ts).
 

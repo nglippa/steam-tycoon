@@ -1,7 +1,7 @@
 import * as T from 'three';
 import type { Citizen, Expression } from './citizens';
 import type { Archetype } from './palette';
-import { walk, advance, MIN, pose, legZ, STANCE, REST, type Params } from '../simulation/gait';
+import { walk, advance, MIN, pose, legZ, STANCE, REST, SOLE, HEEL_X, TOE_X, type Params } from '../simulation/gait';
 import { drape, readLegs, rest, drapeSplit, restSplit, holdSplit, LAP_SEATED } from './drape';
 import { isOccupier, conduct, bodyFor, faceAllowed, moodOfTone, stepMood, nearBand, type Trait, type MoodIn } from '../simulation/occupation';
 export type Activity='talk'|'browse'|'guard'|'carry'|'walk'|'read'|'hammer'|'sweep'|'warm'|'gauge'|'valve'|'argue'|'sit'|'eat'|'lean'|'watch'|'clipboard'|'repair';
@@ -109,7 +109,7 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
   const shift=Math.tanh(3*Math.sin(phase*.21+n.phase))*(1-g)*(occupier&&mn.trait!=='bored'?.4:1);
   // The pelvis rides the height the stance legs allow, sways over the planted foot, drops on the swing side and turns with the stride;
   // the thorax answers against it (figure-construction: contrapposto), so the walk has torsion and not a rigid block.
-  n.body.position.set(shift*.022+w*gait.sway,bodyHeight+w*(gait.H-REST)+.13*(1-1/n.group.scale.y)/* the pavement sits .13 under the origin, in the figure's own scale */-(seated?.46-.42*(1/n.group.scale.y-1)/* seated, the seat stays .42 m over the pavement whatever the stature: the spawn sites put a bench, a crate or a step there */:0)+breath*.003*(1-g),0);
+  n.body.position.set(shift*.022+w*gait.sway,bodyHeight+w*(gait.H-REST)+.13*(1-1/n.group.scale.y)/* the pavement sits .13 under the origin, in the figure's own scale */-(seated?.46-.42*(1/n.group.scale.y-1)/* seated, the seat stays .42 m over the pavement whatever the stature: the spawn sites put a bench, a crate or a step there */:0)+breath*.003*(1-w),0);
   n.body.rotation.set(g*(pr.lean+tired*.05)+w*gp.lean+(1-g)*tired*.06-(activity==='lean'?.07:0)-(activity==='carry'?.08:0)+(seated?-.06:0),-.7*twist+m.turn*.06,shift*.025-.5*roll);
   n.legs.forEach((leg,k)=>{leg.position.y=hipHeight-(seated?.46:0);
     if(seated){leg.position.z=0;leg.rotation.set(-1.42,0,(k?-1:1)*.06);n.knees[k].rotation.x=1.4+(activity==='eat'&&k?Math.sin(phase)*.05:0);n.ankles[k].rotation.x=0;return;}
@@ -240,6 +240,7 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
   // The thighs keep the line of walk (the foot is not swung round by the pelvis) and the weight-shift tilt keeps the planted feet in place.
   n.legs.forEach(leg=>{hipPoint.set(leg.userData.hipX??=leg.position.x,pelvis,0).applyEuler(n.pelvis.rotation).add(n.pelvis.position);leg.position.copy(hipPoint);
     leg.rotation.y=(1-w)*n.pelvis.rotation.y;if(!seated)leg.rotation.z-=sway/REST;});
+  if(!seated&&g<.6){const up=standFeet(n);n.body.position.y+=up;n.pelvis.position.y+=up;for(const leg of n.legs)leg.position.y+=up;}
   // Long cloth follows the legs, now they are where they will be drawn: a lifted knee never pierces it, the upper part leads with the knees and the hem trails it with weight
   // (beyond 40 m it is solved every third frame, and standing still it eases back to plumb).
   if(follows){if(w>.02){if(lively||(m.cloth.tick=(m.cloth.tick+1)%3)===0){readLegs(n.pelvis,n.tails,n.legs,n.knees,n.ankles);drape(n.drape!,m.cloth,n.tails,n.hem,dt,g,n.tails.rotation.z,lively?m.tail*.6:-g*.06,lively);drapeSplit(n.drape!,n.tails,dt,g,lively);}}else{rest(m.cloth,n.tails,n.hem,dt,n.tails.rotation.z);restSplit(n.drape!,dt);}}
@@ -263,6 +264,22 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
   // Only the blink and, near the camera, a speaking mouth move between decisions; the Ordinance blinks less.
   n.setExpression(expression,(phase%(occupier?6.3:4.7))<.13,(speaking||spoken)&&near<400?Math.floor(time*7+n.phase*3)%3:-1,eye);
 }
+const kq=new T.Quaternion(),fv=new T.Vector3(),feet=[{y:0,th:0,rho:1},{y:0,th:0,rho:1}];
+/** Feet standing (People XXII). The idle pose bends the free knee up to .19 rad and its foot pitched toe down with the shin, its toe 2.8-5.5 cm into the pavement (.13 under the origin in the
+ * world); the weighted leg, nearly straight, is 7 mm longer than the rest hip height allows (REST .97 against .925 of leg and .052 of sole), and the breath's bob took that to 1 cm. So the
+ * figure first rises by whatever a flat weighted sole is under the pavement, and then each foot keeps the pitch the pose gives it unless an edge of its sole would go under: it turns at the
+ * ankle just far enough to stand on that edge, and the free foot rests on its toe with the heel up, as a relaxed leg does. Walking, gait.ts holds the sole to the ground; this runs while the gait
+ * is under .6 (standing, and a walk starting or stopping, where the blend into the gait dipped up to 3.6 mm). Returns the rise, for the caller to give the body, pelvis and legs. */
+function standFeet(n:Citizen){const gnd=-.13/n.group.scale.y+.001,sole=n.ankles[0].userData.sole as [number,number]|undefined,heel=sole?.[0]??HEEL_X,toe=sole?.[1]??TOE_X;let rise=0;
+  n.legs.forEach((leg,k)=>{const kn=n.knees[k],an=n.ankles[k],f=feet[k];kq.copy(leg.quaternion).multiply(kn.quaternion);
+    f.y=leg.position.y+fv.copy(kn.position).applyQuaternion(leg.quaternion).y+fv.copy(an.position).applyQuaternion(kq).y;
+    // the ankle's frame without its own turn: the heights of its up and forward axes give the shin's pitch, and how far a roll tips the sole off it
+    const uy=fv.set(0,1,0).applyQuaternion(kq).y,zy=fv.set(0,0,1).applyQuaternion(kq).y;f.rho=Math.hypot(uy,zy);f.th=Math.atan2(-zy,uy);rise=Math.max(rise,gnd-(f.y-f.rho*SOLE));});
+  n.ankles.forEach((an,k)=>{const f=feet[k],P=f.th+an.rotation.x,D=(f.y+rise-gnd)/f.rho;
+    // an edge e (ahead of the ankle) is at y - rho (SOLE cos P + e sin P): toe down it is the toe's, toe up the heel's
+    const e=P>=0?toe:heel;if(SOLE*Math.cos(P)+e*Math.sin(P)<=D)return;
+    const q2=Math.asin(Math.min(1,D/Math.hypot(e,SOLE)))-Math.atan2(SOLE,Math.abs(e));an.rotation.x+=(P>=0?1:-1)*Math.max(0,q2)-P;});
+  return rise;}
 /** Route distance with acceleration and deceleration ramps (meters). */
 export function eased(d:number,L:number,a=1.1){const k=L/(L-a);if(d<a)return d*d/(2*a)*k;if(d<L-a)return (d-a/2)*k;return (L-a-(L-d)*(L-d)/(2*a))*k;}
 /** Where on its route a walker is: going out, or coming back (the turn at the far end counts as out). `clock` is the person's own route clock. */
