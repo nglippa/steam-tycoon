@@ -142,5 +142,8 @@ export function facialOf(look: Look, h: number): T.BufferGeometry[] {
   if (look.facial === 'moustache') for (const s of [-1, 1]) out.push(strand(rings, [[s * .0, .0545, .0072, .0095], [s * .1, .0535, .0082, .0088], [s * .2, .0485, .0068, .0062], [s * .3, .0425, .0038, .002]].map(([a, y, o, w]) => [a, y * k, o * k, w * k]), .0052 * k, 4));
   if (look.facial === 'sideburns') for (const s of [-1, 1]) out.push(strand(rings, [[s * 1.42, .15, .006, .016], [s * 1.38, .115, .008, .017], [s * 1.34, .075, .006, .014]].map(([a, y, o, w]) => [a, y * k, o * k, w * k]), .007 * k));
   if (look.facial === 'beard') out.push(patch(rings, { a0: -1.55, a1: 1.55, cols: 16, rows: 3, low: () => .0, top: a => (.058 + .03 * sm(Math.abs(a), .9, 1.5)) * k, off: (s, a) => (.007 + .004 * Math.cos(a)) * k }));
+  // facial hair is a shade darker than the hair on the head (a baked `tint`, consumed by the bake): a grey or fair moustache over the lip otherwise came out lighter than the lip line
+  // under it, and in rain light an iron-grey one read as a pale blue mouth
+  for (const g of out) g.setAttribute('tint', new T.Float32BufferAttribute(new Float32Array(g.attributes.position.count).fill(-.85), 1));
   return out;
 }

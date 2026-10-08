@@ -37,7 +37,7 @@ export const FACE_ROWS: Record<HeadShape, readonly number[]> = { oval: [0, 1, 5]
 /** Which hair a hat leaves room for. A hat never sits on a full head of hair (Book 7). */
 export const HAT_HAIR: Record<Hat, readonly HairStyle[]> = {
   none: ['shortCrop', 'sidePart', 'sweptBack', 'tousled', 'bob', 'lowBun', 'highKnot', 'ponytail', 'longTied', 'balding'],
-  flatCap: ['shortCrop', 'sidePart', 'tousled', 'balding'], softCap: ['shortCrop', 'sidePart', 'tousled', 'lowBun', 'ponytail', 'bob'],
+  flatCap: ['shortCrop', 'sidePart', 'tousled', 'balding'], softCap: ['shortCrop', 'sidePart', 'tousled', 'lowBun', 'ponytail'],
   bowler: ['shortCrop', 'sidePart', 'balding'], topHat: ['sweptBack', 'sidePart', 'shortCrop'], kepi: ['shortCrop'], helm: ['shortCrop', 'sweptBack'],
   bonnet: ['lowBun', 'highKnot', 'bob'], headscarf: ['lowBun', 'bob', 'tousled'], elderHat: ['balding', 'shortCrop', 'lowBun', 'sidePart'], kerchief: ['shortCrop', 'tousled', 'balding'],
 };

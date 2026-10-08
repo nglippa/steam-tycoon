@@ -471,6 +471,18 @@ sideburns.
 Soot black, umber brown, chestnut, deep auburn, dull straw, iron grey, white. No plum and no
 bright ginger. Grey and white are for elders.
 
+### Reads that failed, and the rules they left
+
+- **Balding is a symmetric horseshoe.** The mass sits above and behind the ears and across the back
+  of the head, and thins to a slim point a few centimetres ahead of the ear; it never stops thick on
+  the temple (that read as one tuft at one ear). Under a hat its sides lie close, at most 1.1 cm off
+  the scalp (`underHat`), so nothing flares under a brim like a headphone pad.
+- **A bob is not dealt under a soft cap.** With the fringe hidden under the peak only the curtains
+  showed, and they read as the ear flaps of the cap.
+- **Facial hair is a shade darker than the hair**, and iron grey is a warm grey (red at least equal to
+  blue): an iron moustache over the lip read as a pale blue mouth in rain light.
+  `tests/hair-reads.test.ts` holds all three.
+
 ---
 
 ## 8. Clothing

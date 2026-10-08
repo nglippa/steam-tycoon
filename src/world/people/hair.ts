@@ -126,6 +126,7 @@ interface Style {
   /** the fringe and the other locks that lie over the top of the head: hidden by any hat */ fringe?: LP[][];
   /** locks at the edge (sides, nape) that still show under a hat that sits above them */ edge?: LP[][];
   /** what is tied or hangs: built in the figure's head frame, standard units */ tied?: (hatted: Hat) => T.BufferGeometry[];
+  /** under a hat, the most the mass may stand off the scalp (standard units): what shows below a brim lies close instead of flaring out under it */ underHat?: number;
 }
 type Mk = (sg: number, c: Ctx) => Style;
 
@@ -208,12 +209,14 @@ const S: Record<HairStyle, Mk> = {
     off: (d, s, a, y) => .012 + .003 * sm(d.y, .5, 1) + lobe(1, 0, -.05, .02, .55)(d) + lobe(-1, 0, -.05, .02, .55)(d) + .01 * (1 - sm(y, .05, .14)) * Math.abs(Math.sin(a)) - .008 * (1 - sm(y, .06, .16)) * Math.max(0, -Math.cos(a)) - .005 * parting(d, .1 * sg, .035),
     tied: () => [tieBand([0, .066, -.13], .034), tail([[0, .07, -.142, .05, .016], [0, .03, -.158, .05, .016], [0, -.06, -.162, .046, .015], [0, -.15, -.15, .03, .012], [0, -.21, -.138, .006, .006]])],
   }),
-  /** A bare crown with a horseshoe of hair round the back and sides, standing out above the ears in two soft tufts. */
+  /** A bare crown with a horseshoe of hair round the back and sides: fullest behind and above the ears and across the back of the head, so from the front it stands out as a pair of
+   *  soft masses either side and from 3/4 or behind it reads as one band round the head. Toward the temples it thins and lies flat to a slim point, so its front end is never a block
+   *  on the side of the head (the old band stopped thick at the temple and read as a single tuft at one ear, and under a hat as a headphone pad). */
   balding: () => ({
-    a0: 1.05, a1: TAU - 1.05, cols: 20, rows: 3, wallTop: true, burns: false,
-    low: sym([[1.05, .186], [1.15, .168], [1.26, .14, 1], [1.38, .155], [1.5, .15], [1.8, .158], [2.15, .125], [2.45, .098], [2.62, .07, 1], [2.78, .088, 1], [2.96, .066, 1], [A, .08]]),
-    top: sym([[1.05, .188], [1.25, .194], [1.5, .2], [1.8, .21], [2.0, .222, 1], [2.12, .214, 1], [2.4, .232], [2.7, .238], [A, .242]]),
-    off: (d, s) => (.006 + lobe(1, .3, -.3, .028, .42)(d) + lobe(-1, .3, -.3, .028, .42)(d)) * (1 - .85 * sm(s, .3, 1)),
+    a0: 1.36, a1: TAU - 1.36, cols: 24, rows: 4, wallTop: true, burns: false, underHat: .011,
+    low: sym([[1.36, .2], [1.46, .182], [1.56, .162, 1], [1.7, .158], [1.95, .15], [2.2, .122], [2.45, .096], [2.62, .07, 1], [2.78, .088, 1], [2.96, .066, 1], [A, .08]]),
+    top: sym([[1.36, .203], [1.6, .206], [1.78, .212, 1], [1.88, .206, 1], [2.05, .224], [2.25, .236, 1], [2.36, .23, 1], [2.6, .25], [2.8, .258, 1], [2.94, .252, 1], [A, .262]]),
+    off: (d, s, a) => (.005 + lobe(1, .26, -.4, .03, .42)(d) + lobe(-1, .26, -.4, .03, .42)(d) + lobe(0, .2, -1, .016, .7)(d)) * sm(Math.abs(Math.atan2(Math.sin(a), Math.cos(a))), 1.36, 1.85) * (1 - .8 * sm(s, .35, 1)),
   }),
 };
 
@@ -245,7 +248,7 @@ export function hairOf(look: Look, h: number, hatted: boolean): HairOut {
     // what shows under the hat is soft: the sawtooth of the style's temples is blurred away into one rounded edge that follows the head
     const raw = low, blur = (a: number) => { let t = 0; for (let i = -4; i <= 4; i++) t += raw(a + i * .07); return t / 9; };
     low = Object.assign((a: number) => Math.min(raw(a), blur(a) + .008, cut(a) - .004), { keys: [] as number[] });
-    const o1 = off; off = (d, s, a, y) => { const f = sm(y, seat(a) - .03, seat(a) - .004), v = o1(d, s, a, y); return v * (1 - f) + Math.min(v, .006) * f; };
+    const o1 = off, cap = st.underHat ?? Infinity; off = (d, s, a, y) => { const f = sm(y, seat(a) - .03, seat(a) - .004), v = Math.min(cap, o1(d, s, a, y)); return v * (1 - f) + Math.min(v, .006) * f; };
   }
   const sh = shell(c, { low, top, off, hang: st.hang, cols: seat ? 16 : st.cols, rows: seat ? 3 : st.rows, a0: st.a0, a1: st.a1, wallTop: st.wallTop || !!seat });
   out.hair.push(sh.outer); out.under.push(sh.wall);
