@@ -776,6 +776,9 @@ waist. Every lining faces in (`inward` in `loft.ts`), so the inside of an apron,
 **Rule: nothing stands off the silhouette as a sliver (People XIX).** Ties, tails and straps lie on what they cross (an apron's tie tails on the seat, a headscarf's tails at the nape,
 bib straps on the shirt); a greatcoat's vent is two lapped edges, not a slit; a button sits on its cloth, not half off the edge; an apron's lower half is never cut narrower than its upper.
 
+**Rule: a held thing is in the hand (People XIX).** An umbrella hangs in the free hand's grip socket, its shaft through the closed fist, and the wrist keeps it upright over the head,
+standing or walking; an elder's stick keeps the right hand, so the umbrella goes in the left.
+
 ### The bite
 
 The new head's mouth is about 9 cm lower than the old one, so for a figure from the new builder the

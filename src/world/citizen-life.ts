@@ -170,7 +170,8 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
     if(activity==='eat'){const bite=ease(clamp01(Math.max(0,Math.sin(phase*.9))*1.25)),mug=n.group.userData.upright;sip=bite;
       const nx=n.group.userData.next,lo=nx?.55:0;/* the new head's mouth is about 9 cm lower and the shoulders are set differently: the stroke stops shorter, folds more and comes in with the shoulder width (solved with the sheet's probe(): the hand lands within 2 cm of the mouth's height and about 9 cm off its front, as the old pose does) */n.arms[0].rotation.set(-.4-((mug?1.01:1.24)-lo)*bite,.21*bite,.05+(mug?.3:.49)*bite+(nx?.3+(Math.abs(n.arms[0].position.x)-.233)*3:0)*bite);n.elbows[0].rotation.x=-.8-(mug?.84:.49)*bite-(nx?.7:0)*bite;if(bite>.8)expression='smiling';}}
   const umbrella=n.group.userData.umbrella as T.Object3D|undefined;
-  if(umbrella){umbrella.visible=raining;if(raining){n.arms[1].rotation.set(-.55,0,-.1);n.elbows[1].rotation.x=-1.3;}}
+  const uh=(n.group.userData.umbrellaHand as number|undefined)??1;
+  if(umbrella){umbrella.visible=raining;if(raining){n.arms[uh].rotation.set(-.55,0,uh?-.1:.1);n.elbows[uh].rotation.x=-1.3;}}
   // Secondary motion: damped springs driven by gait, acceleration and turning.
   const near=(player.x-pos.x)**2+(player.z-pos.z)**2;
   const lively=!calm&&near<1600,follows=!!(n.drape&&!seated);
@@ -253,6 +254,8 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
     n.arms[0].rotation.x=p[0];n.arms[0].rotation.z=p[1];n.arms[1].rotation.x=p[2];n.arms[1].rotation.z=p[3];n.elbows[0].rotation.x=p[4];n.elbows[1].rotation.x=p[5]; }
   // A held mug is kept level through whatever the forearm does, and tipped to the lips on a sip (the wrist is the grip socket).
   if(n.group.userData.upright)n.grips[0].rotation.x=-(n.arms[0].rotation.x+n.elbows[0].rotation.x)-.44*sip;
+  // An umbrella's shaft runs through the closed right hand; the wrist keeps it upright over the head.
+  if(umbrella&&raining)n.grips[uh].rotation.set(-(n.arms[uh].rotation.x+n.elbows[uh].rotation.x+n.body.rotation.x),0,-n.arms[uh].rotation.z-n.body.rotation.z);
   // Last word on the face: nobody smiles under the Ordinance's eye, and the Ordinance does not smile at all.
   if(!faceAllowed(n.archetype,expression))expression='cold';else if(!cd.smile&&(expression==='happy'||expression==='smiling'||expression==='hopeful'))expression='neutral';
   // Only the blink and, near the camera, a speaking mouth move between decisions; the Ordinance blinks less.
