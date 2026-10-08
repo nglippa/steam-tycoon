@@ -63,3 +63,25 @@ export function intoProps(combo: string, seed: number, activity: import('../src/
           const d = Math.min(v.x - bb.min.x, bb.max.x - v.x, v.y - bb.min.y, bb.max.y - v.y, v.z - bb.min.z, bb.max.z - v.z) - .002; if (d > worst) { worst = d; where = `frame ${f}, ${p.parent === n.tails ? 'on the coat skirt' : 'on the body'}`; } } }); } }
   return { worst, where, props: props.length };
 }
+
+/** Whether a front panel (an apron, the foundry slab) reads as in front of the legs from the side (People XXII). Walking `combo` at `speed` along its line of walk for the cast sheet's 48-frame
+ *  stride window (30 Hz, after its 3 s warm-up), every 3rd frame: rays along the figure's x from each side on a 1 cm grid (its height and the line of walk) whose first hit is a leg (thigh,
+ *  knee or shin) with the panel (tails and hem) further along, the leg drawn over the apron (`over`, cm², the worst frame and side); and how far the front of the panel's hem (its lowest
+ *  3 cm) is behind the front of a leg at the same height (`behind`, m; 0 or less is the hem in front of or on the leg). */
+export function panelSide(combo: string, seed: number, speed: number) {
+  const n = make(combo, seed), player = new T.Vector3(0, 1.7, 25), ray = new T.Raycaster(), P: T.Mesh[] = [], H: T.Mesh[] = [], Lg: T.Mesh[] = [], feet = new Set<T.Object3D>(), dt = 1 / 30;
+  const o = new T.Vector3(), d = new T.Vector3(), v = new T.Vector3(), inv = new T.Matrix4();
+  n.tails.traverse(m => { if (m instanceof T.Mesh) P.push(m); }); n.hem!.traverse(m => { if (m instanceof T.Mesh) H.push(m); }); n.ankles.forEach(a => a.traverse(m => feet.add(m)));
+  n.group.traverse(m => { if (m instanceof T.Mesh) (m.material as T.Material).side = T.DoubleSide; }); n.legs.forEach(l => l.traverse(m => { if (m instanceof T.Mesh && !feet.has(m)) Lg.push(m); }));
+  const each = (ms: T.Mesh[], f: (p: T.Vector3) => void) => { for (const m of ms) { const pa = m.geometry.attributes.position; for (let j = 0; j < pa.count; j++) f(v.fromBufferAttribute(pa, j).applyMatrix4(m.matrixWorld).applyMatrix4(inv)); } };
+  let over = 0, behind = -1, where = '', at = '';
+  for (let i = 0; i < 90 + 48; i++) { n.group.position.set(0, 0, i * dt * speed); animate(n, 'walk', dt, i * dt, player); if (i < 90 || (i - 90) % 3) continue; n.group.updateMatrixWorld(true); inv.copy(n.group.matrixWorld).invert();
+    const box = new T.Box3(); each(Lg, p => { box.expandByPoint(p); }); // (only where a leg is can one be drawn over the apron)
+    for (const side of [-1, 1]) { let cells = 0;
+      for (let y = .9; y > .05; y -= .01) for (let z = -.15; z < .6; z += .01) { if (y < box.min.y || y > box.max.y || z < box.min.z || z > box.max.z) continue; n.group.localToWorld(o.set(side, y, z)); d.set(-side, 0, 0).transformDirection(n.group.matrixWorld); ray.set(o, d); ray.far = 2;
+        const hs = ray.intersectObjects([...P, ...Lg], false); if (hs.length && Lg.includes(hs[0].object as T.Mesh) && hs.some(h => P.includes(h.object as T.Mesh))) cells++; }
+      if (cells > over) { over = cells; where = `stride frame ${i - 90}, seen from ${side < 0 ? 'its right' : 'its left'}`; } }
+    let lo = 9, hz = -9, lz = -9; each(H, p => { lo = Math.min(lo, p.y); }); each(H, p => { if (p.y < lo + .03) hz = Math.max(hz, p.z); }); each(Lg, p => { if (p.y > lo && p.y < lo + .03) lz = Math.max(lz, p.z); });
+    if (lz - hz > behind) { behind = lz - hz; at = `stride frame ${i - 90}`; } }
+  return { over, where, behind, at };
+}

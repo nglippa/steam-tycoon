@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import * as T from 'three';
 import { animateLife } from '../src/world/citizen-life.ts';
-import { make, through, useLife, REPS } from './people-rig.ts';
+import { make, through, panelSide, useLife, REPS } from './people-rig.ts';
 
 useLife((n, a, dt, t, p) => animateLife(n, a, dt, t, false, p));
 
@@ -82,4 +82,15 @@ test('no hand or forearm passes through what is carried at the hip: pouches, the
   // every outfit of a cast is worn at least once over the four seeds (People XX: a courier's satchel, the stallholder's shawl, the older mechanic's apron)
   for (const cast of BUILT) for (const [i, seed] of [1, 2, 4, 11].entries()) { const fam = CASTS[cast].families[seed % CASTS[cast].families.length], outfits = CASTS[cast].outfits, combo = `${cast}.${fam}.${CASTS[cast].frames[seed % CASTS[cast].frames.length]}:${outfits[i % outfits.length].id}`;
     for (const [a, sp] of [['walk', 0], ['walk', 1.2], ['guard', 0]] as const) { const r = intoProps(combo, seed, a, sp, 90); assert.ok(r.worst <= 0, `${combo} s${seed} ${a} ${sp}: a hand or forearm ${(r.worst * 100).toFixed(1)} cm inside a prop (${r.where})`); } }
+});
+
+test('an apron hangs in front of the legs: seen from the side no leg is drawn over it, and its hem is never behind the forward leg', () => {
+  // People XXII: an apron or the foundry slab turned with the pelvis's stride yaw, which carried the edge on the trailing hip's side 2-3 cm back, behind the forward leg's front; seen from that
+  // leg's side the leg was drawn over the apron along its length (up to 157 cm² in a stride frame), and the apron read as hanging behind it, a tail. What is left is the edge's lip, about a
+  // centimetre wide, where the knee meets the hinge.
+  for (const [combo, seed] of [['foundry.sturdy.broad', 7], ['shopMerchant.standard.broad', 9], ['olderMechanic.sturdy.broad:olderMechanic.apron', 5]] as const) for (const speed of [1, 1.4]) {
+    const r = panelSide(combo, seed, speed);
+    assert.ok(r.over < 30, `${combo} at ${speed} m/s: a leg is drawn over the apron for ${r.over} cm² (${r.where})`);
+    assert.ok(r.behind <= 0, `${combo} at ${speed} m/s: the apron's hem is ${(r.behind * 100).toFixed(1)} cm behind the front of a leg at its height (${r.at})`);
+  }
 });

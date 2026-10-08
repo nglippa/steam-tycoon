@@ -37,7 +37,9 @@ export const bandAt = (rings: Band[], y: number): Band | null => {
 /** A leg as three points in the cloth's frame: the hip joint, the knee and the ankle. */
 const leg = () => ({ h: new T.Vector3(), k: new T.Vector3(), a: new T.Vector3(), /** instep, toe and heel */ i: new T.Vector3(), t: new T.Vector3(), e: new T.Vector3() });
 const INSTEP = new T.Vector3(0, .01, .07), TOE = new T.Vector3(0, -.025, .2), HEEL = new T.Vector3(0, -.03, -.07);
-const L = [leg(), leg()], q = new T.Quaternion(), pin = new T.Quaternion(), v = new T.Vector3();
+const L = [leg(), leg()], q = new T.Quaternion(), pin = new T.Quaternion(), v = new T.Vector3(), UP = new T.Vector3(0, 1, 0);
+/** The line of walk (the figure's own forward) in the cloth's frame, level: the pelvis turns about it with the stride. */
+const AHEAD = new T.Vector3(0, 0, 1);
 /** Where a leg is at height y (its axis and radius, in one reused object), or null if it does not reach that height. */
 const AT = { x: 0, z: 0, r: 0 };
 function legAt(p: typeof L[0], y: number, d: Drape) {
@@ -105,6 +107,7 @@ export function readLegs(pelvis: T.Object3D, tails: T.Object3D, legs: T.Object3D
     q.copy(lg.quaternion).multiply(kn.quaternion); p.a.copy(ankles[k].position).applyQuaternion(q).add(p.k);
     q.multiply(ankles[k].quaternion); p.i.copy(INSTEP).applyQuaternion(q).add(p.a); p.t.copy(TOE).applyQuaternion(q).add(p.a); p.e.copy(HEEL).applyQuaternion(q).add(p.a);
     toCloth(p.h); toCloth(p.k); toCloth(p.a); toCloth(p.i); toCloth(p.t); toCloth(p.e); }
+  AHEAD.set(0, 0, 1).applyQuaternion(pin); AHEAD.y = 0; AHEAD.normalize();
 }
 
 /** The least of f on [lo, hi] (f roughly convex there): a golden-section search, `n` steps. */
@@ -122,7 +125,12 @@ function reach(ok: (x: number) => boolean, from: number, to: number, n: number) 
 export function drape(d: Drape, st: DrapeState, tails: T.Object3D, hem: T.Object3D | undefined, dt: number, g: number, sway: number, drag: number, lively: boolean) {
   // the upper part: the lead that lets it open least (of those, the one nearest plumb: standing, that is plumb; an apron, with no back to clear, is pushed only as far as the knee asks),
   // then the spring's lead, kept where the cloth still opens no more than 6 % past its least
-  D = d; needs(d, 1);
+  // a front panel alone (an apron, the foundry slab, with nothing round the legs under it) hangs square to the line of walk, not turned with the pelvis's stride yaw (People XXII): turned, the
+  // edge on the side of the trailing hip went back 2-3 cm, behind the forward leg's front, and seen from the side that leg was drawn over the apron (up to 160 cm² of it), which read as
+  // hanging behind the leg, a tail. The legs are read square to the walk too, so the solve is unchanged.
+  D = d; let yaw = 0;
+  if (d.garments.length && d.garments.every(g => g.panel)) { yaw = Math.atan2(AHEAD.x, AHEAD.z); q.setFromAxisAngle(UP, -yaw); for (const p of L) for (const o of [p.h, p.k, p.a, p.i, p.t, p.e]) o.applyQuaternion(q); }
+  needs(d, 1);
   let best = least(scaleFor, -.36, .6, 9), bestS = scaleFor(best);
   if (scaleFor(0) <= bestS + 1e-3) best = 0; else best = reach(x => scaleFor(x) <= bestS + 1e-3, best, 0, 4);
   let a = best + drag;
@@ -132,7 +140,7 @@ export function drape(d: Drape, st: DrapeState, tails: T.Object3D, hem: T.Object
   a = Math.max(-.6, Math.min(.6, a));
   let s = scaleFor(a); const sx = 1 - Math.min(.12, (s - 1) * .12);
   if (sx < 1) { needs(d, sx); s = scaleFor(a); }
-  tails.rotation.set(-Math.asin(a), 0, sway); tails.scale.set(sx, 1, s);
+  tails.rotation.order = 'YXZ'; tails.rotation.set(-Math.asin(a), yaw, sway); tails.scale.set(sx, 1, s); // (the yaw outermost, about the waist)
   if (!hem) return; // a coat skirt that ends above the knee is one part
   // the hem: the turn about the knee that clears the legs best; if even that misses, the hem flares (its own opening, so the waist stays put: its top is cut narrow inside the upper part)
   // It hangs plumb from the knee when it may (its turn undoes the upper part's) and trails a little; most of a walk that already clears the legs, and nothing more is solved.

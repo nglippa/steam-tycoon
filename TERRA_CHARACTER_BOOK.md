@@ -831,6 +831,10 @@ so it stays a column.
 the knee, just as far as it takes for every leg ring, the knee and a striding foot to stay inside it, front and side. Above the knee the cloth keeps its depth for the walk (a seated lap is
 flattened back to .19); the hem's top is cut narrow inside the upper part, so its flare never steps out at the knee; an apron over a skirt is built outside the skirt.
 
+**Rule: an apron hangs in front of the legs (People XXII).** An apron or the foundry slab worn over trousers hangs square to the line of walk, not turned with the pelvis's stride yaw, so
+neither of its edges falls back behind the forward leg: seen from the side its hem is in front of or on the forward thigh and shin, and no leg is drawn over it. It may swing and lift with the
+knee. Long skirts and coats still trail.
+
 **Rule: cloth has weight (People XIX).** The hem trails the upper part on a softer, underdamped spring: it lags, swings past and settles, and it bends at the knee, sideways too. It never turns
 with the lap as one board.
 
