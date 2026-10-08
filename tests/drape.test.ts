@@ -38,6 +38,18 @@ test('long cloth moves like cloth: the hem bends at the knee and trails the uppe
   }
 });
 
+test('a skirt in stride wraps the forward leg and trails: it is opened only as far as the knee needs, never into a bell or a tent', () => {
+  // People XXI: the hem's top is cut narrow inside the upper part, and asking it to hold the knee as well opened the whole hem by ~45 %: every skirt kicked into a stiff bell, its hem tilted
+  // 27-49 cm front to back. Measured at the hem's lowest band, in the pelvis frame: its depth front to back against its cut, and how far its front and back part in height.
+  for (const [combo, seed] of [['stallholder.sturdy.broad', 3], ['stallholder.standard.narrow', 8], ['stallholder.sturdy.broad:stallholder.shawl', 3], ['rowSkirt.slim.narrow', 1], ['affluent.standard.broad', 2]] as const) for (const speed of [.6, 1, 1.3]) {
+    const n = make(combo, seed), player = new T.Vector3(0, 1.7, 25), dt = 1 / 60, inv = new T.Matrix4(), g = n.drape!.garments[0], bot = g.lo[g.lo.length - 1];
+    const P = (z: number) => new T.Vector3(0, bot.y, z).applyMatrix4(n.hem!.matrixWorld).applyMatrix4(inv); let depth = 0, tilt = 0;
+    for (let f = 0; f < 300; f++) { n.group.position.set(0, 0, f * dt * speed); animateLife(n, 'walk', dt, f * dt, false, player); if (f < 120) continue; n.group.updateMatrixWorld(true); inv.copy(n.pelvis.matrixWorld).invert();
+      const fr = P(bot.z + bot.f), bk = P(bot.z - bot.b); depth = Math.max(depth, (fr.z - bk.z) / (bot.f + bot.b)); tilt = Math.max(tilt, Math.abs(fr.y - bk.y)); }
+    assert.ok(depth < 1.3 && tilt < .25, `${combo} at ${speed} m/s: the hem opens to ${depth.toFixed(2)}x its cut and tilts ${(tilt * 100).toFixed(0)} cm front to back`);
+  }
+});
+
 test('a seated lap is a lap: the long cloth that holds a walking knee is flattened again when its wearer sits', () => {
   for (const combo of ['rowSkirt.slim.narrow', 'stallholder.sturdy.broad', 'stallholder.sturdy.broad:stallholder.shawl', 'olderMechanic.sturdy.broad:olderMechanic.apron']) {
     const n = make(combo, 1), player = new T.Vector3(0, 1.7, 25);

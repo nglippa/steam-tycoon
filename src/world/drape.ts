@@ -75,13 +75,16 @@ function meet(y: number, z: number, p: typeof L[0], front: boolean) {
   if (y > p.i.y - .03 && y < p.i.y + .06) W = Math.max(W, sg * (p.i.z - z) + .045);
   if (y > p.e.y - .03 && y < p.e.y + .06) W = Math.max(W, sg * (p.e.z - z) + .045);
 }
+/** How far the upper part laps over the hem below the hinge (wardrobe.ts cuts it 3 cm past the knee): what of the hem is carried above that is inside the upper part, and the legs there are the
+ *  upper part's to clear. (People XXI: the hem's top is cut narrow, so asking it to hold the knee too opened the whole hem by up to 38 %, and its hem with it: the bell.) */
+const LAPPED = .03;
 /** How far the hem misses (0 when every leg is inside it), with the upper part at lead `a` and scale `s`, and the hem opened by `k` and turned by `th` about the knee: each band's front and back
  *  are carried through both parts' turns and the legs are met where they are carried to (turning the hem lowers its front). */
 function miss(a: number, s: number, th: number, hinge: number, k: number) {
   const su = -a, cu = Math.sqrt(1 - a * a), sh = Math.sin(th), ch = Math.cos(th); W = 0;
   for (let i = 0; i < nl; i++) { const n = loNeeds[i];
-    const p = L[n.zf], f = n.f * k, z1 = n.y * sh + f * ch, y1 = n.y * ch - f * sh, y3 = hinge + y1, z3 = s * z1; meet(y3 * cu - z3 * su, y3 * su + z3 * cu, p, true);
-    if (!n.panel) { const b = n.b * k, zb = n.y * sh - b * ch, yb = n.y * ch + b * sh, y3b = hinge + yb, z3b = s * zb; meet(y3b * cu - z3b * su, y3b * su + z3b * cu, p, false); }
+    const p = L[n.zf], f = n.f * k, z1 = n.y * sh + f * ch, y1 = n.y * ch - f * sh, y3 = hinge + y1, z3 = s * z1; if (y1 < -LAPPED) meet(y3 * cu - z3 * su, y3 * su + z3 * cu, p, true);
+    if (!n.panel) { const b = n.b * k, zb = n.y * sh - b * ch, yb = n.y * ch + b * sh, y3b = hinge + yb, z3b = s * zb; if (yb < -LAPPED) meet(y3b * cu - z3b * su, y3b * su + z3b * cu, p, false); }
   }
   return W;
 }
@@ -142,9 +145,11 @@ export function rest(st: DrapeState, tails: T.Object3D, hem: T.Object3D | undefi
   if (hem) { hem.rotation.set(st.hem, 0, 0); hem.scale.set(1, 1, 1 + (hem.scale.z - 1) * (1 - e)); }
 }
 
-/** The bands of a garment part at every 7 cm or less, from rings ordered top down (the builder's), so the legs are checked between the rings too. */
+/** The bands of a garment part at every 7 cm or less and at each of its rings, from rings ordered top down (the builder's), so the legs are checked between the rings too. */
 export function bands(rings: { y: number; w: number; f: number; b: number; z?: number; n?: number }[], lip: number): Band[] {
   const src = rings.map(r => ({ y: r.y, w: r.w - lip, f: r.f - lip, b: r.b - lip, z: r.z ?? 0, n: r.n ?? 2 })), out: Band[] = [], top = src[0].y, bot = src[src.length - 1].y, n = Math.max(1, Math.ceil((top - bot) / .07));
-  for (let i = 0; i <= n; i++) out.push(bandAt(src, top + (bot - top) * i / n)!);
+  // every 7 cm, and at every ring of the garment itself (a hem's top is cut narrower in two steps; between samples it would be met as if it were not)
+  const ys = [...Array.from({ length: n + 1 }, (_, i) => top + (bot - top) * i / n), ...src.map(r => r.y)].sort((p, q) => q - p).filter((y, i, a) => !i || a[i - 1] - y > .005);
+  for (const y of ys) out.push(bandAt(src, y)!);
   return out;
 }
