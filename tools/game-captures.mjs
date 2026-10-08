@@ -1,5 +1,5 @@
 // Reproducible in-game captures: the HUD, the HUD's measured DOM, and the shader distance set.
-//   node tools/game-captures.mjs <baseUrl> <outDir> [--people=old|new] [--sets=hud,shader,strain] [--query=extra&params]
+//   node tools/game-captures.mjs <baseUrl> <outDir> [--people=old|new] [--sets=hud,shader,strain] [--query=extra&params] [--shots=a,b (strain)]
 // e.g. node tools/game-captures.mjs http://127.0.0.1:5731 screenshots/presentation/baseline
 // Needs a dev server for the repo (`npx vite --host 127.0.0.1 --port 5731 --strictPort`). One headless browser, one page at a time,
 // 1280x720 at device scale 1. Every shot pins position, heading, pitch, weather and the time of day (the game clock is frozen
@@ -15,7 +15,7 @@ import { join } from 'node:path';
 
 const args = process.argv.slice(2), pos = args.filter(a => !a.startsWith('--')), flag = (n, d = '') => (args.find(a => a.startsWith(`--${n}=`)) ?? `--${n}=${d}`).slice(n.length + 3);
 const base = pos[0] ?? 'http://127.0.0.1:5731', out = pos[1] ?? 'screenshots/presentation/baseline';
-const people = flag('people', 'old'), sets = flag('sets', 'hud,shader').split(','), extra = flag('query', '');
+const people = flag('people', 'old'), sets = flag('sets', 'hud,shader').split(','), extra = flag('query', ''), only = flag('shots', '').split(',').filter(Boolean);
 const DAY = 0.5; // noon: the clock reads 12:00
 mkdirSync(out, { recursive: true });
 
@@ -154,7 +154,10 @@ if (sets.includes('product')) {
   await close();
 }
 if (sets.includes('strain')) {
-  for (const [name, cam, weather] of SHADER.filter(s => /^(far|veryfar)-/.test(s[0]))) {
+  // The device-scale crop: the centre 640x360 CSS px, but for the very-far view the floating isle at the right, which is the
+  // very-far band (the centre there is only sky).
+  const CROP = { 'veryfar-skyline-edge': { x: 1200, y: 370 } };
+  for (const [name, cam, weather] of SHADER.filter(s => /^(far|veryfar)-/.test(s[0]) && (!only.length || only.includes(s[0])))) {
     const { loadMs } = await open('weather=clear&level=2', 2, { width: 1920, height: 1080 });
     const c = await place(cam, weather); await settle(1500);
     const samples = await page.evaluate(() => new Promise(done => {
@@ -165,7 +168,7 @@ if (sets.includes('strain')) {
         rows.push({ t: +(t / 1000).toFixed(1), pixelRatio: +a.renderer.getPixelRatio().toFixed(3), frameMs: +ms.toFixed(1) }); if (t >= 14600) { clearInterval(tick); done(rows); } }, 500);
     }));
     await page.screenshot({ path: join(out, `strain-${name}.png`), scale: 'css' });
-    await page.screenshot({ path: join(out, `strain-${name}-centre-2x.png`), clip: { x: 640, y: 270, width: 640, height: 360 } });
+    await page.screenshot({ path: join(out, `strain-${name}-centre-2x.png`), clip: { x: CROP[name]?.x ?? 640, y: CROP[name]?.y ?? 270, width: 640, height: 360 } });
     const f = await facts(); records.push({ name: `strain-${name}.png`, url: page.url(), ...f, set: 'strain', shot: name, deviceScaleFactor: 2, burn: '30 ms per frame, shot at 15 s while still loaded', placed: c, loadMs, level: 2, samples, start: samples[0].pixelRatio, lowest: Math.min(...samples.map(s => s.pixelRatio)), atShot: f.pixelRatio });
     console.log(`strain-${name}`, samples[0].pixelRatio, '->', f.pixelRatio);
     await close();
