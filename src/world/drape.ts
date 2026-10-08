@@ -130,7 +130,7 @@ export function drape(d: Drape, st: DrapeState, tails: T.Object3D, hem: T.Object
   // otherwise it is pushed only as far as the legs ask: from the turn that clears them best, toward plumb; the spring is kept inside what clears
   const aim = (x: number) => { if (clear(x)) return x; if (Number.isNaN(t0)) settle(); return reach(clear, t0, x, 4); };
   let th = aim(want);
-  if (lively) { st.hemV += ((th - st.hem) * 46 - st.hemV * 5.5) * dt; st.hem += st.hemV * dt; th = st.hem; if (!clear(th)) { const c = aim(th); st.hemV = 0; st.hem = th = c; } } else { st.hem = th; st.hemV = 0; }
+  if (lively) { st.hemV += ((th - st.hem) * 90 - st.hemV * 8) * dt; st.hem += st.hemV * dt; th = st.hem; if (!clear(th)) { const c = aim(th); st.hemV = 0; st.hem = th = c; } } else { st.hem = th; st.hemV = 0; }
   // the hem's own sideways swing trails the upper part's, so the cloth bends at the knee
   if (lively) { st.bendV += ((-sway * .7 - st.bend) * 30 - st.bendV * 4.5) * dt; st.bend += st.bendV * dt; } else { st.bend = 0; st.bendV = 0; }
   hem.rotation.set(th, 0, st.bend * g); hem.scale.set(1, 1, k);

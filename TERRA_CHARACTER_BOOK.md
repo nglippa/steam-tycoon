@@ -773,6 +773,9 @@ waist. Every lining faces in (`inward` in `loft.ts`), so the inside of an apron,
 **Rule: what is carried at the hip clears the arm (People XIX).** Pouches, the tool roll, the hook and the Ordinance's ledger, truncheon, keys and crossbelt pouch hang in front of the hip
 (about .6 to 1 rad from the centre front), never at the side where the arm hangs and swings; the tool roll hangs upright. No hand or forearm passes through one standing, walking or on guard.
 
+**Rule: nothing stands off the silhouette as a sliver (People XIX).** Ties, tails and straps lie on what they cross (an apron's tie tails on the seat, a headscarf's tails at the nape,
+bib straps on the shirt); a greatcoat's vent is two lapped edges, not a slit; a button sits on its cloth, not half off the edge; an apron's lower half is never cut narrower than its upper.
+
 ### The bite
 
 The new head's mouth is about 9 cm lower than the old one, so for a figure from the new builder the

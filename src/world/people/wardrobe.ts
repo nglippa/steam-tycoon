@@ -51,12 +51,12 @@ export function dress(x: X) {
   /** the part above the knee is no deeper front to back than a thigh and its lap need (so a seated lap is a lap, not a table); the hem flares from the knee */
   const slimmer = (r: Ring): Ring => ({ ...r, f: Math.min(r.f, LAP), b: Math.min(r.b, LAP) });
   /** (the hem's top, inside the upper part, is cut narrower front to back, so when the hem flares in a stride (drape.ts opens it on its own) it still starts inside the upper part) */
-  const splitAt = (rings: Ring[]) => { const knee = slimmer(ringAt(rings, HEM_Y)), tuck = (r: Ring, k: number): Ring => ({ ...r, f: r.f * k, b: r.b * k });
+  const splitAt = (rings: Ring[], panel = false) => { const knee = slimmer(ringAt(rings, HEM_Y)), tuck = (r: Ring, k: number): Ring => panel ? r : ({ ...r, f: r.f * k, b: r.b * k }); // (an apron's edge is seen in profile: it is not tucked)
     return { up: [...rings.filter(r => r.y > HEM_Y).map(slimmer), { ...knee, y: HEM_Y - .03 }], lo: down([tuck({ ...knee, y: HEM_Y + .03 }, .7), tuck({ ...knee, y: HEM_Y - .015 }, .9), { ...knee, y: HEM_Y - .03 }, ...rings.filter(r => r.y < HEM_Y - .03)]) }; };
   /** a shell of rings that may be long: whole in `tails` when it ends above the knee, otherwise hinged, with the hem's turned lip on the lower half */
   const longShell = (rings: Ring[], o: Parameters<typeof loft>[1], m: T.Material, k2: string, lip = .008) => {
     if (!hinged(rings)) { shellBoth(tails, rings, o, m, k2, lip); if (rings[rings.length - 1].y < -.15) x.cloth.push({ up: bands(rings, lip), lo: [], panel: (o?.arc ?? Math.PI * 2) < Math.PI }); return; } // one part, ending above the knee: it follows the thighs
-    const s = splitAt(rings); shellBoth(tails, s.up, o, m, k2 + '/up', lip, false, .07); shellBoth(hem, s.lo, o, m, k2 + '/lo', lip);
+    const s = splitAt(rings, (o?.arc ?? Math.PI * 2) < Math.PI); shellBoth(tails, s.up, o, m, k2 + '/up', lip, false, .07); shellBoth(hem, s.lo, o, m, k2 + '/lo', lip);
     // the cloth as the legs see it (to its lining): an apron or slab, less than half way round, has no back to clear
     x.cloth.push({ up: bands(s.up, lip), lo: bands(s.lo, lip), panel: (o?.arc ?? Math.PI * 2) < Math.PI });
   };
@@ -103,9 +103,9 @@ export function dress(x: X) {
     if (o.collar !== false) put0(lifted, loft(cc, { seg: 14, ...(o.closed || o.stand ? { start: 0, arc: Math.PI * 2 } : { start: .7, arc: Math.PI * 2 - 1.4 }), lipEnd: .007, lipStart: .004, key: key(`collar/${o.closed || o.stand}`) }), m);
     if (!o.closed && o.lapel !== false) for (const [s, e] of [[1, aL], [-1, -aR]] as const) put0(lifted, plate(cR, [[1.488, .25], [1.43, .5], [1.36, .55], [1.28, .45], [1.2, .18]].map(([y, w]) => [y, e, e + s * w]), .0, .007, 3), o.trimM ?? m);
     put0(lifted, seam(cR, steps(1.5, 1.045, 8), () => Math.PI, .002, .006, .0035), m); put0(lifted, around(cR, 1.41, Math.PI - .85, Math.PI + .85, .002, .006, .0035, 6), m);
-    if (!o.closed) for (const y of steps(1.36, 1.12, o.buttons ?? 2)) button(lifted, surface(cR, y, aL, .009), brass, .0075);
+    if (!o.closed) for (const y of steps(1.36, 1.12, o.buttons ?? 2)) button(lifted, surface(cR, y, aL + .1, .009), brass, .0075); // on the cloth, not half off its edge
     if (o.hem !== undefined) {
-      const rings = skirtRings(o.hem, o.hemW ?? 2 * (d.hipX + d.thighW / 2 + .04) + .05, o.hemD ?? d.hipD + .066 + d.belly * .6, o.curve ?? 1, o.hem < .9 ? 6 : 5), a2 = o.vent ? { start: Math.PI + o.vent, arc: Math.PI * 2 - 2 * o.vent } : o.closed ? { start: 0, arc: Math.PI * 2 } : open(aL, aR);
+      const rings = skirtRings(o.hem, o.hemW ?? 2 * (d.hipX + d.thighW / 2 + .04) + .05, o.hemD ?? d.hipD + .066 + d.belly * .6, o.curve ?? 1, o.hem < .9 ? 6 : 5), a2 = o.vent ? { start: 0, arc: Math.PI * 2 } /* the vent is its two edges, lapped: no slit to see through in profile */ : o.closed ? { start: 0, arc: Math.PI * 2 } : open(aL, aR);
       longShell(rings, a2, m, `skirt/${o.hem}/${a2.start}`, .012);
       const y0 = rings[0].y, y1 = rings[rings.length - 1].y;
       if (!o.closed) for (const a of [aL, -aR]) stripe(rings, y0, y1, a, .001, .02, .006, o.trimM ?? m);
@@ -126,8 +126,8 @@ export function dress(x: X) {
   /** the apron: a bib to the chest (optional) in the torso group, and a front slab over the skirt or thighs in the tails group, with a neck strap, a waist tie and edge binding */
   /** a bib apron's straps (Book 8: straps wrap the torso): from the bib's top corners over the shoulders, crossing on the back, to the waist on the far side, where they meet the band, lying on
    *  the shirt's own surface. From behind an apron reads by these and its ties, never as an empty frame. */
-  const bibStraps = (top: (s: number) => T.Vector3, half: number, m: T.Material) => { const sh = offset(rib, .02);
-    for (const s of [-1, 1]) { const back = [[1.5, s * 1.32], [1.44, s * 2.05], [1.36, s * 2.55], [1.27, s * 2.95], [1.19, s * 3.35], [1.12, s * 3.75]].map(([y, a]) => surface(sh, y, a, .005)), pts = [top(s), ...back.map(q => q.p)];
+  const bibStraps = (top: (s: number) => T.Vector3, half: number, m: T.Material) => { const sh = offset(rib, .011);
+    for (const s of [-1, 1]) { const back = [[1.5, s * 1.32], [1.44, s * 2.05], [1.36, s * 2.55], [1.27, s * 2.95], [1.19, s * 3.35], [1.12, s * 3.75]].map(([y, a]) => surface(sh, y, a, .003)), pts = [top(s), ...back.map(q => q.p)];
       put0(lifted, sweep(pts.map((p, i) => ({ p: p.toArray() as Pt, a: half, b: .004, n: (i ? back[i - 1].n : new T.Vector3(0, 1, 0)).toArray() as Pt })), { seg: 4, capStart: true, capEnd: true }), m); } };
   /** `over`: the skirt it is tied over (its rings): the apron is kept at least 1.4 cm outside it everywhere, so the skirt and its pleats never show through it, and only the skirt need hold the legs */
   const apron = (m: T.Material, o: { hemY: number; hemW?: number; aw?: number; bib?: boolean; strapM?: T.Material; leather?: boolean; hemD?: number; over?: Ring[] }) => {
@@ -142,7 +142,7 @@ export function dress(x: X) {
     const wr = offset(rib, .016).filter(r => r.y < 1.15), band = [1.1, 1.14].map(y => ringAt(offset(rib, .028), y));
     put0(lifted, loft(band, { seg: 10, lipStart: .003, lipEnd: .003, key: key('apronband') }), o.leather ? leatherDM : m); void wr;
     const side = asym.has('apronTie') ? 1 : -1;
-    for (const [dx, len] of [[.0, .2], [.035, .15]]) { const q = surface(offset(rib, .028), 1.12, Math.PI + side * (.5 + dx * 4), .004), pts: SweepPt[] = [0, .33, .66, 1].map(t => ({ p: [q.p.x + side * t * .02, q.p.y - t * len, q.p.z - .01 * t - .004] as Pt, a: .018 * (1 - t * .3), b: .004, n: [0, 0, 1] as Pt })); put0(lifted, sweep(pts, { seg: 4, capStart: true, capEnd: true }), m); }
+    for (const [dx, len] of [[.0, .2], [.035, .15]]) { const a = Math.PI + side * (.5 + dx * 4), seat = offset(pel, .03), pts: SweepPt[] = [0, .33, .66, 1].map(t => { const y = 1.12 - t * len, q = y > 1.1 ? surface(offset(rib, .028), y, a, .004) : surface(seat, y, a, .004), r = surface(offset(rib, .028), Math.max(1.04, y), a, .004); const p = q.p.length() > r.p.length() ? q : r; return { p: [p.p.x + side * t * .02, p.p.y, p.p.z] as Pt, a: .018 * (1 - t * .3), b: .004, n: p.n.toArray() as Pt }; }); put0(lifted, sweep(pts, { seg: 4, capStart: true, capEnd: true }), m); } // the tails lie on the seat, not off it (no sliver in profile)
     if (o.bib) {
       const bibR = offset(rib, .017), rows = [[1.42, -.3, .3], [1.36, -.42, .42], [1.26, -.56, .56], [1.16, -.62, .62], [1.1, -.64, .64]];
       put0(lifted, plate(bibR, rows, .0, .005, 6), m);

@@ -140,7 +140,7 @@ export function hatOf(look: Look, h: number): HatOut {
     } else { // the knot at the nape and its two tails
       const q = at((seat(A) + .02) * k, A, off(0, A) + .006 * k);
       out.cloth.push(place(loft([{ y: -.018, w: .006, f: .006, b: .006 }, { y: -.008, w: .024, f: .018, b: .014 }, { y: .01, w: .022, f: .016, b: .013 }, { y: .018, w: .006, f: .006, b: .006 }].map(r => ({ ...r, y: r.y * k, w: r.w * k, f: r.f * k, b: r.b * k })), { seg: 7, capStart: 'flat', capEnd: 'flat' }), [q.p.x, q.p.y, q.p.z], [.3, 0, 0]));
-      for (const x of [-.016, .02]) out.cloth.push(sweep([[x, -.004, -.006], [x * 1.8, -.04, -.014], [x * 2.3, (scarf ? -.085 : -.06), -.012]].map(([xx, y, z], i) => ({ p: [q.p.x + xx * k, q.p.y + y * k, q.p.z + z * k] as [number, number, number], a: .013 * k * (1 - i * .3), b: .0035 * k, n: [0, 0, 1] as [number, number, number] })), { seg: 4, capStart: true, capEnd: true }));
+      for (const x of [-.016, .02]) out.cloth.push(sweep([[x, -.004, -.004], [x * 1.6, -.035, .002], [x * 2, (scarf ? -.065 : -.05), .008]].map(([xx, y, z], i) => ({ p: [q.p.x + xx * k, q.p.y + y * k, q.p.z + z * k] as [number, number, number], a: .016 * k * (1 - i * .25), b: .0035 * k, n: [0, 0, 1] as [number, number, number] })), { seg: 4, capStart: true, capEnd: true }));
     }
   }
   // the cloth map paints a garment's side seams at u = .25 and .75: a hat has none, so its u is kept in the plain band between them (the soft cap's panel lines are built)
