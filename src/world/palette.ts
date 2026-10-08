@@ -8,7 +8,7 @@ export const palette = {
   skin: ['#d8b094','#b08470','#86625a'],
   hair: ['#262a4a','#7c4331','#cf9450','#5a3a5e'],
   /** Character Book 7: hair, soot to white. No plum, no bright ginger. (`hair` above is the old builder's and stays.) */
-  hair2: { soot:'#1f1d22', umber:'#4a3328', chestnut:'#6e4630', auburn:'#6b3328', straw:'#a58f62', iron:'#7d8083', white:'#d9d6cd' },
+  hair2: { soot:'#1f1d22', umber:'#4a3328', chestnut:'#6e4630', auburn:'#6b3328', straw:'#a58f62', iron:'#817b74', white:'#d9d6cd' },
   /** Character Book 6: irises. No violet, red or teal. */
   iris: { brown:'#6a4630', darkBrown:'#3b2a22', hazel:'#7a6532', grey:'#7d8590', greyGreen:'#667a6a', slateBlue:'#56708c' },
   /** Character Book 10: the swatches a person's clothes are made from. A cast's outfits name these, never a hex. */

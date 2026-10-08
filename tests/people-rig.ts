@@ -15,9 +15,12 @@ export const REPS: [string, string, number][] = [
   ['foundry worker', 'foundry.sturdy.broad', 7], ['stallholder', 'stallholder.standard.narrow', 8], ['shop merchant', 'shopMerchant.standard.broad', 9],
   ['garrison soldier', 'garrison.sturdy.broad', 10], ['inspector', 'inspector.standard.broad', 11],
 ];
+/** `combo` is cast.family.frame, optionally with an outfit after a colon (`stallholder.sturdy.broad:stallholder.shawl`, in the outfit's first palette): the seed draws the rest. */
 export function make(combo: string, seed: number): Citizen {
-  const [cast, family, frame] = combo.split('.') as [CastId, never, never], archetype = CASTS[cast].archetype;
-  const look = resolveLook(seed, archetype, { cast, family, frame, casts: BUILT });
+  const [cut, outfit] = combo.split(':'), [cast, family, frame] = cut.split('.') as [CastId, never, never], archetype = CASTS[cast].archetype;
+  const drawn = resolveLook(seed, archetype, { cast, family, frame, casts: BUILT }), o = outfit ? CASTS[cast].outfits.find(x => x.id === outfit) : undefined;
+  if (outfit && !o) throw new Error(`people-rig: ${cast} has no outfit ${outfit}`);
+  const look = o ? { ...drawn, outfit: o.id, palette: Object.keys(o.palettes)[0] } : drawn;
   const f = buildFigure(look, { solo: true }, kit()); f.group.userData.next = true;
   const { faceMat, ...n } = f; void faceMat;
   const motion = { stride: seed * 1.3, latch: footing(), gait: 0, speed: 0, prevX: NaN, prevZ: 0, prevYaw: 0, turn: 0, tail: 0, tailV: 0, hair: 0, hairV: 0, tempo: .88 + ((seed * 37) % 25) / 100, idle: 0, drape: 1, cloth: drapeState(), pose: null as Float32Array | null, mood: newMood(), pick: Math.abs(Math.sin(seed * 12.9898 + 1.7) * 43758.5453) % 1 };
@@ -59,4 +62,47 @@ export function intoProps(combo: string, seed: number, activity: import('../src/
         for (let k = 0; k < pa.count; k += 2) { v.fromBufferAttribute(pa, k).applyMatrix4(o.matrixWorld).applyMatrix4(inv);
           const d = Math.min(v.x - bb.min.x, bb.max.x - v.x, v.y - bb.min.y, bb.max.y - v.y, v.z - bb.min.z, bb.max.z - v.z) - .002; if (d > worst) { worst = d; where = `frame ${f}, ${p.parent === n.tails ? 'on the coat skirt' : 'on the body'}`; } } }); } }
   return { worst, where, props: props.length };
+}
+
+/** Whether a front panel (an apron, the foundry slab) reads as in front of the legs from the side (People XXII). Walking `combo` at `speed` along its line of walk for the cast sheet's 48-frame
+ *  stride window (30 Hz, after its 3 s warm-up), every 3rd frame: rays along the figure's x from each side on a 1 cm grid (its height and the line of walk) whose first hit is a leg (thigh,
+ *  knee or shin) with the panel (tails and hem) further along, the leg drawn over the apron (`over`, cm², the worst frame and side); and how far the front of the panel's hem (its lowest
+ *  3 cm) is behind the front of a leg at the same height (`behind`, m; 0 or less is the hem in front of or on the leg). */
+export function panelSide(combo: string, seed: number, speed: number) {
+  const n = make(combo, seed), player = new T.Vector3(0, 1.7, 25), ray = new T.Raycaster(), P: T.Mesh[] = [], H: T.Mesh[] = [], Lg: T.Mesh[] = [], feet = new Set<T.Object3D>(), dt = 1 / 30;
+  const o = new T.Vector3(), d = new T.Vector3(), v = new T.Vector3(), inv = new T.Matrix4();
+  n.tails.traverse(m => { if (m instanceof T.Mesh) P.push(m); }); n.hem!.traverse(m => { if (m instanceof T.Mesh) H.push(m); }); n.ankles.forEach(a => a.traverse(m => feet.add(m)));
+  n.group.traverse(m => { if (m instanceof T.Mesh) (m.material as T.Material).side = T.DoubleSide; }); n.legs.forEach(l => l.traverse(m => { if (m instanceof T.Mesh && !feet.has(m)) Lg.push(m); }));
+  const each = (ms: T.Mesh[], f: (p: T.Vector3) => void) => { for (const m of ms) { const pa = m.geometry.attributes.position; for (let j = 0; j < pa.count; j++) f(v.fromBufferAttribute(pa, j).applyMatrix4(m.matrixWorld).applyMatrix4(inv)); } };
+  let over = 0, behind = -1, where = '', at = '';
+  for (let i = 0; i < 90 + 48; i++) { n.group.position.set(0, 0, i * dt * speed); animate(n, 'walk', dt, i * dt, player); if (i < 90 || (i - 90) % 3) continue; n.group.updateMatrixWorld(true); inv.copy(n.group.matrixWorld).invert();
+    const box = new T.Box3(); each(Lg, p => { box.expandByPoint(p); }); // (only where a leg is can one be drawn over the apron)
+    for (const side of [-1, 1]) { let cells = 0;
+      for (let y = .9; y > .05; y -= .01) for (let z = -.15; z < .6; z += .01) { if (y < box.min.y || y > box.max.y || z < box.min.z || z > box.max.z) continue; n.group.localToWorld(o.set(side, y, z)); d.set(-side, 0, 0).transformDirection(n.group.matrixWorld); ray.set(o, d); ray.far = 2;
+        const hs = ray.intersectObjects([...P, ...Lg], false); if (hs.length && Lg.includes(hs[0].object as T.Mesh) && hs.some(h => P.includes(h.object as T.Mesh))) cells++; }
+      if (cells > over) { over = cells; where = `stride frame ${i - 90}, seen from ${side < 0 ? 'its right' : 'its left'}`; } }
+    let lo = 9, hz = -9, lz = -9; each(H, p => { lo = Math.min(lo, p.y); }); each(H, p => { if (p.y < lo + .03) hz = Math.max(hz, p.z); }); each(Lg, p => { if (p.y > lo && p.y < lo + .03) lz = Math.max(lz, p.z); });
+    if (lz - hz > behind) { behind = lz - hz; at = `stride frame ${i - 90}`; } }
+  return { over, where, behind, at };
+}
+
+/** Whether a seated leg shows through its long cloth (People XXIII). `through` casts toward the pelvis's upright axis, which a seated lap lies across, so seated each thigh and shin vertex
+ *  casts toward its own bone instead (the nearest point on hip-knee or knee-ankle): cloth crossed on the way in with none on the way out is the leg outside the cloth with cloth behind it.
+ *  `activity` 'sit' or 'eat' (`mug`: the mug sitter's eat) for 4 s after a 1.5 s warm-up, every 12th frame; the thigh's root (within 15 cm of the hip, inside the seat) is left out, and what is
+ *  seen only from under the seat (the leg's surface facing down) is not counted. Returns the deepest (m) a knee or leg shows in front, on top or at the sides (`seen`), and at the back of the
+ *  calf (`calf`), with where. */
+export function seatedThrough(combo: string, seed: number, activity: 'sit' | 'eat', mug = false) {
+  const n = make(combo, seed), player = new T.Vector3(0, 1.7, 25), ray = new T.Raycaster(), cloth: T.Mesh[] = [], V = new T.Vector3(), P = new T.Vector3(), dir = new T.Vector3(), seg = new T.Line3(), hip = new T.Vector3(), kn = new T.Vector3(), an = new T.Vector3();
+  if (mug) n.group.userData.upright = true;
+  n.group.traverse(o => { if (o instanceof T.Mesh) (o.material as T.Material).side = T.DoubleSide; }); n.tails.traverse(o => { if (o instanceof T.Mesh) cloth.push(o); });
+  let seen = 0, calf = 0, where = '';
+  for (let f = 0; f < 60 * 5.5; f++) { animate(n, activity, 1 / 60, f / 60, player); if (f < 90 || f % 12) continue; n.group.updateMatrixWorld(true);
+    for (let k = 0; k < 2; k++) { n.legs[k].getWorldPosition(hip); n.knees[k].getWorldPosition(kn); n.ankles[k].getWorldPosition(an);
+      for (const [grp, a, b] of [[n.legs[k], hip, kn], [n.knees[k], kn, an]] as const) for (const o of grp.children) { if (!(o instanceof T.Mesh)) continue; const pa = o.geometry.attributes.position;
+        for (let j = 0; j < pa.count; j += 2) { V.fromBufferAttribute(pa, j).applyMatrix4(o.matrixWorld); if (grp === n.legs[k] && V.distanceTo(hip) < .15) continue;
+          seg.set(a, b); seg.closestPointToPoint(V, true, P); dir.subVectors(P, V); const far = dir.length(); if (far < 1e-4 || dir.y / far > .5) continue; dir.normalize(); ray.set(V, dir); ray.far = far;
+          const h = ray.intersectObjects(cloth, false)[0]; if (!h) continue; ray.set(V, dir.clone().negate()); ray.far = 1; if (ray.intersectObjects(cloth, false).length) continue;
+          const back = n.pelvis.worldToLocal(V.clone()).z < n.pelvis.worldToLocal(P.clone()).z - .02;
+          if (back) calf = Math.max(calf, h.distance); else if (h.distance > seen) { seen = h.distance; where = `${grp === n.legs[k] ? 'thigh' : 'shin'} ${k}, frame ${f}`; } } } } }
+  return { seen, calf, where };
 }

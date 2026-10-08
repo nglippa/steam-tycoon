@@ -10,7 +10,13 @@ export interface Band { y: number; w: number; f: number; b: number; z: number; n
 /** One hinged garment. `up` is in `tails`' frame (y from the waist pivot down to the hinge), `lo` in `hem`'s (y from the hinge down to the hem). `panel`: a front panel with no back (an apron). */
 export interface Garment { up: Band[]; lo: Band[]; panel: boolean }
 /** What the builder records for the cloth of one figure: its garments, the hinge height in `tails`' frame, and the leg's radii (thigh at the hip, knee, calf) with the cloth's clearance. */
-export interface Drape { garments: Garment[]; hinge: number; thigh: number; knee: number; calf: number; /** the deepest the cloth is at the knee, front or back: seated, the lap is flattened to `LAP_SEATED` */ lap: number }
+export interface Drape { garments: Garment[]; hinge: number; thigh: number; knee: number; calf: number; /** the deepest the cloth is at the knee, front or back: seated, the lap is flattened to `LAP_SEATED` */ lap: number;
+  /** a coat skirt cut at its side seams into a front and a back that lap over each other at the sides (People XXI): the front is led and opened by the fronts of the legs alone, as an apron
+   *  is, and the back by their backs alone, so the front goes out over the forward knee and the back trails the trailing one, where in one piece the coat had to open front and back together
+   *  and ballooned. Both are children of `tails`, on its pivot, inside its lead and sway. */
+  split?: { garments: Garment[]; front: Part; back: Part; /** (the drape the two sides are solved on, made once) */ one?: Drape } }
+/** One side of a split coat skirt: its part above the knee, its hem, and its own lead and swing. */
+export interface Part { tails: T.Object3D; hem?: T.Object3D; st: DrapeState }
 /** How thick a seated lap may be (front to back of the cloth above the knee, when that lies along the thighs). */
 export const LAP_SEATED = .19;
 
@@ -31,7 +37,9 @@ export const bandAt = (rings: Band[], y: number): Band | null => {
 /** A leg as three points in the cloth's frame: the hip joint, the knee and the ankle. */
 const leg = () => ({ h: new T.Vector3(), k: new T.Vector3(), a: new T.Vector3(), /** instep, toe and heel */ i: new T.Vector3(), t: new T.Vector3(), e: new T.Vector3() });
 const INSTEP = new T.Vector3(0, .01, .07), TOE = new T.Vector3(0, -.025, .2), HEEL = new T.Vector3(0, -.03, -.07);
-const L = [leg(), leg()], q = new T.Quaternion(), pin = new T.Quaternion(), v = new T.Vector3();
+const L = [leg(), leg()], q = new T.Quaternion(), pin = new T.Quaternion(), v = new T.Vector3(), UP = new T.Vector3(0, 1, 0);
+/** The line of walk (the figure's own forward) in the cloth's frame, level: the pelvis turns about it with the stride. */
+const AHEAD = new T.Vector3(0, 0, 1);
 /** Where a leg is at height y (its axis and radius, in one reused object), or null if it does not reach that height. */
 const AT = { x: 0, z: 0, r: 0 };
 function legAt(p: typeof L[0], y: number, d: Drape) {
@@ -59,10 +67,12 @@ function needs(d: Drape, sx: number) {
     for (const r of g.lo) for (let li = 0; li < 2; li++) { const p = L[li], s = legAt(p, d.hinge + r.y, d), x = (s ? wide(s.x, s.r) : wide(p.k.x, d.knee)) / sx; put(loNeeds, nl++, r.y, at(r, x, true), at(r, x, false), li, 0, g.panel); }
   }
 }
+/** Which faces of the cloth are solved: 0 both; 1 the front alone, -1 the back alone (the two sides of a split coat skirt). */
+let SIDE = 0;
 /** The upper part, turned forward by asin(a) and opened to scale s: the least s that clears every leg ring (front: |y| a + f s cos >= zf; back: |y| a - b s cos <= zb). */
 function scaleFor(a: number) {
   const c = Math.sqrt(1 - a * a); let s = 1;
-  for (let i = 0; i < nu; i++) { const n = upNeeds[i], y = -n.y; s = Math.max(s, (n.zf - y * a) / (n.f * c)); if (!n.panel) s = Math.max(s, (y * a - n.zb) / (n.b * c)); }
+  for (let i = 0; i < nu; i++) { const n = upNeeds[i], y = -n.y; if (SIDE >= 0) s = Math.max(s, (n.zf - y * a) / (n.f * c)); if (SIDE <= 0 && !n.panel) s = Math.max(s, (y * a - n.zb) / (n.b * c)); }
   return s;
 }
 let D: Drape, W = 0;
@@ -75,13 +85,16 @@ function meet(y: number, z: number, p: typeof L[0], front: boolean) {
   if (y > p.i.y - .03 && y < p.i.y + .06) W = Math.max(W, sg * (p.i.z - z) + .045);
   if (y > p.e.y - .03 && y < p.e.y + .06) W = Math.max(W, sg * (p.e.z - z) + .045);
 }
+/** How far the upper part laps over the hem below the hinge (wardrobe.ts cuts it 3 cm past the knee): what of the hem is carried above that is inside the upper part, and the legs there are the
+ *  upper part's to clear. (People XXI: the hem's top is cut narrow, so asking it to hold the knee too opened the whole hem by up to 38 %, and its hem with it: the bell.) */
+const LAPPED = .03;
 /** How far the hem misses (0 when every leg is inside it), with the upper part at lead `a` and scale `s`, and the hem opened by `k` and turned by `th` about the knee: each band's front and back
  *  are carried through both parts' turns and the legs are met where they are carried to (turning the hem lowers its front). */
 function miss(a: number, s: number, th: number, hinge: number, k: number) {
   const su = -a, cu = Math.sqrt(1 - a * a), sh = Math.sin(th), ch = Math.cos(th); W = 0;
   for (let i = 0; i < nl; i++) { const n = loNeeds[i];
-    const p = L[n.zf], f = n.f * k, z1 = n.y * sh + f * ch, y1 = n.y * ch - f * sh, y3 = hinge + y1, z3 = s * z1; meet(y3 * cu - z3 * su, y3 * su + z3 * cu, p, true);
-    if (!n.panel) { const b = n.b * k, zb = n.y * sh - b * ch, yb = n.y * ch + b * sh, y3b = hinge + yb, z3b = s * zb; meet(y3b * cu - z3b * su, y3b * su + z3b * cu, p, false); }
+    const p = L[n.zf], f = n.f * k, z1 = n.y * sh + f * ch, y1 = n.y * ch - f * sh, y3 = hinge + y1, z3 = s * z1; if (SIDE >= 0 && y1 < -LAPPED) meet(y3 * cu - z3 * su, y3 * su + z3 * cu, p, true);
+    if (SIDE <= 0 && !n.panel) { const b = n.b * k, zb = n.y * sh - b * ch, yb = n.y * ch + b * sh, y3b = hinge + yb, z3b = s * zb; if (yb < -LAPPED) meet(y3b * cu - z3b * su, y3b * su + z3b * cu, p, false); }
   }
   return W;
 }
@@ -94,6 +107,7 @@ export function readLegs(pelvis: T.Object3D, tails: T.Object3D, legs: T.Object3D
     q.copy(lg.quaternion).multiply(kn.quaternion); p.a.copy(ankles[k].position).applyQuaternion(q).add(p.k);
     q.multiply(ankles[k].quaternion); p.i.copy(INSTEP).applyQuaternion(q).add(p.a); p.t.copy(TOE).applyQuaternion(q).add(p.a); p.e.copy(HEEL).applyQuaternion(q).add(p.a);
     toCloth(p.h); toCloth(p.k); toCloth(p.a); toCloth(p.i); toCloth(p.t); toCloth(p.e); }
+  AHEAD.set(0, 0, 1).applyQuaternion(pin); AHEAD.y = 0; AHEAD.normalize();
 }
 
 /** The least of f on [lo, hi] (f roughly convex there): a golden-section search, `n` steps. */
@@ -111,7 +125,12 @@ function reach(ok: (x: number) => boolean, from: number, to: number, n: number) 
 export function drape(d: Drape, st: DrapeState, tails: T.Object3D, hem: T.Object3D | undefined, dt: number, g: number, sway: number, drag: number, lively: boolean) {
   // the upper part: the lead that lets it open least (of those, the one nearest plumb: standing, that is plumb; an apron, with no back to clear, is pushed only as far as the knee asks),
   // then the spring's lead, kept where the cloth still opens no more than 6 % past its least
-  D = d; needs(d, 1);
+  // a front panel alone (an apron, the foundry slab, with nothing round the legs under it) hangs square to the line of walk, not turned with the pelvis's stride yaw (People XXII): turned, the
+  // edge on the side of the trailing hip went back 2-3 cm, behind the forward leg's front, and seen from the side that leg was drawn over the apron (up to 160 cm² of it), which read as
+  // hanging behind the leg, a tail. The legs are read square to the walk too, so the solve is unchanged.
+  D = d; let yaw = 0;
+  if (d.garments.length && d.garments.every(g => g.panel)) { yaw = Math.atan2(AHEAD.x, AHEAD.z); q.setFromAxisAngle(UP, -yaw); for (const p of L) for (const o of [p.h, p.k, p.a, p.i, p.t, p.e]) o.applyQuaternion(q); }
+  needs(d, 1);
   let best = least(scaleFor, -.36, .6, 9), bestS = scaleFor(best);
   if (scaleFor(0) <= bestS + 1e-3) best = 0; else best = reach(x => scaleFor(x) <= bestS + 1e-3, best, 0, 4);
   let a = best + drag;
@@ -121,7 +140,7 @@ export function drape(d: Drape, st: DrapeState, tails: T.Object3D, hem: T.Object
   a = Math.max(-.6, Math.min(.6, a));
   let s = scaleFor(a); const sx = 1 - Math.min(.12, (s - 1) * .12);
   if (sx < 1) { needs(d, sx); s = scaleFor(a); }
-  tails.rotation.set(-Math.asin(a), 0, sway); tails.scale.set(sx, 1, s);
+  tails.rotation.order = 'YXZ'; tails.rotation.set(-Math.asin(a), yaw, sway); tails.scale.set(sx, 1, s); // (the yaw outermost, about the waist)
   if (!hem) return; // a coat skirt that ends above the knee is one part
   // the hem: the turn about the knee that clears the legs best; if even that misses, the hem flares (its own opening, so the waist stays put: its top is cut narrow inside the upper part)
   // It hangs plumb from the knee when it may (its turn undoes the upper part's) and trails a little; most of a walk that already clears the legs, and nothing more is solved.
@@ -135,6 +154,19 @@ export function drape(d: Drape, st: DrapeState, tails: T.Object3D, hem: T.Object
   if (lively) { st.bendV += ((-sway * .7 - st.bend) * 30 - st.bendV * 4.5) * dt; st.bend += st.bendV * dt; } else { st.bend = 0; st.bendV = 0; }
   hem.rotation.set(th, 0, st.bend * g); hem.scale.set(1, 1, k);
 }
+/** A split coat skirt's two sides, after `drape` has placed `tails`: the legs are taken into `tails`' own frame, and the front is solved on the fronts of the legs alone and the back on their
+ *  backs alone, each with its own lead, opening, hem and springs (no drag of their own: `tails` trails them both). */
+export function drapeSplit(d: Drape, tails: T.Object3D, dt: number, g: number, lively: boolean) {
+  const sp = d.split; if (!sp) return;
+  q.setFromEuler(tails.rotation).invert();
+  for (const p of L) for (const o of [p.h, p.k, p.a, p.i, p.t, p.e]) { o.applyQuaternion(q); o.x /= tails.scale.x; o.z /= tails.scale.z; }
+  const one = sp.one ??= { ...d, garments: sp.garments, split: undefined };
+  for (const [part, side] of [[sp.front, 1], [sp.back, -1]] as const) { SIDE = side; drape(one, part.st, part.tails, part.hem, dt, g, 0, 0, lively); }
+  SIDE = 0;
+}
+/** The two sides standing still (eased back to plumb), or held closed and plumb under `tails` (seated, or not followed) with the hem's turn and opening `hemX`, `hemZ`. */
+export function restSplit(d: Drape, dt: number) { const sp = d.split; if (sp) for (const p of [sp.front, sp.back]) rest(p.st, p.tails, p.hem, dt, 0); }
+export function holdSplit(d: Drape, hemX: number, hemZ: number) { const sp = d.split; if (sp) for (const p of [sp.front, sp.back]) { p.tails.rotation.set(0, 0, 0); p.tails.scale.set(1, 1, 1); if (p.hem) { p.hem.rotation.set(hemX, 0, 0); p.hem.scale.set(1, 1, hemZ); } } }
 /** A figure standing still: the cloth eases back to plumb and closed (standing, the legs are inside it). */
 export function rest(st: DrapeState, tails: T.Object3D, hem: T.Object3D | undefined, dt: number, sway: number) {
   const e = Math.min(1, dt * 6); st.lead -= st.lead * e; st.leadV = 0; st.hem -= st.hem * e; st.hemV = 0; st.bend -= st.bend * e; st.bendV = 0;
@@ -142,9 +174,11 @@ export function rest(st: DrapeState, tails: T.Object3D, hem: T.Object3D | undefi
   if (hem) { hem.rotation.set(st.hem, 0, 0); hem.scale.set(1, 1, 1 + (hem.scale.z - 1) * (1 - e)); }
 }
 
-/** The bands of a garment part at every 7 cm or less, from rings ordered top down (the builder's), so the legs are checked between the rings too. */
+/** The bands of a garment part at every 7 cm or less and at each of its rings, from rings ordered top down (the builder's), so the legs are checked between the rings too. */
 export function bands(rings: { y: number; w: number; f: number; b: number; z?: number; n?: number }[], lip: number): Band[] {
   const src = rings.map(r => ({ y: r.y, w: r.w - lip, f: r.f - lip, b: r.b - lip, z: r.z ?? 0, n: r.n ?? 2 })), out: Band[] = [], top = src[0].y, bot = src[src.length - 1].y, n = Math.max(1, Math.ceil((top - bot) / .07));
-  for (let i = 0; i <= n; i++) out.push(bandAt(src, top + (bot - top) * i / n)!);
+  // every 7 cm, and at every ring of the garment itself (a hem's top is cut narrower in two steps; between samples it would be met as if it were not)
+  const ys = [...Array.from({ length: n + 1 }, (_, i) => top + (bot - top) * i / n), ...src.map(r => r.y)].sort((p, q) => q - p).filter((y, i, a) => !i || a[i - 1] - y > .005);
+  for (const y of ys) out.push(bandAt(src, y)!);
   return out;
 }

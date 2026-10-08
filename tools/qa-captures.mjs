@@ -1,7 +1,7 @@
 // The People/Presentation QA evidence: the cast matrix and seed rows from the cast sheet, the foot-slide measure, the in-game
 // samples (Market Square, the street crowd, the final product test, a seated mug, an umbrella in rain), the intro's three
 // figures, and the performance of the new figure builder against ?people=old. Capture and measure only.
-//   node tools/qa-captures.mjs <baseUrl> <outDir> --part=sheet|game|perf|intro [--people=new|old]
+//   node tools/qa-captures.mjs <baseUrl> <outDir> --part=sheet|slide|game|perf|intro [--people=new|old]
 // e.g. node tools/qa-captures.mjs http://127.0.0.1:5741 screenshots/presentation/qa --part=sheet
 // Needs a dev server for the repo. One headless browser, one page at a time; game pages are 1280x720 at device scale 1, the
 // line-up sheets 2560x720 (a wide canvas so eleven or twenty figures stand at a readable height). Results merge into
@@ -48,9 +48,10 @@ async function sheetShot(page, name, query, caption, { width = 2560, height = 72
   console.log(name);
 }
 
-if (part === 'sheet') {
+if (part === 'sheet' || part === 'slide') { // (--part=slide: the foot-slide measure alone, on one sheet load)
   const page = await browser.newPage({ viewport: { width: 2560, height: 720 }, deviceScaleFactor: 1 });
   const entry = watch(page, 'sheet.html (all sheet loads)'); entry.url = `${base}/sheet.html?…`;
+  if (part === 'slide') { await page.goto(`${base}/sheet.html?${repQuery}&pose=stand`); await page.waitForSelector('body[data-ready="1"]', { timeout: 60000 }); } else {
   const repLabels = REPS.map(([label, combo, seed]) => `<b>${label}</b><br>${combo.split('.')[0]}<br>${combo.split('.').slice(1).join(' ')} · s${seed}`);
   const order = 'left to right: ' + REPS.map(r => r[0]).join(', ');
   const views = [['front', 'front'], ['quarter', '3/4'], ['side', 'side'], ['back', 'back']];
@@ -80,29 +81,41 @@ if (part === 'sheet') {
   for (const v of ['front', 'quarter', 'side']) await sheetShot(page, `intro-figures-${v}`, `build=new&looks=introGuard,introOrdinal,masked&view=${v}&pose=stand&fov=12`, `The intro's three figures · ${v === 'quarter' ? '3/4' : v} · standing idle`, { width: 1280, relabel: introLabels });
   await sheetShot(page, 'intro-figures-sit', `build=new&looks=introGuard,introOrdinal,masked&view=quarter&pose=sit&fov=12`, 'The intro\'s three figures · seated pose (the stranger sits on the stoop) · 3/4', { width: 1280, relabel: introLabels });
 
+  }
   // Foot slide: the sheet's stride (animateLife 'walk' while the figure is moved at a steady pace), simulated at 60 Hz for 4 s
-  // per figure. A foot is planted while its lowest vertex is within 1 cm of the lowest it gets; its drift is how far the ankle
-  // pivot and the lowest point travel over the ground (world x/z) in one stance.
+  // per figure. Each foot's sole edges (the back of the heel and the tip of the toe, parts.ts `foot`) are tracked against the
+  // pavement (.13 under the figure's origin in the world, as the spawn sites stand people). People XXI: the drift counts only
+  // while the WHOLE SOLE IS FLAT (heel and toe both within 1 cm of the pavement): the window used to be "the lowest vertex within
+  // 1 cm of its lowest", which takes in the heel-off roll, where the ankle legitimately travels forward as the foot turns over its
+  // toe, and read that roll as ~2 cm of slide. The roll is reported on its own: how far the ankle travels during it (expected:
+  // the foot turning) and how far the toe tip it turns on travels while it is on the pavement (the real slip there, expected ~0).
   const slide = await page.evaluate(async reps => {
     const C = await import(location.origin + '/src/world/citizens.ts'), Life = await import(location.origin + '/src/world/citizen-life.ts'), A = await import(location.origin + '/src/world/assets.ts'), F = await import(location.origin + '/src/world/people/figure.ts'), Look = await import(location.origin + '/src/world/people/look.ts');
     const res = [];
     for (const speed of [1, 1.4]) for (const [label, combo, seed] of reps) {
       const [cast, family, frame] = combo.split('.'), n = C.citizenNext(A.mats.rust, seed, Look.CASTS[cast].archetype, { solo: true, casts: F.BUILT, cast, family, frame });
-      const V = n.group.position.constructor, player = new V(0, 1.7, 25), dt = 1 / 60, frames = [];
+      const V = n.group.position.constructor, player = new V(0, 1.7, 25), dt = 1 / 60, frames = [], pave = -.13;
       n.group.rotation.y = 0;
       for (let i = 0; i < 60 * 6; i++) { const t = i * dt; n.group.position.set(0, 0, t * speed); Life.animateLife(n, 'walk', dt, t, false, player); n.group.updateMatrixWorld(true);
         if (i < 120) continue;
-        frames.push(n.ankles.map(a => { const p = a.getWorldPosition(new V()); let low = null; a.traverse(o => { if (!o.isMesh) return; const pa = o.geometry.attributes.position, v = new V(); for (let k = 0; k < pa.count; k++) { v.fromBufferAttribute(pa, k).applyMatrix4(o.matrixWorld); if (!low || v.y < low.y) low = v.clone(); } }); return { ax: p.x, az: p.z, ay: p.y, lx: low.x, lz: low.z, ly: low.y }; })); }
-      const feet = [0, 1].map(f => { const ys = frames.map(fr => fr[f].ly), floor = Math.min(...ys), stances = []; let cur = null;
-        frames.forEach((fr, i) => { const s = fr[f], planted = s.ly < floor + .01; if (planted) { if (!cur) cur = { start: i, a0: [s.ax, s.az], l0: [s.lx, s.lz], aMax: 0, lMax: 0 }; cur.end = i; cur.aMax = Math.max(cur.aMax, Math.hypot(s.ax - cur.a0[0], s.az - cur.a0[1])); cur.lMax = Math.max(cur.lMax, Math.hypot(s.lx - cur.l0[0], s.lz - cur.l0[1])); cur.aEnd = [s.ax - cur.a0[0], s.az - cur.a0[1]]; } else if (cur) { stances.push(cur); cur = null; } });
-        if (cur) stances.push(cur);
-        const full = stances.filter(s => s.start > 0 && s.end < frames.length - 1 && s.end - s.start >= 3);
-        return full.map(s => ({ frames: s.end - s.start + 1, ankleDriftCm: +(s.aMax * 100).toFixed(1), ankleNetCm: +(s.aEnd[1] * 100).toFixed(1), lowestPointDriftCm: +(s.lMax * 100).toFixed(1), bodyTravelCm: +((s.end - s.start) * dt * speed * 100).toFixed(1) })); });
+        frames.push(n.ankles.map(a => { const p = a.getWorldPosition(new V()), [hx, tx] = a.userData.sole ?? [-.068, .225], h = new V(0, -.052, hx).applyMatrix4(a.matrixWorld), e = new V(0, -.052, tx).applyMatrix4(a.matrixWorld);
+          return { ax: p.x, az: p.z, hy: h.y - pave, tx: e.x, tz: e.z, ty: e.y - pave }; })); }
+      const travel = (w, k0, k1) => Math.max(...w.map(s => Math.hypot(s[k0] - w[0][k0], s[k1] - w[0][k1])));
+      const feet = [0, 1].map(f => { const out = []; let i = 0;
+        while (i < frames.length) { // a stance: the flat run, then the roll over the toe that follows it
+          const flat = s => Math.abs(s.hy) < .01 && Math.abs(s.ty) < .01, roll = s => !flat(s) && Math.abs(s.ty) < .01 && s.hy >= .01;
+          if (!flat(frames[i][f])) { i++; continue; } const f0 = i; while (i < frames.length && flat(frames[i][f])) i++; const f1 = i; while (i < frames.length && roll(frames[i][f])) i++; const r1 = i;
+          if (f0 === 0 || r1 >= frames.length || f1 - f0 < 3) continue; // whole stances only
+          const fw = frames.slice(f0, f1).map(fr => fr[f]), rw = frames.slice(f1 - 1, r1).map(fr => fr[f]);
+          out.push({ flatFrames: f1 - f0, flatAnkleDriftCm: +(travel(fw, 'ax', 'az') * 100).toFixed(2), flatAnkleNetCm: +((fw[fw.length - 1].az - fw[0].az) * 100).toFixed(2), rollFrames: r1 - f1, rollAnkleTravelCm: +(travel(rw, 'ax', 'az') * 100).toFixed(1), rollToeTipDriftCm: +(travel(rw.filter(q => Math.abs(q.ty) < .003), 'tx', 'tz') * 100).toFixed(2), lowestSoleCm: +(Math.min(...frames.slice(f0, r1).map(fr => Math.min(fr[f].hy, fr[f].ty))) * 100).toFixed(2) }); }
+        return out; });
       res.push({ label, combo, seed, speed, feet });
     }
     return res;
   }, REPS);
-  merge('foot-slide.json', 'sheet', { method: 'sheet stride simulated at 60 Hz for 4 s after a 2 s warm-up; animateLife(n, "walk") with the figure moved along +z at `speed` m/s (the sheet uses 1 m/s); planted = the foot\'s lowest vertex within 1 cm of its lowest; drift = max horizontal travel during one stance; ankleNetCm = the ankle pivot\'s z travel from touchdown to lift-off (positive = forward with the body, i.e. skating)', figures: slide });
+  const all = slide.flatMap(r => r.feet.flat()), med = a => { const s = [...a].sort((p, q) => p - q); return s.length ? +s[Math.floor(s.length / 2)].toFixed(2) : null; };
+  merge('foot-slide.json', 'sheet', { method: 'sheet stride simulated at 60 Hz for 4 s after a 2 s warm-up; animateLife(n, "walk") with the figure moved along +z at `speed` m/s (the sheet uses 1 m/s); the pavement is .13 under the origin in the world; flat = the sole\'s heel edge and toe tip both within 1 cm of the pavement; flatAnkleDriftCm = the ankle pivot\'s max horizontal travel while flat (the slide; flatAnkleNetCm its z travel, positive = forward with the body, i.e. skating); the heel-off roll that follows (heel up, toe tip within 1 cm) is reported apart: rollAnkleTravelCm (the foot turning over its toe, expected) and rollToeTipDriftCm (the toe tip it turns on, while it is on the pavement (within 3 mm): the slip there); lowestSoleCm the lowest heel or toe edge in the stance (negative = into the pavement). People XXI: the window was the lowest vertex within 1 cm of its lowest, which took in the heel-off roll', summary: { stances: all.length, flatAnkleDriftCm: { median: med(all.map(s => s.flatAnkleDriftCm)), max: Math.max(...all.map(s => s.flatAnkleDriftCm)) }, rollAnkleTravelCm: { median: med(all.map(s => s.rollAnkleTravelCm)), max: Math.max(...all.map(s => s.rollAnkleTravelCm)) }, rollToeTipDriftCm: { median: med(all.map(s => s.rollToeTipDriftCm)), max: Math.max(...all.map(s => s.rollToeTipDriftCm)) }, lowestSoleCm: Math.min(...all.map(s => s.lowestSoleCm)) }, figures: slide });
+  console.log('foot slide', JSON.stringify({ stances: all.length, flatDriftMedian: med(all.map(s => s.flatAnkleDriftCm)), flatDriftMax: Math.max(...all.map(s => s.flatAnkleDriftCm)), rollAnkleMedian: med(all.map(s => s.rollAnkleTravelCm)), toeTipMax: Math.max(...all.map(s => s.rollToeTipDriftCm)), lowest: Math.min(...all.map(s => s.lowestSoleCm)) }));
   merge('console.json', 'sheet', log);
   await page.close();
 }
@@ -263,5 +276,19 @@ if (part === 'intro') {
   merge('captures.json', `intro-${people}`, { steps, shots: records });
   merge('console.json', `intro-${people}`, log);
   await page.goto('about:blank'); await ctx.close();
+}
+// ---- seated (People XXIII) -------------------------------------------------------------------------------------------
+// The eleven representatives, the child and the elder seated (sit, and eat at the top of the bite), side, front and 3/4, each on its pavement (&ground=1, the red
+// line) with the sheet's bench under the hips; and four of them close up from the side, the feet against the pavement. --prefix=before|after names the set.
+if (part === 'seated') {
+  const page = await browser.newPage({ viewport: { width: 2560, height: 720 }, deviceScaleFactor: 1 }), entry = watch(page, 'sheet.html (seated)'), pre = flag('prefix', 'after');
+  entry.url = `${base}/sheet.html?…&pose=sit|bite&ground=1`;
+  const cast = [...REPS, ['child', 'child.child.narrow', 3], ['elder', 'elder.slim.narrow', 5]], q = `build=new&combos=${cast.map(r => r[1]).join(',')}&seeds=${cast.map(r => r[2]).join(',')}&ground=1`;
+  const labels = cast.map(([label, combo, seed]) => `<b>${label}</b><br>${combo.split('.')[0]} · s${seed}`);
+  for (const [pose, what] of [['sit', 'sit'], ['bite', 'eat, top of the bite']]) for (const [v, name] of [['side', 'side'], ['front', 'front'], ['quarter', '3/4']])
+    await sheetShot(page, `${pre}-seated-${pose}-${v}`, `${q}&view=${v}&pose=${pose}&fov=12`, `People XXIII · seated (${what}) · ${name} · the pavement is the red line, the bench is the sheet's, under the hips`, { relabel: labels });
+  const few = [REPS[0], REPS[6], REPS[9], cast[11]], fq = `build=new&combos=${few.map(r => r[1]).join(',')}&seeds=${few.map(r => r[2]).join(',')}&ground=1`;
+  await sheetShot(page, `${pre}-seated-sit-side-feet`, `${fq}&view=side&pose=sit&fov=12&zoom=2.2&fy=.2`, `People XXIII · seated · side · the feet against the pavement (red): ${few.map(r => r[0]).join(', ')}`, { width: 1600, relabel: few.map(r => `<b>${r[0]}</b>`) });
+  merge('console.json', `seated-${pre}`, log);
 }
 await browser.close();

@@ -24,7 +24,7 @@ export function hand(d: Dims, side: number): T.BufferGeometry {
 }
 
 /** The shoe: a wedge (narrow heel, high instep, wider toe box), a sole slab 18 mm thick and slightly larger than the upper so a sole line shows all round, and a heel block. The flat
- *  sole is `SOLE` (.052) under the ankle, the heel back at -.065 and the toe at +.215, so the planted foot sits flat and rolls on the arcs gait.ts expects. */
+ *  sole is `SOLE` (.052) under the ankle, its back edge at -.068 and its front edge at +.225 (scaled with the shoe), so the planted foot sits flat and rolls on those edges (gait.ts). */
 export function foot(g: T.Group, d: Dims, upperM: T.Material, soleM: T.Material, soft = false) {
   const L = d.shoe / .285, X = (a: number) => a * L, sw = d.shoeW / .094, toe = soft ? 2.5 : 3;
   const fr = (a: number, w: number, top: number, bottom: number, n = 2.4): Ring => ({ y: X(a), w: w * sw, f: (top - bottom) / 2, b: (top - bottom) / 2, z: -(top + bottom) / 2, n });
@@ -32,6 +32,7 @@ export function foot(g: T.Group, d: Dims, upperM: T.Material, soleM: T.Material,
   put0(g, turn([fr(-.062, .028, .021, -.034), fr(-.04, .039, .03, -.034), fr(-.005, .044, .052, -.034), fr(.05, .0465, .034, -.034), fr(.12, .0475, .008, -.034, toe), fr(.19, .0455, -.008, -.034, toe), fr(.208, .036, -.014, -.034, toe), fr(.216, .016, -.02, -.034, toe)], { seg: 7, capStart: 'flat', capEnd: 'flat' }, 'foot'), upperM);
   put0(g, turn([fr(-.068, .026, -.034, -.052, 2.5), fr(-.05, .042, -.034, -.052, 2.5), fr(.03, .0505, -.034, -.052, 2.5), fr(.12, .0535, -.034, -.052, 2.8), fr(.195, .0505, -.034, -.052, 3), fr(.217, .04, -.034, -.052, 3), fr(.225, .018, -.034, -.052, 3)], { seg: 7, capStart: 'flat', capEnd: 'flat' }, 'sole'), soleM);
   put0(g, turn([fr(-.066, .03, -.03, -.052, 2.4), fr(-.045, .04, -.03, -.052, 2.4), fr(-.012, .042, -.03, -.052, 2.4)], { seg: 8, capStart: 'flat', capEnd: 'flat' }, 'heel'), soleM);
+  g.userData.sole = [X(-.068), X(.225)]; // the sole's back and front edges, which the walk rolls on (gait.ts)
 }
 
 const sp = (p: T.Vector3, n: T.Vector3, a: number, b: number): SweepPt => ({ p: [p.x, p.y, p.z], a, b, n: [n.x, n.y, n.z] });

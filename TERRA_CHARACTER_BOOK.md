@@ -197,6 +197,22 @@ caps that have lost their shape. The Ordinance is squared and vertical: boards o
 straight hems, stiff collars, hard hat lines. The Embers are civilians; they are marked by one
 small thing, never by a uniform.
 
+### Telling the dark coats apart
+
+At ~50 px a long dark coat is a dark column, so every cast that might wear one carries its own
+light shape or outline, from the colours chapter 10 already allows:
+
+- **Garrison soldier:** the belt and crossbelt in pipeclayed bone over the green-charcoal
+  greatcoat: a light diagonal and waistline (at least four times the coat's value).
+- **Inspector:** stays the plain dark column, squared at the shoulder by wider boards edged in
+  bone, with bone piping on the high oxblood collar under the jaw, and the round helm.
+- **Older mechanic:** never in a dark coat: a canvas, stone or bone shop coat with its sleeves
+  rolled, or shirt sleeves and a canvas work apron (at least three times the Ordinance's value).
+- **Sturdy against standard:** a sturdy figure is not the standard outline scaled up. The sturdy
+  stallholder's skirt is cut fuller from the hip (its hem at least 1.15 times the standard's).
+
+`tests/cast-reads.test.ts` holds these.
+
 ---
 
 ## 5. Body construction
@@ -356,6 +372,20 @@ Placed by the formula, as fractions of H up from the chin (restrained anime), an
 The atlas layout, the expression set and the packing stay as they are. Feature positions are
 repainted to the landmarks above and aligned to the built nose.
 
+### Value per skin tone
+
+At the game's distance a face is 4 to 8 px wide and the painted features average away: an eye of
+white, iris and lash comes out near the value of a mid skin, so mid and dark faces went blank while
+light ones kept a dark eye row. The skin itself therefore carries the face's big value shapes,
+scaled to its tone (`FACE_VALUE` and `FACE_PAINT` in `head.ts`, applied by the face material, no
+new texture or draw): a shadowed band over the brows and eyes; lighter planes on the forehead, the
+cheekbones, the bridge of the nose and the lower lip; a shade under the nose. Close up they are
+modelling, not make-up (eye band no deeper than x.74, lighter planes no more than x1.3); the darker
+the skin, the deeper the band and the lighter the planes, so the step from cheek to eye band is at
+least 1.35 on the mid and dark skins. No shape is drawn narrower than about a pixel, and once the
+face is too small for its painted features to be told apart each shape doubles its depth, so the
+eye row lands on every tone at ~50 px. `tests/face-value.test.ts` holds the ordering and the limits.
+
 ---
 
 ## 7. Hair and hats
@@ -456,6 +486,18 @@ sideburns.
 
 Soot black, umber brown, chestnut, deep auburn, dull straw, iron grey, white. No plum and no
 bright ginger. Grey and white are for elders.
+
+### Reads that failed, and the rules they left
+
+- **Balding is a symmetric horseshoe.** The mass sits above and behind the ears and across the back
+  of the head, and thins to a slim point a few centimetres ahead of the ear; it never stops thick on
+  the temple (that read as one tuft at one ear). Under a hat its sides lie close, at most 1.1 cm off
+  the scalp (`underHat`), so nothing flares under a brim like a headphone pad.
+- **A bob is not dealt under a soft cap.** With the fringe hidden under the peak only the curtains
+  showed, and they read as the ear flaps of the cap.
+- **Facial hair is a shade darker than the hair**, and iron grey is a warm grey (red at least equal to
+  blue): an iron moustache over the lip read as a pale blue mouth in rain light.
+  `tests/hair-reads.test.ts` holds all three.
 
 ---
 
@@ -646,6 +688,14 @@ Items only a named person carries live in `Cast.story`: they are valid in a look
 resolver. Every other asymmetry in a cast table is built by `wardrobe.ts` or `figure.ts`, and a test
 fails on a name that is built nowhere.
 
+### Age reads on the head
+
+An older cast carries its age where it shows at a distance, on the head: the older mechanic is always
+iron grey (under a cap it shows at the temples and the nape), wears a moustache five times in seven
+and a short beard once, and draws his face from the heavier-browed rows (`Cast.faceRows`). A short
+beard keeps to the chin and the jaw and leaves the mouth clear under the lip; one that covered the
+mouth read as a mask. Moustaches and beards stay under an eighth of the crowd.
+
 ---
 
 ## 10. Colour
@@ -702,6 +752,23 @@ Rules:
 - Identical twins are a bug, unless authored.
 - The whitelists are data, in one place, and are covered by a test (section 14).
 
+### Variation minimums
+
+Measured as QA II measured them (seeds 0 to 19 of each street archetype under the street's cast
+weights, 100 figures) and held by `tests/variation.test.ts`:
+
+- **Outfits:** every street archetype has at least three authored outfits, and every street outfit
+  at least three palettes from the cloth swatches. A new outfit is a different garment (the
+  courier's buttoned coat to mid-thigh, or shirt sleeves and a waistcoat; the stallholder's shawl
+  over a bibless apron; the older mechanic's canvas work apron), never a recolour.
+- **Neighbours:** outfit and palette are drawn as one combination, and neighbouring seeds (the spawn
+  order) draw from alternate halves of the cast's combinations, so two of a cast side by side never
+  match; at most 10 of the 95 neighbouring pairs of the QA rows may share an outfit and palette
+  (People XX: 0, from 30). The Ordinance keeps its one uniform.
+- **Faces:** at least 40 distinct faces (skin, head shape, face row) in every hundred (People XX: 56,
+  from 21). All eight atlas rows are dealt, six to each head shape, and the face is drawn from the
+  seed mixed with the cast, so one seed is never the same face in every cast.
+
 ---
 
 ## 12. Animation
@@ -754,15 +821,20 @@ A skirt, a long coat, an apron and the foundry slab are built in two parts (`HEM
 the knee, no deeper front to back than a lap needs, closed at its end by a dome; and from the knee
 to the hem, a bell. `animateLife` turns `tails` about the waist when the figure sits (and a little
 in a stride); it then counter-rotates `hem` about the knee so the lower part hangs from the knees
-(`hem.rotation.x = -tails.rotation.x`, in a stride 0.6 of it, so the hem trails), and narrows it
-front to back to 0.45 so it falls between the knees and does not run under the thighs through the
-seat. The old figures have no `hem`, and their pose is unchanged. Aprons open less in a stride
+(`hem.rotation.x = -tails.rotation.x`, in a stride 0.6 of it, so the hem trails). Seated (People
+XXIII, `seatCloth`), the lap turns to lie along the solved thighs toward the knees and the hem lies
+along the shins, at 0.8 of its depth so it closes round the calf and still ends well ahead of the
+seat (it was 0.45 while it hung plumb from the knees). The old figures have no `hem`, and their pose is unchanged. Aprons open less in a stride
 than coats do (their drape length is capped at 0.5), and the greatcoat's depth is floored at 0.27
 so it stays a column.
 
 **Rule: a lifted knee never pierces cloth (People XIX).** Long cloth follows the legs (`drape.ts`): each frame the part above the knee turns and opens, and the hem turns and flares about
 the knee, just as far as it takes for every leg ring, the knee and a striding foot to stay inside it, front and side. Above the knee the cloth keeps its depth for the walk (a seated lap is
 flattened back to .19); the hem's top is cut narrow inside the upper part, so its flare never steps out at the knee; an apron over a skirt is built outside the skirt.
+
+**Rule: an apron hangs in front of the legs (People XXII).** An apron or the foundry slab worn over trousers hangs square to the line of walk, not turned with the pelvis's stride yaw, so
+neither of its edges falls back behind the forward leg: seen from the side its hem is in front of or on the forward thigh and shin, and no leg is drawn over it. It may swing and lift with the
+knee. Long skirts and coats still trail.
 
 **Rule: cloth has weight (People XIX).** The hem trails the upper part on a softer, underdamped spring: it lags, swings past and settles, and it bends at the knee, sideways too. It never turns
 with the lap as one board.
@@ -779,8 +851,14 @@ bib straps on the shirt); a greatcoat's vent is two lapped edges, not a slit; a 
 **Rule: a held thing is in the hand (People XIX).** An umbrella hangs in the free hand's grip socket, its shaft through the closed fist, and the wrist keeps it upright over the head,
 standing or walking; an elder's stick keeps the right hand, so the umbrella goes in the left.
 
-**Rule: nobody sits on air (People XIX).** A seat is .42 m over the pavement whoever sits (stature does not raise it, so a child's feet hang); every seated spawn has a bench, a crate,
+**Rule: nobody sits on air (People XIX).** A seat is .42 m over the pavement whoever sits (stature does not raise it; People XXIII solves the legs to it, so a child's feet reach too); every seated spawn has a bench, a crate,
 a step or a rim under the pelvis, within a few centimetres (audited in the running game by a ray down from the posed hips).
+
+**Rule: a seated foot is on the pavement (People XXIII).** Seated, `citizen-life.ts` `seatLegs` solves each leg to the figure's own hip, limbs and pavement (shin leaning .24 rad forward, thigh between .2 up and .3 down, sole flat and 2 mm up), the hips do not shift or bob, and the lap and hem follow the solved knees and shins: every sole within -2 mm..+1 cm sitting, eating and with a mug, no knee seen through a lap (tests/walk.test.ts, tests/drape.test.ts).
+
+**Rule: a standing foot is on the pavement (People XXII).** Standing, the free foot rests on its toe with the heel up, and the weighted foot is flat on the pavement: `citizen-life.ts`
+`standFeet` raises the figure by whatever a flat weighted sole is under it (the rest hip height is 7 mm short of a straight leg and its sole) and turns each ankle just far enough that no
+edge of its sole goes under. The breath's bob fades with the stand, not the walk. Within 2 mm standing, starting and stopping (tests/walk.test.ts).
 
 **Rule: the stride clock runs in the figure's own units (People XIX).** The distance walked is divided by the figure's scale before it drives the gait, so stature never makes a planted
 foot skate; the flat-footed ankle holds within a millimetre or so (tests/walk.test.ts).

@@ -6,6 +6,7 @@ import { box, cyl, sphere, torus, bake, mats, thinLine, seeded, type Material } 
 import { painted } from './tone';
 import { resolveLook, type Look, type CastId, type LookFamily, type Frame } from './people/look';
 import { buildFigure, peopleNext, type Kit } from './people/figure';
+import { FACE_PAINT, FACE_PAINT_HEAD, FACE_VALUE } from './people/head';
 import { drapeState, type Drape } from './drape';
 
 const ramp = new T.DataTexture(new Uint8Array([128, 202, 255]), 3, 1, T.RedFormat);
@@ -243,10 +244,10 @@ vec4 fs=textureGrad(map,vMapUv+vec2(fcol/${FACE_COLS}.,0.),dFdx(vMapUv),dFdy(vMa
 const faceMaterial = (tone: number, next = false) => {
   const look = { value: new T.Vector3() }, m = new T.MeshToonMaterial({ map: next ? faceAtlasNext() : faceAtlas(), color: skinColors[tone], gradientMap: ramp, emissive: P.neutral.paper, emissiveIntensity: .12 });
   m.userData.faceAtlas = true; m.userData.look = look.value;
-  m.onBeforeCompile = shader => { shader.uniforms.uFace = look;
+  m.onBeforeCompile = shader => { shader.uniforms.uFace = look; shader.uniforms.uPaint = { value: new T.Vector3(...FACE_VALUE[tone]) };
     if (next) shader.vertexShader = 'attribute float faceMask;varying float vMask;\n' + shader.vertexShader.replace('void main() {', 'void main() {\nvMask = faceMask;');
     shader.vertexShader = 'uniform vec3 uFace;flat varying vec3 vFace;\n' + shader.vertexShader.replace('#include <color_vertex>', '#include <color_vertex>\n#ifdef USE_BATCHING_COLOR\nvColor=vec3(1.);vFace=batchingColor;\n#else\nvFace=uFace;\n#endif');
-    shader.fragmentShader = (next ? 'varying float vMask;\n' : '') + 'flat varying vec3 vFace;\n' + shader.fragmentShader.replace('#include <map_fragment>', next ? FACE_MAP.replace('fs.a)', 'fs.a*vMask)').replace('diffuseColor.rgb=mix', `if(ft>=${tV(BAND[4])}&&ft<${tV(BAND[3])}&&dot(fs.rgb,vec3(.333))<.4)fs.rgb=diffuseColor.rgb*mix(vec3(.64,.43,.44),vec3(.42,.27,.3),smoothstep(.24,.29,dot(fs.rgb,vec3(.333))));diffuseColor.rgb=mix`) : FACE_MAP).replace('#include <emissivemap_fragment>', 'totalEmissiveRadiance*=diffuseColor.rgb;'); };
+    shader.fragmentShader = (next ? FACE_PAINT_HEAD + 'varying float vMask;\n' : '') + 'flat varying vec3 vFace;\n' + shader.fragmentShader.replace('#include <map_fragment>', next ? FACE_MAP.replace('fs.a)', 'fs.a*vMask)').replace('diffuseColor.rgb=mix', FACE_PAINT + `if(ft>=${tV(BAND[4])}&&ft<${tV(BAND[3])}&&dot(fs.rgb,vec3(.333))<.4)fs.rgb=diffuseColor.rgb*mix(vec3(.64,.43,.44),vec3(.42,.27,.3),smoothstep(.24,.29,dot(fs.rgb,vec3(.333))));diffuseColor.rgb=mix`) : FACE_MAP).replace('#include <emissivemap_fragment>', 'totalEmissiveRadiance*=diffuseColor.rgb;'); };
   m.customProgramCacheKey = () => next ? 'terra-face-bands-next' : 'terra-face-bands'; return thinLine(painted(m));
 };
 /** The three shared face materials of each builder, made (with their atlas) on first use. */

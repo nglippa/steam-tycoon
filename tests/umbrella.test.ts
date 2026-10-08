@@ -14,7 +14,7 @@ function withUmbrella(combo: string, seed: number) {
 test('an umbrella\'s shaft runs through the closed hand, upright, standing and walking in rain', () => {
   setLifeConditions(3, true);
   try {
-    for (const [label, combo, seed] of [...REPS, ['elder with a stick', 'elder.slim.broad', 3] as const]) {
+    for (const [label, combo, seed] of [...REPS, ['elder with a stick', 'elder.slim.broad', 3] as const, ['older mechanic in his shop coat', 'olderMechanic.sturdy.broad:olderMechanic.shopCoat', 5] as const, ['courier in shirt sleeves', 'courier.slim.narrow:courier.vest', 2] as const, ['courier in his coat', 'courier.slim.broad:courier.coat', 1] as const]) {
       const { n, hand, u } = withUmbrella(combo, seed), player = new T.Vector3(0, 1.7, 25), dt = 1 / 60, v = new T.Vector3(), up = new T.Vector3();
       for (const speed of [0, 1.2]) for (let i = 0; i < 240; i++) { n.group.position.set(0, 0, i * dt * speed); animateLife(n, 'walk', dt, i * dt, false, player); if (i < 120 || i % 10) continue; n.group.updateMatrixWorld(true);
         // the hand: what the forearm's group holds below the wrist, as a box in the forearm's own frame
