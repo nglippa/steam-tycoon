@@ -94,3 +94,19 @@ test('an apron hangs in front of the legs: seen from the side no leg is drawn ov
     assert.ok(r.behind <= 0, `${combo} at ${speed} m/s: the apron's hem is ${(r.behind * 100).toFixed(1)} cm behind the front of a leg at its height (${r.at})`);
   }
 });
+
+test('a seated knee never pierces the lap: no knee or leg shows through long cloth in front, on top or at the sides, sitting or eating, and the hem closes round the calf', async () => {
+  // People XXIII: the seated legs are solved per figure (knees up to level or a little over, shins leaning forward to put the soles on the pavement), and the lap and the cloth below the knee
+  // follow the solved knees and shins (they were a fixed -1.25 rad and plumb). `through` casts toward the pelvis's upright axis, which a seated lap lies across, so this casts toward each leg's
+  // own bone (people-rig.ts `seatedThrough`). The back of the calf just under the knee may show a sliver under the seat's edge (the hem's hinge is a few cm past the knee; at the old .45 hem
+  // depth it showed up to 5.6 cm): it is held under 3 cm.
+  const { seatedThrough } = await import('./people-rig.ts');
+  const casts: [string, number][] = REPS.filter(([, c]) => /rowSkirt|stallholder|olderMechanic|foundry|shopMerchant|garrison|inspector|rowCoat|youngMechanic/.test(c)).map(([, c, s]) => [c, s]);
+  casts.push(['affluent.standard.broad', 2], ['elder.slim.narrow', 5], ['elder.slim.broad', 2], ['child.child.narrow', 3], ['inspector.slim.broad', 1], ['garrison.standard.broad', 2], ...NEW_OUTFITS);
+  for (const [combo, seed] of casts) for (const [a, mug] of [['sit', false], ['eat', false], ['eat', true]] as const) {
+    if (mug && !/stallholder|olderMechanic|rowSkirt/.test(combo)) continue; // (the mug changes only the arm: a few casts are enough)
+    const r = seatedThrough(combo, seed, a, mug);
+    assert.ok(r.seen < .002, `${combo} s${seed} ${mug ? 'with a mug' : a}: a leg shows ${(r.seen * 100).toFixed(1)} cm through the cloth (${r.where})`);
+    assert.ok(r.calf < .03, `${combo} s${seed} ${mug ? 'with a mug' : a}: the back of the calf shows ${(r.calf * 100).toFixed(1)} cm through the hem`);
+  }
+});

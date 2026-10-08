@@ -821,9 +821,10 @@ A skirt, a long coat, an apron and the foundry slab are built in two parts (`HEM
 the knee, no deeper front to back than a lap needs, closed at its end by a dome; and from the knee
 to the hem, a bell. `animateLife` turns `tails` about the waist when the figure sits (and a little
 in a stride); it then counter-rotates `hem` about the knee so the lower part hangs from the knees
-(`hem.rotation.x = -tails.rotation.x`, in a stride 0.6 of it, so the hem trails), and narrows it
-front to back to 0.45 so it falls between the knees and does not run under the thighs through the
-seat. The old figures have no `hem`, and their pose is unchanged. Aprons open less in a stride
+(`hem.rotation.x = -tails.rotation.x`, in a stride 0.6 of it, so the hem trails). Seated (People
+XXIII, `seatCloth`), the lap turns to lie along the solved thighs toward the knees and the hem lies
+along the shins, at 0.8 of its depth so it closes round the calf and still ends well ahead of the
+seat (it was 0.45 while it hung plumb from the knees). The old figures have no `hem`, and their pose is unchanged. Aprons open less in a stride
 than coats do (their drape length is capped at 0.5), and the greatcoat's depth is floored at 0.27
 so it stays a column.
 
@@ -850,8 +851,10 @@ bib straps on the shirt); a greatcoat's vent is two lapped edges, not a slit; a 
 **Rule: a held thing is in the hand (People XIX).** An umbrella hangs in the free hand's grip socket, its shaft through the closed fist, and the wrist keeps it upright over the head,
 standing or walking; an elder's stick keeps the right hand, so the umbrella goes in the left.
 
-**Rule: nobody sits on air (People XIX).** A seat is .42 m over the pavement whoever sits (stature does not raise it, so a child's feet hang); every seated spawn has a bench, a crate,
+**Rule: nobody sits on air (People XIX).** A seat is .42 m over the pavement whoever sits (stature does not raise it; People XXIII solves the legs to it, so a child's feet reach too); every seated spawn has a bench, a crate,
 a step or a rim under the pelvis, within a few centimetres (audited in the running game by a ray down from the posed hips).
+
+**Rule: a seated foot is on the pavement (People XXIII).** Seated, `citizen-life.ts` `seatLegs` solves each leg to the figure's own hip, limbs and pavement (shin leaning .24 rad forward, thigh between .2 up and .3 down, sole flat and 2 mm up), the hips do not shift or bob, and the lap and hem follow the solved knees and shins: every sole within -2 mm..+1 cm sitting, eating and with a mug, no knee seen through a lap (tests/walk.test.ts, tests/drape.test.ts).
 
 **Rule: a standing foot is on the pavement (People XXII).** Standing, the free foot rests on its toe with the heel up, and the weighted foot is flat on the pavement: `citizen-life.ts`
 `standFeet` raises the figure by whatever a flat weighted sole is under it (the rest hip height is 7 mm short of a straight leg and its sole) and turns each ankle just far enough that no

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import * as T from 'three';
 import { animateLife } from '../src/world/citizen-life.ts';
 import { make, REPS } from './people-rig.ts';
+import { SOLE } from '../src/simulation/gait.ts';
 
 /** Walks a figure along +z at `speed` m/s for `secs` at 60 Hz (after a 2 s warm-up) and calls `each` every frame. */
 function walkOn(combo: string, seed: number, speed: number, each: (n: ReturnType<typeof make>) => void, secs = 3) {
@@ -52,4 +53,21 @@ test('a seated figure\'s seat is at one height whoever sits (the spawn sites put
     const hip = n.legs[0].getWorldPosition(new T.Vector3()).y, pave = new T.Vector3(0, -.13, 0).applyMatrix4(n.group.matrixWorld).y; hs.push([label, hip - pave]); }
   const lo = Math.min(...hs.map(h => h[1])), hi = Math.max(...hs.map(h => h[1]));
   assert.ok(hi - lo < .025 && lo > .4 && hi < .56, `seated hip heights ${hs.map(([l, h]) => `${l} ${h.toFixed(3)}`).join(', ')}`);
+});
+
+test('a seated figure\'s soles are on the pavement: every representative, the child on the stoop and the elder, sitting, eating and with a mug, at rest and through the bite', () => {
+  // People XXIII: the seat is .42 m over the pavement whatever the stature (People XIX), and the fixed seated pose (thigh .15 rad below level, shin plumb) put the shin and sole 9-12 cm under
+  // it. Each leg is now solved to the figure's own hip and limbs. For each foot, every 2nd frame of 6 s after a 1.5 s warm-up: its lowest point within -2 mm..+1 cm of the pavement (.13 under
+  // the origin in the world), and its toe tip, on the pavement throughout (eating, the free heel bobs on it), never sliding more than 3 mm.
+  const v = new T.Vector3(), cast: [string, string, number][] = [...REPS, ['child', 'child.child.narrow', 3], ['elder', 'elder.slim.narrow', 5], ['elder, broad', 'elder.slim.broad', 2], ['courier', 'courier.slim.broad', 7]];
+  for (const [label, combo, seed] of cast) for (const how of ['sit', 'eat', 'mug'] as const) {
+    const n = make(combo, seed), player = new T.Vector3(0, 1.7, 25), dt = 1 / 60, toe0: (T.Vector3 | null)[] = [null, null]; if (how === 'mug') n.group.userData.upright = true;
+    let low = 9, high = -9, slip = 0, at = '';
+    for (let i = 0; i < 60 * 7.5; i++) { animateLife(n, how === 'sit' ? 'sit' : 'eat', dt, i * dt, false, player); if (i < 90 || i % 2) continue; n.group.updateMatrixWorld(true); const pave = n.group.position.y - .13;
+      n.ankles.forEach((a, k) => { let f = 9; a.traverse(o => { if (!(o instanceof T.Mesh)) return; const pa = o.geometry.attributes.position; for (let j = 0; j < pa.count; j++) { v.fromBufferAttribute(pa, j).applyMatrix4(o.matrixWorld); f = Math.min(f, v.y - pave); } });
+        if (f < low) { low = f; at = `foot ${k}, ${(i * dt).toFixed(2)} s`; } if (f > high) { high = f; at = `foot ${k}, ${(i * dt).toFixed(2)} s`; }
+        const tip = new T.Vector3(0, -SOLE, (a.userData.sole as number[])[1]).applyMatrix4(a.matrixWorld); slip = Math.max(slip, Math.hypot(tip.x - (toe0[k] ??= tip.clone()).x, tip.z - toe0[k]!.z)); }); }
+    assert.ok(low >= -.002 && high <= .01, `${label} (${how}): a seated foot's lowest point runs ${(low * 100).toFixed(2)}..${(high * 100).toFixed(2)} cm over the pavement (${at})`);
+    assert.ok(slip < .003, `${label} (${how}): a seated toe slides ${(slip * 1000).toFixed(1)} mm`);
+  }
 });

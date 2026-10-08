@@ -277,4 +277,18 @@ if (part === 'intro') {
   merge('console.json', `intro-${people}`, log);
   await page.goto('about:blank'); await ctx.close();
 }
+// ---- seated (People XXIII) -------------------------------------------------------------------------------------------
+// The eleven representatives, the child and the elder seated (sit, and eat at the top of the bite), side, front and 3/4, each on its pavement (&ground=1, the red
+// line) with the sheet's bench under the hips; and four of them close up from the side, the feet against the pavement. --prefix=before|after names the set.
+if (part === 'seated') {
+  const page = await browser.newPage({ viewport: { width: 2560, height: 720 }, deviceScaleFactor: 1 }), entry = watch(page, 'sheet.html (seated)'), pre = flag('prefix', 'after');
+  entry.url = `${base}/sheet.html?…&pose=sit|bite&ground=1`;
+  const cast = [...REPS, ['child', 'child.child.narrow', 3], ['elder', 'elder.slim.narrow', 5]], q = `build=new&combos=${cast.map(r => r[1]).join(',')}&seeds=${cast.map(r => r[2]).join(',')}&ground=1`;
+  const labels = cast.map(([label, combo, seed]) => `<b>${label}</b><br>${combo.split('.')[0]} · s${seed}`);
+  for (const [pose, what] of [['sit', 'sit'], ['bite', 'eat, top of the bite']]) for (const [v, name] of [['side', 'side'], ['front', 'front'], ['quarter', '3/4']])
+    await sheetShot(page, `${pre}-seated-${pose}-${v}`, `${q}&view=${v}&pose=${pose}&fov=12`, `People XXIII · seated (${what}) · ${name} · the pavement is the red line, the bench is the sheet's, under the hips`, { relabel: labels });
+  const few = [REPS[0], REPS[6], REPS[9], cast[11]], fq = `build=new&combos=${few.map(r => r[1]).join(',')}&seeds=${few.map(r => r[2]).join(',')}&ground=1`;
+  await sheetShot(page, `${pre}-seated-sit-side-feet`, `${fq}&view=side&pose=sit&fov=12&zoom=2.2&fy=.2`, `People XXIII · seated · side · the feet against the pavement (red): ${few.map(r => r[0]).join(', ')}`, { width: 1600, relabel: few.map(r => `<b>${r[0]}</b>`) });
+  merge('console.json', `seated-${pre}`, log);
+}
 await browser.close();

@@ -85,3 +85,24 @@ export function panelSide(combo: string, seed: number, speed: number) {
     if (lz - hz > behind) { behind = lz - hz; at = `stride frame ${i - 90}`; } }
   return { over, where, behind, at };
 }
+
+/** Whether a seated leg shows through its long cloth (People XXIII). `through` casts toward the pelvis's upright axis, which a seated lap lies across, so seated each thigh and shin vertex
+ *  casts toward its own bone instead (the nearest point on hip-knee or knee-ankle): cloth crossed on the way in with none on the way out is the leg outside the cloth with cloth behind it.
+ *  `activity` 'sit' or 'eat' (`mug`: the mug sitter's eat) for 4 s after a 1.5 s warm-up, every 12th frame; the thigh's root (within 15 cm of the hip, inside the seat) is left out, and what is
+ *  seen only from under the seat (the leg's surface facing down) is not counted. Returns the deepest (m) a knee or leg shows in front, on top or at the sides (`seen`), and at the back of the
+ *  calf (`calf`), with where. */
+export function seatedThrough(combo: string, seed: number, activity: 'sit' | 'eat', mug = false) {
+  const n = make(combo, seed), player = new T.Vector3(0, 1.7, 25), ray = new T.Raycaster(), cloth: T.Mesh[] = [], V = new T.Vector3(), P = new T.Vector3(), dir = new T.Vector3(), seg = new T.Line3(), hip = new T.Vector3(), kn = new T.Vector3(), an = new T.Vector3();
+  if (mug) n.group.userData.upright = true;
+  n.group.traverse(o => { if (o instanceof T.Mesh) (o.material as T.Material).side = T.DoubleSide; }); n.tails.traverse(o => { if (o instanceof T.Mesh) cloth.push(o); });
+  let seen = 0, calf = 0, where = '';
+  for (let f = 0; f < 60 * 5.5; f++) { animate(n, activity, 1 / 60, f / 60, player); if (f < 90 || f % 12) continue; n.group.updateMatrixWorld(true);
+    for (let k = 0; k < 2; k++) { n.legs[k].getWorldPosition(hip); n.knees[k].getWorldPosition(kn); n.ankles[k].getWorldPosition(an);
+      for (const [grp, a, b] of [[n.legs[k], hip, kn], [n.knees[k], kn, an]] as const) for (const o of grp.children) { if (!(o instanceof T.Mesh)) continue; const pa = o.geometry.attributes.position;
+        for (let j = 0; j < pa.count; j += 2) { V.fromBufferAttribute(pa, j).applyMatrix4(o.matrixWorld); if (grp === n.legs[k] && V.distanceTo(hip) < .15) continue;
+          seg.set(a, b); seg.closestPointToPoint(V, true, P); dir.subVectors(P, V); const far = dir.length(); if (far < 1e-4 || dir.y / far > .5) continue; dir.normalize(); ray.set(V, dir); ray.far = far;
+          const h = ray.intersectObjects(cloth, false)[0]; if (!h) continue; ray.set(V, dir.clone().negate()); ray.far = 1; if (ray.intersectObjects(cloth, false).length) continue;
+          const back = n.pelvis.worldToLocal(V.clone()).z < n.pelvis.worldToLocal(P.clone()).z - .02;
+          if (back) calf = Math.max(calf, h.distance); else if (h.distance > seen) { seen = h.distance; where = `${grp === n.legs[k] ? 'thigh' : 'shin'} ${k}, frame ${f}`; } } } } }
+  return { seen, calf, where };
+}
