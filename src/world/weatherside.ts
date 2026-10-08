@@ -151,7 +151,7 @@ export class Weatherside {
     // Once the square is free the dockers keep their own mark on the same wall.
     decal(this.freed, chalk, 1.4, 1.4, -65.86, 2.4, 57.2, EAST); decal(this.freed, civic, 1.15, 4.4, -65.86, 4.3, 47.4, EAST);
     p.addWorker(-60.4, 63.4, WEST, 'guard', { role: 'guard', when: () => this.seen && this.held }); p.addWorker(-61.2, 69.6, EAST, 'clipboard', { role: 'ordinal', when: () => this.seen && this.held });
-    p.addWorker(-67.5, 66, 0, 'carry', { path: [-67.5, 96, .5], role: 'worker', when: () => this.seen }); p.addWorker(-63.7, 90.5, EAST, 'lean', { role: 'worker', when: () => this.seen }); p.addWorker(-64.6, 54.2, EAST, 'sit', { role: 'worker', tool: 'mug', when: () => this.seen });
+    p.addWorker(-67.5, 66, 0, 'carry', { path: [-67.5, 96, .5], role: 'worker', when: () => this.seen }); p.addWorker(-63.7, 90.5, EAST, 'lean', { role: 'worker', when: () => this.seen }); crate(d, -64.6, .05, 54.2, .43); p.addWorker(-64.6, 54.2, EAST, 'sit', { role: 'worker', tool: 'mug', when: () => this.seen }); // the docker drinks sitting on a crate (People XIX: he sat on air)
     p.addWorker(-67.6, 56.8, 2.2, 'watch', { y: 7.1 - G, role: 'courier', when: () => this.seen });
   }
 

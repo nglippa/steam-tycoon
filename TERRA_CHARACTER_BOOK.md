@@ -779,6 +779,9 @@ bib straps on the shirt); a greatcoat's vent is two lapped edges, not a slit; a 
 **Rule: a held thing is in the hand (People XIX).** An umbrella hangs in the free hand's grip socket, its shaft through the closed fist, and the wrist keeps it upright over the head,
 standing or walking; an elder's stick keeps the right hand, so the umbrella goes in the left.
 
+**Rule: nobody sits on air (People XIX).** A seat is .42 m over the pavement whoever sits (stature does not raise it, so a child's feet hang); every seated spawn has a bench, a crate,
+a step or a rim under the pelvis, within a few centimetres (audited in the running game by a ray down from the posed hips).
+
 ### The bite
 
 The new head's mouth is about 9 cm lower than the old one, so for a figure from the new builder the

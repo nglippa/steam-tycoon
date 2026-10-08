@@ -131,7 +131,7 @@ export class MarketSquare implements SiteModule {
     for (const x of [-6.75, 6.75]) { const rib = fabricOf(Q); box(lib, x, 1.05, GZ + .61, .34, .16, .02, rib); box(lib, x + .1, .75, GZ + .62, .08, .5, .02, rib); }
     { const m = new T.Mesh(new T.PlaneGeometry(.8, .8), decalMat(emberPaint, .95)); m.position.set(10.85, 1.5, -32.31); lib.add(m); const drape = box(lib, 10.85, 2.42, -32.9, 1.3, .1, 1.3, fabricOf(Q)); drape.rotation.y = .1; }
     const a = pres.addWorker(8.7, -36.9, -2.4, 'talk', { role: 'courier', when: () => this.view.control >= SITE_LIBERATED }); const b = pres.addWorker(7.9, -37.6, .7, 'talk', { role: 'worker', when: () => this.view.control >= SITE_LIBERATED }); pres.workers[a].partner = b; pres.workers[b].partner = a;
-    pres.addWorker(-1.38, -29.62, -.78, 'sit', { y: .42, role: 'resident', when: () => this.view.control >= SITE_LIBERATED });
+    pres.addWorker(-1.38, -29.62, -.78, 'sit', { role: 'resident', when: () => this.view.control >= SITE_LIBERATED }); // feet on the paving, seat on the rim (y was the rim's height, which lifted the whole figure off it)
     // RESTORATION: the circuit ---------------------------------------------------------
     // Every strip carries its distance from the spring, so the wake travels in order:
     // basin and jets, the channels, the gate threshold, up the piers and around the arch.

@@ -108,7 +108,7 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
   const shift=Math.tanh(3*Math.sin(phase*.21+n.phase))*(1-g)*(occupier&&mn.trait!=='bored'?.4:1);
   // The pelvis rides the height the stance legs allow, sways over the planted foot, drops on the swing side and turns with the stride;
   // the thorax answers against it (figure-construction: contrapposto), so the walk has torsion and not a rigid block.
-  n.body.position.set(shift*.022+w*gait.sway,bodyHeight+w*(gait.H-REST)+.13*(1-1/n.group.scale.y)/* the pavement sits .13 under the origin, in the figure's own scale */-(seated?.46:0)+breath*.003*(1-g),0);
+  n.body.position.set(shift*.022+w*gait.sway,bodyHeight+w*(gait.H-REST)+.13*(1-1/n.group.scale.y)/* the pavement sits .13 under the origin, in the figure's own scale */-(seated?.46-.42*(1/n.group.scale.y-1)/* seated, the seat stays .42 m over the pavement whatever the stature: the spawn sites put a bench, a crate or a step there */:0)+breath*.003*(1-g),0);
   n.body.rotation.set(g*(pr.lean+tired*.05)+w*gp.lean+(1-g)*tired*.06-(activity==='lean'?.07:0)-(activity==='carry'?.08:0)+(seated?-.06:0),-.7*twist+m.turn*.06,shift*.025-.5*roll);
   n.legs.forEach((leg,k)=>{leg.position.y=hipHeight-(seated?.46:0);
     if(seated){leg.position.z=0;leg.rotation.set(-1.42,0,(k?-1:1)*.06);n.knees[k].rotation.x=1.4+(activity==='eat'&&k?Math.sin(phase)*.05:0);n.ankles[k].rotation.x=0;return;}
