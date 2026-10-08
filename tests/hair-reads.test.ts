@@ -4,7 +4,7 @@ import * as T from 'three';
 import { hairOf } from '../src/world/people/hair.ts';
 import { facialOf } from '../src/world/people/head.ts';
 import { landmarks } from '../src/world/people/headform.ts';
-import { HAT_HAIR, type Look } from '../src/world/people/look.ts';
+import { CASTS, HAT_HAIR, resolveLook, type Look } from '../src/world/people/look.ts';
 import { palette } from '../src/world/palette.ts';
 
 /** People XX: the hair reads QA II found wrong, held as rules. */
@@ -42,4 +42,14 @@ test('facial hair is a shade darker than the hair, and grey is a warm grey, not 
     const t = g.attributes.tint; assert.ok(t, `${facial}: a baked tint`); for (let i = 0; i < t.count; i++) assert.ok(t.getX(i) < -.5);
   }
   const c = new T.Color(palette.hair2.iron); assert.ok(c.r >= c.b, `iron ${palette.hair2.iron}: red ${c.r.toFixed(3)} >= blue ${c.b.toFixed(3)}`);
+});
+
+test('the older mechanic reads older: grey hair, mostly a moustache, a heavier brow; a short beard leaves the mouth clear', () => {
+  const mech = Array.from({ length: 600 }, (_, s) => resolveLook(s, 'engineer', { cast: 'olderMechanic' }));
+  assert.ok(mech.every(l => l.hairColour === 'iron' || l.hairColour === 'white'), 'every older mechanic is grey');
+  assert.ok(mech.filter(l => l.facial !== 'none').length / mech.length >= .75, 'three in four wear a moustache or beard');
+  assert.ok(mech.filter(l => l.facial === 'moustache').length / mech.length > .6, 'he mostly wears his moustache');
+  const heavy = CASTS.olderMechanic.faceRows!; assert.ok(mech.filter(l => heavy.includes(l.faceType)).length / mech.length > .7, 'the heavier-browed face rows');
+  const h = .285, beard = pts(facialOf(look({ facial: 'beard' }), h)), lip = .13 * h;
+  assert.ok(!beard.some(p => Math.abs(p.x) < .012 && p.y > lip - .004), 'the beard reaches the mouth');
 });

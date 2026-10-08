@@ -672,6 +672,14 @@ Items only a named person carries live in `Cast.story`: they are valid in a look
 resolver. Every other asymmetry in a cast table is built by `wardrobe.ts` or `figure.ts`, and a test
 fails on a name that is built nowhere.
 
+### Age reads on the head
+
+An older cast carries its age where it shows at a distance, on the head: the older mechanic is always
+iron grey (under a cap it shows at the temples and the nape), wears a moustache five times in seven
+and a short beard once, and draws his face from the heavier-browed rows (`Cast.faceRows`). A short
+beard keeps to the chin and the jaw and leaves the mouth clear under the lip; one that covered the
+mouth read as a mask. Moustaches and beards stay under an eighth of the crowd.
+
 ---
 
 ## 10. Colour

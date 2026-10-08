@@ -30,6 +30,7 @@ export interface Cast {
   id: CastId; archetype: Archetype; families: readonly LookFamily[]; frames: readonly Frame[]; headShapes: readonly HeadShape[]; hair: readonly HairStyle[]; hairColours: readonly HairColour[];
   hats: readonly Hat[]; /** facial hair with weights: a moustache or a beard belongs to a cast that wears one (Book 7), at a modest rate, never dealt to anyone at a third */ facial: readonly (readonly [Facial, number])[]; outfits: readonly Outfit[];
   /** what a palette's swatches colour, in order */ slots: readonly string[]; asymmetries: readonly string[]; /** items only a named person carries (Book 9, story characters): valid in a look, never dealt by the resolver */ story?: readonly string[]; elder?: boolean;
+  /** the face rows this cast is drawn from, where it narrows the head shape's rows (the older mechanic's heavier brows) */ faceRows?: readonly number[];
 }
 
 /** Faces are rows of the atlas. Rows 2 (teal), 3 (violet) and 7 (red) carry irises the Book forbids; they stay out of every table until the atlas is repainted. */
@@ -76,7 +77,7 @@ export const CASTS: Record<CastId, Cast> = {
   youngMechanic: { id: 'youngMechanic', archetype: 'engineer', families: ['slim', 'standard'], frames: ['broad', 'narrow'], headShapes: allShapes, hair: ['tousled', 'sweptBack', 'shortCrop', 'ponytail'], hairColours: young, hats: ['softCap', 'none'], facial: [['none', 4], ['sideburns', 1]],
     slots: ['jacket', 'shirt', 'trousers', 'roll', 'cap'], asymmetries: ['toolRoll', 'gogglesUp', 'ragBelt'], story: ['valveSleeve'],
     outfits: [o('youngMechanic.jacket', { slate: ['slate', 'bone', 'canvas', 'leather', 'slate'], moss: ['greyGreen', 'cream', 'umber', 'leatherDark', 'greyGreen'] })] },
-  olderMechanic: { id: 'olderMechanic', archetype: 'engineer', families: ['standard', 'sturdy'], frames: ['broad', 'narrow'], headShapes: allShapes, hair: ['balding', 'shortCrop'], hairColours: ['iron', 'umber', 'soot'], hats: ['flatCap', 'none'], facial: [['moustache', 3], ['none', 2], ['beard', 1]],
+  olderMechanic: { id: 'olderMechanic', archetype: 'engineer', families: ['standard', 'sturdy'], frames: ['broad', 'narrow'], headShapes: allShapes, hair: ['balding', 'shortCrop', 'sidePart'], hairColours: ['iron'], hats: ['flatCap', 'none'], facial: [['moustache', 5], ['beard', 1], ['none', 1]], faceRows: [2, 4, 6],
     slots: ['shopCoat', 'shirt', 'trousers', 'cap'], asymmetries: ['spectacles', 'pencilEar', 'ragBelt'],
     outfits: [o('olderMechanic.shopCoat', { canvas: ['canvas', 'bone', 'greenCharcoal', 'umber'], slate: ['slate', 'cream', 'navy', 'slate'] })] },
   courier: { id: 'courier', archetype: 'courier', families: ['slim'], frames: ['broad', 'narrow'], headShapes: allShapes, hair: ['shortCrop', 'tousled', 'ponytail', 'bob'], hairColours: young, hats: ['softCap'], facial: [['none', 1]],
@@ -140,7 +141,7 @@ export function resolveLook(seed: number, archetype: Archetype, opts: LookOpts =
   const cast = CASTS[opts.cast ?? weighted(pool.length ? pool : ARCHETYPE_CASTS[archetype], seed, S.cast)];
   const family = opts.family ?? pick(cast.families, seed, S.family), frame = opts.frame ?? pick(cast.frames, seed, S.frame);
   const stature = Math.round((.96 + .08 * unit(seed, S.stature)) * 1000) / 1000, skin = Math.floor(unit(seed, S.skin) * 3) as 0 | 1 | 2;
-  const headShape = pick(cast.headShapes, seed, S.shape), faceType = pick(FACE_ROWS[headShape], seed, S.face);
+  const headShape = pick(cast.headShapes, seed, S.shape), rows = FACE_ROWS[headShape].filter(r => !cast.faceRows || cast.faceRows.includes(r)), faceType = pick(rows.length ? rows : FACE_ROWS[headShape], seed, S.face);
   const hat = pick(cast.hats, seed, S.hat), hairStyle = pick(cast.hair.filter(h => HAT_HAIR[hat].includes(h)), seed, S.hair), hairColour = pick(cast.hairColours, seed, S.hairColour);
   const facial = weighted(cast.facial, seed, S.facial), outfit = pick(cast.outfits, seed, S.outfit), pal = pick(Object.keys(outfit.palettes), seed, S.palette);
   const n = Math.min(cast.asymmetries.length, 1 + Math.floor(unit(seed, S.asymCount) * 2)), pool2 = [...cast.asymmetries], asymmetries: string[] = [];
