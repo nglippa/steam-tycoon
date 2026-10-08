@@ -19,13 +19,16 @@
   /* One spacing scale. */
   --sp-1:4px;--sp-2:8px;--sp-3:12px;--sp-4:16px;--sp-5:24px;--sp-6:32px;
   /* One type scale. Nothing is set below 10px. */
-  --ui-fs-label:10px;--ui-fs-small:11px;--ui-fs-body:13px;--ui-fs-lead:15px;--ui-fs-head:22px;--ui-fs-num:26px;
+  --ui-fs-label:10px;--ui-fs-small:11px;--ui-fs-meta:12px;--ui-fs-body:13px;--ui-fs-lead:15px;--ui-fs-head:22px;--ui-fs-num:26px;
   --serif:Georgia,"Times New Roman",serif;
   /* Edges and shadows. */
   --edge:2px solid var(--ink);--hair:1px solid var(--rule);--shadow:2px 3px 0 var(--ink);--shadow-lg:5px 6px 0 #22283c59;
   /* The HUD in play: paper at 88% (no blur), one thin ink rule, a darker muted ink and a darker green. Over a black scene the
      paper still reads #d5c9b1: ink holds 8.9:1 on it, --hud-soft 6.3:1, the burgundy 4.9:1, --hud-good 4.8:1. */
-  --hud-paper:color-mix(in srgb,var(--paper) 88%,transparent);--hud-rule:#22283c59;--hud-edge:1px solid var(--hud-rule);--hud-soft:#38433f;--hud-good:#275a4d;
+  --hud-paper:color-mix(in srgb,var(--paper) 88%,transparent);
+  /* The compass ribbon sits where the Clock Tower rises, so it is a thinner veil (72%) and its text is all --ink: over a
+     black scene the veil reads #aea491 and ink still holds 5.9:1 on it. */
+  --hud-veil:color-mix(in srgb,var(--paper) 72%,transparent);--hud-rule:#22283c59;--hud-edge:1px solid var(--hud-rule);--hud-soft:#38433f;--hud-good:#275a4d;
   /* Layout. --hud-h is measured from the top plates by interface.ts; --hud-band is the height of each top plate. */
   --gutter:28px;--panel-w:440px;--hud-h:44px;--hud-band:44px;--hud-top:max(12px,var(--sat));
   --sat:env(safe-area-inset-top,0px);--sar:env(safe-area-inset-right,0px);--sab:env(safe-area-inset-bottom,0px);--sal:env(safe-area-inset-left,0px);
@@ -93,7 +96,7 @@ h1>span+span{margin-left:5px}
    hierarchy. The top band is one height (--hud-band), 12px from the edge: who and where, the compass tape (heading, then the
    clock, weather, curfew or heat and the ward's status on one line), the treasury. At the bottom: the objective strip and
    the key hints (which fade). Contextual: the prompt and the toast, in the same paper. */
-#hud{position:absolute;z-index:2;top:var(--hud-top);left:max(var(--gutter),var(--sal));right:max(var(--gutter),var(--sar));display:grid;grid-template-columns:1fr auto 1fr;align-items:start;gap:var(--sp-3);pointer-events:none}
+#hud{position:absolute;z-index:2;top:var(--hud-top);left:max(var(--gutter),var(--sal));right:max(var(--gutter),var(--sar));display:grid;grid-template-columns:minmax(max-content,1fr) auto minmax(max-content,1fr);align-items:start;gap:var(--sp-3);pointer-events:none}
 body:not(.started) .identity,body:not(.started) .ribbon,body:not(.started) .treasury,body:not(.started) #hud-bottom,body:not(.started) #marker,body:not(.started) #toast{display:none}
 .identity,.treasury,.ribbon,.objective,.controls,#interaction,#toast{background:#f2e4c9e0;background:var(--hud-paper);border:var(--hud-edge)}
 .identity,.treasury{min-height:var(--hud-band);padding:0 var(--sp-3)}
@@ -103,29 +106,40 @@ body:not(.started) .identity,body:not(.started) .ribbon,body:not(.started) .trea
 /* The treasury: the label and the Crowns on one line, the income under them. */
 .treasury{justify-self:end;display:grid;justify-items:end;align-content:center}
 .treasury .amount{display:flex;align-items:baseline;gap:var(--sp-1)}
-.treasury small{margin-right:var(--sp-1);font-size:var(--ui-fs-label);font-weight:800;letter-spacing:.14em;color:var(--hud-soft)}
+.treasury small{margin-right:var(--sp-1);font-size:var(--ui-fs-small);font-weight:800;letter-spacing:.14em;color:var(--hud-soft)}
 .coin{font-size:var(--ui-fs-body);color:var(--gold)}
 .treasury strong{font:700 22px/1 var(--serif);font-variant-numeric:tabular-nums}
 .income{font-size:var(--ui-fs-body);line-height:16px;color:var(--hud-soft);font-variant-numeric:tabular-nums;white-space:nowrap}.income b{color:var(--hud-good);font-weight:800}
 
 /* The compass tape turns with the heading; under it one line: clock, weather, curfew or heat, the ward's status. A crowded
    line (fog, a long heat word, lockdown) widens the ribbon up to 40vw before it wraps. */
-.ribbon{min-width:clamp(300px,33vw,440px);max-width:40vw;display:flex;flex-direction:column;min-height:var(--hud-band)}
-.tape{position:relative;flex:none;width:100%;height:18px;overflow:hidden;border-bottom:var(--hair)}
+.ribbon{min-width:clamp(280px,26vw,340px);max-width:40vw;display:flex;flex-direction:column;min-height:var(--hud-band);background:#f2e4c9b8;background:var(--hud-veil)}
+/* The tape's ends fade out, so a letter leaving the ribbon is never sliced in half (the pin parks inside the fade). */
+.tape{position:relative;flex:none;width:100%;height:18px;overflow:hidden;border-bottom:var(--hair);
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 var(--sp-4),#000 calc(100% - var(--sp-4)),transparent);mask-image:linear-gradient(90deg,transparent,#000 var(--sp-4),#000 calc(100% - var(--sp-4)),transparent)}
 .strip{position:absolute;left:50%;top:0;width:2160px;height:100%;will-change:transform;
   background:repeating-linear-gradient(90deg,var(--ink) 0 1px,transparent 1px 30px) 0 100%/100% 3px no-repeat,repeating-linear-gradient(90deg,var(--ink) 0 1px,transparent 1px 90px) 0 100%/100% 5px no-repeat}
-.strip span{position:absolute;top:2px;transform:translateX(-50%);font:800 var(--ui-fs-label)/1 "Avenir Next",sans-serif;letter-spacing:.06em;color:var(--hud-soft)}
+.strip span{position:absolute;top:2px;transform:translateX(-50%);font:800 var(--ui-fs-label)/1 "Avenir Next",sans-serif;letter-spacing:.06em;color:var(--ink)}
 .strip span.card{top:1px;font:700 var(--ui-fs-body)/1 var(--serif);color:var(--ink)}
 .index{position:absolute;left:50%;bottom:0;width:0;height:0;margin-left:-4px;border:4px solid transparent;border-bottom:6px solid var(--burgundy);border-top:0}
 .rb-pin{position:absolute;left:50%;top:4px;width:10px;height:10px;margin-left:-5px}
 .rb-pin::before{content:'';position:absolute;inset:1px;background:var(--brass);border:1.5px solid var(--ink);transform:rotate(45deg)}
 .rb-pin[data-side]::before{inset:0;border:0;background:var(--burgundy);transform:none;clip-path:polygon(0 0,100% 50%,0 100%)}
 .rb-pin[data-side=l]::before{clip-path:polygon(100% 0,0 50%,100% 100%)}
-.meta{flex:1;display:flex;flex-wrap:wrap;align-items:center;gap:0 var(--sp-2);padding:2px var(--sp-3);font-size:var(--ui-fs-label);font-weight:700;letter-spacing:.1em;color:var(--hud-soft);white-space:nowrap}
+/* The status line: clock, day or night, curfew or heat (beside the hour it depends on), weather, and the ward's occupation
+   (a noun, then the band). When it is crowded it wraps by design: the occupation keeps together at the right of the second
+   row, and the top plates keep their own width (the ribbon gives way, never overlaps them). */
+.meta{flex:1;display:flex;flex-wrap:wrap;align-items:center;gap:0 var(--sp-2);padding:2px 10px;font-size:var(--ui-fs-meta);font-weight:700;letter-spacing:.06em;color:var(--ink);white-space:nowrap}
 #clock{font:700 var(--ui-fs-lead)/20px var(--serif);font-variant-numeric:tabular-nums;letter-spacing:.04em;color:var(--ink)}
-#weather{margin-right:auto}
-#curfew:empty{display:none}#curfew.on{color:var(--burgundy);font-weight:800}
-.tag{padding:0 6px;background:var(--band,var(--band-heavy));color:var(--paper);font-size:var(--ui-fs-body);line-height:18px;font-weight:800;letter-spacing:.04em;font-variant-numeric:tabular-nums}
+/* Day is a brass sun, night an ink crescent: the phase the sky itself is in. */
+.phase{flex:none;width:8px;height:8px;margin-left:calc(-1 * var(--sp-1));border-radius:50%;background:var(--brass);box-shadow:0 0 0 1px var(--ink)}
+.phase[data-phase=night]{width:10px;height:10px;background:none;box-shadow:inset -4px 1px 0 0 var(--ink);transform:rotate(-20deg)}
+#curfew:empty{display:none}#curfew.on{font-weight:800;box-shadow:inset 0 -2px var(--burgundy)}
+.occupation{display:flex;align-items:stretch;margin-left:auto;border:1px solid var(--band,var(--band-heavy))}
+.occupation:has(.tag[data-band=liberated]){--band:var(--band-liberated)}.occupation:has(.tag[data-band=low]){--band:var(--band-low)}.occupation:has(.tag[data-band=controlled]){--band:var(--band-controlled)}.occupation:has(.tag[data-band=lockdown]){--band:var(--band-lockdown)}
+/* A two-part stub: what is measured (in ink on the paper), then the band and its percentage (on the band's colour). */
+.ward-noun{padding:0 var(--sp-1);font-size:var(--ui-fs-small);line-height:14px;font-weight:600;letter-spacing:.05em}
+.tag{padding:0 var(--sp-1);background:var(--band,var(--band-heavy));color:var(--paper);font-size:var(--ui-fs-small);line-height:14px;font-weight:800;letter-spacing:.03em;font-variant-numeric:tabular-nums}
 .tag[data-band=liberated]{--band:var(--band-liberated)}.tag[data-band=low]{--band:var(--band-low)}.tag[data-band=controlled]{--band:var(--band-controlled)}.tag[data-band=heavy]{--band:var(--band-heavy)}.tag[data-band=lockdown]{--band:var(--band-lockdown)}
 
 /* The objective marker: an ink-outlined brass diamond in the world, its distance beneath, and on the edge of the
@@ -141,15 +155,15 @@ body:not(.started) .identity,body:not(.started) .ribbon,body:not(.started) .trea
 
 /* The objective strip: the tagline and the step, the sentence, the city's prosperity. One rule round it, a gold edge. */
 #hud-bottom{position:absolute;z-index:2;left:max(var(--gutter),var(--sal));right:max(var(--gutter),var(--sar));bottom:max(var(--gutter),calc(var(--sab) + var(--sp-4)));display:flex;justify-content:space-between;align-items:flex-end;gap:var(--sp-4);pointer-events:none}
-.objective{width:340px;max-width:100%;padding:var(--sp-1) var(--sp-3) var(--sp-1) 10px;border-left:2px solid var(--gold)}
-.objective .head,.steps{display:flex;justify-content:space-between;align-items:baseline;gap:var(--sp-3);font-size:var(--ui-fs-label);line-height:13px;font-weight:700;letter-spacing:.12em;color:var(--hud-soft);font-variant-numeric:tabular-nums;white-space:nowrap}
-.objective .overline{color:var(--burgundy)}
-.objective p{margin:1px 0 2px;font:700 14px/18px var(--serif)}
+.objective{width:340px;max-width:100%;padding:3px var(--sp-3) 3px 10px;border-left:2px solid var(--gold)}
+.objective .head,.steps{display:flex;justify-content:space-between;align-items:baseline;gap:var(--sp-3);font-size:var(--ui-fs-meta);line-height:15px;font-weight:700;letter-spacing:.12em;color:var(--hud-soft);font-variant-numeric:tabular-nums;white-space:nowrap}
+.objective .overline{font-size:var(--ui-fs-small);color:var(--burgundy)}
+.objective p{margin:0 0 2px;font:700 14px/18px var(--serif)}
 .steps{padding-top:2px;border-top:var(--hair)}
 /* The key hints: keycaps and plain ink labels, quiet. They fade once the Steward has found their feet. */
 .controls{display:flex;align-items:center;gap:var(--sp-3);margin-left:auto;padding:2px var(--sp-3);font-size:var(--ui-fs-small);font-weight:700;letter-spacing:.04em;color:var(--ink);transition:opacity 1.6s ease}
 .controls span,.ledger-control{display:flex;align-items:center;gap:var(--sp-1)}
-.controls kbd{min-width:18px;height:18px;box-shadow:0 1px 0 var(--ink)}
+.controls kbd{min-width:18px;height:18px;box-shadow:0 1px 0 var(--ink);font-size:var(--ui-fs-small)}
 .controls kbd+kbd{margin-left:-1px}
 .ledger-control{min-height:24px;padding:0;border:0;background:none;color:inherit;font:inherit;letter-spacing:inherit}
 body.hint-off .controls:not(:focus-within){opacity:0;pointer-events:none}
@@ -158,17 +172,17 @@ body.hint-off .controls:not(:focus-within){opacity:0;pointer-events:none}
 /* The prompt: the key is the call to action, the label the verb, the hint the small print under it. */
 #interaction{position:absolute;z-index:2;left:50%;top:58%;transform:translateX(-50%);display:flex;align-items:center;gap:var(--sp-2);width:max-content;max-width:calc(100vw - 2*var(--sp-4));padding:3px var(--sp-3) 3px 5px;font:700 14px/17px "Avenir Next",sans-serif}
 #interaction kbd{width:24px;height:24px;background:var(--brass);font-size:var(--ui-fs-body);font-weight:800;box-shadow:none}
-#interaction small{display:block;font-size:var(--ui-fs-label);line-height:12px;font-weight:700;letter-spacing:.12em;color:var(--hud-soft)}
+#interaction small{display:block;font-size:var(--ui-fs-small);line-height:13px;font-weight:700;letter-spacing:.12em;color:var(--hud-soft)}
 
 /* The toast: one strip under the top band, transient, and the one place a ward change is announced (the ledger keeps it). */
 #toast{position:absolute;z-index:4;left:50%;top:calc(var(--hud-top) + var(--hud-h) + var(--sp-2));width:max-content;max-width:min(640px,calc(100vw - 2*var(--sp-4)));padding:var(--sp-1) var(--sp-3);border-left:3px solid var(--teal);font-size:var(--ui-fs-body);font-weight:600;line-height:18px;opacity:0;visibility:hidden;transform:translate(-50%,-4px);pointer-events:none;transition:opacity .25s,transform .25s,visibility 0s .25s}
 #toast.show{opacity:1;visibility:visible;transform:translate(-50%,0);transition-delay:0s}
-.t-over{margin-right:var(--sp-1);font-size:var(--ui-fs-label);font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--burgundy)}
+.t-over{margin-right:var(--sp-1);font-size:var(--ui-fs-small);font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--burgundy)}
 .t-over::after{content:' \00b7'}
 body:has(#panel:not([hidden])) #toast{left:calc((100% - var(--panel-w) - var(--sp-4))/2);max-width:min(560px,calc(100vw - var(--panel-w) - 3*var(--sp-4)))}
 
 /* Narrow windows and tablets. */
-@media(max-width:900px){:root{--gutter:22px}.ribbon{min-width:clamp(260px,38vw,340px);max-width:42vw}}
+@media(max-width:900px){:root{--gutter:22px}.ribbon{min-width:clamp(260px,34vw,320px);max-width:46vw}}
 @media(max-width:700px){:root{--gutter:var(--sp-4);--hud-band:40px;--hud-h:92px}
   #hud{grid-template-columns:1fr auto;grid-template-areas:"id tre" "rib rib";row-gap:var(--sp-2)}
   .identity{grid-area:id}.treasury{grid-area:tre}.ribbon{grid-area:rib;justify-self:center;width:min(100%,360px);min-width:0;max-width:none}
@@ -178,19 +192,26 @@ body:has(#panel:not([hidden])) #toast{left:calc((100% - var(--panel-w) - var(--s
 /* A phone on its side: the three clusters share one short row. */
 @media(max-height:520px) and (pointer:coarse){:root{--gutter:var(--sp-4);--hud-band:40px;--hud-h:44px}
   #hud{grid-template-columns:auto 1fr auto;grid-template-areas:"id rib tre";column-gap:var(--sp-3)}
-  .ribbon{width:min(100%,300px);min-width:0;max-width:none}.tape{height:16px}.strip span.card{font-size:var(--ui-fs-small)}.rb-pin{top:3px}
+  .ribbon{width:min(100%,360px);min-width:0;max-width:none}.tape{height:16px}.strip span.card{font-size:var(--ui-fs-small)}.rb-pin{top:3px}
   #clock{font-size:var(--ui-fs-body);line-height:18px}.meta{padding-block:1px}
   .identity svg,.treasury small{display:none}
   .identity b{font-size:var(--ui-fs-body)}.treasury strong{font-size:18px}
 }
 
-/* Phones and tablets: no key hints, no crosshair; the pause button holds the top-left, the card hangs under the ribbon. */
+/* Phones and tablets: no key hints, no crosshair. The pause button is the head of the identity plate (one left edge for the
+   plate, the ribbon and the ticket); the objective hangs under the ribbon as one line, and a toast hangs under that. */
+body.touch{--ticket-h:28px}
 body.touch .controls,body.touch #crosshair{display:none}
-body.touch .identity{margin-left:calc(44px + var(--sp-2))}
+body.touch .identity{padding-left:calc(44px + var(--sp-2))}
 body.touch #hud{left:max(var(--sp-4),var(--sal))}
+body.touch #touch .touch-pause{left:max(var(--sp-4),var(--sal));top:var(--hud-top);width:44px;height:var(--hud-band);border:0;border-right:var(--hud-edge);border-radius:0;background:none;color:var(--ink);font:800 var(--ui-fs-body)/1 var(--serif);letter-spacing:.06em}
+body.touch #touch .touch-pause:active{background:var(--brass)}
+body.touch:has(#pause:not([hidden])) .touch-pause{visibility:hidden}
 body.touch #hud-bottom{top:calc(var(--hud-top) + var(--hud-h) + var(--sp-2));bottom:auto;left:max(var(--sp-4),var(--sal));right:auto}
-body.touch .objective{width:min(340px,calc(100vw - 2*var(--sp-4)))}
-body.touch.toasting .objective{visibility:hidden}
+body.touch .objective{width:min(360px,calc(100vw - 2*var(--sp-4)));height:var(--ticket-h);padding-block:var(--sp-1)}
+body.touch .objective .head,body.touch .objective .steps{display:none}
+body.touch .objective p{margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+body.touch #toast{top:calc(var(--hud-top) + var(--hud-h) + var(--ticket-h) + 2*var(--sp-2))}
 /* With a panel open on a small screen, the ribbon and the ticket step aside rather than sit under the sheet. */
 @media(max-width:700px),(max-height:520px) and (pointer:coarse){body:has(#panel:not([hidden])) .ribbon,body:has(#panel:not([hidden])) #hud-bottom,body:has(#panel:not([hidden])) #marker,body:has(#pause:not([hidden])) .identity,body:has(#pause:not([hidden])) .ribbon,body:has(#pause:not([hidden])) #hud-bottom,body:has(#pause:not([hidden])) #marker{visibility:hidden}}
 body.touch #interaction{left:max(var(--sp-4),var(--sal));top:auto;bottom:max(var(--sp-4),calc(var(--sab) + var(--sp-2)));transform:none;max-width:calc(100vw - 190px - var(--sal));padding:var(--sp-1) var(--sp-3)}
@@ -334,7 +355,7 @@ body.scene .pause{z-index:10}body.scene .pause [data-action=ledger],body.scene .
 #dialogue{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);width:min(640px,calc(100vw - 32px));z-index:9;display:flex;flex-direction:column;gap:var(--sp-2);align-items:stretch}
 #dialogue[hidden]{display:none}
 .dlg-card{pointer-events:auto;background:#f2e4c9e0;background:var(--hud-paper);border:var(--hud-edge);color:var(--ink);padding:var(--sp-2) var(--sp-4) 6px;cursor:pointer}
-.dlg-card .overline{display:block;font:800 var(--ui-fs-label) "Avenir Next",sans-serif;letter-spacing:.18em;color:var(--burgundy);margin-bottom:2px}
+.dlg-card .overline{display:block;font:800 var(--ui-fs-small) "Avenir Next",sans-serif;letter-spacing:.18em;color:var(--burgundy);margin-bottom:2px}
 .dlg-card p{margin:0;font:600 16px/1.4 var(--serif);text-shadow:none}
 .dlg-card small{display:block;margin-top:2px;font-size:var(--ui-fs-label);letter-spacing:.14em;color:var(--hud-soft);text-align:right}
 .dlg-choices{display:flex;flex-direction:column;gap:6px}

@@ -34,7 +34,7 @@ export class Interface {
       <div class="identity">${crest}<b id="ward-name">THE LOWWORKS</b></div>
       <div class="ribbon" role="group" aria-label="Compass, clock and ward">
         <div class="tape" aria-hidden="true"><div class="strip" id="strip">${COMPASS_LABELS}</div><i class="index"></i><i class="rb-pin" id="rb-pin" hidden></i></div>
-        <div class="meta"><span id="clock">17:16</span><span id="weather">DRIZZLE</span><span id="curfew"></span><b id="ward" class="tag" data-band="heavy">HEAVY 80%</b></div>
+        <div class="meta"><span id="clock">17:16</span><i id="phase" class="phase" data-phase="day" role="img" aria-label="Day" title="Day"></i><span id="curfew"></span><span id="weather">DRIZZLE</span><span class="occupation"><span class="ward-noun">OCCUPATION</span><b id="ward" class="tag" data-band="heavy">HEAVY 80%</b></span></div>
       </div>
       <div class="treasury"><div class="amount"><small>TREASURY</small><span class="coin" aria-hidden="true">♜</span><strong id="crowns">35</strong></div><span class="income"><b id="rate">+0</b> Crowns / sec</span></div>
     </header>
@@ -55,10 +55,13 @@ export class Interface {
     player.onInteract = t => this.interact(t); player.onLock = locked => { const pause = document.querySelector<HTMLElement>('#pause')!; pause.toggleAttribute('hidden', locked || !this.started || this.panel !== null); if (!pause.hidden) pause.querySelector<HTMLElement>('[data-action=resume]')?.focus({ preventScroll: true }); document.body.classList.toggle('playing', locked); };
   }
   start() { this.started = true; document.querySelector('#welcome')!.setAttribute('hidden', ''); document.body.classList.add('started'); this.sound.start(); this.onStart(); void this.player.lock(); if (this.economy.offlineAward > 2) this.toast(`Welcome home. Terra earned ${format(this.economy.offlineAward)} Crowns while you were away.`, 8000); else if (this.economy.state.intro.played && this.economy.state.objective === 0 && this.economy.state.resist.rook === 0) this.toast(`Terra has seen better years. ${OBJECTIVE}`); }
+  /** Day or night beside the clock, by the light the sky itself uses (atmosphere.ts: daylight past its midpoint). */
+  private lit = '';
+  phase(day: number) { const lit = -Math.cos(day * Math.PI * 2) > .225 ? 'day' : 'night'; if (lit === this.lit) return; this.lit = lit; const el = document.querySelector('#phase')!, word = lit === 'day' ? 'Day' : 'Night'; el.setAttribute('data-phase', lit); el.setAttribute('aria-label', word); el.setAttribute('title', word); }
   /** The clock and the ward the Steward is standing in: both read the one game clock and the one occupation rule. */
   private ward = ''; private band = '';
   wardLine() { const e = this.economy, p = this.player.position, id = districtAt(p.x, p.z), pct = e.occupationOf(id), band = e.effects(id), key = e.band(id), notice = curfewNotice(e.state.day, key), name = district(id).name;
-    this.put('clock', clock(e.state.day).text); const c = document.querySelector('#curfew')!; this.put('curfew', notice || (e.state.heat >= .5 ? heatName(e.state.heat).toUpperCase() : '')); c.classList.toggle('on', notice === 'CURFEW');
+    this.put('clock', clock(e.state.day).text); this.phase(e.state.day); const c = document.querySelector('#curfew')!; this.put('curfew', notice || (e.state.heat >= .5 ? heatName(e.state.heat).toUpperCase() : '')); c.classList.toggle('on', notice === 'CURFEW');
     this.put('ward-name', name.toUpperCase()); const tag = document.querySelector('#ward')!; this.put('ward', `${bandWord(key)} ${pct}%`); tag.setAttribute('data-band', key); tag.setAttribute('title', `${name} · Occupation ${pct}% · ${band.name}`);
     // Walking into a ward, or a ward changing under your feet, says what that means once. The street says the rest, and the ledger keeps it.
     if (this.started && (id !== this.ward || band.name !== this.band)) { const first = !this.ward; this.ward = id; this.band = band.name; if (!first) this.toast(`${band.name}. ${band.notes.join(' · ')}.`, 5200, `${name} · Occupation ${pct}%`); } }
@@ -170,7 +173,7 @@ export class Interface {
     if (!m.on) { m.on = true; el.hidden = false; pin.hidden = false; }
     const dx = this.aim.x - this.player.position.x, dz = this.aim.z - this.player.position.z, dist = Math.hypot(dx, dz);
     // The ribbon pin: the bearing of the target against the heading, parked at either end when it is round the back.
-    const rel = ((Math.atan2(dx, -dz) * 180 / Math.PI - heading + 540) % 360) - 180, half = Math.max(0, v.rib / 2 - 10), px = Math.max(-half, Math.min(half, rel * K)), side = Math.abs(rel * K) > half ? (rel < 0 ? 'l' : 'r') : '';
+    const rel = ((Math.atan2(dx, -dz) * 180 / Math.PI - heading + 540) % 360) - 180, half = Math.max(0, v.rib / 2 - 20), px = Math.max(-half, Math.min(half, rel * K)), side = Math.abs(rel * K) > half ? (rel < 0 ? 'l' : 'r') : '';
     pin.style.transform = `translate3d(${px}px,0,0)`; if (m.pin !== side) { m.pin = side; if (side) pin.dataset.side = side; else delete pin.dataset.side; }
     // The world marker, in camera space so that "behind" is exact.
     const c = this.cam.copy(this.aim).applyMatrix4(cam.matrixWorldInverse), e = cam.projectionMatrix.elements, front = c.z < -.05; let sx = 0, sy = 0, edge = true;

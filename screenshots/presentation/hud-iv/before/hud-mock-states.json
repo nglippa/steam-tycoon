@@ -1,0 +1,2457 @@
+{
+ "note": "Static mock (real style.css, the interface.ts template and the touch controls' markup over screenshots/presentation/people-game/01-street-north.png); boxes in CSS px. Not the real game.",
+ "states": {
+  "desk-normal": {
+   "viewport": [
+    1280,
+    720
+   ],
+   "query": "",
+   "boxes": {
+    "identity": {
+     "x": 28,
+     "y": 12,
+     "w": 202,
+     "h": 44
+    },
+    "ribbon": {
+     "x": 428.8,
+     "y": 12,
+     "w": 422.4,
+     "h": 44
+    },
+    "treasury": {
+     "x": 1111.7,
+     "y": 12,
+     "w": 140.3,
+     "h": 44
+    },
+    "objective": {
+     "x": 28,
+     "y": 632,
+     "w": 340,
+     "h": 60
+    },
+    "hints": {
+     "x": 870.2,
+     "y": 662,
+     "w": 381.8,
+     "h": 30
+    },
+    "pause": null,
+    "toast": null,
+    "prompt": null,
+    "dialogue": null,
+    "wardTag": {
+     "x": 741,
+     "y": 34,
+     "w": 97.1,
+     "h": 18
+    },
+    "wardNoun": null
+   },
+   "fonts": {
+    "#ward-name": 15,
+    "#clock": 15,
+    "#crowns": 22,
+    ".income": 13,
+    "#rate": 13,
+    "#objective": 14,
+    ".ward-noun": null,
+    "#ward": 13,
+    "#weather": 10,
+    "#curfew": 10,
+    "#step-no": 10,
+    "#stage": 10,
+    ".objective .overline": 10,
+    ".treasury small": 10,
+    "#interaction": 14,
+    "#interaction small": null,
+    "#toast": 13,
+    ".t-over": null,
+    ".controls": 11,
+    ".controls kbd": 10,
+    ".dlg-card .overline": 10,
+    ".strip span": 13,
+    ".strip span.card": 13
+   },
+   "clipped": [],
+   "slicedTapeGlyphs": 0,
+   "tapeMask": "none",
+   "persistentPct": 7.11,
+   "topBand": 56,
+   "overflowX": false
+  },
+  "desk-prompt": {
+   "viewport": [
+    1280,
+    720
+   ],
+   "query": "state=prompt",
+   "boxes": {
+    "identity": {
+     "x": 28,
+     "y": 12,
+     "w": 202,
+     "h": 44
+    },
+    "ribbon": {
+     "x": 428.8,
+     "y": 12,
+     "w": 422.4,
+     "h": 44
+    },
+    "treasury": {
+     "x": 1111.7,
+     "y": 12,
+     "w": 140.3,
+     "h": 44
+    },
+    "objective": {
+     "x": 28,
+     "y": 632,
+     "w": 340,
+     "h": 60
+    },
+    "hints": {
+     "x": 870.2,
+     "y": 662,
+     "w": 381.8,
+     "h": 30
+    },
+    "pause": null,
+    "toast": null,
+    "prompt": {
+     "x": 539.5,
+     "y": 417.6,
+     "w": 201,
+     "h": 37
+    },
+    "dialogue": null,
+    "wardTag": {
+     "x": 741,
+     "y": 34,
+     "w": 97.1,
+     "h": 18
+    },
+    "wardNoun": null
+   },
+   "fonts": {
+    "#ward-name": 15,
+    "#clock": 15,
+    "#crowns": 22,
+    ".income": 13,
+    "#rate": 13,
+    "#objective": 14,
+    ".ward-noun": null,
+    "#ward": 13,
+    "#weather": 10,
+    "#curfew": 10,
+    "#step-no": 10,
+    "#stage": 10,
+    ".objective .overline": 10,
+    ".treasury small": 10,
+    "#interaction": 14,
+    "#interaction small": 10,
+    "#toast": 13,
+    ".t-over": null,
+    ".controls": 11,
+    ".controls kbd": 10,
+    ".dlg-card .overline": 10,
+    ".strip span": 13,
+    ".strip span.card": 13
+   },
+   "clipped": [],
+   "slicedTapeGlyphs": 0,
+   "tapeMask": "none",
+   "persistentPct": 7.11,
+   "topBand": 56,
+   "overflowX": false
+  },
+  "desk-toast": {
+   "viewport": [
+    1280,
+    720
+   ],
+   "query": "state=toast",
+   "boxes": {
+    "identity": {
+     "x": 28,
+     "y": 12,
+     "w": 202,
+     "h": 44
+    },
+    "ribbon": {
+     "x": 428.8,
+     "y": 12,
+     "w": 422.4,
+     "h": 44
+    },
+    "treasury": {
+     "x": 1111.7,
+     "y": 12,
+     "w": 140.3,
+     "h": 44
+    },
+    "objective": {
+     "x": 28,
+     "y": 632,
+     "w": 340,
+     "h": 60
+    },
+    "hints": {
+     "x": 870.2,
+     "y": 662,
+     "w": 381.8,
+     "h": 30
+    },
+    "pause": null,
+    "toast": {
+     "x": 343.8,
+     "y": 64,
+     "w": 592.5,
+     "h": 28
+    },
+    "prompt": null,
+    "dialogue": null,
+    "wardTag": {
+     "x": 741,
+     "y": 34,
+     "w": 97.1,
+     "h": 18
+    },
+    "wardNoun": null
+   },
+   "fonts": {
+    "#ward-name": 15,
+    "#clock": 15,
+    "#crowns": 22,
+    ".income": 13,
+    "#rate": 13,
+    "#objective": 14,
+    ".ward-noun": null,
+    "#ward": 13,
+    "#weather": 10,
+    "#curfew": 10,
+    "#step-no": 10,
+    "#stage": 10,
+    ".objective .overline": 10,
+    ".treasury small": 10,
+    "#interaction": 14,
+    "#interaction small": null,
+    "#toast": 13,
+    ".t-over": null,
+    ".controls": 11,
+    ".controls kbd": 10,
+    ".dlg-card .overline": 10,
+    ".strip span": 13,
+    ".strip span.card": 13
+   },
+   "clipped": [],
+   "slicedTapeGlyphs": 0,
+   "tapeMask": "none",
+   "persistentPct": 7.11,
+   "topBand": 56,
+   "overflowX": false
+  },
+  "desk-toast-ward": {
+   "viewport": [
+    1280,
+    720
+   ],
+   "query": "state=toast&over=Cinder%20Row%20%C2%B7%20Occupation%2080%25&toast=Heavy%20occupation.%20More%20patrols%20%C2%B7%20Curfew%20enforced%20%C2%B7%20Commerce%20suppressed.",
+   "boxes": {
+    "identity": {
+     "x": 28,
+     "y": 12,
+     "w": 202,
+     "h": 44
+    },
+    "ribbon": {
+     "x": 428.8,
+     "y": 12,
+     "w": 422.4,
+     "h": 44
+    },
+    "treasury": {
+     "x": 1111.7,
+     "y": 12,
+     "w": 140.3,
+     "h": 44
+    },
+    "objective": {
+     "x": 28,
+     "y": 632,
+     "w": 340,
+     "h": 60
+    },
+    "hints": {
+     "x": 870.2,
+     "y": 662,
+     "w": 381.8,
+     "h": 30
+    },
+    "pause": null,
+    "toast": {
+     "x": 320,
+     "y": 64,
+     "w": 640,
+     "h": 47
+    },
+    "prompt": null,
+    "dialogue": null,
+    "wardTag": {
+     "x": 741,
+     "y": 34,
+     "w": 97.1,
+     "h": 18
+    },
+    "wardNoun": null
+   },
+   "fonts": {
+    "#ward-name": 15,
+    "#clock": 15,
+    "#crowns": 22,
+    ".income": 13,
+    "#rate": 13,
+    "#objective": 14,
+    ".ward-noun": null,
+    "#ward": 13,
+    "#weather": 10,
+    "#curfew": 10,
+    "#step-no": 10,
+    "#stage": 10,
+    ".objective .overline": 10,
+    ".treasury small": 10,
+    "#interaction": 14,
+    "#interaction small": null,
+    "#toast": 13,
+    ".t-over": 10,
+    ".controls": 11,
+    ".controls kbd": 10,
+    ".dlg-card .overline": 10,
+    ".strip span": 13,
+    ".strip span.card": 13
+   },
+   "clipped": [],
+   "slicedTapeGlyphs": 0,
+   "tapeMask": "none",
+   "persistentPct": 7.11,
+   "topBand": 56,
+   "overflowX": false
+  },
+  "desk-dialogue": {
+   "viewport": [
+    1280,
+    720
+   ],
+   "query": "state=dialogue",
+   "boxes": {
+    "identity": {
+     "x": 28,
+     "y": 12,
+     "w": 202,
+     "h": 44
+    },
+    "ribbon": {
+     "x": 428.8,
+     "y": 12,
+     "w": 422.4,
+     "h": 44
+    },
+    "treasury": {
+     "x": 1111.7,
+     "y": 12,
+     "w": 140.3,
+     "h": 44
+    },
+    "objective": {
+     "x": 28,
+     "y": 632,
+     "w": 340,
+     "h": 60
+    },
+    "hints": {
+     "x": 870.2,
+     "y": 662,
+     "w": 381.8,
+     "h": 30
+    },
+    "pause": null,
+    "toast": null,
+    "prompt": null,
+    "dialogue": {
+     "x": 320,
+     "y": 561.6,
+     "w": 640,
+     "h": 54.4
+    },
+    "wardTag": {
+     "x": 741,
+     "y": 34,
+     "w": 97.1,
+     "h": 18
+    },
+    "wardNoun": null
+   },
+   "fonts": {
+    "#ward-name": 15,
+    "#clock": 15,
+    "#crowns": 22,
+    ".income": 13,
+    "#rate": 13,
+    "#objective": 14,
+    ".ward-noun": null,
+    "#ward": 13,
+    "#weather": 10,
+    "#curfew": 10,
+    "#step-no": 10,
+    "#stage": 10,
+    ".objective .overline": 10,
+    ".treasury small": 10,
+    "#interaction": 14,
+    "#interaction small": null,
+    "#toast": 13,
+    ".t-over": null,
+    ".controls": 11,
+    ".controls kbd": 10,
+    ".dlg-card .overline": 10,
+    ".strip span": 13,
+    ".strip span.card": 13
+   },
+   "clipped": [],
+   "slicedTapeGlyphs": 0,
+   "tapeMask": "none",
+   "persistentPct": 7.11,
+   "topBand": 56,
+   "overflowX": false
+  },
+  "desk-curfew-worst": {
+   "viewport": [
+    1280,
+    720
+   ],
+   "query": "weather=INDUSTRIAL%20FOG&curfew=KNOWN%20TO%20THE%20PATROLS&band=lockdown&clock=23:40&crowns=12.4k&rate=%2B231.9",
+   "boxes": {
+    "identity": {
+     "x": 28,
+     "y": 12,
+     "w": 202,
+     "h": 44
+    },
+    "ribbon": {
+     "x": 396.7,
+     "y": 12,
+     "w": 486.7,
+     "h": 44
+    },
+    "treasury": {
+     "x": 1079.8,
+     "y": 12,
+     "w": 172.3,
+     "h": 44
+    },
+    "objective": {
+     "x": 28,
+     "y": 632,
+     "w": 340,
+     "h": 60
+    },
+    "hints": {
+     "x": 870.2,
+     "y": 662,
+     "w": 381.8,
+     "h": 30
+    },
+    "pause": null,
+    "toast": null,
+    "prompt": null,
+    "dialogue": null,
+    "wardTag": {
+     "x": 726.4,
+     "y": 34,
+     "w": 143.9,
+     "h": 18
+    },
+    "wardNoun": null
+   },
+   "fonts": {
+    "#ward-name": 15,
+    "#clock": 15,
+    "#crowns": 22,
+    ".income": 13,
+    "#rate": 13,
+    "#objective": 14,
+    ".ward-noun": null,
+    "#ward": 13,
+    "#weather": 10,
+    "#curfew": 10,
+    "#step-no": 10,
+    "#stage": 10,
+    ".objective .overline": 10,
+    ".treasury small": 10,
+    "#interaction": 14,
+    "#interaction small": null,
+    "#toast": 13,
+    ".t-over": null,
+    ".controls": 11,
+    ".controls kbd": 10,
+    ".dlg-card .overline": 10,
+    ".strip span": 13,
+    ".strip span.card": 13
+   },
+   "clipped": [],
+   "slicedTapeGlyphs": 0,
+   "tapeMask": "none",
+   "persistentPct": 7.57,
+   "topBand": 56,
+   "overflowX": false
+  },
+  "desk-curfew-on": {
+   "viewport": [
+    1280,
+    720
+   ],
+   "query": "curfew=CURFEW&clock=22:30&weather=DRIZZLE",
+   "boxes": {
+    "identity": {
+     "x": 28,
+     "y": 12,
+     "w": 202,
+     "h": 44
+    },
+    "ribbon": {
+     "x": 428.8,
+     "y": 12,
+     "w": 422.4,
+     "h": 44
+    },
+    "treasury": {
+     "x": 1111.7,
+     "y": 12,
+     "w": 140.3,
+     "h": 44
+    },
+    "objective": {
+     "x": 28,
+     "y": 632,
+     "w": 340,
+     "h": 60
+    },
+    "hints": {
+     "x": 870.2,
+     "y": 662,
+     "w": 381.8,
+     "h": 30
+    },
+    "pause": null,
+    "toast": null,
+    "prompt": null,
+    "dialogue": null,
+    "wardTag": {
+     "x": 741,
+     "y": 34,
+     "w": 97.1,
+     "h": 18
+    },
+    "wardNoun": null
+   },
+   "fonts": {
+    "#ward-name": 15,
+    "#clock": 15,
+    "#crowns": 22,
+    ".income": 13,
+    "#rate": 13,
+    "#objective": 14,
+    ".ward-noun": null,
+    "#ward": 13,
+    "#weather": 10,
+    "#curfew": 10,
+    "#step-no": 10,
+    "#stage": 10,
+    ".objective .overline": 10,
+    ".treasury small": 10,
+    "#interaction": 14,
+    "#interaction small": null,
+    "#toast": 13,
+    ".t-over": null,
+    ".controls": 11,
+    ".controls kbd": 10,
+    ".dlg-card .overline": 10,
+    ".strip span": 13,
+    ".strip span.card": 13
+   },
+   "clipped": [],
+   "slicedTapeGlyphs": 0,
+   "tapeMask": "none",
+   "persistentPct": 7.11,
+   "topBand": 56,
+   "overflowX": false
+  },
+  "desk-band-liberated": {
+   "viewport": [
+    1280,
+    720
+   ],
+   "query": "band=liberated",
+   "boxes": {
+    "identity": {
+     "x": 28,
+     "y": 12,
+     "w": 202,
+     "h": 44
+    },
+    "ribbon": {
+     "x": 428.8,
+     "y": 12,
+     "w": 422.4,
+     "h": 44
+    },
+    "treasury": {
+     "x": 1111.7,
+     "y": 12,
+     "w": 140.3,
+     "h": 44
+    },
+    "objective": {
+     "x": 28,
+     "y": 632,
+     "w": 340,
+     "h": 60
+    },
+    "hints": {
+     "x": 870.2,
+     "y": 662,
+     "w": 381.8,
+     "h": 30
+    },
+    "pause": null,
+    "toast": null,
+    "prompt": null,
+    "dialogue": null,
+    "wardTag": {
+     "x": 755.9,
+     "y": 34,
+     "w": 82.3,
+     "h": 18
+    },
+    "wardNoun": null
+   },
+   "fonts": {
+    "#ward-name": 15,
+    "#clock": 15,
+    "#crowns": 22,
+    ".income": 13,
+    "#rate": 13,
+    "#objective": 14,
+    ".ward-noun": null,
+    "#ward": 13,
+    "#weather": 10,
+    "#curfew": 10,
+    "#step-no": 10,
+    "#stage": 10,
+    ".objective .overline": 10,
+    ".treasury small": 10,
+    "#interaction": 14,
+    "#interaction small": null,
+    "#toast": 13,
+    ".t-over": null,
+    ".controls": 11,
+    ".controls kbd": 10,
+    ".dlg-card .overline": 10,
+    ".strip span": 13,
+    ".strip span.card": 13
+   },
+   "clipped": [],
+   "slicedTapeGlyphs": 0,
+   "tapeMask": "none",
+   "persistentPct": 7.11,
+   "topBand": 56,
+   "overflowX": false
+  },
+  "desk-band-low": {
+   "viewport": [
+    1280,
+    720
+   ],
+   "query": "band=low",
+   "boxes": {
+    "identity": {
+     "x": 28,
+     "y": 12,
+     "w": 202,
+     "h": 44
+    },
+    "ribbon": {
+     "x": 428.8,
+     "y": 12,
+     "w": 422.4,
+     "h": 44
+    },
+    "treasury": {
+     "x": 1111.7,
+     "y": 12,
+     "w": 140.3,
+     "h": 44
+    },
+    "objective": {
+     "x": 28,
+     "y": 632,
+     "w": 340,
+     "h": 60
+    },
+    "hints": {
+     "x": 870.2,
+     "y": 662,
+     "w": 381.8,
+     "h": 30
+    },
+    "pause": null,
+    "toast": null,
+    "prompt": null,
+    "dialogue": null,
+    "wardTag": {
+     "x": 757.2,
+     "y": 34,
+     "w": 81,
+     "h": 18
+    },
+    "wardNoun": null
+   },
+   "fonts": {
+    "#ward-name": 15,
+    "#clock": 15,
+    "#crowns": 22,
+    ".income": 13,
+    "#rate": 13,
+    "#objective": 14,
+    ".ward-noun": null,
+    "#ward": 13,
+    "#weather": 10,
+    "#curfew": 10,
+    "#step-no": 10,
+    "#stage": 10,
+    ".objective .overline": 10,
+    ".treasury small": 10,
+    "#interaction": 14,
+    "#interaction small": null,
+    "#toast": 13,
+    ".t-over": null,
+    ".controls": 11,
+    ".controls kbd": 10,
+    ".dlg-card .overline": 10,
+    ".strip span": 13,
+    ".strip span.card": 13
+   },
+   "clipped": [],
+   "slicedTapeGlyphs": 0,
+   "tapeMask": "none",
+   "persistentPct": 7.11,
+   "topBand": 56,
+   "overflowX": false
+  },
+  "desk-band-controlled": {
+   "viewport": [
+    1280,
+    720
+   ],
+   "query": "band=controlled&pin=60",
+   "boxes": {
+    "identity": {
+     "x": 28,
+     "y": 12,
+     "w": 202,
+     "h": 44
+    },
+    "ribbon": {
+     "x": 428.8,
+     "y": 12,
+     "w": 422.4,
+     "h": 44
+    },
+    "treasury": {
+     "x": 1111.7,
+     "y": 12,
+     "w": 140.3,
+     "h": 44
+    },
+    "objective": {
+     "x": 28,
+     "y": 632,
+     "w": 340,
+     "h": 60
+    },
+    "hints": {
+     "x": 870.2,
+     "y": 662,
+     "w": 381.8,
+     "h": 30
+    },
+    "pause": null,
+    "toast": null,
+    "prompt": null,
+    "dialogue": null,
+    "wardTag": {
+     "x": 752.8,
+     "y": 34,
+     "w": 85.4,
+     "h": 18
+    },
+    "wardNoun": null
+   },
+   "fonts": {
+    "#ward-name": 15,
+    "#clock": 15,
+    "#crowns": 22,
+    ".income": 13,
+    "#rate": 13,
+    "#objective": 14,
+    ".ward-noun": null,
+    "#ward": 13,
+    "#weather": 10,
+    "#curfew": 10,
+    "#step-no": 10,
+    "#stage": 10,
+    ".objective .overline": 10,
+    ".treasury small": 10,
+    "#interaction": 14,
+    "#interaction small": null,
+    "#toast": 13,
+    ".t-over": null,
+    ".controls": 11,
+    ".controls kbd": 10,
+    ".dlg-card .overline": 10,
+    ".strip span": 13,
+    ".strip span.card": 13
+   },
+   "clipped": [],
+   "slicedTapeGlyphs": 0,
+   "tapeMask": "none",
+   "persistentPct": 7.11,
+   "topBand": 56,
+   "overflowX": false
+  },
+  "desk-band-lockdown": {
+   "viewport": [
+    1280,
+    720
+   ],
+   "query": "band=lockdown&pin=200&side=r",
+   "boxes": {
+    "identity": {
+     "x": 28,
+     "y": 12,
+     "w": 202,
+     "h": 44
+    },
+    "ribbon": {
+     "x": 428.8,
+     "y": 12,
+     "w": 422.4,
+     "h": 44
+    },
+    "treasury": {
+     "x": 1111.7,
+     "y": 12,
+     "w": 140.3,
+     "h": 44
+    },
+    "objective": {
+     "x": 28,
+     "y": 632,
+     "w": 340,
+     "h": 60
+    },
+    "hints": {
+     "x": 870.2,
+     "y": 662,
+     "w": 381.8,
+     "h": 30
+    },
+    "pause": null,
+    "toast": null,
+    "prompt": null,
+    "dialogue": null,
+    "wardTag": {
+     "x": 694.3,
+     "y": 34,
+     "w": 143.9,
+     "h": 18
+    },
+    "wardNoun": null
+   },
+   "fonts": {
+    "#ward-name": 15,
+    "#clock": 15,
+    "#crowns": 22,
+    ".income": 13,
+    "#rate": 13,
+    "#objective": 14,
+    ".ward-noun": null,
+    "#ward": 13,
+    "#weather": 10,
+    "#curfew": 10,
+    "#step-no": 10,
+    "#stage": 10,
+    ".objective .overline": 10,
+    ".treasury small": 10,
+    "#interaction": 14,
+    "#interaction small": null,
+    "#toast": 13,
+    ".t-over": null,
+    ".controls": 11,
+    ".controls kbd": 10,
+    ".dlg-card .overline": 10,
+    ".strip span": 13,
+    ".strip span.card": 13
+   },
+   "clipped": [],
+   "slicedTapeGlyphs": 0,
+   "tapeMask": "none",
+   "persistentPct": 7.11,
+   "topBand": 56,
+   "overflowX": false
+  },
+  "desk-marker-edge": {
+   "viewport": [
+    1280,
+    720
+   ],
+   "query": "state=marker&edge=1&mx=40&my=300",
+   "boxes": {
+    "identity": {
+     "x": 28,
+     "y": 12,
+     "w": 202,
+     "h": 44
+    },
+    "ribbon": {
+     "x": 428.8,
+     "y": 12,
+     "w": 422.4,
+     "h": 44
+    },
+    "treasury": {
+     "x": 1111.7,
+     "y": 12,
+     "w": 140.3,
+     "h": 44
+    },
+    "objective": {
+     "x": 28,
+     "y": 632,
+     "w": 340,
+     "h": 60
+    },
+    "hints": {
+     "x": 870.2,
+     "y": 662,
+     "w": 381.8,
+     "h": 30
+    },
+    "pause": null,
+    "toast": null,
+    "prompt": null,
+    "dialogue": null,
+    "wardTag": {
+     "x": 741,
+     "y": 34,
+     "w": 97.1,
+     "h": 18
+    },
+    "wardNoun": null
+   },
+   "fonts": {
+    "#ward-name": 15,
+    "#clock": 15,
+    "#crowns": 22,
+    ".income": 13,
+    "#rate": 13,
+    "#objective": 14,
+    ".ward-noun": null,
+    "#ward": 13,
+    "#weather": 10,
+    "#curfew": 10,
+    "#step-no": 10,
+    "#stage": 10,
+    ".objective .overline": 10,
+    ".treasury small": 10,
+    "#interaction": 14,
+    "#interaction small": null,
+    "#toast": 13,
+    ".t-over": null,
+    ".controls": 11,
+    ".controls kbd": 10,
+    ".dlg-card .overline": 10,
+    ".strip span": 13,
+    ".strip span.card": 13
+   },
+   "clipped": [],
+   "slicedTapeGlyphs": 0,
+   "tapeMask": "none",
+   "persistentPct": 7.11,
+   "topBand": 56,
+   "overflowX": false
+  },
+  "desk-hint-off": {
+   "viewport": [
+    1280,
+    720
+   ],
+   "query": "body=hint-off",
+   "boxes": {
+    "identity": {
+     "x": 28,
+     "y": 12,
+     "w": 202,
+     "h": 44
+    },
+    "ribbon": {
+     "x": 428.8,
+     "y": 12,
+     "w": 422.4,
+     "h": 44
+    },
+    "treasury": {
+     "x": 1111.7,
+     "y": 12,
+     "w": 140.3,
+     "h": 44
+    },
+    "objective": {
+     "x": 28,
+     "y": 632,
+     "w": 340,
+     "h": 60
+    },
+    "hints": {
+     "x": 870.2,
+     "y": 662,
+     "w": 381.8,
+     "h": 30
+    },
+    "pause": null,
+    "toast": null,
+    "prompt": null,
+    "dialogue": null,
+    "wardTag": {
+     "x": 741,
+     "y": 34,
+     "w": 97.1,
+     "h": 18
+    },
+    "wardNoun": null
+   },
+   "fonts": {
+    "#ward-name": 15,
+    "#clock": 15,
+    "#crowns": 22,
+    ".income": 13,
+    "#rate": 13,
+    "#objective": 14,
+    ".ward-noun": null,
+    "#ward": 13,
+    "#weather": 10,
+    "#curfew": 10,
+    "#step-no": 10,
+    "#stage": 10,
+    ".objective .overline": 10,
+    ".treasury small": 10,
+    "#interaction": 14,
+    "#interaction small": null,
+    "#toast": 13,
+    ".t-over": null,
+    ".controls": 11,
+    ".controls kbd": 10,
+    ".dlg-card .overline": 10,
+    ".strip span": 13,
+    ".strip span.card": 13
+   },
+   "clipped": [],
+   "slicedTapeGlyphs": 0,
+   "tapeMask": "none",
+   "persistentPct": 7.11,
+   "topBand": 56,
+   "overflowX": false
+  },
+  "desk-ledger": {
+   "viewport": [
+    1280,
+    720
+   ],
+   "query": "state=ledger",
+   "boxes": {
+    "identity": {
+     "x": 28,
+     "y": 12,
+     "w": 202,
+     "h": 44
+    },
+    "ribbon": {
+     "x": 428.8,
+     "y": 12,
+     "w": 422.4,
+     "h": 44
+    },
+    "treasury": {
+     "x": 1111.7,
+     "y": 12,
+     "w": 140.3,
+     "h": 44
+    },
+    "objective": {
+     "x": 28,
+     "y": 632,
+     "w": 340,
+     "h": 60
+    },
+    "hints": {
+     "x": 870.2,
+     "y": 662,
+     "w": 381.8,
+     "h": 30
+    },
+    "pause": null,
+    "toast": null,
+    "prompt": null,
+    "dialogue": null,
+    "wardTag": {
+     "x": 741,
+     "y": 34,
+     "w": 97.1,
+     "h": 18
+    },
+    "wardNoun": null
+   },
+   "fonts": {
+    "#ward-name": 15,
+    "#clock": 15,
+    "#crowns": 22,
+    ".income": 13,
+    "#rate": 13,
+    "#objective": 14,
+    ".ward-noun": null,
+    "#ward": 13,
+    "#weather": 10,
+    "#curfew": 10,
+    "#step-no": 10,
+    "#stage": 10,
+    ".objective .overline": 10,
+    ".treasury small": 10,
+    "#interaction": 14,
+    "#interaction small": null,
+    "#toast": 13,
+    ".t-over": null,
+    ".controls": 11,
+    ".controls kbd": 10,
+    ".dlg-card .overline": 10,
+    ".strip span": 13,
+    ".strip span.card": 13
+   },
+   "clipped": [],
+   "slicedTapeGlyphs": 0,
+   "tapeMask": "none",
+   "persistentPct": 7.11,
+   "topBand": 56,
+   "overflowX": false
+  },
+  "desk-pause": {
+   "viewport": [
+    1280,
+    720
+   ],
+   "query": "state=pause",
+   "boxes": {
+    "identity": {
+     "x": 28,
+     "y": 12,
+     "w": 202,
+     "h": 44
+    },
+    "ribbon": {
+     "x": 428.8,
+     "y": 12,
+     "w": 422.4,
+     "h": 44
+    },
+    "treasury": {
+     "x": 1111.7,
+     "y": 12,
+     "w": 140.3,
+     "h": 44
+    },
+    "objective": {
+     "x": 28,
+     "y": 632,
+     "w": 340,
+     "h": 60
+    },
+    "hints": {
+     "x": 870.2,
+     "y": 662,
+     "w": 381.8,
+     "h": 30
+    },
+    "pause": null,
+    "toast": null,
+    "prompt": null,
+    "dialogue": null,
+    "wardTag": {
+     "x": 741,
+     "y": 34,
+     "w": 97.1,
+     "h": 18
+    },
+    "wardNoun": null
+   },
+   "fonts": {
+    "#ward-name": 15,
+    "#clock": 15,
+    "#crowns": 22,
+    ".income": 13,
+    "#rate": 13,
+    "#objective": 14,
+    ".ward-noun": null,
+    "#ward": 13,
+    "#weather": 10,
+    "#curfew": 10,
+    "#step-no": 10,
+    "#stage": 10,
+    ".objective .overline": 10,
+    ".treasury small": 10,
+    "#interaction": 14,
+    "#interaction small": null,
+    "#toast": 13,
+    ".t-over": null,
+    ".controls": 11,
+    ".controls kbd": 10,
+    ".dlg-card .overline": 10,
+    ".strip span": 13,
+    ".strip span.card": 13
+   },
+   "clipped": [],
+   "slicedTapeGlyphs": 0,
+   "tapeMask": "none",
+   "persistentPct": 7.11,
+   "topBand": 56,
+   "overflowX": false
+  },
+  "desk-welcome": {
+   "viewport": [
+    1280,
+    720
+   ],
+   "query": "state=welcome",
+   "boxes": {
+    "identity": null,
+    "ribbon": null,
+    "treasury": null,
+    "objective": null,
+    "hints": null,
+    "pause": null,
+    "toast": null,
+    "prompt": null,
+    "dialogue": null,
+    "wardTag": null,
+    "wardNoun": null
+   },
+   "fonts": {
+    "#ward-name": 15,
+    "#clock": 15,
+    "#crowns": 22,
+    ".income": 13,
+    "#rate": 13,
+    "#objective": 14,
+    ".ward-noun": null,
+    "#ward": 13,
+    "#weather": 10,
+    "#curfew": 10,
+    "#step-no": 10,
+    "#stage": 10,
+    ".objective .overline": 10,
+    ".treasury small": 10,
+    "#interaction": 14,
+    "#interaction small": null,
+    "#toast": 13,
+    ".t-over": null,
+    ".controls": 11,
+    ".controls kbd": 10,
+    ".dlg-card .overline": 10,
+    ".strip span": 13,
+    ".strip span.card": 13
+   },
+   "clipped": [],
+   "slicedTapeGlyphs": 0,
+   "tapeMask": "none",
+   "persistentPct": 0,
+   "topBand": 0,
+   "overflowX": false
+  },
+  "desk-long-objective": {
+   "viewport": [
+    1280,
+    720
+   ],
+   "query": "objective=Build%20toward%20Commerce.%20Every%20commission%20changes%20Terra.&stage=PROSPERITY%202%20/%205%20%C2%B7%20INDUSTRY",
+   "boxes": {
+    "identity": {
+     "x": 28,
+     "y": 12,
+     "w": 202,
+     "h": 44
+    },
+    "ribbon": {
+     "x": 428.8,
+     "y": 12,
+     "w": 422.4,
+     "h": 44
+    },
+    "treasury": {
+     "x": 1111.7,
+     "y": 12,
+     "w": 140.3,
+     "h": 44
+    },
+    "objective": {
+     "x": 28,
+     "y": 614,
+     "w": 340,
+     "h": 78
+    },
+    "hints": {
+     "x": 870.2,
+     "y": 662,
+     "w": 381.8,
+     "h": 30
+    },
+    "pause": null,
+    "toast": null,
+    "prompt": null,
+    "dialogue": null,
+    "wardTag": {
+     "x": 741,
+     "y": 34,
+     "w": 97.1,
+     "h": 18
+    },
+    "wardNoun": null
+   },
+   "fonts": {
+    "#ward-name": 15,
+    "#clock": 15,
+    "#crowns": 22,
+    ".income": 13,
+    "#rate": 13,
+    "#objective": 14,
+    ".ward-noun": null,
+    "#ward": 13,
+    "#weather": 10,
+    "#curfew": 10,
+    "#step-no": 10,
+    "#stage": 10,
+    ".objective .overline": 10,
+    ".treasury small": 10,
+    "#interaction": 14,
+    "#interaction small": null,
+    "#toast": 13,
+    ".t-over": null,
+    ".controls": 11,
+    ".controls kbd": 10,
+    ".dlg-card .overline": 10,
+    ".strip span": 13,
+    ".strip span.card": 13
+   },
+   "clipped": [],
+   "slicedTapeGlyphs": 0,
+   "tapeMask": "none",
+   "persistentPct": 7.77,
+   "topBand": 56,
+   "overflowX": false
+  },
+  "narrow-normal": {
+   "viewport": [
+    800,
+    600
+   ],
+   "query": "",
+   "boxes": {
+    "identity": {
+     "x": 22,
+     "y": 12,
+     "w": 202,
+     "h": 44
+    },
+    "ribbon": {
+     "x": 248,
+     "y": 12,
+     "w": 304,
+     "h": 44
+    },
+    "treasury": {
+     "x": 637.7,
+     "y": 12,
+     "w": 140.3,
+     "h": 44
+    },
+    "objective": {
+     "x": 22,
+     "y": 518,
+     "w": 340,
+     "h": 60
+    },
+    "hints": {
+     "x": 548,
+     "y": 548,
+     "w": 230,
+     "h": 30
+    },
+    "pause": null,
+    "toast": null,
+    "prompt": null,
+    "dialogue": null,
+    "wardTag": {
+     "x": 441.9,
+     "y": 34,
+     "w": 97.1,
+     "h": 18
+    },
+    "wardNoun": null
+   },
+   "fonts": {
+    "#ward-name": 15,
+    "#clock": 15,
+    "#crowns": 22,
+    ".income": 13,
+    "#rate": 13,
+    "#objective": 14,
+    ".ward-noun": null,
+    "#ward": 13,
+    "#weather": 10,
+    "#curfew": 10,
+    "#step-no": 10,
+    "#stage": 10,
+    ".objective .overline": 10,
+    ".treasury small": 10,
+    "#interaction": 14,
+    "#interaction small": null,
+    "#toast": 13,
+    ".t-over": null,
+    ".controls": 11,
+    ".controls kbd": 10,
+    ".dlg-card .overline": 10,
+    ".strip span": 13,
+    ".strip span.card": 13
+   },
+   "clipped": [],
+   "slicedTapeGlyphs": 0,
+   "tapeMask": "none",
+   "persistentPct": 11.61,
+   "topBand": 56,
+   "overflowX": false
+  },
+  "narrow-prompt": {
+   "viewport": [
+    800,
+    600
+   ],
+   "query": "state=prompt",
+   "boxes": {
+    "identity": {
+     "x": 22,
+     "y": 12,
+     "w": 202,
+     "h": 44
+    },
+    "ribbon": {
+     "x": 248,
+     "y": 12,
+     "w": 304,
+     "h": 44
+    },
+    "treasury": {
+     "x": 637.7,
+     "y": 12,
+     "w": 140.3,
+     "h": 44
+    },
+    "objective": {
+     "x": 22,
+     "y": 518,
+     "w": 340,
+     "h": 60
+    },
+    "hints": {
+     "x": 548,
+     "y": 548,
+     "w": 230,
+     "h": 30
+    },
+    "pause": null,
+    "toast": null,
+    "prompt": {
+     "x": 299.5,
+     "y": 348,
+     "w": 201,
+     "h": 37
+    },
+    "dialogue": null,
+    "wardTag": {
+     "x": 441.9,
+     "y": 34,
+     "w": 97.1,
+     "h": 18
+    },
+    "wardNoun": null
+   },
+   "fonts": {
+    "#ward-name": 15,
+    "#clock": 15,
+    "#crowns": 22,
+    ".income": 13,
+    "#rate": 13,
+    "#objective": 14,
+    ".ward-noun": null,
+    "#ward": 13,
+    "#weather": 10,
+    "#curfew": 10,
+    "#step-no": 10,
+    "#stage": 10,
+    ".objective .overline": 10,
+    ".treasury small": 10,
+    "#interaction": 14,
+    "#interaction small": 10,
+    "#toast": 13,
+    ".t-over": null,
+    ".controls": 11,
+    ".controls kbd": 10,
+    ".dlg-card .overline": 10,
+    ".strip span": 13,
+    ".strip span.card": 13
+   },
+   "clipped": [],
+   "slicedTapeGlyphs": 0,
+   "tapeMask": "none",
+   "persistentPct": 11.61,
+   "topBand": 56,
+   "overflowX": false
+  },
+  "narrow-toast-ward": {
+   "viewport": [
+    800,
+    600
+   ],
+   "query": "state=toast&over=Cinder%20Row%20%C2%B7%20Occupation%2080%25&toast=Heavy%20occupation.%20More%20patrols%20%C2%B7%20Curfew%20enforced%20%C2%B7%20Commerce%20suppressed.",
+   "boxes": {
+    "identity": {
+     "x": 22,
+     "y": 12,
+     "w": 202,
+     "h": 44
+    },
+    "ribbon": {
+     "x": 248,
+     "y": 12,
+     "w": 304,
+     "h": 44
+    },
+    "treasury": {
+     "x": 637.7,
+     "y": 12,
+     "w": 140.3,
+     "h": 44
+    },
+    "objective": {
+     "x": 22,
+     "y": 518,
+     "w": 340,
+     "h": 60
+    },
+    "hints": {
+     "x": 548,
+     "y": 548,
+     "w": 230,
+     "h": 30
+    },
+    "pause": null,
+    "toast": {
+     "x": 80,
+     "y": 64,
+     "w": 640,
+     "h": 47
+    },
+    "prompt": null,
+    "dialogue": null,
+    "wardTag": {
+     "x": 441.9,
+     "y": 34,
+     "w": 97.1,
+     "h": 18
+    },
+    "wardNoun": null
+   },
+   "fonts": {
+    "#ward-name": 15,
+    "#clock": 15,
+    "#crowns": 22,
+    ".income": 13,
+    "#rate": 13,
+    "#objective": 14,
+    ".ward-noun": null,
+    "#ward": 13,
+    "#weather": 10,
+    "#curfew": 10,
+    "#step-no": 10,
+    "#stage": 10,
+    ".objective .overline": 10,
+    ".treasury small": 10,
+    "#interaction": 14,
+    "#interaction small": null,
+    "#toast": 13,
+    ".t-over": 10,
+    ".controls": 11,
+    ".controls kbd": 10,
+    ".dlg-card .overline": 10,
+    ".strip span": 13,
+    ".strip span.card": 13
+   },
+   "clipped": [],
+   "slicedTapeGlyphs": 0,
+   "tapeMask": "none",
+   "persistentPct": 11.61,
+   "topBand": 56,
+   "overflowX": false
+  },
+  "narrow-curfew-worst": {
+   "viewport": [
+    800,
+    600
+   ],
+   "query": "weather=INDUSTRIAL%20FOG&curfew=KNOWN%20TO%20THE%20PATROLS&band=lockdown&clock=23:40&crowns=12.4k&rate=%2B231.9",
+   "boxes": {
+    "identity": {
+     "x": 22,
+     "y": 12,
+     "w": 202,
+     "h": 44
+    },
+    "ribbon": {
+     "x": 232,
+     "y": 12,
+     "w": 336,
+     "h": 62
+    },
+    "treasury": {
+     "x": 605.8,
+     "y": 12,
+     "w": 172.3,
+     "h": 44
+    },
+    "objective": {
+     "x": 22,
+     "y": 518,
+     "w": 340,
+     "h": 60
+    },
+    "hints": {
+     "x": 548,
+     "y": 548,
+     "w": 230,
+     "h": 30
+    },
+    "pause": null,
+    "toast": null,
+    "prompt": null,
+    "dialogue": null,
+    "wardTag": {
+     "x": 245,
+     "y": 53,
+     "w": 143.9,
+     "h": 18
+    },
+    "wardNoun": null
+   },
+   "fonts": {
+    "#ward-name": 15,
+    "#clock": 15,
+    "#crowns": 22,
+    ".income": 13,
+    "#rate": 13,
+    "#objective": 14,
+    ".ward-noun": null,
+    "#ward": 13,
+    "#weather": 10,
+    "#curfew": 10,
+    "#step-no": 10,
+    "#stage": 10,
+    ".objective .overline": 10,
+    ".treasury small": 10,
+    "#interaction": 14,
+    "#interaction small": null,
+    "#toast": 13,
+    ".t-over": null,
+    ".controls": 11,
+    ".controls kbd": 10,
+    ".dlg-card .overline": 10,
+    ".strip span": 13,
+    ".strip span.card": 13
+   },
+   "clipped": [],
+   "slicedTapeGlyphs": 0,
+   "tapeMask": "none",
+   "persistentPct": 13.46,
+   "topBand": 74,
+   "overflowX": false
+  },
+  "narrow-dialogue": {
+   "viewport": [
+    800,
+    600
+   ],
+   "query": "state=dialogue",
+   "boxes": {
+    "identity": {
+     "x": 22,
+     "y": 12,
+     "w": 202,
+     "h": 44
+    },
+    "ribbon": {
+     "x": 248,
+     "y": 12,
+     "w": 304,
+     "h": 44
+    },
+    "treasury": {
+     "x": 637.7,
+     "y": 12,
+     "w": 140.3,
+     "h": 44
+    },
+    "objective": {
+     "x": 22,
+     "y": 518,
+     "w": 340,
+     "h": 60
+    },
+    "hints": {
+     "x": 548,
+     "y": 548,
+     "w": 230,
+     "h": 30
+    },
+    "pause": null,
+    "toast": null,
+    "prompt": null,
+    "dialogue": {
+     "x": 80,
+     "y": 441.6,
+     "w": 640,
+     "h": 54.4
+    },
+    "wardTag": {
+     "x": 441.9,
+     "y": 34,
+     "w": 97.1,
+     "h": 18
+    },
+    "wardNoun": null
+   },
+   "fonts": {
+    "#ward-name": 15,
+    "#clock": 15,
+    "#crowns": 22,
+    ".income": 13,
+    "#rate": 13,
+    "#objective": 14,
+    ".ward-noun": null,
+    "#ward": 13,
+    "#weather": 10,
+    "#curfew": 10,
+    "#step-no": 10,
+    "#stage": 10,
+    ".objective .overline": 10,
+    ".treasury small": 10,
+    "#interaction": 14,
+    "#interaction small": null,
+    "#toast": 13,
+    ".t-over": null,
+    ".controls": 11,
+    ".controls kbd": 10,
+    ".dlg-card .overline": 10,
+    ".strip span": 13,
+    ".strip span.card": 13
+   },
+   "clipped": [],
+   "slicedTapeGlyphs": 0,
+   "tapeMask": "none",
+   "persistentPct": 11.61,
+   "topBand": 56,
+   "overflowX": false
+  },
+  "phone-normal": {
+   "viewport": [
+    390,
+    844
+   ],
+   "query": "body=touch",
+   "boxes": {
+    "identity": {
+     "x": 68,
+     "y": 12,
+     "w": 157.8,
+     "h": 40
+    },
+    "ribbon": {
+     "x": 16,
+     "y": 60,
+     "w": 358,
+     "h": 44
+    },
+    "treasury": {
+     "x": 237.4,
+     "y": 12,
+     "w": 136.6,
+     "h": 40
+    },
+    "objective": {
+     "x": 16,
+     "y": 112,
+     "w": 340,
+     "h": 60
+    },
+    "hints": null,
+    "pause": {
+     "x": 16,
+     "y": 16,
+     "w": 44,
+     "h": 44
+    },
+    "toast": null,
+    "prompt": null,
+    "dialogue": null,
+    "wardTag": {
+     "x": 263.9,
+     "y": 82,
+     "w": 97.1,
+     "h": 18
+    },
+    "wardNoun": null
+   },
+   "fonts": {
+    "#ward-name": 13,
+    "#clock": 15,
+    "#crowns": 18,
+    ".income": 13,
+    "#rate": 13,
+    "#objective": 14,
+    ".ward-noun": null,
+    "#ward": 13,
+    "#weather": 10,
+    "#curfew": 10,
+    "#step-no": 10,
+    "#stage": 10,
+    ".objective .overline": 10,
+    ".treasury small": 10,
+    "#interaction": 14,
+    "#interaction small": null,
+    "#toast": 13,
+    ".t-over": null,
+    ".controls": 11,
+    ".controls kbd": 10,
+    ".dlg-card .overline": 10,
+    ".strip span": 13,
+    ".strip span.card": 13
+   },
+   "clipped": [],
+   "slicedTapeGlyphs": 2,
+   "tapeMask": "none",
+   "persistentPct": 14.56,
+   "topBand": 104,
+   "overflowX": false
+  },
+  "phone-toast": {
+   "viewport": [
+    390,
+    844
+   ],
+   "query": "state=toast&body=touch",
+   "boxes": {
+    "identity": {
+     "x": 68,
+     "y": 12,
+     "w": 157.8,
+     "h": 40
+    },
+    "ribbon": {
+     "x": 16,
+     "y": 60,
+     "w": 358,
+     "h": 44
+    },
+    "treasury": {
+     "x": 237.4,
+     "y": 12,
+     "w": 136.6,
+     "h": 40
+    },
+    "objective": null,
+    "hints": null,
+    "pause": {
+     "x": 16,
+     "y": 16,
+     "w": 44,
+     "h": 44
+    },
+    "toast": {
+     "x": 16,
+     "y": 112,
+     "w": 358,
+     "h": 46
+    },
+    "prompt": null,
+    "dialogue": null,
+    "wardTag": {
+     "x": 263.9,
+     "y": 82,
+     "w": 97.1,
+     "h": 18
+    },
+    "wardNoun": null
+   },
+   "fonts": {
+    "#ward-name": 13,
+    "#clock": 15,
+    "#crowns": 18,
+    ".income": 13,
+    "#rate": 13,
+    "#objective": 14,
+    ".ward-noun": null,
+    "#ward": 13,
+    "#weather": 10,
+    "#curfew": 10,
+    "#step-no": 10,
+    "#stage": 10,
+    ".objective .overline": 10,
+    ".treasury small": 10,
+    "#interaction": 14,
+    "#interaction small": null,
+    "#toast": 13,
+    ".t-over": null,
+    ".controls": 11,
+    ".controls kbd": 10,
+    ".dlg-card .overline": 10,
+    ".strip span": 13,
+    ".strip span.card": 13
+   },
+   "clipped": [],
+   "slicedTapeGlyphs": 2,
+   "tapeMask": "none",
+   "persistentPct": 8.36,
+   "topBand": 104,
+   "overflowX": false
+  },
+  "phone-prompt": {
+   "viewport": [
+    390,
+    844
+   ],
+   "query": "state=prompt&body=touch",
+   "boxes": {
+    "identity": {
+     "x": 68,
+     "y": 12,
+     "w": 157.8,
+     "h": 40
+    },
+    "ribbon": {
+     "x": 16,
+     "y": 60,
+     "w": 358,
+     "h": 44
+    },
+    "treasury": {
+     "x": 237.4,
+     "y": 12,
+     "w": 136.6,
+     "h": 40
+    },
+    "objective": {
+     "x": 16,
+     "y": 112,
+     "w": 340,
+     "h": 60
+    },
+    "hints": null,
+    "pause": {
+     "x": 16,
+     "y": 16,
+     "w": 44,
+     "h": 44
+    },
+    "toast": null,
+    "prompt": {
+     "x": 16,
+     "y": 789,
+     "w": 176,
+     "h": 39
+    },
+    "dialogue": null,
+    "wardTag": {
+     "x": 263.9,
+     "y": 82,
+     "w": 97.1,
+     "h": 18
+    },
+    "wardNoun": null
+   },
+   "fonts": {
+    "#ward-name": 13,
+    "#clock": 15,
+    "#crowns": 18,
+    ".income": 13,
+    "#rate": 13,
+    "#objective": 14,
+    ".ward-noun": null,
+    "#ward": 13,
+    "#weather": 10,
+    "#curfew": 10,
+    "#step-no": 10,
+    "#stage": 10,
+    ".objective .overline": 10,
+    ".treasury small": 10,
+    "#interaction": 14,
+    "#interaction small": 10,
+    "#toast": 13,
+    ".t-over": null,
+    ".controls": 11,
+    ".controls kbd": 10,
+    ".dlg-card .overline": 10,
+    ".strip span": 13,
+    ".strip span.card": 13
+   },
+   "clipped": [],
+   "slicedTapeGlyphs": 2,
+   "tapeMask": "none",
+   "persistentPct": 14.56,
+   "topBand": 104,
+   "overflowX": false
+  },
+  "phone-curfew-worst": {
+   "viewport": [
+    390,
+    844
+   ],
+   "query": "weather=INDUSTRIAL%20FOG&curfew=KNOWN%20TO%20THE%20PATROLS&band=lockdown&clock=23:40&crowns=12.4k&rate=%2B231.9&body=touch",
+   "boxes": {
+    "identity": {
+     "x": 68,
+     "y": 12,
+     "w": 157.8,
+     "h": 40
+    },
+    "ribbon": {
+     "x": 16,
+     "y": 60,
+     "w": 358,
+     "h": 62
+    },
+    "treasury": {
+     "x": 219.2,
+     "y": 12,
+     "w": 154.8,
+     "h": 40
+    },
+    "objective": {
+     "x": 16,
+     "y": 130,
+     "w": 340,
+     "h": 60
+    },
+    "hints": null,
+    "pause": {
+     "x": 16,
+     "y": 16,
+     "w": 44,
+     "h": 44
+    },
+    "toast": null,
+    "prompt": null,
+    "dialogue": null,
+    "wardTag": {
+     "x": 29,
+     "y": 101,
+     "w": 143.9,
+     "h": 18
+    },
+    "wardNoun": null
+   },
+   "fonts": {
+    "#ward-name": 13,
+    "#clock": 15,
+    "#crowns": 18,
+    ".income": 13,
+    "#rate": 13,
+    "#objective": 14,
+    ".ward-noun": null,
+    "#ward": 13,
+    "#weather": 10,
+    "#curfew": 10,
+    "#step-no": 10,
+    "#stage": 10,
+    ".objective .overline": 10,
+    ".treasury small": 10,
+    "#interaction": 14,
+    "#interaction small": null,
+    "#toast": 13,
+    ".t-over": null,
+    ".controls": 11,
+    ".controls kbd": 10,
+    ".dlg-card .overline": 10,
+    ".strip span": 13,
+    ".strip span.card": 13
+   },
+   "clipped": [],
+   "slicedTapeGlyphs": 2,
+   "tapeMask": "none",
+   "persistentPct": 16.74,
+   "topBand": 122,
+   "overflowX": false
+  },
+  "phoneland-normal": {
+   "viewport": [
+    844,
+    390
+   ],
+   "query": "body=touch",
+   "boxes": {
+    "identity": {
+     "x": 68,
+     "y": 12,
+     "w": 157.8,
+     "h": 40
+    },
+    "ribbon": {
+     "x": 237.8,
+     "y": 12,
+     "w": 300,
+     "h": 40
+    },
+    "treasury": {
+     "x": 691.4,
+     "y": 12,
+     "w": 136.6,
+     "h": 40
+    },
+    "objective": {
+     "x": 16,
+     "y": 60,
+     "w": 340,
+     "h": 60
+    },
+    "hints": null,
+    "pause": {
+     "x": 16,
+     "y": 16,
+     "w": 44,
+     "h": 44
+    },
+    "toast": null,
+    "prompt": null,
+    "dialogue": null,
+    "wardTag": {
+     "x": 427.6,
+     "y": 31,
+     "w": 97.1,
+     "h": 18
+    },
+    "wardNoun": null
+   },
+   "fonts": {
+    "#ward-name": 13,
+    "#clock": 13,
+    "#crowns": 18,
+    ".income": 13,
+    "#rate": 13,
+    "#objective": 14,
+    ".ward-noun": null,
+    "#ward": 13,
+    "#weather": 10,
+    "#curfew": 10,
+    "#step-no": 10,
+    "#stage": 10,
+    ".objective .overline": 10,
+    ".treasury small": 10,
+    "#interaction": 14,
+    "#interaction small": null,
+    "#toast": 13,
+    ".t-over": null,
+    ".controls": 11,
+    ".controls kbd": 10,
+    ".dlg-card .overline": 10,
+    ".strip span": 11,
+    ".strip span.card": 11
+   },
+   "clipped": [],
+   "slicedTapeGlyphs": 0,
+   "tapeMask": "none",
+   "persistentPct": 13.42,
+   "topBand": 52,
+   "overflowX": false
+  },
+  "phoneland-prompt": {
+   "viewport": [
+    844,
+    390
+   ],
+   "query": "state=prompt&body=touch",
+   "boxes": {
+    "identity": {
+     "x": 68,
+     "y": 12,
+     "w": 157.8,
+     "h": 40
+    },
+    "ribbon": {
+     "x": 237.8,
+     "y": 12,
+     "w": 300,
+     "h": 40
+    },
+    "treasury": {
+     "x": 691.4,
+     "y": 12,
+     "w": 136.6,
+     "h": 40
+    },
+    "objective": {
+     "x": 16,
+     "y": 60,
+     "w": 340,
+     "h": 60
+    },
+    "hints": null,
+    "pause": {
+     "x": 16,
+     "y": 16,
+     "w": 44,
+     "h": 44
+    },
+    "toast": null,
+    "prompt": {
+     "x": 16,
+     "y": 335,
+     "w": 176,
+     "h": 39
+    },
+    "dialogue": null,
+    "wardTag": {
+     "x": 427.6,
+     "y": 31,
+     "w": 97.1,
+     "h": 18
+    },
+    "wardNoun": null
+   },
+   "fonts": {
+    "#ward-name": 13,
+    "#clock": 13,
+    "#crowns": 18,
+    ".income": 13,
+    "#rate": 13,
+    "#objective": 14,
+    ".ward-noun": null,
+    "#ward": 13,
+    "#weather": 10,
+    "#curfew": 10,
+    "#step-no": 10,
+    "#stage": 10,
+    ".objective .overline": 10,
+    ".treasury small": 10,
+    "#interaction": 14,
+    "#interaction small": 10,
+    "#toast": 13,
+    ".t-over": null,
+    ".controls": 11,
+    ".controls kbd": 10,
+    ".dlg-card .overline": 10,
+    ".strip span": 11,
+    ".strip span.card": 11
+   },
+   "clipped": [],
+   "slicedTapeGlyphs": 0,
+   "tapeMask": "none",
+   "persistentPct": 13.42,
+   "topBand": 52,
+   "overflowX": false
+  },
+  "phoneland-toast": {
+   "viewport": [
+    844,
+    390
+   ],
+   "query": "state=toast&body=touch",
+   "boxes": {
+    "identity": {
+     "x": 68,
+     "y": 12,
+     "w": 157.8,
+     "h": 40
+    },
+    "ribbon": {
+     "x": 237.8,
+     "y": 12,
+     "w": 300,
+     "h": 40
+    },
+    "treasury": {
+     "x": 691.4,
+     "y": 12,
+     "w": 136.6,
+     "h": 40
+    },
+    "objective": null,
+    "hints": null,
+    "pause": {
+     "x": 16,
+     "y": 16,
+     "w": 44,
+     "h": 44
+    },
+    "toast": {
+     "x": 125.8,
+     "y": 60,
+     "w": 592.5,
+     "h": 28
+    },
+    "prompt": null,
+    "dialogue": null,
+    "wardTag": {
+     "x": 427.6,
+     "y": 31,
+     "w": 97.1,
+     "h": 18
+    },
+    "wardNoun": null
+   },
+   "fonts": {
+    "#ward-name": 13,
+    "#clock": 13,
+    "#crowns": 18,
+    ".income": 13,
+    "#rate": 13,
+    "#objective": 14,
+    ".ward-noun": null,
+    "#ward": 13,
+    "#weather": 10,
+    "#curfew": 10,
+    "#step-no": 10,
+    "#stage": 10,
+    ".objective .overline": 10,
+    ".treasury small": 10,
+    "#interaction": 14,
+    "#interaction small": null,
+    "#toast": 13,
+    ".t-over": null,
+    ".controls": 11,
+    ".controls kbd": 10,
+    ".dlg-card .overline": 10,
+    ".strip span": 11,
+    ".strip span.card": 11
+   },
+   "clipped": [],
+   "slicedTapeGlyphs": 0,
+   "tapeMask": "none",
+   "persistentPct": 7.22,
+   "topBand": 52,
+   "overflowX": false
+  },
+  "phoneland-curfew-worst": {
+   "viewport": [
+    844,
+    390
+   ],
+   "query": "weather=INDUSTRIAL%20FOG&curfew=KNOWN%20TO%20THE%20PATROLS&band=lockdown&clock=23:40&crowns=12.4k&rate=%2B231.9&body=touch",
+   "boxes": {
+    "identity": {
+     "x": 68,
+     "y": 12,
+     "w": 157.8,
+     "h": 40
+    },
+    "ribbon": {
+     "x": 237.8,
+     "y": 12,
+     "w": 300,
+     "h": 70
+    },
+    "treasury": {
+     "x": 673.2,
+     "y": 12,
+     "w": 154.8,
+     "h": 40
+    },
+    "objective": {
+     "x": 16,
+     "y": 90,
+     "w": 340,
+     "h": 60
+    },
+    "hints": null,
+    "pause": {
+     "x": 16,
+     "y": 16,
+     "w": 44,
+     "h": 44
+    },
+    "toast": null,
+    "prompt": null,
+    "dialogue": null,
+    "wardTag": {
+     "x": 250.8,
+     "y": 62,
+     "w": 143.9,
+     "h": 18
+    },
+    "wardNoun": null
+   },
+   "fonts": {
+    "#ward-name": 13,
+    "#clock": 13,
+    "#crowns": 18,
+    ".income": 13,
+    "#rate": 13,
+    "#objective": 14,
+    ".ward-noun": null,
+    "#ward": 13,
+    "#weather": 10,
+    "#curfew": 10,
+    "#step-no": 10,
+    "#stage": 10,
+    ".objective .overline": 10,
+    ".treasury small": 10,
+    "#interaction": 14,
+    "#interaction small": null,
+    "#toast": 13,
+    ".t-over": null,
+    ".controls": 11,
+    ".controls kbd": 10,
+    ".dlg-card .overline": 10,
+    ".strip span": 11,
+    ".strip span.card": 11
+   },
+   "clipped": [],
+   "slicedTapeGlyphs": 0,
+   "tapeMask": "none",
+   "persistentPct": 16.38,
+   "topBand": 82,
+   "overflowX": false
+  }
+ },
+ "focus": {
+  "tag": "BUTTON",
+  "focused": true,
+  "outline": "solid 3px rgb(34, 111, 108)",
+  "controlsOpacity": "0",
+  "h": 24
+ }
+}
