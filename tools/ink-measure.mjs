@@ -1,6 +1,6 @@
 // Measures the ink pass in the game: ink share per distance band, far-line crawl in a slow yaw, frame time, and the
 // pixel ratio over a strained session.
-//   node tools/ink-measure.mjs <baseUrl> <out.json> --mode=ink [--before=<ink-renderer.ts of the old pass>] [--people=old]
+//   node tools/ink-measure.mjs <baseUrl> <out.json> --mode=ink [--before=<ink-renderer.ts of the old pass>] [--people=old] [--internal]
 //   node tools/ink-measure.mjs <baseUrl> <out.json> --mode=strain --label=before|after
 // `ink` keeps one page loaded at 1280x720, device scale 1. Each view is placed as tools/game-captures.mjs places it, and on
 // one and the same rendered scene the ink quad is drawn again with a debug output per variant (the live shader and, with
@@ -14,6 +14,9 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 const args = process.argv.slice(2), pos = args.filter(a => !a.startsWith('--')), flag = (n, d = '') => (args.find(a => a.startsWith(`--${n}=`)) ?? `--${n}=${d}`).slice(n.length + 3);
 const base = pos[0] ?? 'http://127.0.0.1:5731', outPath = pos[1] ?? 'screenshots/presentation/ink/measurements.json';
 const mode = flag('mode', 'ink'), people = flag('people', 'old'), label = flag('label', 'run'), beforePath = flag('before', '');
+// --internal: R counts internal lines only (creases and colour edges where there is no silhouette), as Ink VI's
+// internal-lines.json did; the crawl and timing are skipped. Results go under `internal` instead of `ink`.
+const internal = args.includes('--internal'), inkR = internal ? 'step(silhouette, .2) * max(crease * .85, colorEdge * .6) * (1. - text)' : 'clamp(ink, 0., 1.) * .95';
 const out = existsSync(outPath) ? JSON.parse(readFileSync(outPath, 'utf8')) : {};
 
 // The shader distance set of tools/game-captures.mjs: name, camera [x, z, yaw, eyeY, pitch] or a worker, weather.
@@ -60,12 +63,12 @@ if (mode === 'strain') {
   // Variants: the live shader, and the old pass lifted from an older ink-renderer.ts.
   const variants = { after: null };
   if (beforePath) variants.before = readFileSync(beforePath, 'utf8').match(/fragmentShader: `([\s\S]*?)`,\n/)[1];
-  await page.evaluate(variants => {
+  await page.evaluate(([variants, inkR]) => {
     const R = window.__TERRA__.renderer, gl = R.getContext(), orig = R.render.bind(R), M = window.__ink = { hook: null };
     R.render = (s, c) => { const m = s.children[0]?.material, ink = !!m?.uniforms?.recovery; if (ink) { M.mat = m; M.scene = s; M.cam = c; M.live ??= m.fragmentShader; } const r = orig(s, c); if (ink && M.hook) { const h = M.hook; M.hook = null; h(); } return r; };
     M.src = { ...variants };
     M.debug = src => { const d = src.replace(/(\n\s*)(vec3 inkColor)/, '$1vec3 preInk = color;$1$2')
-      .replace(/(color = (?:min\(color, )?mix\(color, inkColor[^;]*;)/, '$1\n        vec3 dbg = vec3(clamp(ink, 0., 1.) * .95, (luma(preInk) - luma(color)) * 4., nearest / 250.);')
+      .replace(/(color = (?:min\(color, )?mix\(color, inkColor[^;]*;)/, '$1\n        vec3 dbg = vec3(' + inkR + ', (luma(preInk) - luma(color)) * 4., nearest / 250.);')
       .replace(/gl_FragColor = vec4\(color, 1\.\);\s*#include <colorspace_fragment>/, 'gl_FragColor = vec4(clamp(dbg, 0., 1.), 1.);');
       if (!d.includes('vec3 preInk') || !d.includes('vec3 dbg') || d.includes('colorspace_fragment')) throw new Error('debug patch did not apply'); return d; };
     // Draw the ink quad again with `src` on the scene just rendered, and read the canvas back.
@@ -78,7 +81,7 @@ if (mode === 'strain') {
       for (let i = 0; i < px.length; i += 4) { const k = M.band(px[i + 2]); n[k]++; sumR[k] += px[i]; sumG[k] += px[i + 1]; if (px[i] >= 51) inked[k]++; if (px[i + 1] >= 26) seen[k]++; }
       const total = px.length / 4, r = v => +v.toFixed(2);
       return ['near', 'mid', 'far'].map((name, k) => ({ band: name, areaPct: r(n[k] / total * 100), inkPctOfBand: r(n[k] ? inked[k] / n[k] * 100 : 0), inkPctOfScreen: r(inked[k] / total * 100), visiblePctOfBand: r(n[k] ? seen[k] / n[k] * 100 : 0), meanInk: r(n[k] ? sumR[k] / n[k] / 255 : 0), meanDarkening: r(n[k] ? sumG[k] / n[k] / 255 / 4 : 0) })); };
-  }, variants);
+  }, [variants, inkR]);
   const live = await page.evaluate(() => window.__ink.next(() => window.__ink.mat.fragmentShader));
   const names = Object.keys(variants);
   const place = async (cam, weather) => {
@@ -97,7 +100,7 @@ if (mode === 'strain') {
   // drawn on every frame. Change per frame is measured raw and after shifting by the pan (the shift with the least change
   // over the central third of the screen), in the mid and far bands.
   const crawl = {};
-  for (const name of CRAWL) {
+  for (const name of internal ? [] : CRAWL) {
     const [, cam, weather] = SHADER.find(s => s[0] === name); await place(cam, weather);
     crawl[name] = await page.evaluate(names => new Promise(done => {
       const M = window.__ink, a = window.__TERRA__, frames = [];
@@ -119,20 +122,20 @@ if (mode === 'strain') {
   // Frame time over 10 s at the street view with each variant live, then the ink quad alone timed with gl.finish around it.
   await place(SHADER[1][1], 'clear');
   const timing = {};
-  for (const v of names) {
+  for (const v of internal ? [] : names) {
     timing[v] = await page.evaluate(v => new Promise(done => { const M = window.__ink; M.mat.fragmentShader = M.src[v] ?? M.live; M.mat.needsUpdate = true;
       const t0 = performance.now() + 1000, ms = []; let prev = 0;
       const loop = t => { if (t > t0) { if (prev) ms.push(t - prev); prev = t; } if (t < t0 + 10000) requestAnimationFrame(loop); else { ms.sort((p, q) => p - q); const mean = ms.reduce((s, x) => s + x, 0) / ms.length; done({ frames: ms.length, meanMs: +mean.toFixed(2), p95Ms: +ms[Math.floor(ms.length * .95)].toFixed(2), fps: +(1000 / mean).toFixed(1) }); } };
       requestAnimationFrame(loop); }), v);
   }
   // The ink quad alone: 20 draws between two one-pixel reads (a read waits for the GPU), per variant, on 60 frames.
-  const pass = await page.evaluate(names => new Promise(done => { const M = window.__ink, gl = window.__TERRA__.renderer.getContext(), t = Object.fromEntries(names.map(v => [v, []])), one = new Uint8Array(4), sync = () => gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, one);
+  const pass = internal ? {} : await page.evaluate(names => new Promise(done => { const M = window.__ink, gl = window.__TERRA__.renderer.getContext(), t = Object.fromEntries(names.map(v => [v, []])), one = new Uint8Array(4), sync = () => gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, one);
     const once = () => { for (const v of names) { M.quad(M.src[v] ?? M.live); sync(); const t0 = performance.now(); for (let i = 0; i < 20; i++) M.quad(M.src[v] ?? M.live); sync(); t[v].push((performance.now() - t0) / 20); } M.restore();
       if (t[names[0]].length < 60) M.hook = once; else done(Object.fromEntries(names.map(v => { const s = t[v].slice(10).sort((p, q) => p - q); return [v, { medianMs: +s[s.length >> 1].toFixed(3), note: 'one full-screen ink quad, mean of 20 draws timed between one-pixel reads' }]; }))); };
     M.hook = once; }), names);
-  for (const v of names) timing[v].inkPass = pass[v];
+  for (const v of internal ? [] : names) timing[v].inkPass = pass[v];
   console.log('timing', JSON.stringify(timing));
-  out.ink = { viewport: [1280, 720], deviceScaleFactor: 1, people, level: 2, day: .5, variants: names, bandsMeters: [30, 90], inkThreshold: .2, visibleThreshold: .025, bands, crawl, timing, problems };
+  out[internal ? 'internal' : 'ink'] = { viewport: [1280, 720], deviceScaleFactor: 1, people, level: 2, day: .5, variants: names, bandsMeters: [30, 90], inkThreshold: .2, visibleThreshold: .025, bands, crawl, timing, problems };
 }
 writeFileSync(outPath, JSON.stringify(out, null, 2) + '\n');
 await page.goto('about:blank'); await browser.close();

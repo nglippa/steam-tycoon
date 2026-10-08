@@ -1,0 +1,408 @@
+{
+  "ink": {
+    "viewport": [
+      1280,
+      720
+    ],
+    "deviceScaleFactor": 1,
+    "people": "old",
+    "level": 2,
+    "day": 0.5,
+    "variants": [
+      "after"
+    ],
+    "bandsMeters": [
+      30,
+      90
+    ],
+    "inkThreshold": 0.2,
+    "visibleThreshold": 0.025,
+    "bands": {
+      "close-character-storefront": {
+        "after": [
+          {
+            "band": "near",
+            "areaPct": 93.48,
+            "inkPctOfBand": 16.96,
+            "inkPctOfScreen": 15.86,
+            "visiblePctOfBand": 8.21,
+            "meanInk": 0.12,
+            "meanDarkening": 0.01
+          },
+          {
+            "band": "mid",
+            "areaPct": 5.21,
+            "inkPctOfBand": 8.99,
+            "inkPctOfScreen": 0.47,
+            "visiblePctOfBand": 7.93,
+            "meanInk": 0.07,
+            "meanDarkening": 0.01
+          },
+          {
+            "band": "far",
+            "areaPct": 1.31,
+            "inkPctOfBand": 0,
+            "inkPctOfScreen": 0,
+            "visiblePctOfBand": 0,
+            "meanInk": 0,
+            "meanDarkening": 0
+          }
+        ]
+      },
+      "mid-street": {
+        "after": [
+          {
+            "band": "near",
+            "areaPct": 80.49,
+            "inkPctOfBand": 14.41,
+            "inkPctOfScreen": 11.6,
+            "visiblePctOfBand": 7.51,
+            "meanInk": 0.11,
+            "meanDarkening": 0.01
+          },
+          {
+            "band": "mid",
+            "areaPct": 9.31,
+            "inkPctOfBand": 20.53,
+            "inkPctOfScreen": 1.91,
+            "visiblePctOfBand": 23.4,
+            "meanInk": 0.18,
+            "meanDarkening": 0.03
+          },
+          {
+            "band": "far",
+            "areaPct": 10.2,
+            "inkPctOfBand": 1.21,
+            "inkPctOfScreen": 0.12,
+            "visiblePctOfBand": 0.89,
+            "meanInk": 0,
+            "meanDarkening": 0
+          }
+        ]
+      },
+      "mid-market-square": {
+        "after": [
+          {
+            "band": "near",
+            "areaPct": 66.82,
+            "inkPctOfBand": 25.43,
+            "inkPctOfScreen": 16.99,
+            "visiblePctOfBand": 15.55,
+            "meanInk": 0.2,
+            "meanDarkening": 0.02
+          },
+          {
+            "band": "mid",
+            "areaPct": 13.69,
+            "inkPctOfBand": 12.64,
+            "inkPctOfScreen": 1.73,
+            "visiblePctOfBand": 12.48,
+            "meanInk": 0.11,
+            "meanDarkening": 0.02
+          },
+          {
+            "band": "far",
+            "areaPct": 19.49,
+            "inkPctOfBand": 1.18,
+            "inkPctOfScreen": 0.23,
+            "visiblePctOfBand": 0.69,
+            "meanInk": 0,
+            "meanDarkening": 0
+          }
+        ]
+      },
+      "far-clock-tower": {
+        "after": [
+          {
+            "band": "near",
+            "areaPct": 72.94,
+            "inkPctOfBand": 21.01,
+            "inkPctOfScreen": 15.33,
+            "visiblePctOfBand": 14.95,
+            "meanInk": 0.15,
+            "meanDarkening": 0.02
+          },
+          {
+            "band": "mid",
+            "areaPct": 7.99,
+            "inkPctOfBand": 26.1,
+            "inkPctOfScreen": 2.09,
+            "visiblePctOfBand": 24.29,
+            "meanInk": 0.21,
+            "meanDarkening": 0.04
+          },
+          {
+            "band": "far",
+            "areaPct": 19.07,
+            "inkPctOfBand": 1.27,
+            "inkPctOfScreen": 0.24,
+            "visiblePctOfBand": 0.61,
+            "meanInk": 0,
+            "meanDarkening": 0
+          }
+        ]
+      },
+      "far-rooftops-overview": {
+        "after": [
+          {
+            "band": "near",
+            "areaPct": 48.07,
+            "inkPctOfBand": 16.89,
+            "inkPctOfScreen": 8.12,
+            "visiblePctOfBand": 7.28,
+            "meanInk": 0.12,
+            "meanDarkening": 0.01
+          },
+          {
+            "band": "mid",
+            "areaPct": 17.44,
+            "inkPctOfBand": 15.73,
+            "inkPctOfScreen": 2.74,
+            "visiblePctOfBand": 13,
+            "meanInk": 0.12,
+            "meanDarkening": 0.02
+          },
+          {
+            "band": "far",
+            "areaPct": 34.5,
+            "inkPctOfBand": 3.82,
+            "inkPctOfScreen": 1.32,
+            "visiblePctOfBand": 2.23,
+            "meanInk": 0.01,
+            "meanDarkening": 0
+          }
+        ]
+      },
+      "veryfar-skyline-edge": {
+        "after": [
+          {
+            "band": "near",
+            "areaPct": 29.58,
+            "inkPctOfBand": 20.79,
+            "inkPctOfScreen": 6.15,
+            "visiblePctOfBand": 21.98,
+            "meanInk": 0.15,
+            "meanDarkening": 0.03
+          },
+          {
+            "band": "mid",
+            "areaPct": 0.02,
+            "inkPctOfBand": 98.73,
+            "inkPctOfScreen": 0.02,
+            "visiblePctOfBand": 98.73,
+            "meanInk": 0.76,
+            "meanDarkening": 0.2
+          },
+          {
+            "band": "far",
+            "areaPct": 70.4,
+            "inkPctOfBand": 0.36,
+            "inkPctOfScreen": 0.25,
+            "visiblePctOfBand": 0.36,
+            "meanInk": 0,
+            "meanDarkening": 0
+          }
+        ]
+      },
+      "mid-market-square-rain": {
+        "after": [
+          {
+            "band": "near",
+            "areaPct": 66.85,
+            "inkPctOfBand": 25.61,
+            "inkPctOfScreen": 17.12,
+            "visiblePctOfBand": 15.95,
+            "meanInk": 0.2,
+            "meanDarkening": 0.02
+          },
+          {
+            "band": "mid",
+            "areaPct": 13.76,
+            "inkPctOfBand": 12.91,
+            "inkPctOfScreen": 1.78,
+            "visiblePctOfBand": 12.31,
+            "meanInk": 0.11,
+            "meanDarkening": 0.01
+          },
+          {
+            "band": "far",
+            "areaPct": 19.39,
+            "inkPctOfBand": 1.12,
+            "inkPctOfScreen": 0.22,
+            "visiblePctOfBand": 0.49,
+            "meanInk": 0,
+            "meanDarkening": 0
+          }
+        ]
+      },
+      "far-clock-tower-rain": {
+        "after": [
+          {
+            "band": "near",
+            "areaPct": 72.99,
+            "inkPctOfBand": 21.44,
+            "inkPctOfScreen": 15.65,
+            "visiblePctOfBand": 15.69,
+            "meanInk": 0.15,
+            "meanDarkening": 0.01
+          },
+          {
+            "band": "mid",
+            "areaPct": 7.94,
+            "inkPctOfBand": 27.08,
+            "inkPctOfScreen": 2.15,
+            "visiblePctOfBand": 23.57,
+            "meanInk": 0.21,
+            "meanDarkening": 0.03
+          },
+          {
+            "band": "far",
+            "areaPct": 19.06,
+            "inkPctOfBand": 1.29,
+            "inkPctOfScreen": 0.25,
+            "visiblePctOfBand": 0.71,
+            "meanInk": 0,
+            "meanDarkening": 0
+          }
+        ]
+      },
+      "mid-market-square-fog": {
+        "after": [
+          {
+            "band": "near",
+            "areaPct": 66.6,
+            "inkPctOfBand": 25.76,
+            "inkPctOfScreen": 17.15,
+            "visiblePctOfBand": 17.54,
+            "meanInk": 0.2,
+            "meanDarkening": 0.02
+          },
+          {
+            "band": "mid",
+            "areaPct": 14.08,
+            "inkPctOfBand": 13.03,
+            "inkPctOfScreen": 1.84,
+            "visiblePctOfBand": 13.59,
+            "meanInk": 0.11,
+            "meanDarkening": 0.02
+          },
+          {
+            "band": "far",
+            "areaPct": 19.32,
+            "inkPctOfBand": 1.06,
+            "inkPctOfScreen": 0.2,
+            "visiblePctOfBand": 1.15,
+            "meanInk": 0,
+            "meanDarkening": 0
+          }
+        ]
+      },
+      "far-clock-tower-fog": {
+        "after": [
+          {
+            "band": "near",
+            "areaPct": 73.02,
+            "inkPctOfBand": 21.68,
+            "inkPctOfScreen": 15.83,
+            "visiblePctOfBand": 17.19,
+            "meanInk": 0.15,
+            "meanDarkening": 0.02
+          },
+          {
+            "band": "mid",
+            "areaPct": 7.92,
+            "inkPctOfBand": 26.63,
+            "inkPctOfScreen": 2.11,
+            "visiblePctOfBand": 25.64,
+            "meanInk": 0.19,
+            "meanDarkening": 0.03
+          },
+          {
+            "band": "far",
+            "areaPct": 19.07,
+            "inkPctOfBand": 1.31,
+            "inkPctOfScreen": 0.25,
+            "visiblePctOfBand": 1.21,
+            "meanInk": 0,
+            "meanDarkening": 0
+          }
+        ]
+      }
+    },
+    "crawl": {
+      "mid-street": {
+        "after": [
+          {
+            "band": "mid",
+            "pixelsPerFrame": 85149,
+            "meanInk": 0.1751,
+            "rawChange": 0.0466,
+            "shift": 1,
+            "compensatedChange": 0.0059
+          },
+          {
+            "band": "far",
+            "pixelsPerFrame": 91995,
+            "meanInk": 0.0034,
+            "rawChange": 0.0018,
+            "shift": 1,
+            "compensatedChange": 0.0002
+          }
+        ]
+      },
+      "veryfar-skyline-edge": {
+        "after": [
+          {
+            "band": "mid",
+            "pixelsPerFrame": 82,
+            "meanInk": 0.831,
+            "rawChange": 0.001,
+            "shift": 0,
+            "compensatedChange": 0.001
+          },
+          {
+            "band": "far",
+            "pixelsPerFrame": 646040,
+            "meanInk": 0.001,
+            "rawChange": 0.001,
+            "shift": 1,
+            "compensatedChange": 0
+          }
+        ]
+      },
+      "far-clock-tower-rain": {
+        "after": [
+          {
+            "band": "mid",
+            "pixelsPerFrame": 71958,
+            "meanInk": 0.1968,
+            "rawChange": 0.0616,
+            "shift": 1,
+            "compensatedChange": 0.0061
+          },
+          {
+            "band": "far",
+            "pixelsPerFrame": 172134,
+            "meanInk": 0.004,
+            "rawChange": 0.0022,
+            "shift": 1,
+            "compensatedChange": 0.0003
+          }
+        ]
+      }
+    },
+    "timing": {
+      "after": {
+        "frames": 600,
+        "meanMs": 16.67,
+        "p95Ms": 16.8,
+        "fps": 60,
+        "inkPass": {
+          "medianMs": 0.55,
+          "note": "one full-screen ink quad, mean of 20 draws timed between one-pixel reads"
+        }
+      }
+    },
+    "problems": []
+  }
+}

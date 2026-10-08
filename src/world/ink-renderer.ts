@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { wireUniforms } from './assets';
 
 /** One scene submission plus a screen-space ink pass, including animated crowds.
  * Depth curvature finds silhouettes and creases without outlining texture noise. */
@@ -12,7 +13,7 @@ export class InkRenderer {
     uniforms: {
       picture: { value: this.target.texture }, depth: { value: this.target.depthTexture },
       texel: { value: new T.Vector2(1, 1) }, near: { value: .08 }, far: { value: 500 }, recovery: { value: 0 },
-      fogColor: { value: new T.Color() }, fogDensity: { value: 0 }, lineScale: { value: 1 }, pxAngle: { value: .002 },
+      fogColor: { value: new T.Color() }, fogDensity: { value: 0 }, lineScale: { value: 1 },
     },
     vertexShader: 'varying vec2 uvInk; void main(){uvInk=uv;gl_Position=vec4(position.xy,0.,1.);}',
     fragmentShader: `
@@ -20,7 +21,7 @@ export class InkRenderer {
       uniform sampler2D picture, depth;
       uniform vec2 texel;
       uniform float near, far, recovery;
-      uniform vec3 fogColor; uniform float fogDensity, lineScale, pxAngle;
+      uniform vec3 fogColor; uniform float fogDensity, lineScale;
       float distanceAt(vec2 uv) {
         float d = texture2D(depth, uv).r;
         return (near * far) / (far - d * (far - near));
@@ -51,11 +52,15 @@ export class InkRenderer {
         // Line class: printed (a<.25) / thin people+props (a~.5) / world (a=1). Neighbours decide,
         // so both sides of a character's silhouette get the thin line.
         vec2 p0 = texel * weight;
-        float cls = min(min(texture2D(picture, uv + vec2(p0.x, 0.)).a, texture2D(picture, uv - vec2(p0.x, 0.)).a), min(texture2D(picture, uv + vec2(0., p0.y)).a, texture2D(picture, uv - vec2(0., p0.y)).a));
-        cls = min(cls, sample0.a);
-        // Narrow band: MSAA-resolved alpha at a world/thin edge must not read as thin. Foliage (a=.75) and wires (a=.9) are
-        // classes of their own (a wire's partly covered pixel resolves between .9 and 1, still under .995).
-        float thin = step(.35, cls) * (1. - step(.65, cls)), leafy = step(.65, cls) * (1. - step(.85, cls)), wire = step(.85, cls) * (1. - step(.995, cls));
+        float k1 = texture2D(picture, uv + vec2(p0.x, 0.)).a, k2 = texture2D(picture, uv - vec2(p0.x, 0.)).a;
+        float k3 = texture2D(picture, uv + vec2(0., p0.y)).a, k4 = texture2D(picture, uv - vec2(0., p0.y)).a;
+        float cls = min(min(min(k1, k2), min(k3, k4)), sample0.a);
+        // Narrow band: MSAA-resolved alpha at a world/thin edge must not read as thin.
+        float thin = step(.35, cls) * (1. - step(.65, cls));
+        // Inside a tree's crown (foliage, a=.75, on this pixel and every class tap): the clumps' own creases, colour edges and
+        // the depth steps between them. The crown's edge, where any tap leaves the foliage, is not inside and keeps its line.
+        // Ramps, not steps: a multisampled edge resolves between the classes, and a hard cut there dithered the outline.
+        float leafy = smoothstep(.6, .7, cls) * (1. - smoothstep(.8, .9, max(max(max(k1, k2), max(k3, k4)), sample0.a)));
         vec2 o = texel * weight * mix(1., .38, thin);
         float c0 = distanceAt(uv);
         float l = distanceAt(uv - vec2(o.x, 0.)), r = distanceAt(uv + vec2(o.x, 0.));
@@ -94,26 +99,20 @@ export class InkRenderer {
         float ink = 0.;
         vec3 inkColor = color;
         if (max(max(silhouette, crease), colorEdge) > 0.) {
-          // Wires (a=.9; cables and trolley wires, 3.6 cm across): past the distance where one is narrower than a pixel the
-          // depth target, one sample a pixel, holds it only here and there, and its outline breaks into dashes that crawl as
-          // the view turns; its own multisampled colour is a steady faint line. So a wire's ink fades with its projected
-          // width, from 1.8 px to .9 px (about 10-20 m), and the haze takes all of what is left. By distance, not by pixel
-          // tests, so it cannot flicker.
-          float sub = wire * (1. - smoothstep(.9, 1.8, .036 / (nearest * pxAngle)));
           // Dark on dark (a chimney on its own smoke, a tree on the iron gantry behind): value cannot separate them, and a
           // fog-toned line is lighter than both (ink only darkens, so it vanishes). Where the two sides differ by under ~.1
           // (in a perceptual, square-root scale) and both are dark, up to ~120 m, the silhouette keeps its full strength and
           // its dark, untinted line.
           float lo = sqrt(min(min(min(lL, lR), min(lU, lD)), lc)), range = sqrt(max(max(max(lL, lR), max(lU, lD)), lc)) - lo;
-          float low = (1. - smoothstep(.06, .12, range)) * (1. - smoothstep(.3, .5, lo)) * (1. - smoothstep(90., 120., nearest)) * (1. - wire);
+          float low = (1. - smoothstep(.06, .12, range)) * (1. - smoothstep(.3, .5, lo)) * (1. - smoothstep(90., 120., nearest));
           // Far lines would break into flickering dashes: take them down to a light steady line. The scene's own FogExp2 at
           // the line's nearer side does the rest, so lines thin out in the haze with the geometry under them.
           float fade = 1. - smoothstep(40., 140., nearest) * .6;
           float fogF = 1. - exp(-fogDensity * fogDensity * nearest * nearest);
-          fade *= 1. - mix(.75, 1., wire) * fogF; // a wire's ink takes the whole of the haze
+          fade *= 1. - .75 * fogF;
           // Far shapes against the sky (the skyline planes and isles are tinted, not fogged) keep a faint outline.
-          fade = max(fade, .3 * step(far * .9, farthest) * tFar * (1. - wire));
-          ink = max(silhouette * mix(fade, 1., low), max(crease * .85, colorEdge * .6) * (1. - text) * fade) * (1. - sub);
+          fade = max(fade, .3 * step(far * .9, farthest) * tFar);
+          ink = max(silhouette * mix(fade, 1., low), max(crease * .85, colorEdge * .6) * (1. - text) * fade);
           // Ink is a deep, color-aware navy-grey rather than black.
           vec3 dark = mix(vec3(.06, .05, .05), color * .25, .2);
           // In haze the pen takes a darker tone of the fog, not black (fog colour is linear, like the target). Far away
@@ -156,7 +155,7 @@ export class InkRenderer {
     }
     this.material.uniforms.near.value = camera.near;
     this.material.uniforms.far.value = camera.far;
-    this.material.uniforms.pxAngle.value = 2 * Math.tan(camera.fov * Math.PI / 360) / (camera.zoom * this.size.y); // radians per buffer pixel
+    wireUniforms.wirePx.value = 2 * Math.tan(camera.fov * Math.PI / 360) / (camera.zoom * this.size.y); // radians per buffer pixel
     const fog = scene.fog as T.FogExp2 | null;
     this.material.uniforms.fogDensity.value = fog?.density ?? 0;
     if (fog) this.material.uniforms.fogColor.value.copy(fog.color);
