@@ -1,7 +1,7 @@
 import * as T from 'three';
 import { Atlas, place, type Placed } from './sign-atlas';
 import { palette as P } from './palette';
-import { box, cyl, sphere, beam, torus, sign, mats, illustrated, displayGlass, printed, surface, thinLine, asProp, type Material } from './assets';
+import { box, cyl, sphere, beam, torus, sign, mats, illustrated, displayGlass, printed, surface, thinLine, asProp, wireMat, type Material } from './assets';
 export const plasterMap=surface('plaster');plasterMap.repeat.set(.37,.37);
 
 export const artMats = {
@@ -38,7 +38,7 @@ export function pipe(g:T.Object3D, points:number[][], radius=.12, material:Mater
 export function cable(g:T.Object3D,a:T.Vector3,b:T.Vector3,sag=.6) {
   const mid=a.clone().lerp(b,.5);mid.y-=sag;
   const curve=new T.QuadraticBezierCurve3(a,mid,b);
-  g.add(new T.Mesh(new T.TubeGeometry(curve,12,.018,4,false),mats.iron));return curve;
+  g.add(new T.Mesh(new T.TubeGeometry(curve,12,.018,4,false),wireMat));return curve;
 }
 export function railing(g:T.Object3D,x:number,y:number,z:number,width:number) {
   // Terra railing: plain balusters punctuated by the split pressure ring.

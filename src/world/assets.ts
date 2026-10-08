@@ -231,6 +231,16 @@ export function illustrated(material: T.MeshStandardMaterial) {
 }
 for (const material of Object.values(mats)) illustrated(material);
 illustrated(leafShade);illustrated(blossom);
+/** Line classes of their own for the ink pass (the render target's alpha): foliage .75 keeps only a clump's outer
+ * silhouette past 30 m; a wire .9 loses its ink as it thins under a pixel. */
+function lineClass<M extends T.Material>(m: M, a: number, name: string): M {
+  const previous = m.onBeforeCompile.bind(m);
+  m.onBeforeCompile = (shader, r) => { previous(shader, r); shader.fragmentShader = shader.fragmentShader.replace('#include <opaque_fragment>', `#include <opaque_fragment>\ngl_FragColor.a = ${a.toFixed(2)};`); };
+  const key = m.customProgramCacheKey.bind(m); m.customProgramCacheKey = () => key() + '|' + name; return m;
+}
+for (const m of [mats.leaf, leafShade, blossom]) lineClass(m, .75, 'foliage');
+/** Cables and trolley wires (3.6 cm and 3 cm across): iron, sharing its colour, in the wire class. */
+export const wireMat = (() => { const c = mats.iron.clone(); illustrated(c); c.color = mats.iron.color; return lineClass(c, .9, 'wire'); })();
 
 /** Restore selected materials, not a global saturation filter. Shared meshes follow. */
 export function applyWorldPalette(stage:number){

@@ -1,6 +1,6 @@
 import * as T from 'three';
 import { Atlas, place, type Placed } from './sign-atlas';
-import { box,holed,cyl,sphere,torus,beam,gear,barrel,crate,sign,arch,bake,mats,seeded,illustrated,tree,bareTree,blossom,windowUnit,printed,windowGlass,asProp } from './assets';
+import { box,holed,cyl,sphere,torus,beam,gear,barrel,crate,sign,arch,bake,mats,seeded,illustrated,tree,bareTree,blossom,windowUnit,printed,windowGlass,asProp,wireMat } from './assets';
 import { V,pipe,cable,crest,gauge,lampHead,railing,canopy,artMats,roof,pressureRing,wingedValve,bench,pressureStation,mailPost,fabricOf,poster,meterBox,labeledCrate,stencilBarrel,stove,workbench,cafeTable,anvil,pipeStack } from './art-kit';
 import { person as makePerson, PEOPLE, type Citizen } from './citizens';
 import { siteScale } from './people/figure';
@@ -305,7 +305,7 @@ export class Presentation {
     for(const z of [45,33,19,9,-11,-21]){const a=V(-42.9,8.2+(z%3)*.3,z),b=V(-24.6,7.6,z+1.2);const curve=cable(g,a,b,.9);
       if(z%2){for(let k=1;k<5;k++){const p=curve.getPoint(k/5);const cloth=new T.Mesh(new T.PlaneGeometry(.7,1),[mats.cream,artMats.wine,mats.teal,artMats.ochre][k%4]);cloth.position.set(p.x,p.y-.55,p.z);cloth.rotation.y=Math.PI/2+(k%2?.1:-.1);g.add(cloth);}}}
     // Trolley wires above the rails, hung from span wires between the lamp standards.
-    for(const x of [-2.15,2.15])box(g,x,6.2,10,.03,.03,128,mats.iron);
+    for(const x of [-2.15,2.15])box(g,x,6.2,10,.03,.03,128,wireMat);
     for(let z=57;z>=-38;z-=19){cable(g,V(-9.8,6.5,z),V(9.8,6.5,z),.28);for(const x of [-2.15,2.15])box(g,x,6.28,z,.05,.18,.05,mats.brass);}
     // Posters on civic masonry: bridge piers and regulator towers.
     for(const [x,z,yaw] of [[-12.6,7.32,0],[12.6,3.88,Math.PI],[-11.9,30.51,0],[11.9,27.49,Math.PI],[-12.6,3.88,Math.PI]] as const)poster(g,x,2.2,z,Math.abs(Math.round(x+z)),yaw);
