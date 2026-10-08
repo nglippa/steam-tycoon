@@ -782,6 +782,9 @@ standing or walking; an elder's stick keeps the right hand, so the umbrella goes
 **Rule: nobody sits on air (People XIX).** A seat is .42 m over the pavement whoever sits (stature does not raise it, so a child's feet hang); every seated spawn has a bench, a crate,
 a step or a rim under the pelvis, within a few centimetres (audited in the running game by a ray down from the posed hips).
 
+**Rule: the stride clock runs in the figure's own units (People XIX).** The distance walked is divided by the figure's scale before it drives the gait, so stature never makes a planted
+foot skate; the flat-footed ankle holds within a millimetre or so (tests/walk.test.ts).
+
 ### The bite
 
 The new head's mouth is about 9 cm lower than the old one, so for a figure from the new builder the
