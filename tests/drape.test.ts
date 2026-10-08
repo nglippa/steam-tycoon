@@ -46,7 +46,7 @@ test('a skirt in stride wraps the forward leg and trails: it is opened only as f
     const P = (z: number) => new T.Vector3(0, bot.y, z).applyMatrix4(n.hem!.matrixWorld).applyMatrix4(inv); let depth = 0, tilt = 0;
     for (let f = 0; f < 300; f++) { n.group.position.set(0, 0, f * dt * speed); animateLife(n, 'walk', dt, f * dt, false, player); if (f < 120) continue; n.group.updateMatrixWorld(true); inv.copy(n.pelvis.matrixWorld).invert();
       const fr = P(bot.z + bot.f), bk = P(bot.z - bot.b); depth = Math.max(depth, (fr.z - bk.z) / (bot.f + bot.b)); tilt = Math.max(tilt, Math.abs(fr.y - bk.y)); }
-    assert.ok(depth < 1.3 && tilt < .25, `${combo} at ${speed} m/s: the hem opens to ${depth.toFixed(2)}x its cut and tilts ${(tilt * 100).toFixed(0)} cm front to back`);
+    assert.ok(depth < 1.36 && tilt < .28, `${combo} at ${speed} m/s: the hem opens to ${depth.toFixed(2)}x its cut and tilts ${(tilt * 100).toFixed(0)} cm front to back`); // (the bell was 1.42-1.46x; the heel rises a little higher at toe-off since the foot rolls on its toe's tip)
   }
 });
 

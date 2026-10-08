@@ -23,6 +23,16 @@ test('a planted foot stays put whatever the figure\'s stature: the flat-footed a
   }
 });
 
+test('no point of a walker\'s sole goes into the pavement at any phase of the stride, heel-off included', () => {
+  // People XXI: the gait rolled the forefoot on an arc that lay above the flat sole, so at heel-off the toe went 3.4-4.7 cm into the pavement (gait.ts now turns the foot on its sole's
+  // edges, the figure's own). The pavement is .13 under the origin in the world (the spawn sites stand the origin .13 over it; citizen-life lifts a figure's body by its stature to match).
+  for (const speed of [1, 1.4]) for (const [label, combo, seed] of REPS) { let low = 9, at = '';
+    walkOn(combo, seed, speed, n => { const pave = n.group.position.y - .13, u = n.motion.stride / (Math.PI * 2), v = new T.Vector3();
+      n.ankles.forEach((a, k) => a.traverse(o => { if (!(o instanceof T.Mesh)) return; const pa = o.geometry.attributes.position; for (let j = 0; j < pa.count; j += 2) { v.fromBufferAttribute(pa, j).applyMatrix4(o.matrixWorld); if (v.y - pave < low) { low = v.y - pave; at = `phase ${((u + k * .5) % 1).toFixed(2)}`; } } })); }, 2);
+    assert.ok(low > -.003, `${label} at ${speed} m/s: a sole goes ${(-low * 100).toFixed(1)} cm into the pavement (${at})`);
+  }
+});
+
 test('a seated figure\'s seat is at one height whoever sits (the spawn sites put a bench, a crate or a step under it: People XIX)', () => {
   // the hip joints, seated, above the pavement (which lies .13 under the figure's origin in its own scale): every adult within 2.5 cm of every other
   const hs: [string, number][] = [];

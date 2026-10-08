@@ -102,6 +102,7 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
   m.stride=Math.PI*2*advance(m.latch,m.stride/(Math.PI*2),moved/n.group.scale.z,dt,want,gp.s,turning?2.4*pr.cad/(Math.PI*2):0);
   const c=m.stride,seated=activity==='sit'||activity==='eat',tired=weariness*(activity==='guard'?.3:1);
   const w=seated?0:clamp01(g/.35),q=clamp01((want-MIN)/.1);
+  const sole=n.ankles[0].userData.sole as [number,number]|undefined;walking.heel=sole?.[0];walking.toe=sole?.[1];
   walking.stance=gp.s;walking.want=want;walking.clear=.07*gp.clear*(.5+.5*q);walking.knee=gp.knee*(load>1?1.15:1);walking.pelvis=gp.pel;walk(walking,m.latch,c/(Math.PI*2),gait);
   const twist=gait.yaw*w,roll=gait.roll*w;
   // Idle weight transfer holds on one leg, then shifts: never a metronome.

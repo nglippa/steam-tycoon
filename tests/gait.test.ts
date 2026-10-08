@@ -1,31 +1,32 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { MIN, footing, settle, HEEL, BALL, SOLE, HIP, L1, L2, STANCE, pose, walk, advance, ik, kneeAt, pitchAt, legZ, type Params, type Pose } from '../src/simulation/gait.ts';
+import { MIN, footing, settle, HEEL_X, TOE_X, SOLE, HIP, L1, L2, STANCE, pose, walk, advance, ik, kneeAt, pitchAt, legZ, type Params, type Pose } from '../src/simulation/gait.ts';
 
 const LEG = .84, stride = (speed: number) => Math.min(.6, Math.min(.42, Math.max(.12, .16 + .3 * speed)) + Math.max(0, speed - 1.2) * .1);
 /** Steady-walk parameters at a speed; `reach` can be forced. `S` is the distance of a cycle, `at` makes the footing steady at phase `u`. */
-const mk = (speed: number, over: { stance?: number; reach?: number; knee?: number } = {}) => {
+const mk = (speed: number, over: { stance?: number; reach?: number; knee?: number; boot?: readonly [number, number] } = {}) => {
   const stance = over.stance ?? STANCE, X = over.reach ?? LEG * stride(speed) * stance / STANCE, st = footing();
-  return { p: { stance, want: X, clear: .07, knee: over.knee ?? 1, pelvis: 1 } as Params, S: 2 * X / stance, at: (u: number) => (settle(st, X, stance, u), st) };
+  return { p: { stance, want: X, clear: .07, knee: over.knee ?? 1, pelvis: 1, heel: over.boot?.[0], toe: over.boot?.[1] } as Params, S: 2 * X / stance, at: (u: number) => (settle(st, X, stance, u), st) };
 };
-/** Forward kinematics: for each leg, how far each rolling arc has travelled over the ground (its centre's world x less the arc length rolled; constant while the
- * arc is planted and not slipping) and its lowest height, the toe tip's height, and the pitch. `px` is the hip centre's world x. */
+/** Forward kinematics: for each leg, where the sole's back and front edges are over the ground (`hx`, `bx`: constant while that edge is planted and not slipping) and how high
+ * (`hy`, `by`), the toe tip's height with the sole's thickness under it (`tip`), and the pitch. `px` is the hip centre's world x. The sole is flat between its edges, so its lowest point
+ * is always one of them. */
 function feet(p: Params, st: Float64Array, u: number, px: number, o: Pose) {
   walk(p, st, u, o); const out = [];
   for (let k = 0; k < 2; k++) {
     const hx = (k ? -HIP : HIP) * Math.sin(o.yaw), hy = (k ? 1 : -1) * HIP * Math.sin(o.roll), t = o.thigh[k], f = o.knee[k], th = o.foot[k];
     const ax = px + hx + L1 * Math.sin(t) + L2 * Math.sin(t - f), ay = o.H + hy - L1 * Math.cos(t) - L2 * Math.cos(t - f), c = Math.cos(th), s = Math.sin(th);
-    const arc = (a: { x: number; r: number }) => { const cx = a.x, cy = -SOLE + a.r;
-      return { x: ax + cx * c + cy * s - a.r * th, low: ay + (-cx * s + cy * c) - a.r }; };
-    const h = arc(HEEL), b = arc(BALL);
-    out.push({ hx: h.x, hy: h.low, bx: b.x, by: b.low, tip: ay - .207 * s, th, u: (u + k * .5) % 1 });
+    const edge = (x: number) => ({ x: ax + x * c - SOLE * s, y: ay - x * s - SOLE * c }), h = edge(p.heel ?? HEEL_X), b = edge(p.toe ?? TOE_X);
+    out.push({ hx: h.x, hy: h.y, bx: b.x, by: b.y, tip: b.y, th, u: (u + k * .5) % 1 });
   }
   return out;
 }
 const speeds = [.12, .3, .6, 1, 1.5, 2.9], steps = 400;
+/** the sole's back and front edges of the smallest, the standard and the largest boot the casts wear (people/parts.ts `foot`, scaled with the shoe) */
+const BOOTS = [[-.064, .213], [HEEL_X, TOE_X], [-.075, .249]] as const;
 
-test('the planted foot does not slip: its heel arc, then its forefoot arc, roll without sliding', () => {
-  for (const sp of speeds) for (const over of [{}, { stance: .58 }, { stance: .64, heel: .6 }]) {
+test('the planted foot does not slip: it rolls on the back edge of its heel, then on the tip of its toe, without sliding', () => {
+  for (const sp of speeds) for (const boot of BOOTS) for (const over of [{ boot }, { stance: .58, boot }, { stance: .64, heel: .6, boot }]) {
     const m = mk(sp, over), p = m.p, o = pose(); let heel0 = NaN, ball0 = NaN, dh = 0, db = 0;
     for (let i = 0; i < steps; i++) { const u = i / steps, f = feet(p, m.at(u), u, m.S * u, o)[0];
       if (f.th <= 0 && f.u < .3) { if (isNaN(heel0)) heel0 = f.hx; dh = Math.max(dh, Math.abs(f.hx - heel0)); }
@@ -33,12 +34,13 @@ test('the planted foot does not slip: its heel arc, then its forefoot arc, roll 
     assert.ok(dh < .001 && db < .001, `speed ${sp} ${JSON.stringify(over)}: heel slip ${dh}, ball slip ${db}`);
   }
 });
-test('the stance sole stays on the ground and the swing toe clears it', () => {
-  for (const sp of speeds) { const m = mk(sp), p = m.p, o = pose(); let low = 9, clear = 9, mid = 9;
+test('no point of the sole goes below the ground in stance (the toe tip counted with the sole under it), and the swing toe clears it', () => {
+  // People XXI: the tip was checked as the ankle less .207 x the pitch's sine, leaving out the sole under it; with the sole, the old forefoot arc put the toe 3.4-4.7 cm into the pavement at heel-off
+  for (const sp of speeds) for (const boot of BOOTS) { const m = mk(sp, { boot }), p = m.p, o = pose(); let low = 9, clear = 9, mid = 9;
     for (let i = 0; i < steps; i++) { const u = i / steps, f = feet(p, m.at(u), u, m.S * u, o)[0], lowest = Math.min(f.hy, f.by, f.tip);
-      if (f.u < p.stance) { assert.ok(Math.abs(lowest) < .006, `speed ${sp} u ${f.u}: sole ${lowest}`); low = Math.min(low, lowest); }
+      if (f.u < p.stance) { assert.ok(Math.abs(lowest) < .006, `speed ${sp} boot ${boot} u ${f.u}: sole ${lowest}`); low = Math.min(low, lowest); }
       else { clear = Math.min(clear, lowest); if (f.u > .74 && f.u < .88) mid = Math.min(mid, lowest); } }
-    assert.ok(low > -.006 && mid > .03 && clear > -.004, `speed ${sp}: low ${low} clear ${clear} mid ${mid}`);
+    assert.ok(low > -.001 && mid > .03 && clear > -.004, `speed ${sp} boot ${boot}: low ${low} clear ${clear} mid ${mid}`);
   }
 });
 test('the foot is never toe-down in mid-swing and the knee has bent', () => {

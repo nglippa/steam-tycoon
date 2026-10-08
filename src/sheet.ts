@@ -15,7 +15,7 @@ import { mats } from './world/assets';
 /** Dev-only cast sheet (sheet.html): solo figures posed by the game's own `animateLife` and drawn through the game's ink pass. Not imported by the game.
  * ?roles=worker,guard &seeds=0,1,2 | 0-19 &view=front|quarter|side|back &pose=stand|stride|sit|raise|carry|bite|halt &at=0..47 (a stride's frame) &sil=1 &px=50 &stage=0..5 &light=game &labels=0 &zoom=3 &fy=.9
  * &build=old|new (the figure builder; default old) and, for the new one, &cast=labourer &family=slim|standard|sturdy &frame=broad|narrow to force part of the look, &look=officer for a story character;
- * &combos=labourer.sturdy.broad,rowCoat.slim.narrow,... one figure per entry (cast.family.frame) on a single row, for the family sheet; &still=1 the unposed figure (no head turned to the viewer) */
+ * &combos=labourer.sturdy.broad,rowCoat.slim.narrow,... one figure per entry (cast.family.frame) on a single row, for the family sheet; &still=1 the unposed figure (no head turned to the viewer); &ground=1 stands each figure on its pavement and draws it as a red line (the feet against the ground) */
 const q = new URLSearchParams(location.search);
 const ROLES: Archetype[] = ['worker', 'engineer', 'merchant', 'guard', 'resident', 'courier', 'ordinal'];
 const roles = (q.get('roles') ?? ROLES.join(',')).split(',').filter((r): r is Archetype => ROLES.includes(r as Archetype));
@@ -23,7 +23,7 @@ const seeds = (() => { const s = q.get('seeds') ?? '3', r = /^(\d+)-(\d+)$/.exec
 const YAW: Record<string, number> = { front: 0, quarter: Math.PI / 4, side: Math.PI / 2, back: Math.PI };
 const view = q.get('view') ?? 'front', how = q.get('pose') ?? 'stand', yaw = YAW[view] ?? 0;
 const ACTIVITY: Record<string, Activity> = { stand: 'walk', stride: 'walk', sit: 'sit', raise: 'repair', carry: 'carry', bite: 'eat', halt: 'guard' };
-const sil = q.get('sil') === '1', px = Number(q.get('px')) || 0, stage = Math.min(5, Math.max(0, Number(q.get('stage')) || 0));
+const ground = q.get('ground') === '1', sil = q.get('sil') === '1', px = Number(q.get('px')) || 0, stage = Math.min(5, Math.max(0, Number(q.get('stage')) || 0));
 const parseSet = (t: string) => Object.fromEntries(t.split(',').filter(Boolean).map(kv => { const [k, v] = kv.split(':'); return [k, /^\d+$/.test(v) ? Number(v) : v.includes('+') ? v.split('+') : v]; })) as never;
 const sets = (q.get('sets') ?? '').split(';');
 const next = q.get('build') === 'new', force = { cast: (q.get('cast') as CastId | null) ?? undefined, family: (q.get('family') as Family | null) ?? undefined, frame: (q.get('frame') as Frame | null) ?? undefined, look: q.get('look') ?? undefined, over: parseSet(q.get('set') ?? '') };
@@ -86,7 +86,7 @@ for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
   const { role, seed } = cell(r, c), n = make(seed, role, c);
   n.group.traverse(o => { if (o instanceof T.Mesh && o.geometry instanceof T.CircleGeometry) o.visible = false; }); // the contact disc is for pavement; the backdrop is a wall
   if (q.get('bare') === '1' || q.get('still') === '1') n.group.rotation.y = yaw; else simulate(n); if (exprs.length) n.setExpression(exprs[c] as Expression, exprs[c] === 'blink'); scene.add(n.group); n.group.position.set(0, 0, 0); n.group.updateMatrixWorld(true);
-  const sole = Math.min(...n.ankles.map(a => new T.Box3().setFromObject(a).min.y)), x = (c - (cols - 1) / 2) * SX, y = (rows - 1 - r) * SY;
+  const sole = ground ? -.13 : Math.min(...n.ankles.map(a => new T.Box3().setFromObject(a).min.y)), x = (c - (cols - 1) / 2) * SX, y = (rows - 1 - r) * SY; // &ground=1: the pavement (.13 under the origin in the world, as the spawn sites stand people), not the lowest sole, stands on the row's line
   n.group.position.set(x, y - sole, 0); n.group.updateMatrixWorld(true);
   tallest = Math.max(tallest, new T.Box3().setFromObject(n.head).max.y - y);
   if (how === 'sit' || how === 'eat' || how === 'bite') { const hip = n.legs[0].getWorldPosition(new T.Vector3()), seat = new T.Mesh(new T.BoxGeometry(.6, .05, .42), bench); seat.position.set(x, hip.y - .12, -.04); scene.add(seat); }
@@ -108,6 +108,12 @@ camera.position.set(0, midY, dist / zoom); camera.lookAt(0, midY, 0); camera.upd
 
 
 // &overlay=1 (with &bare=1, front or side): the head formula's construction lines over the heads, from the same landmarks the head is built from.
+// &ground=1: the pavement as a red line across each figure, so a sole that sinks into it (or floats over it) is seen
+if (ground) {
+  const cv = document.createElement('canvas'); cv.width = innerWidth; cv.height = innerHeight; cv.style.cssText = 'position:fixed;left:0;top:0;pointer-events:none'; document.body.append(cv); const g2 = cv.getContext('2d')!;
+  g2.strokeStyle = '#ff1020'; g2.lineWidth = 2;
+  for (const f of figures) { const a = new T.Vector3(f.x - SX * .45, f.y, 0).project(camera), b = new T.Vector3(f.x + SX * .45, f.y, 0).project(camera), yy = Math.round((1 - a.y) / 2 * innerHeight); g2.beginPath(); g2.moveTo((a.x + 1) / 2 * innerWidth, yy); g2.lineTo((b.x + 1) / 2 * innerWidth, yy); g2.stroke(); }
+}
 if (q.get('overlay') === '1') {
   const cv = document.createElement('canvas'); cv.width = innerWidth; cv.height = innerHeight; cv.style.cssText = 'position:fixed;left:0;top:0;pointer-events:none'; document.body.append(cv); const g2 = cv.getContext('2d')!;
   const sideV = view === 'side';
