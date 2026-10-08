@@ -50,6 +50,16 @@ test('a skirt in stride wraps the forward leg and trails: it is opened only as f
   }
 });
 
+test('a greatcoat parts and trails instead of ballooning: its front goes out over the knee and its back trails, and neither opens round the waist', () => {
+  // People XXI: in one piece the narrow Ordinance coats opened to 1.5-2x their depth (2.75x at 2.9 m/s), front and back together, to let the forward knee through, so they ballooned from
+  // the waist down. Cut at the side seams (drape.ts `split`), each side is led and opened by its own faces of the legs.
+  for (const [combo, seed] of [['inspector.standard.broad', 11], ['inspector.slim.broad', 1], ['garrison.sturdy.broad', 10], ['garrison.standard.broad', 2]] as const) for (const speed of [1, 1.3]) {
+    const n = make(combo, seed), sp = n.drape!.split!, player = new T.Vector3(0, 1.7, 25), dt = 1 / 60; let open = 0;
+    for (let f = 0; f < 300; f++) { n.group.position.set(0, 0, f * dt * speed); animateLife(n, 'walk', dt, f * dt, false, player); if (f >= 120) for (const p of [sp.front, sp.back]) open = Math.max(open, p.tails.scale.z * n.tails.scale.z, p.hem!.scale.z); }
+    assert.ok(open < 1.15, `${combo} at ${speed} m/s: a side of the coat opens to ${open.toFixed(2)}x`);
+  }
+});
+
 test('a seated lap is a lap: the long cloth that holds a walking knee is flattened again when its wearer sits', () => {
   for (const combo of ['rowSkirt.slim.narrow', 'stallholder.sturdy.broad', 'stallholder.sturdy.broad:stallholder.shawl', 'olderMechanic.sturdy.broad:olderMechanic.apron']) {
     const n = make(combo, 1), player = new T.Vector3(0, 1.7, 25);

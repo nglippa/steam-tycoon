@@ -8,8 +8,8 @@ import { hatOf } from './hat';
 import { maskOf } from './mask';
 import { hand, foot, put0, strip, seam, around, steps, button, kerchiefBand, kerchiefTails } from './parts';
 import { palette as P } from '../palette';
-import { dress, headgear, WARDROBE, HEM_Y } from './wardrobe';
-import { bands, type Drape, type Garment } from '../drape';
+import { dress, headgear, WARDROBE, HEM_Y, type Half } from './wardrobe';
+import { bands, drapeState, type Drape, type Garment } from '../drape';
 
 /** The people builder (Terra Character Book 5 and 8): a figure from a resolved Look, on the rig `animateLife` and `gait.ts` are solved against. A body reference (body.ts) that is mostly
  *  never drawn, garments as shells measured from it, the head built as a head (head.ts), hands and shoes (parts.ts). It returns the node set the old `citizen()` returns before its tail. */
@@ -66,7 +66,7 @@ export function buildFigure(look: Look, opts: FigureOpts, kit: Kit) {
   const tails = new T.Group(); tails.position.y = 1.08; pelvisG.add(tails);
   const skirt = { drop: 0, depth: 0 }, hem = new T.Group(); hem.position.y = HEM_Y;
   const worn = new T.Group(); body.add(worn); const finery = new T.Group(); body.add(finery); finery.visible = false;
-  const cloth: Garment[] = [], X = { look, d, k, kit, asym, pal, rib, pel, neckR, dk, lifted, pelLift, body, group, pelvisG, tails, hem, skirt, cloth, scarf, worn, finery, skin, brass, neckM, out: { arms, elbows, grips, legs, knees, ankles } };
+  const cloth: Garment[] = [], halves: Half[] = [], X = { look, d, k, kit, asym, pal, rib, pel, neckR, dk, lifted, pelLift, body, group, pelvisG, tails, hem, skirt, cloth, halves, scarf, worn, finery, skin, brass, neckM, out: { arms, elbows, grips, legs, knees, ankles } };
   if (fresh) { dress(X); kit.bake(lifted); kit.bake(pelLift); }
   else {
   // ================================================================ torso
@@ -201,6 +201,7 @@ export function buildFigure(look: Look, opts: FigureOpts, kit: Kit) {
   kit.bake(scarf);
   if (!lab && !fresh) coatSkirt(tails, skirt, cloth, d, pel, coatM, g, closed, asym, leather, brass);
   kit.bake(tails); if (hem.children.length) { kit.bake(hem); tails.add(hem); } // baking merges a group's children away, so the hinge joins its parent after it is baked
+  for (const h of halves) { kit.bake(h.tails); kit.bake(h.hem); h.tails.add(h.hem); tails.add(h.tails); } // a split coat skirt's halves (People XXI), each hinged at the knee the same way, on the tails' pivot
   if (!ordinance) put0(worn, plate(lab ? shirtR : coatR, [[1.27, -.9, -.62], [1.2, -.9, -.62]], .0, .004, 3), sw('umber'));
   kit.bake(worn); kit.bake(finery);
   // the old rig lowers everything the body carries by .14 (animateLife is solved against it)
@@ -209,8 +210,10 @@ export function buildFigure(look: Look, opts: FigureOpts, kit: Kit) {
   group.traverse(o => { if (o instanceof T.Mesh) o.castShadow = false; });
   // the long cloth follows the legs (drape.ts): its hinged garments, and the leg's radii with a centimetre of clearance (the trouser, the kneecap plate, the boot)
   // (an apron over a skirt is built outside it, so the skirt is what the legs must stay inside: a front panel is checked only where it is the only long cloth)
-  const legsIn = cloth.some(c => !c.panel) ? cloth.filter(c => !c.panel) : cloth;
-  const drape: Drape | undefined = cloth.length ? { garments: legsIn, hinge: HEM_Y, thigh: d.thighW / 2 + .014, knee: d.kneeR + .02, calf: d.calfW / 2 + .012, lap: Math.max(...cloth.map(c => { const r = c.up[c.up.length - 1]; return Math.max(r.f + r.z, r.b - r.z); })) } : undefined;
+  const legsIn = cloth.some(c => !c.panel) ? cloth.filter(c => !c.panel) : cloth, all = [...cloth, ...halves.flatMap(h => h.cloth)];
+  const legR = { hinge: HEM_Y, thigh: d.thighW / 2 + .014, knee: d.kneeR + .02, calf: d.calfW / 2 + .012, lap: Math.max(...all.map(c => { const r = c.up[c.up.length - 1]; return Math.max(r.f + r.z, r.b - r.z); })) };
+  const part = (h?: Half) => h && { tails: h.tails, hem: h.hem.children.length ? h.hem : undefined, st: drapeState() }, front = part(halves.find(h => h.side > 0)), back = part(halves.find(h => h.side < 0));
+  const drape: Drape | undefined = all.length ? { garments: legsIn, ...legR, ...(front && back ? { split: { garments: halves[0].cloth, front, back } } : {}) } : undefined;
   return { group, body, pelvis: pelvisG, legs, knees, ankles, arms, elbows, grips, head, tails, hem: hem.children.length ? hem : undefined, drape, skirt, swing, scarf, worn, finery, face, faceMat };
 }
 

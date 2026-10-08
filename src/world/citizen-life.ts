@@ -2,7 +2,7 @@ import * as T from 'three';
 import type { Citizen, Expression } from './citizens';
 import type { Archetype } from './palette';
 import { walk, advance, MIN, pose, legZ, STANCE, REST, type Params } from '../simulation/gait';
-import { drape, readLegs, rest, LAP_SEATED } from './drape';
+import { drape, readLegs, rest, drapeSplit, restSplit, holdSplit, LAP_SEATED } from './drape';
 import { isOccupier, conduct, bodyFor, faceAllowed, moodOfTone, stepMood, nearBand, type Trait, type MoodIn } from '../simulation/occupation';
 export type Activity='talk'|'browse'|'guard'|'carry'|'walk'|'read'|'hammer'|'sweep'|'warm'|'gauge'|'valve'|'argue'|'sit'|'eat'|'lean'|'watch'|'clipboard'|'repair';
 /** `seed` and `trait` cast one scene by hand: who is let out (0..1, low is out in a harder street) and how they carry themselves. */
@@ -183,6 +183,7 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
   // The knee hinge of long cloth (new builder only; the old figures have none): seated, the cloth below the knee hangs from the knees whatever the lap does. Standing and walking, the
   // new builder's long cloth follows the legs (drape.ts, solved below once the legs are placed).
   if(n.hem&&!follows){n.hem.rotation.x=-n.tails.rotation.x*(seated?1:.6);n.hem.scale.z=seated?.45:1;}
+  if(n.drape?.split&&!follows)holdSplit(n.drape,-n.tails.rotation.x*(seated?1:.6),seated?.45:1);
   // Drape. Cloth never lets a leg through: the hem is carried by whichever thigh reaches furthest, front and
   // back together, so a skirt, coat or apron opens into an oval over the stride and closes as the legs pass.
   if(n.skirt.depth&&!follows){const reach=seated?0:Math.max(...n.legs.map(leg=>Math.abs(Math.tan(Math.min(1.1,Math.abs(leg.rotation.x))))*n.skirt.drop))+.1,want=Math.max(1,reach/n.skirt.depth);
@@ -240,7 +241,7 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
     leg.rotation.y=(1-w)*n.pelvis.rotation.y;if(!seated)leg.rotation.z-=sway/REST;});
   // Long cloth follows the legs, now they are where they will be drawn: a lifted knee never pierces it, the upper part leads with the knees and the hem trails it with weight
   // (beyond 40 m it is solved every third frame, and standing still it eases back to plumb).
-  if(follows){if(w>.02){if(lively||(m.cloth.tick=(m.cloth.tick+1)%3)===0){readLegs(n.pelvis,n.tails,n.legs,n.knees,n.ankles);drape(n.drape!,m.cloth,n.tails,n.hem,dt,g,n.tails.rotation.z,lively?m.tail*.6:-g*.06,lively);}}else rest(m.cloth,n.tails,n.hem,dt,n.tails.rotation.z);}
+  if(follows){if(w>.02){if(lively||(m.cloth.tick=(m.cloth.tick+1)%3)===0){readLegs(n.pelvis,n.tails,n.legs,n.knees,n.ankles);drape(n.drape!,m.cloth,n.tails,n.hem,dt,g,n.tails.rotation.z,lively?m.tail*.6:-g*.06,lively);drapeSplit(n.drape!,n.tails,dt,g,lively);}}else{rest(m.cloth,n.tails,n.hem,dt,n.tails.rotation.z);restSplit(n.drape!,dt);}}
   // Head stabilization: the head cancels torso lean and twist.
   const blend=1-Math.exp(-dt*(occupier?8:4));n.head.rotation.y=T.MathUtils.lerp(n.head.rotation.y,T.MathUtils.clamp(headYaw-n.body.rotation.y,occupier?-.85:-.6,occupier?.85:.6),blend);
   n.head.rotation.x=T.MathUtils.lerp(n.head.rotation.x,pitch-n.body.rotation.x*.8+nod+(speaking?Math.sin(phase*2)*.03:0),blend);

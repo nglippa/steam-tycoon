@@ -10,7 +10,13 @@ export interface Band { y: number; w: number; f: number; b: number; z: number; n
 /** One hinged garment. `up` is in `tails`' frame (y from the waist pivot down to the hinge), `lo` in `hem`'s (y from the hinge down to the hem). `panel`: a front panel with no back (an apron). */
 export interface Garment { up: Band[]; lo: Band[]; panel: boolean }
 /** What the builder records for the cloth of one figure: its garments, the hinge height in `tails`' frame, and the leg's radii (thigh at the hip, knee, calf) with the cloth's clearance. */
-export interface Drape { garments: Garment[]; hinge: number; thigh: number; knee: number; calf: number; /** the deepest the cloth is at the knee, front or back: seated, the lap is flattened to `LAP_SEATED` */ lap: number }
+export interface Drape { garments: Garment[]; hinge: number; thigh: number; knee: number; calf: number; /** the deepest the cloth is at the knee, front or back: seated, the lap is flattened to `LAP_SEATED` */ lap: number;
+  /** a coat skirt cut at its side seams into a front and a back that lap over each other at the sides (People XXI): the front is led and opened by the fronts of the legs alone, as an apron
+   *  is, and the back by their backs alone, so the front goes out over the forward knee and the back trails the trailing one, where in one piece the coat had to open front and back together
+   *  and ballooned. Both are children of `tails`, on its pivot, inside its lead and sway. */
+  split?: { garments: Garment[]; front: Part; back: Part; /** (the drape the two sides are solved on, made once) */ one?: Drape } }
+/** One side of a split coat skirt: its part above the knee, its hem, and its own lead and swing. */
+export interface Part { tails: T.Object3D; hem?: T.Object3D; st: DrapeState }
 /** How thick a seated lap may be (front to back of the cloth above the knee, when that lies along the thighs). */
 export const LAP_SEATED = .19;
 
@@ -59,10 +65,12 @@ function needs(d: Drape, sx: number) {
     for (const r of g.lo) for (let li = 0; li < 2; li++) { const p = L[li], s = legAt(p, d.hinge + r.y, d), x = (s ? wide(s.x, s.r) : wide(p.k.x, d.knee)) / sx; put(loNeeds, nl++, r.y, at(r, x, true), at(r, x, false), li, 0, g.panel); }
   }
 }
+/** Which faces of the cloth are solved: 0 both; 1 the front alone, -1 the back alone (the two sides of a split coat skirt). */
+let SIDE = 0;
 /** The upper part, turned forward by asin(a) and opened to scale s: the least s that clears every leg ring (front: |y| a + f s cos >= zf; back: |y| a - b s cos <= zb). */
 function scaleFor(a: number) {
   const c = Math.sqrt(1 - a * a); let s = 1;
-  for (let i = 0; i < nu; i++) { const n = upNeeds[i], y = -n.y; s = Math.max(s, (n.zf - y * a) / (n.f * c)); if (!n.panel) s = Math.max(s, (y * a - n.zb) / (n.b * c)); }
+  for (let i = 0; i < nu; i++) { const n = upNeeds[i], y = -n.y; if (SIDE >= 0) s = Math.max(s, (n.zf - y * a) / (n.f * c)); if (SIDE <= 0 && !n.panel) s = Math.max(s, (y * a - n.zb) / (n.b * c)); }
   return s;
 }
 let D: Drape, W = 0;
@@ -83,8 +91,8 @@ const LAPPED = .03;
 function miss(a: number, s: number, th: number, hinge: number, k: number) {
   const su = -a, cu = Math.sqrt(1 - a * a), sh = Math.sin(th), ch = Math.cos(th); W = 0;
   for (let i = 0; i < nl; i++) { const n = loNeeds[i];
-    const p = L[n.zf], f = n.f * k, z1 = n.y * sh + f * ch, y1 = n.y * ch - f * sh, y3 = hinge + y1, z3 = s * z1; if (y1 < -LAPPED) meet(y3 * cu - z3 * su, y3 * su + z3 * cu, p, true);
-    if (!n.panel) { const b = n.b * k, zb = n.y * sh - b * ch, yb = n.y * ch + b * sh, y3b = hinge + yb, z3b = s * zb; if (yb < -LAPPED) meet(y3b * cu - z3b * su, y3b * su + z3b * cu, p, false); }
+    const p = L[n.zf], f = n.f * k, z1 = n.y * sh + f * ch, y1 = n.y * ch - f * sh, y3 = hinge + y1, z3 = s * z1; if (SIDE >= 0 && y1 < -LAPPED) meet(y3 * cu - z3 * su, y3 * su + z3 * cu, p, true);
+    if (SIDE <= 0 && !n.panel) { const b = n.b * k, zb = n.y * sh - b * ch, yb = n.y * ch + b * sh, y3b = hinge + yb, z3b = s * zb; if (yb < -LAPPED) meet(y3b * cu - z3b * su, y3b * su + z3b * cu, p, false); }
   }
   return W;
 }
@@ -138,6 +146,19 @@ export function drape(d: Drape, st: DrapeState, tails: T.Object3D, hem: T.Object
   if (lively) { st.bendV += ((-sway * .7 - st.bend) * 30 - st.bendV * 4.5) * dt; st.bend += st.bendV * dt; } else { st.bend = 0; st.bendV = 0; }
   hem.rotation.set(th, 0, st.bend * g); hem.scale.set(1, 1, k);
 }
+/** A split coat skirt's two sides, after `drape` has placed `tails`: the legs are taken into `tails`' own frame, and the front is solved on the fronts of the legs alone and the back on their
+ *  backs alone, each with its own lead, opening, hem and springs (no drag of their own: `tails` trails them both). */
+export function drapeSplit(d: Drape, tails: T.Object3D, dt: number, g: number, lively: boolean) {
+  const sp = d.split; if (!sp) return;
+  q.setFromEuler(tails.rotation).invert();
+  for (const p of L) for (const o of [p.h, p.k, p.a, p.i, p.t, p.e]) { o.applyQuaternion(q); o.x /= tails.scale.x; o.z /= tails.scale.z; }
+  const one = sp.one ??= { ...d, garments: sp.garments, split: undefined };
+  for (const [part, side] of [[sp.front, 1], [sp.back, -1]] as const) { SIDE = side; drape(one, part.st, part.tails, part.hem, dt, g, 0, 0, lively); }
+  SIDE = 0;
+}
+/** The two sides standing still (eased back to plumb), or held closed and plumb under `tails` (seated, or not followed) with the hem's turn and opening `hemX`, `hemZ`. */
+export function restSplit(d: Drape, dt: number) { const sp = d.split; if (sp) for (const p of [sp.front, sp.back]) rest(p.st, p.tails, p.hem, dt, 0); }
+export function holdSplit(d: Drape, hemX: number, hemZ: number) { const sp = d.split; if (sp) for (const p of [sp.front, sp.back]) { p.tails.rotation.set(0, 0, 0); p.tails.scale.set(1, 1, 1); if (p.hem) { p.hem.rotation.set(hemX, 0, 0); p.hem.scale.set(1, 1, hemZ); } } }
 /** A figure standing still: the cloth eases back to plumb and closed (standing, the legs are inside it). */
 export function rest(st: DrapeState, tails: T.Object3D, hem: T.Object3D | undefined, dt: number, sway: number) {
   const e = Math.min(1, dt * 6); st.lead -= st.lead * e; st.leadV = 0; st.hem -= st.hem * e; st.hemV = 0; st.bend -= st.bend * e; st.bendV = 0;
