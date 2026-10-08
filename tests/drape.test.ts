@@ -23,6 +23,15 @@ const NEW_OUTFITS: [string, number][] = [['stallholder.standard.narrow:stallhold
   ['olderMechanic.sturdy.broad:olderMechanic.shopCoat', 5], ['olderMechanic.sturdy.broad:olderMechanic.apron', 5], ['olderMechanic.standard.narrow:olderMechanic.apron', 2],
   ['courier.slim.broad:courier.coat', 1], ['courier.slim.narrow:courier.vest', 2], ['courier.slim.broad:courier.jacket', 3]];
 
+test('the older mechanic\'s knees never touch his coat, carrying or at a brisk walk', () => {
+  // People XXI: at the merge of People XIX and XX his shop coat was touched by a knee in 1-5 of 30 sampled frames (up to 1.5 cm) when carrying or at 1.3 m/s, and seed 11 lost the knee 34 cm
+  // through it for 5 frames; the hem's narrow top now leaves the knee to the upper part and the hem is met at its own rings (drape.ts LAPPED, bands)
+  for (const fam of ['sturdy.broad', 'standard.narrow']) for (const outfit of ['shopCoat', 'apron']) for (const seed of [1, 3, 8, 11]) for (const [a, speed] of [['walk', 1.3], ['carry', 1], ['carry', 1.3]] as const) {
+    const combo = `olderMechanic.${fam}:olderMechanic.${outfit}`, r = through(combo, seed, a, speed);
+    assert.ok(r.worst <= 0, `${combo} s${seed} ${a} at ${speed} m/s: a leg ${(r.worst * 100).toFixed(1)} cm through the cloth in ${r.bad} of ${r.frames} frames (${r.where})`);
+  }
+});
+
 test('the Ordinance\'s coats hold the intro\'s 2.9 m/s exit', () => {
   for (const combo of ['garrison.sturdy.broad', 'inspector.standard.broad']) { const r = through(combo, 1, 'walk', 2.9); assert.ok(r.worst < .005, `${combo}: ${(r.worst * 100).toFixed(1)} cm (${r.where})`); }
 });
