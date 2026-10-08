@@ -197,6 +197,22 @@ caps that have lost their shape. The Ordinance is squared and vertical: boards o
 straight hems, stiff collars, hard hat lines. The Embers are civilians; they are marked by one
 small thing, never by a uniform.
 
+### Telling the dark coats apart
+
+At ~50 px a long dark coat is a dark column, so every cast that might wear one carries its own
+light shape or outline, from the colours chapter 10 already allows:
+
+- **Garrison soldier:** the belt and crossbelt in pipeclayed bone over the green-charcoal
+  greatcoat: a light diagonal and waistline (at least four times the coat's value).
+- **Inspector:** stays the plain dark column, squared at the shoulder by wider boards edged in
+  bone, with bone piping on the high oxblood collar under the jaw, and the round helm.
+- **Older mechanic:** never in a dark coat: a canvas, stone or bone shop coat with its sleeves
+  rolled, or shirt sleeves and a canvas work apron (at least three times the Ordinance's value).
+- **Sturdy against standard:** a sturdy figure is not the standard outline scaled up. The sturdy
+  stallholder's skirt is cut fuller from the hip (its hem at least 1.15 times the standard's).
+
+`tests/cast-reads.test.ts` holds these.
+
 ---
 
 ## 5. Body construction

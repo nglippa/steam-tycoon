@@ -233,7 +233,7 @@ export function dress(x: X) {
     // a half-belt across the back, buttoned at both ends
     put0(lifted, around(r.cR, 1.17, Math.PI - .95, Math.PI + .95, .004, .024, .007, 6), coat); for (const a of [Math.PI - .95, Math.PI + .95]) button(lifted, surface(r.cR, 1.17, a, .012), brass, .009);
     // the wide belt with a plate buckle, over the coat at the waist
-    belt(black, 1.09, .05, .03);
+    belt(strap, 1.09, .05, .03); // People XX: the belt and crossbelt in pipeclayed bone, the rank and file's light X and waistline at a distance
     // the crossbelt wraps the torso: over one shoulder, across the chest, round the side to a pouch on the opposite hip, crossing on the back
     const sd = side, W = (pts: number[][]) => pts.map(([y, a]) => { const q = surface(r.cR, y, a, .009); return { p: q.p.toArray() as Pt, a: .027, b: .006, n: q.n.toArray() as Pt }; });
     if (asym.has('crossbelt')) {
@@ -251,7 +251,7 @@ export function dress(x: X) {
     // a high oxblood collar, stiff and closed at the throat, standing to just under the jaw
     { const nc = ringAt(neckR, 1.52), top = d.chin - .018, cc = [1.49, (1.49 + top) / 2, top].map((y, i) => { const q = ringAt(neckR, Math.min(y, 1.538)); return { y, w: q.w + [.036, .033, .031][i], f: q.f + [.036, .034, .032][i], b: q.b + [.034, .032, .03][i], z: (q.z ?? 0) + .004, n: 2.1 }; }); void nc;
       put0(lifted, loft(cc, { seg: 16, lipEnd: .005, lipStart: .004, key: key('inspcollar') }), oxb);
-      put0(lifted, loft([cc[2], { ...cc[2], y: cc[2].y - .006, w: cc[2].w + .004, f: cc[2].f + .004, b: cc[2].b + .004 }], { seg: 16, lipStart: .002, lipEnd: .002, key: key('inspcollaredge') }), black);
+      put0(lifted, loft([cc[2], { ...cc[2], y: cc[2].y - .012, w: cc[2].w + .005, f: cc[2].f + .005, b: cc[2].b + .005 }], { seg: 16, lipStart: .002, lipEnd: .002, key: key('inspcollaredge') }), c(P.cloth.bone)); // People XX: bone piping on the collar, a light line under the jaw
       button(lifted, { p: new T.Vector3(0, top - .014, cc[2].f + (cc[2].z ?? 0) + .003), n: new T.Vector3(0, 0, 1) }, brass, .0065); }
     // fitted at the waist, a narrow black belt
     belt(black, 1.085, .036, .016);
@@ -265,7 +265,7 @@ export function dress(x: X) {
     if (asym.has('truncheon')) truncheon(tails, r.rings!, -.1, side * 1.35, black);
     if (asym.has('keyRing')) keyRing(tails, r.rings!, -.08, side * 1.35);
     if (asym.has('whistle')) { const ch = [[1.43, .2], [1.37, .5], [1.31, .72], [1.27, .8]].map(([y, a]) => { const q = surface(r.cR, y, a * side, .008); return { p: q.p.toArray() as Pt, a: .0035, b: .0035, n: q.n.toArray() as Pt }; }); put0(lifted, sweep(ch, { seg: 4, capStart: true, capEnd: true }), brass); const q = surface(r.cR, 1.255, .82 * side, .012); put0(lifted, new T.Mesh(new T.CylinderGeometry(.007, .007, .03, 6)).geometry, brass, q.p.toArray() as Pt, [0, 0, 1.2]); }
-    arms({ upM: coat, off: .023, cuffM: coat, glove: black, board: board(black, coat, .1, .05, .044, true), armband: { m: band, side }, guard: asym.has('sleeveGuards') ? c(P.cloth.soot) : undefined });
+    arms({ upM: coat, off: .023, cuffM: coat, glove: black, board: board(black, c(P.cloth.bone), .1, .05, .05, true), armband: { m: band, side }, guard: asym.has('sleeveGuards') ? c(P.cloth.soot) : undefined });
     legs({ thighM: trou, boot: black, sole: lea(shade(LEATHERD, .55)), top: -.08, turnup: false, fit: .004, bootCuff: black });
   }
   // the two casts whose bodies are built inline (figure.ts) take their trade items from here: the labourer's apron, hook, pouch and rag
@@ -327,11 +327,11 @@ export function dress(x: X) {
   if (id === 'stallholder') {
     const blouse = c(I('blouse')), skirtM = wool(I('skirt')), ap = c(I('apron')), tie = c(shade(I('apron'), .85));
     shirt(blouse, { off: .012, placket: false, collar: true });
-    const rings = skirtRings(.2, .6, .66, 1.2, 7);
+    const sturdy = look.family === 'sturdy', rings = skirtRings(.2, sturdy ? .74 : .6, sturdy ? .78 : .66, sturdy ? .9 : 1.2, 7); // People XX: the sturdy stallholder's skirt is fuller from the hip, so the outline is hers
     longShell(rings, { start: 0, arc: Math.PI * 2 }, skirtM, 'stallskirt', .014);
     hemLoft(rings, .006, .008, 'stallhem', c(shade(I('skirt'), .8)));
     skirt.drop = .34; skirt.depth = .34;
-    apron(ap, { hemY: .36, hemW: .5, hemD: .6, aw: .95, bib: look.outfit !== 'stallholder.shawl', strapM: tie });
+    apron(ap, { hemY: .36, hemW: sturdy ? .6 : .5, hemD: sturdy ? .7 : .6, aw: .95, bib: look.outfit !== 'stallholder.shawl', strapM: tie });
     if (look.outfit === 'stallholder.shawl') shawl(wool(I('scarf')), c(mix(I('scarf'), P.cloth.bone, .5))); // People XX: the shawl outfit
     if (asym.has('pouchHip')) pouch(lifted, offset(rib, .04), 1.06, -1.5, -1.1, leatherM);
     arms({ upM: blouse, off: .017, rolled: () => true });

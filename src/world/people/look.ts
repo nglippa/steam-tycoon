@@ -90,7 +90,7 @@ export const CASTS: Record<CastId, Cast> = {
       o('courier.vest', { mustard: ['mustard', 'cream', 'umber', 'leather', 'slate', 'umber'], stone: ['stone', 'bone', 'navy', 'leatherDark', 'oxblood', 'slate'], moss: ['greyGreen', 'cream', 'charcoal', 'leather', 'mustard', 'greyGreen'] })] },
   garrison: { id: 'garrison', archetype: 'guard', families: ['standard', 'sturdy'], frames: ['broad'], headShapes: ['square', 'oval', 'long'], hair: ['shortCrop'], hairColours: mid, hats: ['kepi'], facial: [['none', 4], ['moustache', 1], ['sideburns', 1]],
     slots: ['greatcoat', 'trousers', 'crossbelt', 'kepi'], asymmetries: ['crossbelt'],
-    outfits: [o('garrison.greatcoat', { ordinance: ['greenCharcoal', 'soot', 'leatherDark', 'greenCharcoal'] })] },
+    outfits: [o('garrison.greatcoat', { ordinance: ['greenCharcoal', 'soot', 'bone', 'greenCharcoal'] })] },
   inspector: { id: 'inspector', archetype: 'ordinal', families: ['slim', 'standard'], frames: ['broad'], headShapes: ['square', 'long', 'oval'], hair: ['shortCrop', 'sweptBack', 'sidePart'], hairColours: mid, hats: ['helm', 'none'], facial: [['none', 5], ['moustache', 1]],
     slots: ['coat', 'trousers', 'collar', 'helm', 'armband'], asymmetries: ['ledger', 'whistle'], story: ['spectacles', 'sleeveGuards', 'keyRing', 'truncheon'],
     outfits: [o('inspector.coat', { ordinance: ['greenCharcoal', 'soot', 'oxblood', 'soot', 'oxblood'] })] },
