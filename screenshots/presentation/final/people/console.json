@@ -1,0 +1,28 @@
+{
+  "sheet": [
+    {
+      "page": "sheet.html (all sheet loads)",
+      "url": "http://127.0.0.1:5199/sheet.html?…",
+      "messages": [
+        {
+          "type": "error",
+          "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+          "at": "http://127.0.0.1:5199/favicon.ico"
+        }
+      ]
+    }
+  ],
+  "seated-people": [
+    {
+      "page": "sheet.html (seated)",
+      "url": "http://127.0.0.1:5199/sheet.html?…&pose=sit|bite&ground=1",
+      "messages": [
+        {
+          "type": "error",
+          "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+          "at": "http://127.0.0.1:5199/favicon.ico"
+        }
+      ]
+    }
+  ]
+}
