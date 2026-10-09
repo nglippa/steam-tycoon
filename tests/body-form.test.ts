@@ -21,3 +21,20 @@ test('the torso is an S in profile (People XXVI): the chest stands forward of th
     for (let y = 1.0; y <= 1.3; y += .02) { const r = y > 1.1 ? ringAt(rib, y) : ringAt(pel, y); assert.ok(back(r) <= back(waist) + 1e-6 || Math.abs(y - 1.1) < .045, `${label}: the back at ${y.toFixed(2)} (${back(r).toFixed(3)}) is in front of the small of the back (${back(waist).toFixed(3)})`); }
   }
 });
+
+test('an elbow is a landmark (People XXVI): the arm and its sleeve draw in over the joint, narrower than the upper arm above it and the forearm\'s swell below it', async () => {
+  const { upperArm, forearm } = await import('../src/world/people/body.ts');
+  for (const [family, frame] of BODIES) {
+    const d = dimsOf(family, frame), up = upperArm(d), fore = forearm(d), label = `${family}/${frame}`, e = ringAt(up, -.25), full = ringAt(up, -.07), swell = ringAt(fore, -.07);
+    assert.ok(e.w < full.w * .9 && e.w < swell.w * .97, `${label}: the elbow is ${(e.w * 200).toFixed(1)} cm wide against the upper arm's ${(full.w * 200).toFixed(1)} and the forearm's ${(swell.w * 200).toFixed(1)}`);
+    assert.ok(e.b > e.f + .008, `${label}: the elbow's point stands ${((e.b - e.f) * 100).toFixed(1)} cm out behind`);
+  }
+  // dressed: the sleeve's width across the arm (shoulder frame) at the elbow against a third of the way down
+  const { make, REPS } = await import('./people-rig.ts'), T = await import('three');
+  for (const [label, combo, seed] of REPS) {
+    const n = make(combo, seed), sh = n.arms[0], v = new T.Vector3(), w = (y0: number, y1: number) => { let lo = Infinity, hi = -Infinity; sh.updateMatrixWorld(true); const inv = sh.matrixWorld.clone().invert();
+      sh.traverse(o => { if (!(o instanceof T.Mesh) || n.elbows[0].children.includes(o)) return; const p = o.geometry.attributes.position; for (let i = 0; i < p.count; i++) { v.fromBufferAttribute(p, i).applyMatrix4(o.matrixWorld).applyMatrix4(inv); if (v.y < y1 && v.y > y0) { lo = Math.min(lo, v.z); hi = Math.max(hi, v.z); } } }); return hi - lo; };
+    const upper = w(-.09, -.05), elbow = w(-.25, -.235);
+    assert.ok(elbow < upper * .92, `${label}: the sleeve is ${(elbow * 100).toFixed(1)} cm deep at the elbow against ${(upper * 100).toFixed(1)} cm a third of the way down`);
+  }
+});

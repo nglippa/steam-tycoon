@@ -270,6 +270,8 @@ replaces the butt joint and the visible elbow ball. Then, on top:
   trouser breaks here: the shin shell starts as a slightly wider cuff over the cap. No ring, no
   band, no stitched hem.
 - **Elbow:** a point at the back, carried on the upper arm. The sleeve creases on the inside.
+
+**Rule: the elbow is a landmark (People XXVI).** The upper arm tapers from its fullest, a third of the way down, into an elbow narrower than it (under .9 of its width) and than the forearm's swell just below (the forearm's widest ring is 1.05 of its width); the elbow's point stands about a centimetre out behind. A sleeve draws in over the joint (`ELBOW_GATHER`, 9 mm under its offset, with the upper and forearm sleeves sharing that radius at the cap) and swells again below it, so a sleeve breaks at the elbow, bent or straight, and is never one tube from shoulder to cuff (`tests/body-form.test.ts`).
 - **Hip:** the thigh ends in a cap inside the pelvis shell. The pelvis has a leg opening, not a
   closed point the thigh passes through. Seated, the seat of the trousers or the skirt covers it.
 - **Shoulder:** the cap is the deltoid. The garment's yoke or armhole overlaps it from the torso

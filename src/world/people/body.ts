@@ -19,7 +19,7 @@ export interface Dims {
 }
 
 const slim: Dims = { h: .275, chin: 1.575, shX: .203, rSh: .047, chestW: .30, waistW: .26, hipW: .32, chestD: .20, waistD: .165, hipD: .18, belly: 0, slope: .06, neckW: .098, neckD: .09, neckLean: .27, headFwd: .012,
-  armW: .075, elbowR: .034, foreW: .068, wristW: .045, hipX: .084, hipR: .064, thighW: .125, kneeR: .048, calfW: .095, calfBack: .014, ankleW: .06, hand: .185, shoe: .27, shoeW: .088 , blade: .02, lumbar: .016, seat: .022, chestF: .008 };
+  armW: .075, elbowR: .032, foreW: .068, wristW: .045, hipX: .084, hipR: .064, thighW: .125, kneeR: .048, calfW: .095, calfBack: .014, ankleW: .06, hand: .185, shoe: .27, shoeW: .088 , blade: .02, lumbar: .016, seat: .022, chestF: .008 };
 const standard: Dims = { h: .285, chin: 1.60, shX: .233, rSh: .052, chestW: .335, waistW: .30, hipW: .36, chestD: .23, waistD: .19, hipD: .2, belly: 0, slope: .05, neckW: .108, neckD: .1, neckLean: .22, headFwd: .004,
   armW: .09, elbowR: .038, foreW: .08, wristW: .05, hipX: .09, hipR: .07, thighW: .145, kneeR: .054, calfW: .108, calfBack: .016, ankleW: .066, hand: .19, shoe: .285, shoeW: .094 , blade: .024, lumbar: .018, seat: .026, chestF: .01 };
 const sturdy: Dims = { h: .295, chin: 1.616, shX: .258, rSh: .062, chestW: .38, waistW: .37, hipW: .40, chestD: .27, waistD: .245, hipD: .235, belly: .035, slope: .037, neckW: .128, neckD: .118, neckLean: .13, headFwd: -.004,
@@ -30,7 +30,7 @@ const sturdy: Dims = { h: .295, chin: 1.616, shX: .258, rSh: .062, chestW: .38, 
  *  which is what makes it a child's size: the crown at about 1.36 m, at an adult's chest to shoulder. Spawn sites never scale a child of the new builder. */
 export const CHILD_SCALE = .72;
 const child: Dims = { h: .335, chin: 1.55, shX: .165, rSh: .04, chestW: .25, waistW: .245, hipW: .27, chestD: .175, waistD: .165, hipD: .17, belly: .02, slope: .07, neckW: .092, neckD: .085, neckLean: .12, headFwd: .01,
-  armW: .062, elbowR: .028, foreW: .056, wristW: .037, hipX: .07, hipR: .052, thighW: .108, kneeR: .04, calfW: .08, calfBack: .01, ankleW: .05, hand: .15, shoe: .22, shoeW: .075 , blade: .018, lumbar: .01, seat: .018, chestF: 0 };
+  armW: .062, elbowR: .026, foreW: .056, wristW: .037, hipX: .07, hipR: .052, thighW: .108, kneeR: .04, calfW: .08, calfBack: .01, ankleW: .05, hand: .15, shoe: .22, shoeW: .075 , blade: .018, lumbar: .01, seat: .018, chestF: 0 };
 
 /** The narrow frame: shoulders and hips about equal, a higher and smaller waist, a slimmer neck and wrist. Only what differs from the broad record. */
 const NARROW: Record<Family, Partial<Dims>> = {
@@ -76,18 +76,21 @@ export function pelvis(d: Dims): Ring[] { const L = d.lumbar, S = d.seat, r = (y
 /** The neck: an oval column that leans forward into the skull and enters behind the jaw. Rings are sole heights; the lean moves the centre forward with height. */
 export function neck(d: Dims): Ring[] { const lean = Math.tan(d.neckLean); return (d.chin < 1.58 ? [1.47, 1.5, d.chin - .015, d.chin + .03] : [1.47, 1.52, d.chin - .035, d.chin + .03]).map((y, i) => ring(y, d.neckW * (1 - i * .06), d.neckD * 1.02 * (1 - i * .05), -.012 + (y - 1.47) * lean + d.headFwd * (i / 3), 2.15)); }
 
-/** Upper arm: local to the shoulder pivot. The cap (the deltoid) is the first ring; fullest a third of the way down, front and back unequal; a point at the back of the elbow. */
+/** Upper arm: local to the shoulder pivot. The cap (the deltoid) is the first ring; fullest a third of the way down, front and back unequal; then a taper into the elbow, which is
+ *  narrower than both the upper arm and the forearm's swell below it (the landmark, People XXVI), with a point at the back. */
 export function upperArm(d: Dims): Ring[] { const a = d.armW / 2; return [
   { y: 0, w: d.rSh, f: d.rSh, b: d.rSh, n: 2 },
   { y: -.07, w: a, f: a * 1.08, b: a * .98, z: .004, n: 2.1 },
-  { y: -.14, w: a * .94, f: a * 1.0, b: a * .93, z: .002, n: 2.1 },
-  { y: -.21, w: (a + d.elbowR) / 2, f: (a + d.elbowR) / 2, b: (a + d.elbowR) / 2 + .003, n: 2.05 },
-  { y: -.25, w: d.elbowR, f: d.elbowR, b: d.elbowR + .004, z: -.003, n: 2 },
+  { y: -.14, w: a * .92, f: a * .97, b: a * .92, z: .002, n: 2.1 },
+  { y: -.205, w: (a * .7 + d.elbowR * .3), f: (a * .66 + d.elbowR * .34), b: (a * .7 + d.elbowR * .3) + .003, n: 2.05 },
+  { y: -.25, w: d.elbowR, f: d.elbowR * .96, b: d.elbowR + .011, z: -.003, n: 2 },
 ]; }
+/** The elbow's landmark on a sleeve: the cloth draws in over the joint (this much under the sleeve's offset), so the sleeve breaks there and does not run on as one tube. */
+export const ELBOW_GATHER = .009;
 /** Forearm: local to the elbow. Widest a third below the elbow, tapering to a wrist twice as wide as it is deep: the wide axis turns from sideways to front-to-back, because the palm faces the thigh. */
 export function forearm(d: Dims): Ring[] { const a = d.foreW / 2, w = d.wristW / 2; return [
   { y: 0, w: d.elbowR, f: d.elbowR, b: d.elbowR, n: 2 },
-  { y: -.07, w: a, f: a * .98, b: a * .98, z: .002, n: 2.05 },
+  { y: -.07, w: a * 1.05, f: a * .98, b: a * 1.0, z: .002, n: 2.05 },
   { y: -.11, w: a * .93, f: a * .97, b: a * .96, n: 2.05 },
   { y: -.18, w: w * 1.0, f: w * 1.18, b: w * 1.14, n: 2.1 },
   { y: -.24, w: w * .52, f: w, b: w, n: 2.3 },
