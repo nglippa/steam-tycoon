@@ -1,7 +1,7 @@
 // The HUD's layout states as a static mock: the real interface.ts template, the touch controls' markup and style.css over a
 // game screenshot (no game code runs), shot and measured in one headless browser.
 //   node tools/hud-mock.mjs <outDir> [--bg=screenshots/presentation/people-game/01-street-north.png] [--only=desk-normal,...]
-// Desktop 1280x720 and narrow 800x600 states, phone portrait 390x844 and landscape 844x390 (touch, coarse pointer). Each shot
+// Desktop 1920x1080 (hd) and 1280x720 and narrow 800x600 states, phone portrait 390x844 and landscape 844x390 (touch, coarse pointer). Each shot
 // is hud-mock-<view>-<state>.png; hud-mock-states.json holds every box (CSS px), the font sizes, clipped elements, the
 // persistent area and the top band. The query string of the mock sets the HUD's text and state (see STATES).
 import { chromium } from '@playwright/test';
@@ -63,6 +63,7 @@ const STATES = [
   ['long-objective', 'objective=Build%20toward%20Commerce.%20Every%20commission%20changes%20Terra.&stage=PROSPERITY%202%20/%205%20%C2%B7%20INDUSTRY'],
 ];
 const VIEWS = {
+  hd: { size: [1920, 1080], states: ['normal', 'prompt', 'toast', 'curfew-worst', 'long-ward'] }, // QA V-b
   desk: { size: [1280, 720], states: STATES.map(s => s[0]) },
   narrow: { size: [800, 600], states: ['normal', 'prompt', 'toast-ward', 'curfew-worst', 'dialogue', 'long-ward'] },
   phone: { size: [390, 844], touch: true, states: ['normal', 'toast', 'prompt', 'curfew-worst', 'long-ward'] },

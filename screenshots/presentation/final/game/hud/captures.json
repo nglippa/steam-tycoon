@@ -1,0 +1,553 @@
+{
+  "base": "http://127.0.0.1:5199",
+  "people": "new",
+  "day": 0.5,
+  "viewport": [
+    1280,
+    720
+  ],
+  "deviceScaleFactor": 1,
+  "problems": [],
+  "shots": [
+    {
+      "name": "hud-normal.png",
+      "url": "http://127.0.0.1:5199/?dev=1&intro=0&view=street&people=new&weather=clear",
+      "pixelRatio": 1,
+      "devicePixelRatio": 1,
+      "canvasBuffer": [
+        1280,
+        720
+      ],
+      "canvasCss": [
+        1280,
+        720
+      ],
+      "quality": "high",
+      "drawCalls": 626,
+      "triangles": 871176,
+      "clockHour": 12,
+      "weather": "clear",
+      "stage": 0,
+      "camera": {
+        "x": 0,
+        "y": 1.93,
+        "z": 30,
+        "yaw": 0,
+        "pitch": -0.02
+      },
+      "locked": true,
+      "people": "new",
+      "set": "hud",
+      "note": "persistent HUD, standing in the Great Main, pointer locked",
+      "lock": {
+        "locked": true,
+        "fallback": false
+      },
+      "loadMs": 2816
+    },
+    {
+      "name": "hud-toast.png",
+      "url": "http://127.0.0.1:5199/?dev=1&intro=0&view=street&people=new&weather=clear",
+      "pixelRatio": 1,
+      "devicePixelRatio": 1,
+      "canvasBuffer": [
+        1280,
+        720
+      ],
+      "canvasCss": [
+        1280,
+        720
+      ],
+      "quality": "high",
+      "drawCalls": 630,
+      "triangles": 871596,
+      "clockHour": 12,
+      "weather": "clear",
+      "stage": 0,
+      "camera": {
+        "x": 0,
+        "y": 1.93,
+        "z": 30,
+        "yaw": 0,
+        "pitch": -0.02
+      },
+      "locked": true,
+      "people": "new",
+      "set": "hud",
+      "note": "a toast showing",
+      "lock": {
+        "locked": true,
+        "fallback": false
+      }
+    },
+    {
+      "name": "hud-prompt.png",
+      "url": "http://127.0.0.1:5199/?dev=1&intro=0&view=street&people=new&weather=clear",
+      "pixelRatio": 1,
+      "devicePixelRatio": 1,
+      "canvasBuffer": [
+        1280,
+        720
+      ],
+      "canvasCss": [
+        1280,
+        720
+      ],
+      "quality": "high",
+      "drawCalls": 339,
+      "triangles": 676177,
+      "clockHour": 12,
+      "weather": "clear",
+      "stage": 0,
+      "camera": {
+        "x": -8.6,
+        "y": 1.93,
+        "z": 37,
+        "yaw": 1.5708,
+        "pitch": 0
+      },
+      "locked": true,
+      "people": "new",
+      "set": "hud",
+      "note": "interaction prompt for the Rook workbench",
+      "prompt": {
+        "hidden": false,
+        "text": "ERook & Son SalvageOPEN PROPERTY LEDGER"
+      },
+      "lock": {
+        "locked": true,
+        "fallback": false
+      }
+    },
+    {
+      "name": "hud-dialogue.png",
+      "url": "http://127.0.0.1:5199/?dev=1&intro=0&view=street&people=new&weather=clear",
+      "pixelRatio": 1,
+      "devicePixelRatio": 1,
+      "canvasBuffer": [
+        1280,
+        720
+      ],
+      "canvasCss": [
+        1280,
+        720
+      ],
+      "quality": "high",
+      "drawCalls": 626,
+      "triangles": 864356,
+      "clockHour": 12,
+      "weather": "clear",
+      "stage": 0,
+      "camera": {
+        "x": 0,
+        "y": 1.93,
+        "z": 30,
+        "yaw": 0,
+        "pitch": -0.02
+      },
+      "locked": true,
+      "people": "new",
+      "set": "hud",
+      "note": "a dialogue line flashed over the street",
+      "said": true,
+      "lock": {
+        "locked": true,
+        "fallback": false
+      }
+    },
+    {
+      "name": "hud-1920x1080-normal.png",
+      "url": "http://127.0.0.1:5199/?dev=1&intro=0&view=street&people=new&weather=clear",
+      "pixelRatio": 1,
+      "devicePixelRatio": 1,
+      "canvasBuffer": [
+        1920,
+        1080
+      ],
+      "canvasCss": [
+        1920,
+        1080
+      ],
+      "quality": "high",
+      "drawCalls": 627,
+      "triangles": 871188,
+      "clockHour": 12,
+      "weather": "clear",
+      "stage": 0,
+      "camera": {
+        "x": 0,
+        "y": 1.93,
+        "z": 30,
+        "yaw": 0,
+        "pitch": -0.02
+      },
+      "locked": true,
+      "people": "new",
+      "set": "hudsizes",
+      "size": [
+        1920,
+        1080
+      ],
+      "touch": false,
+      "state": "normal",
+      "status": "12:00 · CLEAR SKIES · OCCUPATION · HEAVY 80%",
+      "placed": [
+        0,
+        30,
+        0,
+        null,
+        -0.02
+      ],
+      "lock": {
+        "locked": true,
+        "fallback": false
+      },
+      "loadMs": 2386,
+      "bodyClass": "started playing"
+    },
+    {
+      "name": "hud-1920x1080-night-fog.png",
+      "url": "http://127.0.0.1:5199/?dev=1&intro=0&view=street&people=new&weather=clear",
+      "pixelRatio": 1,
+      "devicePixelRatio": 1,
+      "canvasBuffer": [
+        1920,
+        1080
+      ],
+      "canvasCss": [
+        1920,
+        1080
+      ],
+      "quality": "high",
+      "drawCalls": 642,
+      "triangles": 851360,
+      "clockHour": 23.67,
+      "weather": "fog",
+      "stage": 0,
+      "camera": {
+        "x": 0,
+        "y": 1.93,
+        "z": 30,
+        "yaw": 0,
+        "pitch": -0.02
+      },
+      "locked": true,
+      "people": "new",
+      "set": "hudsizes",
+      "size": [
+        1920,
+        1080
+      ],
+      "touch": false,
+      "state": "night-fog",
+      "status": "23:40 · CURFEW · INDUSTRIAL FOG · OCCUPATION · HEAVY 80%",
+      "placed": [
+        0,
+        30,
+        0,
+        null,
+        -0.02
+      ],
+      "lock": {
+        "locked": true,
+        "fallback": false
+      },
+      "loadMs": 2386,
+      "bodyClass": "started playing"
+    },
+    {
+      "name": "hud-1280x720-normal.png",
+      "url": "http://127.0.0.1:5199/?dev=1&intro=0&view=street&people=new&weather=clear",
+      "pixelRatio": 1,
+      "devicePixelRatio": 1,
+      "canvasBuffer": [
+        1280,
+        720
+      ],
+      "canvasCss": [
+        1280,
+        720
+      ],
+      "quality": "high",
+      "drawCalls": 627,
+      "triangles": 871188,
+      "clockHour": 12,
+      "weather": "clear",
+      "stage": 0,
+      "camera": {
+        "x": 0,
+        "y": 1.93,
+        "z": 30,
+        "yaw": 0,
+        "pitch": -0.02
+      },
+      "locked": true,
+      "people": "new",
+      "set": "hudsizes",
+      "size": [
+        1280,
+        720
+      ],
+      "touch": false,
+      "state": "normal",
+      "status": "12:00 · CLEAR SKIES · OCCUPATION · HEAVY 80%",
+      "placed": [
+        0,
+        30,
+        0,
+        null,
+        -0.02
+      ],
+      "lock": {
+        "locked": true,
+        "fallback": false
+      },
+      "loadMs": 2352,
+      "bodyClass": "started playing"
+    },
+    {
+      "name": "hud-1280x720-night-fog.png",
+      "url": "http://127.0.0.1:5199/?dev=1&intro=0&view=street&people=new&weather=clear",
+      "pixelRatio": 1,
+      "devicePixelRatio": 1,
+      "canvasBuffer": [
+        1280,
+        720
+      ],
+      "canvasCss": [
+        1280,
+        720
+      ],
+      "quality": "high",
+      "drawCalls": 642,
+      "triangles": 851360,
+      "clockHour": 23.67,
+      "weather": "fog",
+      "stage": 0,
+      "camera": {
+        "x": 0,
+        "y": 1.93,
+        "z": 30,
+        "yaw": 0,
+        "pitch": -0.02
+      },
+      "locked": true,
+      "people": "new",
+      "set": "hudsizes",
+      "size": [
+        1280,
+        720
+      ],
+      "touch": false,
+      "state": "night-fog",
+      "status": "23:40 · CURFEW · INDUSTRIAL FOG · OCCUPATION · HEAVY 80%",
+      "placed": [
+        0,
+        30,
+        0,
+        null,
+        -0.02
+      ],
+      "lock": {
+        "locked": true,
+        "fallback": false
+      },
+      "loadMs": 2352,
+      "bodyClass": "started playing"
+    },
+    {
+      "name": "hud-800x600-normal.png",
+      "url": "http://127.0.0.1:5199/?dev=1&intro=0&view=street&people=new&weather=clear",
+      "pixelRatio": 1,
+      "devicePixelRatio": 1,
+      "canvasBuffer": [
+        800,
+        600
+      ],
+      "canvasCss": [
+        800,
+        600
+      ],
+      "quality": "high",
+      "drawCalls": 566,
+      "triangles": 844392,
+      "clockHour": 12,
+      "weather": "clear",
+      "stage": 0,
+      "camera": {
+        "x": 0,
+        "y": 1.93,
+        "z": 30,
+        "yaw": 0,
+        "pitch": -0.02
+      },
+      "locked": true,
+      "people": "new",
+      "set": "hudsizes",
+      "size": [
+        800,
+        600
+      ],
+      "touch": false,
+      "state": "normal",
+      "status": "12:00 · CLEAR SKIES · OCCUPATION · HEAVY 80%",
+      "placed": [
+        0,
+        30,
+        0,
+        null,
+        -0.02
+      ],
+      "lock": {
+        "locked": true,
+        "fallback": false
+      },
+      "loadMs": 2327,
+      "bodyClass": "started playing"
+    },
+    {
+      "name": "hud-800x600-night-fog.png",
+      "url": "http://127.0.0.1:5199/?dev=1&intro=0&view=street&people=new&weather=clear",
+      "pixelRatio": 1,
+      "devicePixelRatio": 1,
+      "canvasBuffer": [
+        800,
+        600
+      ],
+      "canvasCss": [
+        800,
+        600
+      ],
+      "quality": "high",
+      "drawCalls": 579,
+      "triangles": 817744,
+      "clockHour": 23.67,
+      "weather": "fog",
+      "stage": 0,
+      "camera": {
+        "x": 0,
+        "y": 1.93,
+        "z": 30,
+        "yaw": 0,
+        "pitch": -0.02
+      },
+      "locked": true,
+      "people": "new",
+      "set": "hudsizes",
+      "size": [
+        800,
+        600
+      ],
+      "touch": false,
+      "state": "night-fog",
+      "status": "23:40 · CURFEW · INDUSTRIAL FOG · OCCUPATION · HEAVY 80%",
+      "placed": [
+        0,
+        30,
+        0,
+        null,
+        -0.02
+      ],
+      "lock": {
+        "locked": true,
+        "fallback": false
+      },
+      "loadMs": 2327,
+      "bodyClass": "started playing"
+    },
+    {
+      "name": "hud-phone-390x844-normal.png",
+      "url": "http://127.0.0.1:5199/?dev=1&intro=0&view=street&people=new&weather=clear",
+      "pixelRatio": 1,
+      "devicePixelRatio": 1,
+      "canvasBuffer": [
+        390,
+        844
+      ],
+      "canvasCss": [
+        390,
+        844
+      ],
+      "quality": "high",
+      "drawCalls": 487,
+      "triangles": 803344,
+      "clockHour": 12,
+      "weather": "clear",
+      "stage": 0,
+      "camera": {
+        "x": 0,
+        "y": 1.93,
+        "z": 30,
+        "yaw": 0,
+        "pitch": -0.02
+      },
+      "locked": false,
+      "people": "new",
+      "set": "hudsizes",
+      "size": [
+        390,
+        844
+      ],
+      "touch": true,
+      "state": "normal",
+      "status": "12:00 · CLEAR SKIES · OCCUPATION · HEAVY 80%",
+      "placed": [
+        0,
+        30,
+        0,
+        null,
+        -0.02
+      ],
+      "lock": null,
+      "loadMs": 3176,
+      "bodyClass": "touch started"
+    },
+    {
+      "name": "hud-phone-390x844-night-fog.png",
+      "url": "http://127.0.0.1:5199/?dev=1&intro=0&view=street&people=new&weather=clear",
+      "pixelRatio": 1,
+      "devicePixelRatio": 1,
+      "canvasBuffer": [
+        390,
+        844
+      ],
+      "canvasCss": [
+        390,
+        844
+      ],
+      "quality": "high",
+      "drawCalls": 501,
+      "triangles": 787728,
+      "clockHour": 23.67,
+      "weather": "fog",
+      "stage": 0,
+      "camera": {
+        "x": 0,
+        "y": 1.93,
+        "z": 30,
+        "yaw": 0,
+        "pitch": -0.02
+      },
+      "locked": false,
+      "people": "new",
+      "set": "hudsizes",
+      "size": [
+        390,
+        844
+      ],
+      "touch": true,
+      "state": "night-fog",
+      "status": "23:40 · CURFEW · INDUSTRIAL FOG · OCCUPATION · HEAVY 80%",
+      "placed": [
+        0,
+        30,
+        0,
+        null,
+        -0.02
+      ],
+      "lock": null,
+      "loadMs": 3176,
+      "bodyClass": "touch started"
+    }
+  ]
+}
