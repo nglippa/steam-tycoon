@@ -1,5 +1,5 @@
 // Reproducible in-game captures: the HUD, the HUD's measured DOM, and the shader distance set.
-//   node tools/game-captures.mjs <baseUrl> <outDir> [--people=old|new] [--sets=hud,shader,strain] [--query=extra&params] [--shots=a,b (strain)]
+//   node tools/game-captures.mjs <baseUrl> <outDir> [--people=old|new] [--sets=hud,shader,product,hudsizes,strain] [--query=extra&params] [--shots=a,b (strain)]
 // e.g. node tools/game-captures.mjs http://127.0.0.1:5731 screenshots/presentation/baseline
 // Needs a dev server for the repo (`npx vite --host 127.0.0.1 --port 5731 --strictPort`). One headless browser, one page at a time,
 // 1280x720 at device scale 1. Every shot pins position, heading, pitch, weather and the time of day (the game clock is frozen
@@ -42,10 +42,12 @@ let browser;
 try { browser = await chromium.launch({ headless: true }); } catch { browser = await chromium.launch({ headless: true, channel: 'chrome' }); }
 const problems = [], records = [];
 let page;
-async function open(query, deviceScaleFactor = 1, viewport = { width: 1280, height: 720 }) {
-  page = await browser.newPage({ viewport, deviceScaleFactor });
+async function open(query, deviceScaleFactor = 1, viewport = { width: 1280, height: 720 }, touch = false) {
+  page = await browser.newPage({ viewport, deviceScaleFactor, ...(touch ? { hasTouch: true, isMobile: true } : {}) });
   page.on('console', m => { if (['error', 'warning'].includes(m.type())) problems.push(`${m.type()}: ${m.text()}`); });
   page.on('pageerror', e => problems.push(`pageerror: ${e.message}`));
+  page.on('requestfailed', r => problems.push(`requestfailed: ${r.url()} ${r.failure()?.errorText ?? ''}`));
+  page.on('response', r => { if (r.status() >= 400) problems.push(`http: ${r.status()} ${r.url()}`); });
   const url = `${base}/?dev=1&intro=0&view=street&people=${people}&${query}${extra ? '&' + extra : ''}`, t0 = Date.now();
   await page.goto(url);
   await page.waitForFunction(() => window.__TERRA__ && window.__TERRA__.status().draws > 0, null, { timeout: 90000 });
@@ -152,6 +154,21 @@ if (sets.includes('product')) {
     await page.evaluate(() => { for (const s of ['#hud', '#hud-bottom', '#crosshair', '#marker']) document.querySelector(s).style.visibility = ''; });
   }
   await close();
+}
+// `hudsizes` (not in the default sets): the in-game HUD at 1920x1080, 1280x720, 800x600 and a phone (390x844, touch), a fresh
+// page per size, at the hud set's street camera: normal (noon, clear) and the fullest status line the clock and weather reach
+// in game (23:40, fog: the curfew is out), the toast dismissed.
+if (sets.includes('hudsizes')) {
+  for (const [size, w, h, touch] of [['1920x1080', 1920, 1080, false], ['1280x720', 1280, 720, false], ['800x600', 800, 600, false], ['phone-390x844', 390, 844, true]]) {
+    const { loadMs } = await open('weather=clear', 1, { width: w, height: h }, touch); const lk = touch ? null : await lock();
+    for (const [state, weather, day] of [['normal', 'clear', .5], ['night-fog', 'fog', (23 + 40 / 60) / 24]]) {
+      const c = await place(HUD.street, weather); await page.evaluate(d => { window.__TERRA__.economy.state.day = d; }, day); await settle(weather === 'clear' ? 600 : 1500);
+      await page.evaluate(() => { document.getElementById('toast').classList.remove('show'); document.body.classList.remove('toasting'); });
+      const status = await page.evaluate(() => [...document.querySelectorAll('#clock, #curfew, #weather, .ward-noun, #ward')].map(e => e.textContent.trim()).filter(Boolean).join(' · '));
+      await shot(`hud-${size}-${state}`, { set: 'hudsizes', size: [w, h], touch, state, status, placed: c, lock: lk, loadMs, bodyClass: await page.evaluate(() => document.body.className) });
+    }
+    await close();
+  }
 }
 if (sets.includes('strain')) {
   // The device-scale crop: the centre 640x360 CSS px, but for the very-far view the floating isle at the right, which is the
