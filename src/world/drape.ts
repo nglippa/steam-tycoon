@@ -14,7 +14,11 @@ export interface Drape { garments: Garment[]; hinge: number; thigh: number; knee
   /** a coat skirt cut at its side seams into a front and a back that lap over each other at the sides (People XXI): the front is led and opened by the fronts of the legs alone, as an apron
    *  is, and the back by their backs alone, so the front goes out over the forward knee and the back trails the trailing one, where in one piece the coat had to open front and back together
    *  and ballooned. Both are children of `tails`, on its pivot, inside its lead and sway. */
-  split?: { garments: Garment[]; front: Part; back: Part; /** (the drape the two sides are solved on, made once) */ one?: Drape } }
+  split?: { garments: Garment[]; front: Part; back: Part; /** (the drape the two sides are solved on, made once) */ one?: Drape };
+  /** a front panel's own part (People XXIV): an apron or the foundry slab, built apart from a skirt under it so that seated it lies on the thighs and falls from the knees (`seatPanel`) */
+  panel?: Panel }
+/** A front panel's part above the knee (a child of `tails`, on its pivot), its hinge below (a child of that), and its garments as the legs see them. */
+export interface Panel { tails: T.Object3D; hem?: T.Object3D; garments: Garment[] }
 /** One side of a split coat skirt: its part above the knee, its hem, and its own lead and swing. */
 export interface Part { tails: T.Object3D; hem?: T.Object3D; st: DrapeState }
 /** How thick a seated lap may be (front to back of the cloth above the knee, when that lies along the thighs). */
@@ -181,4 +185,92 @@ export function bands(rings: { y: number; w: number; f: number; b: number; z?: n
   const ys = [...Array.from({ length: n + 1 }, (_, i) => top + (bot - top) * i / n), ...src.map(r => r.y)].sort((p, q) => q - p).filter((y, i, a) => !i || a[i - 1] - y > .005);
   for (const y of ys) out.push(bandAt(src, y)!);
   return out;
+}
+
+/** Standing and walking, a front panel is carried exactly as the rest of the long cloth: its part lies square on `tails` and its hinge copies `hem`'s. */
+export function carryPanel(p: Panel, hem: T.Object3D | undefined) {
+  p.tails.matrixAutoUpdate = true; p.tails.position.set(0, 0, 0); p.tails.rotation.set(0, 0, 0); p.tails.scale.set(1, 1, 1);
+  if (p.hem && hem) { p.hem.matrixAutoUpdate = true; p.hem.position.copy(hem.position); p.hem.rotation.copy(hem.rotation); p.hem.scale.copy(hem.scale); }
+}
+
+/** How close a seated panel lies to what it rests on (the thigh's top, the knee, the shin's front). */
+const REST = .004;
+/** How far over the knee's middle the fold is (radians round the knee from its front). */
+const FOLD = .35;
+/** How far past the knee's middle the lap's rounded end reaches, as a part of the knee's radius (it ends on the knee's upper front, where the fold takes it). */
+const LAP_END = .6;
+/** How much of the knee's radius is the allowance for long cloth swinging past it (drape's `knee` holds 2 cm): a lap lying still on the knee comes this much closer. */
+const KNEE_IN = .016;
+/** How far the rounded end of a panel's part above the knee reaches past its last band (wardrobe.ts `longShell`: a dome of .07, its last ring at sin(1.3) of that). */
+const DOME = .067;
+/** A seated panel's hem is flattened a little more than its lap: it hangs as a sheet down the shins, its sides barely turned back. */
+const HEM_K = .6;
+const PQ = new T.Quaternion(), DN = new T.Vector3(), FW = new T.Vector3(), M1 = new T.Matrix4(), M2 = new T.Matrix4(), PV = new T.Vector3(), PU = new T.Quaternion(), XA = new T.Vector3(1, 0, 0), KS = new T.Vector3();
+/** Obstacles for the hem, in the cloth's frame (the sagittal plane, with the leg's x): a point, its radius and the clearance it asks. Reused. */
+const obs: { x: number; y: number; z: number; r: number; c: number }[] = []; let no = 0;
+const ob = (x: number, y: number, z: number, r: number, c: number) => { const o = obs[no++] ??= { x: 0, y: 0, z: 0, r: 0, c: 0 }; o.x = x; o.y = y; o.z = z; o.r = r; o.c = c; };
+/** The thigh's axis and radius at height y of the cloth's frame (seated, the thigh lies along the lap, from the hip at the top to the knee), or null past it. */
+function thighAt(p: typeof L[0], y: number, d: Drape) {
+  if (y > p.h.y || y < p.k.y || p.h.y - p.k.y < .05) return null;
+  const t = (p.h.y - y) / (p.h.y - p.k.y); AT.x = p.h.x + (p.k.x - p.h.x) * t; AT.z = p.h.z + (p.k.z - p.h.z) * t; AT.r = d.thigh + (d.knee - d.thigh) * t; return AT;
+}
+/** Seated, a front panel is cloth (People XXIV). It was carried as the lap and the hem of the long cloth are: the lap's depth flattened by `tails`' scale, and the hem turned inside that
+ *  scale, which sheared it (the hinge's depth unscaled, its length cut to the lap's scale), so an apron was a board 7-13 cm over the thighs that ran on past the knees and dropped a short slab
+ *  from there, its hollow inside seen from the side. Now its part above the knee is laid along the thighs' tops (turned from their axis by their taper to the knee) and flattened only until
+ *  it rests on them and on the knees, and ends on the knee's upper front; the hinge is placed by its own matrix (the parent's scale undone, so nothing shears) at the front of that lap at the knee, and hangs plumb from there, turned forward of
+ *  plumb only as far as the knees and the shins ask: the cloth breaks over the knee and lies down the shins. An apron over a skirt is cut on the skirt's rings and is carried with it. Read in `tails`' own frame (the lap's axis along -y). */
+export function seatPanel(d: Drape, pelvis: T.Object3D, tails: T.Object3D, hem: T.Object3D | undefined, legs: T.Object3D[], knees: T.Object3D[], ankles: T.Object3D[]) {
+  const pn = d.panel; if (!pn) return;
+  // over a skirt the panel is cut on the skirt's own rings (wardrobe.ts `apron`'s `over`): it lies on the skirt's lap and hangs on its hem, carried as they are
+  if (d.garments.some(g => !g.panel)) { carryPanel(pn, hem); return; }
+  readLegs(pelvis, tails, legs, knees, ankles); PQ.copy(tails.quaternion).invert();
+  for (const p of L) for (const o of [p.h, p.k, p.a]) o.applyQuaternion(PQ);
+  // the world's down and the figure's forward, in the cloth's frame
+  pelvis.getWorldQuaternion(PU); DN.set(0, -1, 0).applyQuaternion(PU.invert()).applyQuaternion(PQ); FW.set(0, 0, 1).applyQuaternion(PQ);
+  const sx = tails.scale.x, sz = tails.scale.z;
+  // the fold: on the front of the knees, a little over their middle (the cloth comes over the knee's top and is pinned there by its own weight), in the plane of the lap's axis
+  const dl0 = Math.hypot(DN.y, DN.z) || 1, dy = DN.y / dl0, dz = DN.z / dl0, fl = FW.y * dy + FW.z * dz, fy0 = FW.y - fl * dy, fz0 = FW.z - fl * dz, fn = Math.hypot(fy0, fz0) || 1, fwy = fy0 / fn, fwz = fz0 / fn;
+  const kr = d.knee + REST, ky = (L[0].k.y + L[1].k.y) / 2, kz = (L[0].k.z + L[1].k.z) / 2, pinY = ky + (fwy * Math.cos(FOLD) - dy * Math.sin(FOLD)) * kr, pinZ = kz + (fwz * Math.cos(FOLD) - dz * Math.sin(FOLD)) * kr;
+  // the lap lies along the thighs: its axis turned about the waist from the knees' line (where `tails` points it) to the line of the thighs' tops (their slope, and their taper from the
+  // hip to the knee), so it rests on them from the hip to the knee rather than bridging from the waist
+  const ty = L[0].k.y + L[1].k.y - L[0].h.y - L[1].h.y, tz = L[0].k.z + L[1].k.z - L[0].h.z - L[1].h.z, al = T.MathUtils.clamp(Math.atan2(-tz, -ty) + Math.atan2(d.thigh - d.knee + KNEE_IN, Math.hypot(ty, tz) / 2), -.35, .35);
+  const ca = Math.cos(al), sa = Math.sin(al), turn = (o: T.Vector3, sg: number) => { const y = o.y * ca + sg * o.z * sa, z = o.z * ca - sg * o.y * sa; o.y = y; o.z = z; };
+  for (const p of L) for (const o of [p.h, p.k, p.a]) turn(o, 1); // (into the lap's frame: R_x(-al))
+  // the lap ends over the knee: the rounded end of its part (wardrobe.ts cuts it 3 cm past the hinge and closes it with a dome 6.7 cm deep, which comes down from the lap's front toward
+  // its axis, through the knee) reaches the knee's upper front, where the fold takes the cloth down
+  const fwl = fwy * ca + fwz * sa, kyl = ky * ca + kz * sa, ly = T.MathUtils.clamp((kyl + fwl * kr * LAP_END) / (d.hinge - .03 - DOME), .75, 1.25);
+  // the least depth that rests the lap on the thighs and knees (4 mm more over the thighs: their flesh rises a little over the line drawn through their radii)
+  let e = .045;
+  for (const g of pn.garments) for (const r of g.up) { const y = r.y * ly; if (r.y > -.08) continue;
+    for (const p of L) { const s = thighAt(p, y, d), x = wide(s ? s.x : p.k.x, s ? s.r : d.knee) / sx, fa = at(r, x, true); if (fa <= .01) continue;
+      if (s) e = Math.max(e, (s.z + s.r + REST + .004) / fa);
+      const dk = y - p.k.y, kn = d.knee - KNEE_IN; if (Math.abs(dk) < kn) e = Math.max(e, (p.k.z + Math.sqrt(kn * kn - dk * dk) + REST) / fa);
+    } }
+  for (const p of L) for (const o of [p.h, p.k, p.a]) turn(o, -1);
+  // its matrix: `tails`' scale undone (so nothing shears), then the turn, the lap's length and its depth
+  M2.makeRotationX(al).multiply(M1.makeScale(sx, ly, e)); pn.tails.matrixAutoUpdate = false; pn.tails.matrix.makeScale(1 / sx, 1, 1 / sz).multiply(M2); pn.tails.matrixWorldNeedsUpdate = true;
+  if (!pn.hem) return;
+  const g = pn.garments.find(q => q.lo.length); if (!g) return;
+  // the hinge: its front, on the panel's middle, at the fold
+  const lo0 = bandAt(g.lo, 0); if (!lo0) return;
+  const ey = pinY, ez = pinZ, f0 = at(lo0, 0, true), low = g.lo[g.lo.length - 1].y;
+  // what the hem must clear: each shin (sampled) and the knee
+  no = 0;
+  for (const p of L) { for (let i = 0; i <= 8; i++) { const t = i / 8; ob(p.k.x + (p.a.x - p.k.x) * t, p.k.y + (p.a.y - p.k.y) * t, p.k.z + (p.a.z - p.k.z) * t, d.knee + (d.calf - d.knee) * t, 0); } } // (the radii already hold a centimetre of trouser and boot)
+  // the hem's axis turned δ from plumb toward the front; its depth k (flattened as the lap is); how far it misses
+  const uy0 = DN.y, uz0 = DN.z, ul = Math.hypot(uy0, uz0) || 1; let k = Math.min(1, e) * HEM_K, uy = 0, uz = 0, ny = 0, nz = 0, qy = 0, qz = 0;
+  const axis = (dl: number) => { const c = Math.cos(dl), s = Math.sin(dl), by = uy0 / ul, bz = uz0 / ul, fy = bz, fz = -by; // (the front of a hem turned by R_x is (u.z, -u.y))
+    uy = by * c + fy * s; uz = bz * c + fz * s; ny = uz; nz = -uy; qy = ey - ny * k * f0; qz = ez - nz * k * f0; };
+  const miss = (dl: number) => { axis(dl); let w = -1;
+    for (let i = 0; i < no; i++) { const o = obs[i], s = (o.y - qy) * uy + (o.z - qz) * uz, hy = -s; if (hy > -.03 || hy < low) continue;
+      const b = bandAt(g.lo, hy); if (!b) continue; w = Math.max(w, (o.y - qy) * ny + (o.z - qz) * nz + o.r + o.c - k * at(b, wide(o.x, o.r), true)); }
+    return w; };
+  // plumb if it clears, otherwise the least turn toward the front that does; if none does, the hem is let out a little
+  let dl = 0;
+  for (let pass = 0; pass < 6; pass++) { if (miss(0) <= 0) { dl = 0; break; } dl = reach(x => miss(x) > 0, 0, 1.2, 12); if (miss(dl) > 0) dl = Math.min(1.2, dl + 1 / 4096); if (miss(dl) <= 0) break; k *= 1.2; }
+  axis(dl);
+  // its matrix: the parent's scale undone, then the hinge at q, turned so its length runs down u, its depth k
+  const phi = Math.atan2(-uz, -uy);
+  M1.copy(M2).invert().multiply(M2.compose(PV.set(0, qy, qz), PU.setFromAxisAngle(XA, phi), KS.set(1, 1, k)));
+  pn.hem.matrixAutoUpdate = false; pn.hem.matrix.copy(M1); pn.hem.matrixWorldNeedsUpdate = true;
 }

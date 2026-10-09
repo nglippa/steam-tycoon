@@ -64,9 +64,9 @@ export function buildFigure(look: Look, opts: FigureOpts, kit: Kit) {
   const arms: T.Group[] = [], elbows: T.Group[] = [], grips: T.Group[] = [], legs: T.Group[] = [], knees: T.Group[] = [], ankles: T.Group[] = [];
   const scarf = new T.Group(); scarf.position.set(-.035, 1.5 + LIFT, .075 + d.belly * .4); body.add(scarf);
   const tails = new T.Group(); tails.position.y = 1.08; pelvisG.add(tails);
-  const skirt = { drop: 0, depth: 0 }, hem = new T.Group(); hem.position.y = HEM_Y;
+  const skirt = { drop: 0, depth: 0 }, hem = new T.Group(); hem.position.y = HEM_Y; const panel = { tails: new T.Group(), hem: new T.Group() }; panel.hem.position.y = HEM_Y;
   const worn = new T.Group(); body.add(worn); const finery = new T.Group(); body.add(finery); finery.visible = false;
-  const cloth: Garment[] = [], halves: Half[] = [], X = { look, d, k, kit, asym, pal, rib, pel, neckR, dk, lifted, pelLift, body, group, pelvisG, tails, hem, skirt, cloth, halves, scarf, worn, finery, skin, brass, neckM, out: { arms, elbows, grips, legs, knees, ankles } };
+  const cloth: Garment[] = [], halves: Half[] = [], X = { look, d, k, kit, asym, pal, rib, pel, neckR, dk, lifted, pelLift, body, group, pelvisG, tails, hem, panel, skirt, cloth, halves, scarf, worn, finery, skin, brass, neckM, out: { arms, elbows, grips, legs, knees, ankles } };
   if (fresh) { dress(X); kit.bake(lifted); kit.bake(pelLift); }
   else {
   // ================================================================ torso
@@ -200,7 +200,9 @@ export function buildFigure(look: Look, opts: FigureOpts, kit: Kit) {
   if (!ordinance) kerchiefTails(scarf, neckM, asym.has('scarfTail'));
   kit.bake(scarf);
   if (!lab && !fresh) coatSkirt(tails, skirt, cloth, d, pel, coatM, g, closed, asym, leather, brass);
-  kit.bake(tails); if (hem.children.length) { kit.bake(hem); tails.add(hem); } // baking merges a group's children away, so the hinge joins its parent after it is baked
+  kit.bake(tails); if (hem.children.length || panel.hem.children.length) { kit.bake(hem); tails.add(hem); } // baking merges a group's children away, so the hinge joins its parent after it is baked
+  // a front panel's own part (People XXIV), on the tails' pivot: standing and walking it is carried exactly as `tails` and `hem` are (citizen-life.ts copies the hinge), seated it lies on the thighs
+  if (panel.tails.children.length || panel.hem.children.length) { kit.bake(panel.tails); if (panel.hem.children.length) { kit.bake(panel.hem); panel.tails.add(panel.hem); } tails.add(panel.tails); }
   for (const h of halves) { kit.bake(h.tails); kit.bake(h.hem); h.tails.add(h.hem); tails.add(h.tails); } // a split coat skirt's halves (People XXI), each hinged at the knee the same way, on the tails' pivot
   if (!ordinance) put0(worn, plate(lab ? shirtR : coatR, [[1.27, -.9, -.62], [1.2, -.9, -.62]], .0, .004, 3), sw('umber'));
   kit.bake(worn); kit.bake(finery);
@@ -213,8 +215,9 @@ export function buildFigure(look: Look, opts: FigureOpts, kit: Kit) {
   const legsIn = cloth.some(c => !c.panel) ? cloth.filter(c => !c.panel) : cloth, all = [...cloth, ...halves.flatMap(h => h.cloth)];
   const legR = { hinge: HEM_Y, thigh: d.thighW / 2 + .014, knee: d.kneeR + .02, calf: d.calfW / 2 + .012, lap: Math.max(...all.map(c => { const r = c.up[c.up.length - 1]; return Math.max(r.f + r.z, r.b - r.z); })) };
   const part = (h?: Half) => h && { tails: h.tails, hem: h.hem.children.length ? h.hem : undefined, st: drapeState() }, front = part(halves.find(h => h.side > 0)), back = part(halves.find(h => h.side < 0));
-  const drape: Drape | undefined = all.length ? { garments: legsIn, ...legR, ...(front && back ? { split: { garments: halves[0].cloth, front, back } } : {}) } : undefined;
-  return { group, body, pelvis: pelvisG, legs, knees, ankles, arms, elbows, grips, head, tails, hem: hem.children.length ? hem : undefined, drape, skirt, swing, scarf, worn, finery, face, faceMat };
+  const pan = panel.tails.parent ? { tails: panel.tails, hem: panel.hem.parent ? panel.hem : undefined, garments: cloth.filter(c => c.panel) } : undefined;
+  const drape: Drape | undefined = all.length ? { garments: legsIn, ...legR, ...(front && back ? { split: { garments: halves[0].cloth, front, back } } : {}), ...(pan ? { panel: pan } : {}) } : undefined;
+  return { group, body, pelvis: pelvisG, legs, knees, ankles, arms, elbows, grips, head, tails, hem: hem.parent ? hem : undefined, drape, skirt, swing, scarf, worn, finery, face, faceMat };
 }
 
 /** The coat's skirts: a shell that hangs from the waist on the PELVIS, flares past the hips to a hem wider than they are and standing off the legs, with a lining so a seated figure is not

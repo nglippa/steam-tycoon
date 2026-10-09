@@ -17,7 +17,7 @@ const LIFT = .01;
 const SIDE_LAP = .6;
 export interface X {
   look: Look; d: Dims; k: number; kit: Kit; asym: Set<string>; pal: Record<string, string>; rib: Ring[]; pel: Ring[]; neckR: Ring[]; dk: string;
-  lifted: T.Group; pelLift: T.Group; body: T.Group; group: T.Group; pelvisG: T.Group; tails: T.Group; hem: T.Group; skirt: { drop: number; depth: number }; /** the hinged garments, as the legs see them (drape.ts) */ cloth: Garment[]; /** a coat skirt cut at its side seams into a front and a back (People XXI) */ halves: Half[]; scarf: T.Group; worn: T.Group; finery: T.Group;
+  lifted: T.Group; pelLift: T.Group; body: T.Group; group: T.Group; pelvisG: T.Group; tails: T.Group; hem: T.Group; /** a front panel's own part above the knee and below it (an apron, the foundry slab: People XXIV), children of `tails` and its hinge: seated, a panel lies on the thighs and falls from the knees on its own */ panel: { tails: T.Group; hem: T.Group }; skirt: { drop: number; depth: number }; /** the hinged garments, as the legs see them (drape.ts) */ cloth: Garment[]; /** a coat skirt cut at its side seams into a front and a back (People XXI) */ halves: Half[]; scarf: T.Group; worn: T.Group; finery: T.Group;
   skin: T.Material; brass: T.Material; neckM: T.Material;
   out: { arms: T.Group[]; elbows: T.Group[]; grips: T.Group[]; legs: T.Group[]; knees: T.Group[]; ankles: T.Group[] };
 }
@@ -51,6 +51,8 @@ export function dress(x: X) {
   };
   /** where the long-cloth helpers below put what they build: the figure's own `tails` and `hem`, or a coat skirt's half (`jacket`'s `split`) */
   let into: { tails: T.Group; hem: T.Group; cloth: Garment[] } = { tails, hem, cloth: x.cloth };
+  /** builds a front panel (an apron, the foundry slab) into its own part (`panel`), so seated it can lie on the thighs and fall from the knees apart from a skirt under it (People XXIV) */
+  const asPanel = (f: () => void) => { const was = into; into = { tails: x.panel.tails, hem: x.panel.hem, cloth: x.cloth }; f(); into = was; };
   // ---- long cloth is hinged at the knee (HEM_Y): rings from the belt to a hem below the knee are cut in two, the upper half in `tails` (it overlaps the hinge by 3 cm), the lower in `hem`
   const down = (rings: Ring[]) => rings.map(r => ({ ...r, y: r.y - HEM_Y }));
   const hinged = (rings: Ring[]) => rings[rings.length - 1].y < HEM_Y - .06;
@@ -148,10 +150,10 @@ export function dress(x: X) {
   const apron = (m: T.Material, o: { hemY: number; hemW?: number; aw?: number; bib?: boolean; strapM?: T.Material; leather?: boolean; hemD?: number; over?: Ring[] }) => {
     const aw = o.aw ?? 1.0, own = offset(skirtRings(o.hemY, o.hemW ?? 2 * (d.hipX + d.thighW / 2 + .045), o.hemD ?? d.hipD + .09, 1.2, o.hemY < .6 ? 6 : 5), .014), arc = { start: -aw, arc: aw * 2 };
     const rings = o.over ? own.map(r => { const u = ringAt(o.over!, r.y); return { ...r, w: Math.max(r.w, u.w + .014), f: Math.max(r.f, u.f + (u.z ?? 0) - (r.z ?? 0) + .014) }; }) : own;
-    longShell(rings, arc, m, `apron/${o.hemY}/${o.leather}`, .008);
     const bind = o.leather ? edgeM : m, y0 = rings[0].y, y1 = rings[rings.length - 1].y;
-    for (const a of [-aw, aw]) stripe(rings, y0, y1, a * .98, .001, .007, .004, bind);
-    bandAt(rings, y1 - .004, -aw, aw, .002, .008, .004, bind);
+    asPanel(() => { longShell(rings, arc, m, `apron/${o.hemY}/${o.leather}`, .008);
+      for (const a of [-aw, aw]) stripe(rings, y0, y1, a * .98, .001, .007, .004, bind);
+      bandAt(rings, y1 - .004, -aw, aw, .002, .008, .004, bind); });
     skirt.drop = Math.max(skirt.drop, Math.min(.5, 1.07 - o.hemY)); /* an apron is a front panel the legs push, not a bell: it opens less than its length says */ skirt.depth = Math.max(skirt.depth, (rings[rings.length - 1].f + rings[rings.length - 1].b) * .5 + .02);
     // the waist band, round to the back, tied in a bow with two tails (the asymmetry: the tails hang from one side)
     const wr = offset(rib, .016).filter(r => r.y < 1.15), band = [1.1, 1.14].map(y => ringAt(offset(rib, .028), y));
@@ -384,9 +386,9 @@ export function dress(x: X) {
     const sh = c(I('shirt')), trou = wool(I('trousers')), apM = lea(I('apron')), strap = leatherDM, gaunt = lea(shade(LEATHER, .85));
     shirt(sh, { off: .008, placket: true, collar: true });
     const rings = offset(skirtRings(.3, .5, .52, 1.1, 7), .016), arc = { start: -.85, arc: 1.7 };
-    longShell(rings, arc, apM, 'slab', .01);
-    for (const a of [-.85, .85]) stripe(rings, rings[0].y, rings[rings.length - 1].y, a * .98, .001, .008, .004, edgeM);
-    bandAt(rings, rings[rings.length - 1].y, -.85, .85, .002, .008, .004, edgeM); skirt.drop = .38; skirt.depth = .31;
+    asPanel(() => { longShell(rings, arc, apM, 'slab', .01);
+      for (const a of [-.85, .85]) stripe(rings, rings[0].y, rings[rings.length - 1].y, a * .98, .001, .008, .004, edgeM);
+      bandAt(rings, rings[rings.length - 1].y, -.85, .85, .002, .008, .004, edgeM); }); skirt.drop = .38; skirt.depth = .31;
     const bibR = offset(rib, .02); put0(lifted, plate(bibR, [[1.42, -.32, .32], [1.34, -.5, .5], [1.2, -.62, .62], [1.1, -.66, .66]], .0, .006, 6), apM);
     bibStraps(s => surface(bibR, 1.42, s * .28, .008).p, .012, edgeM); void strap; // in the binding's lighter leather, so they read across a dark shirt
     put0(lifted, loft([1.08, 1.13].map(y => ringAt(offset(rib, .028), Math.min(y, 1.1))), { seg: 10, lipStart: .003, lipEnd: .003, key: key('slabbelt') }), strap); for (const s of [-1, 1]) button(lifted, surface(offset(rib, .03), 1.11, s * .14, .004), steel, .008);

@@ -836,6 +836,8 @@ flattened back to .19); the hem's top is cut narrow inside the upper part, so it
 neither of its edges falls back behind the forward leg: seen from the side its hem is in front of or on the forward thigh and shin, and no leg is drawn over it. It may swing and lift with the
 knee. Long skirts and coats still trail.
 
+**Rule: a seated apron lies on the lap (People XXIV).** Seated, an apron or the foundry slab worn over trousers is its own part (`drape.ts` `seatPanel`): its lap lies along the thighs' tops, within 3 cm of the thighs and knees, and ends on the knee; its hem falls from a fold over the knee down the shins, never more than 3 cm ahead of them. It is never a board over the lap or past the knees. An apron over a skirt is carried with the skirt, and standing or walking every apron is carried with the long cloth.
+
 **Rule: cloth has weight (People XIX).** The hem trails the upper part on a softer, underdamped spring: it lags, swings past and settles, and it bends at the knee, sideways too. It never turns
 with the lap as one board.
 

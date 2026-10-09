@@ -106,3 +106,37 @@ export function seatedThrough(combo: string, seed: number, activity: 'sit' | 'ea
           if (back) calf = Math.max(calf, h.distance); else if (h.distance > seen) { seen = h.distance; where = `${grp === n.legs[k] ? 'thigh' : 'shin'} ${k}, frame ${f}`; } } } } }
   return { seen, calf, where };
 }
+
+/** How far a seated front panel (an apron, the foundry slab) stands off the legs it lies on (People XXIV). `activity` 'sit' or 'eat' for 4 s after a 1.5 s warm-up, every 12th frame, in the
+ *  figure's own upright frame (y up, z its forward), seen from the side: the legs' side silhouette is their thigh and shin surfaces (the feet left out), sampled over every triangle onto a
+ *  1 cm grid of height and depth, and every vertex of the panel is met by its distance in that plane to the nearest of it: cloth lying on a thigh, over a knee or down a shin is within a
+ *  centimetre or two of it, a board held over the lap or out past the knees is not. Cloth near the waist (within 15 cm ahead of the hip joints, where it comes down into the lap) is left
+ *  out, and so is cloth hanging below the knee no further forward than the knee's front (gravity's own place for it). Returns the farthest (m), whether it is above or ahead of the leg
+ *  nearest it, and where. (Before People XXIV the panel was built into `tails` and `hem` with the rest of the long cloth: there, all of that is measured.) With `over`, the long cloth the
+ *  panel lies on (a skirt: the rest of `tails`) is part of the silhouette too, so an apron is measured against the skirt it covers. */
+export function seatedPanel(combo: string, seed: number, activity: 'sit' | 'eat', over = false) {
+  const n = make(combo, seed), player = new T.Vector3(0, 1.7, 25), V = new T.Vector3(), inv = new T.Matrix4(), P: T.Mesh[] = [], Lg: T.Mesh[] = [], hip = new T.Vector3(), kn = new T.Vector3();
+  const a = new T.Vector3(), b = new T.Vector3(), c = new T.Vector3();
+  const panel = n.drape?.panel; (panel ? panel.tails : n.tails).traverse(o => { if (o instanceof T.Mesh) P.push(o); });
+  for (let k = 0; k < 2; k++) for (const g of [n.legs[k], n.knees[k]]) for (const o of g.children) if (o instanceof T.Mesh) Lg.push(o);
+  if (over && panel) n.tails.traverse(o => { if (o instanceof T.Mesh && !P.includes(o)) Lg.push(o); });
+  let worst = -1, what = '', where = '';
+  for (let f = 0; f < 60 * 5.5; f++) { animate(n, activity, 1 / 60, f / 60, player); if (f < 90 || f % 12) continue; n.group.updateMatrixWorld(true); inv.copy(n.group.matrixWorld).invert();
+    // the legs' side silhouette on a 1 cm grid (the group's own scale is the stature: these are the figure's metres)
+    const grid = new Set<number>(), key = (y: number, z: number) => Math.round(y * 100) * 10000 + Math.round(z * 100);
+    for (const m of Lg) { const pa = m.geometry.attributes.position, ix = m.geometry.index, nt = (ix ? ix.count : pa.count) / 3, vi = (t: number) => ix ? ix.getX(t) : t;
+      const w = (v: T.Vector3, i: number) => v.fromBufferAttribute(pa, vi(i)).applyMatrix4(m.matrixWorld).applyMatrix4(inv);
+      for (let t = 0; t < nt; t++) { w(a, 3 * t); w(b, 3 * t + 1); w(c, 3 * t + 2); const steps = Math.max(1, Math.ceil(Math.max(a.distanceTo(b), b.distanceTo(c), c.distanceTo(a)) / .008));
+        for (let i = 0; i <= steps; i++) for (let j = 0; i + j <= steps; j++) { const u = i / steps, v = j / steps; grid.add(key(a.y + (b.y - a.y) * u + (c.y - a.y) * v, a.z + (b.z - a.z) * u + (c.z - a.z) * v)); } } }
+    let hipZ = -9, kneeY = 9, kneeZ = -9;
+    for (let k = 0; k < 2; k++) { hipZ = Math.max(hipZ, n.group.worldToLocal(n.legs[k].getWorldPosition(hip)).z); n.group.worldToLocal(n.knees[k].getWorldPosition(kn)); kneeY = Math.min(kneeY, kn.y); }
+    for (let y = Math.round(kneeY * 100) - 2; y <= Math.round(kneeY * 100) + 2; y++) for (let z = 200; z > -50; z--) if (grid.has(y * 10000 + z)) { kneeZ = Math.max(kneeZ, z / 100); break; }
+    for (const m of P) { const pa = m.geometry.attributes.position; for (let j = 0; j < pa.count; j++) { V.fromBufferAttribute(pa, j).applyMatrix4(m.matrixWorld).applyMatrix4(inv);
+      if (V.z < hipZ + .15) continue; if (V.y < kneeY && V.z <= kneeZ + .03) continue;
+      // the nearest cell of the silhouette, out to 12 cm
+      const y0 = Math.round(V.y * 100), z0 = Math.round(V.z * 100); let best = 13, by = 0, bz = 0;
+      for (let dy = -12; dy <= 12; dy++) for (let dz = -12; dz <= 12; dz++) { const d = Math.hypot(dy, dz); if (d < best && grid.has((y0 + dy) * 10000 + z0 + dz)) { best = d; by = dy; bz = dz; } }
+      const dist = best / 100;
+      if (dist > worst) { worst = dist; what = best > 12 ? 'over 12 cm off the legs' : -by > -bz ? 'above the legs' : 'ahead of the legs'; where = `(${V.x.toFixed(2)}, ${V.y.toFixed(2)}, ${V.z.toFixed(2)}), frame ${f}`; } } } }
+  return { worst, what, where, panel: !!panel };
+}

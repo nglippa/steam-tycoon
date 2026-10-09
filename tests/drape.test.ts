@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import * as T from 'three';
 import { animateLife } from '../src/world/citizen-life.ts';
-import { make, through, panelSide, useLife, REPS } from './people-rig.ts';
+import { make, through, panelSide, seatedPanel, useLife, REPS } from './people-rig.ts';
 
 useLife((n, a, dt, t, p) => animateLife(n, a, dt, t, false, p));
 
@@ -108,5 +108,29 @@ test('a seated knee never pierces the lap: no knee or leg shows through long clo
     const r = seatedThrough(combo, seed, a, mug);
     assert.ok(r.seen < .002, `${combo} s${seed} ${mug ? 'with a mug' : a}: a leg shows ${(r.seen * 100).toFixed(1)} cm through the cloth (${r.where})`);
     assert.ok(r.calf < .03, `${combo} s${seed} ${mug ? 'with a mug' : a}: the back of the calf shows ${(r.calf * 100).toFixed(1)} cm through the hem`);
+  }
+});
+
+test('a seated apron lies on the lap and falls from the knee: within 3 cm of the thighs and knees it covers, never more than 3 cm ahead of the knees and shins, and carried with the long cloth otherwise', () => {
+  // People XXIV: an apron or the foundry slab was carried seated as the lap and the hem of the long cloth are, flattened by `tails`' scale and its hem sheared in it: a board over the thighs
+  // that ran on past the knees, its far edge more than 12 cm off the legs (the older mechanic's read as a hollow frame). Now it is its own part, laid along the thighs' tops and hung from a fold over the knee down the shins
+  // (drape.ts `seatPanel`). Measured from the side against the legs' silhouette (people-rig.ts `seatedPanel`, on a 1 cm grid).
+  const bare: [string, number][] = [['olderMechanic.sturdy.broad', 5], ['foundry.sturdy.broad', 7], ['shopMerchant.standard.broad', 9],
+    ['olderMechanic.sturdy.broad:olderMechanic.apron', 5], ['olderMechanic.standard.narrow:olderMechanic.apron', 2]];
+  for (const [combo, seed] of bare) for (const a of ['sit', 'eat'] as const) {
+    const r = seatedPanel(combo, seed, a);
+    assert.ok(r.panel, `${combo} s${seed}: the apron is not built as its own part`);
+    assert.ok(r.worst <= .03, `${combo} s${seed} ${a}: the apron stands ${(r.worst * 100).toFixed(1)} cm ${r.what} at ${r.where}`);
+  }
+  // standing and walking, and seated over a skirt (cut on the skirt's rings, wardrobe.ts `apron`'s `over`), it is carried exactly as the long cloth: its part on `tails`, its hinge on `hem`
+  const W = new T.Matrix4(), player = new T.Vector3(0, 1.7, 25);
+  for (const [combo, seed, a] of [...bare.slice(0, 3).map(([c, s]) => [c, s, 'walk'] as const), ['stallholder.standard.narrow', 8, 'sit'], ['stallholder.sturdy.broad:stallholder.apron', 3, 'eat'], ['rowSkirt.slim.narrow', 1, 'sit']] as const) {
+    const n = make(combo, seed), pn = n.drape!.panel!; assert.ok(pn && pn.hem && n.hem, `${combo}: no apron part or hinge`);
+    for (let f = 0; f < 150; f++) { animateLife(n, a, 1 / 60, f / 60, false, player); if (a === 'walk') n.group.position.z += 1 / 60; }
+    n.group.updateMatrixWorld(true);
+    for (const [part, like] of [[pn.tails, n.tails], [pn.hem!, n.hem!]] as const) {
+      W.copy(like.matrixWorld); const e = part.matrixWorld.elements.reduce((m, v, i) => Math.max(m, Math.abs(v - W.elements[i])), 0);
+      assert.ok(e < 1e-6, `${combo} s${seed} ${a}: the apron's ${part === pn.tails ? 'part' : 'hinge'} is not carried with the long cloth (off by ${e.toExponential(1)})`);
+    }
   }
 });
