@@ -1,0 +1,18 @@
+{
+  "perf-old": [
+    {
+      "page": "game people=old (perf)",
+      "url": "http://127.0.0.1:5199/?dev=1&intro=0&view=street&people=old&weather=clear&level=2",
+      "messages": [],
+      "loadMs": 2492
+    }
+  ],
+  "perf-new": [
+    {
+      "page": "game people=new (perf)",
+      "url": "http://127.0.0.1:5199/?dev=1&intro=0&view=street&people=new&weather=clear&level=2",
+      "messages": [],
+      "loadMs": 2686
+    }
+  ]
+}
