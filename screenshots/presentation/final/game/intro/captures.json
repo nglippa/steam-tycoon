@@ -1,0 +1,101 @@
+{
+  "intro-new": {
+    "steps": [
+      {
+        "at": "start",
+        "beat": "black",
+        "locked": true
+      },
+      {
+        "at": "after the knocks",
+        "beat": "room"
+      },
+      {
+        "at": "door answered",
+        "beat": "guards"
+      },
+      {
+        "at": "guards gone",
+        "beat": "walk"
+      },
+      {
+        "at": "at the porch",
+        "beat": "porch"
+      },
+      {
+        "at": "farewell",
+        "beat": "after"
+      }
+    ],
+    "shots": [
+      {
+        "name": "intro-1-door-guards.png",
+        "note": "the intro: the door answered, the two Ordinance men at it (their first line on the card)",
+        "people": "new",
+        "drawCalls": 557,
+        "triangles": 789889,
+        "pixelRatio": 1,
+        "weather": "clear",
+        "clockHour": 6.33,
+        "camera": [
+          -2.8,
+          10.2,
+          5.55,
+          1.463,
+          -0.03
+        ]
+      },
+      {
+        "name": "intro-2-stranger-porch.png",
+        "note": "the intro: the masked stranger seated on the stoop, the porch line on the card",
+        "people": "new",
+        "drawCalls": 592,
+        "triangles": 903675,
+        "pixelRatio": 1,
+        "weather": "clear",
+        "clockHour": 6.33,
+        "camera": [
+          -18.8,
+          1.93,
+          -3.1,
+          -1.501,
+          -0.286
+        ]
+      },
+      {
+        "name": "intro-2b-stranger-porch-nocard.png",
+        "note": "the same moment with the dialogue card hidden for the figure",
+        "people": "new",
+        "drawCalls": 593,
+        "triangles": 904011,
+        "pixelRatio": 1,
+        "weather": "clear",
+        "clockHour": 6.33,
+        "camera": [
+          -18.8,
+          1.93,
+          -3.1,
+          -1.501,
+          -0.286
+        ]
+      },
+      {
+        "name": "intro-3-stranger-leaves.png",
+        "note": "the intro: the stranger up from the stoop, going to chalk the doorpost",
+        "people": "new",
+        "drawCalls": 595,
+        "triangles": 904229,
+        "pixelRatio": 1,
+        "weather": "clear",
+        "clockHour": 6.34,
+        "camera": [
+          -18.8,
+          1.93,
+          -3.1,
+          -1.501,
+          -0.286
+        ]
+      }
+    ]
+  }
+}

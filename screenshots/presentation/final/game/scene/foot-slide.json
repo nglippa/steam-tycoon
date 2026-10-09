@@ -1,0 +1,37 @@
+{
+  "game": {
+    "method": "walking street people within 25 m of the Great Main camera, ankle pivot world position each frame for 4 s; planted = ankle within 1.5 cm of its lowest; drift = max horizontal travel of the ankle pivot during one stance (the crowd batch drops the source geometry, so the lowest vertex is not available in game)",
+    "walkers": [
+      {
+        "npc": 17,
+        "speed": 0.39,
+        "frames": 241,
+        "ankleDriftPerStanceCm": [
+          [
+            5.7,
+            7.9
+          ],
+          [
+            3.5,
+            6.2
+          ]
+        ]
+      },
+      {
+        "npc": 21,
+        "speed": 0.41,
+        "frames": 241,
+        "ankleDriftPerStanceCm": [
+          [
+            3.3,
+            6
+          ],
+          [
+            5.2,
+            5.2
+          ]
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "game-new": [
+    {
+      "page": "game people=new (captures)",
+      "url": "http://127.0.0.1:5199/?dev=1&intro=0&view=street&people=new&weather=clear&level=2",
+      "messages": [],
+      "loadMs": 2576
+    },
+    {
+      "page": "game people=new site=3 (captures)",
+      "url": "http://127.0.0.1:5199/?dev=1&intro=0&view=street&people=new&weather=clear&level=2&site=3",
+      "messages": [],
+      "loadMs": 2504
+    },
+    {
+      "page": "game people=new site=5 (captures)",
+      "url": "http://127.0.0.1:5199/?dev=1&intro=0&view=street&people=new&weather=clear&level=2&site=5",
+      "messages": [],
+      "loadMs": 2524
+    }
+  ]
+}

@@ -158,13 +158,18 @@ if (part === 'game') {
   const sq = []; for (let x = -5; x <= 5; x += 1) for (let z = -10; z >= -24; z -= 2) for (const yaw of [0, -.3, .3]) sq.push([x, z, yaw]);
   const productTest = async (tag, weathers) => {
     const best = (await search(page, sq, 2.5, 12, .6, 2.5))[0];
-    for (const w of weathers) { await place(page, [...best.cam, undefined, .06], w); if (w !== 'clear') await settle(page, 1500);
-      await shot(page, `product-test-${tag}${w}`, `Final product test (${tag || 'default state '}${w}): Market Square, the placement with the most people 2.5-12 m away in view, facing north: the HUD, the stalls and the Clock Tower beyond`, { inView12m: (await search(page, [best.cam], 2.5, 12, .6))[0], inView9m: (await search(page, [best.cam], 2.5, 9, .6))[0], ward: await page.evaluate(() => [...document.querySelectorAll('#clock, #weather, #ward, #curfew')].map(e => e.textContent.trim()).join(' · ')) }); } };
+    for (const w of weathers) { const night = w === 'night'; await place(page, [...best.cam, undefined, .06], night ? 'clear' : w);
+      if (night) await page.evaluate(() => { window.__TERRA__.economy.state.day = 23 / 24; }); if (w !== 'clear') await settle(page, 1500);
+      await shot(page, `product-test-${tag}${w}`, `Final product test (${tag || 'default state '}${night ? 'clear, 23:00' : w + ', noon'}): Market Square, the placement with the most people 2.5-12 m away in view, facing north: the HUD, the stalls and the Clock Tower beyond`, { inView12m: (await search(page, [best.cam], 2.5, 12, .6))[0], inView9m: (await search(page, [best.cam], 2.5, 9, .6))[0], inFrame20m: (await search(page, [best.cam], 1.5, 20, await page.evaluate(() => { const c = window.__TERRA__.camera; return Math.atan(Math.tan(c.fov * Math.PI / 360) * c.aspect); })))[0], ward: await page.evaluate(() => [...document.querySelectorAll('#clock, #weather, #ward, #curfew')].map(e => e.textContent.trim()).join(' · ')) });
+      // QA V-b: the same frame with the HUD hidden (`-world`), as tools/game-captures.mjs --sets=product shoots it.
+      await page.evaluate(() => { for (const s of ['#hud', '#hud-bottom', '#crosshair', '#marker']) { const e = document.querySelector(s); if (e) e.style.visibility = 'hidden'; } });
+      await shot(page, `product-test-${tag}${w}-world`, `the same frame with the HUD hidden`);
+      await page.evaluate(() => { for (const s of ['#hud', '#hud-bottom', '#crosshair', '#marker']) { const e = document.querySelector(s); if (e) e.style.visibility = ''; } }); } };
   // A closer Market Square sample: the placement (any heading) with the most people 2-7 m away in view and no one nearer than 2 m in front.
   const sq2 = []; for (let x = -6; x <= 6; x += 1) for (let z = -12; z >= -40; z -= 1) for (const yaw of [0, Math.PI / 2, Math.PI, -Math.PI / 2, .5, -.5, Math.PI - .5, Math.PI + .5]) sq2.push([x, z, yaw]);
   const closeSample = async name => { const best = (await search(page, sq2, 2, 7, .55, 2))[0]; await place(page, [...best.cam, undefined, 0], 'clear');
     await shot(page, name, 'Market Square: the placement with the most people 2-7 m away in view (any heading, no one within 2 m in front)', { inView: (await search(page, [best.cam], 2, 7, .55))[0] }); };
-  await productTest('', ['clear', 'rain', 'fog']);
+  await productTest('', ['clear', 'rain', 'fog', 'night']);
   await closeSample('market-square-close');
   // The busy street: the Great Main placement with the most people 3-30 m away in view.
   const st = []; for (let x = -4; x <= 4; x += 2) for (let z = 10; z <= 74; z += 3) for (const yaw of [0, Math.PI]) st.push([x, z, yaw]);
@@ -205,7 +210,7 @@ if (part === 'game') {
   merge('foot-slide.json', 'game', { method: 'walking street people within 25 m of the Great Main camera, ankle pivot world position each frame for 4 s; planted = ankle within 1.5 cm of its lowest; drift = max horizontal travel of the ankle pivot during one stance (the crowd batch drops the source geometry, so the lowest vertex is not available in game)', walkers: gameSlide });
   // The same square further along the market's story (?site=N: the market site's level, which lowers its occupation): a busier square.
   for (const s of [3, 5]) { await page.goto('about:blank'); await page.close(); ({ page } = await openGame(`game people=${people} site=${s} (captures)`, `site=${s}`)); await settle(page, 1500);
-    await productTest(`site${s}-`, ['clear']); await closeSample(`market-square-site${s}-close`); }
+    await productTest(`site${s}-`, ['clear', 'rain', 'fog', 'night']); await closeSample(`market-square-site${s}-close`); }
   merge('captures.json', `game-${people}`, records);
   merge('console.json', `game-${people}`, log);
   await page.goto('about:blank'); await page.close();
