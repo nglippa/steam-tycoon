@@ -5,6 +5,9 @@ import type { Dims } from './body';
 export type Pt = [number, number, number];
 export const put0 = (g: T.Object3D, geo: T.BufferGeometry, mat: T.Material, p?: Pt, r?: Pt) => { const m = new T.Mesh(geo, mat); if (p) m.position.set(...p); if (r) m.rotation.set(...r); g.add(m); return m; };
 
+/** The food a seated eater holds (presentation.ts `eat`, the cast sheet's bite): an ellipsoid of these half-sizes at this point in the grip's frame. */
+export const FOOD = { at: [.009, 0, .05] as Pt, size: [.05, .045, .07] as Pt };
+
 /** A relaxed hand (Book 5): a palm wedge thick at the heel and broad at the knuckles, two finger masses (the index, and the other three) in a loose C, a two-segment thumb turned out of
  *  the palm's plane, a wrist narrower than the palm. As long as the face. Built with the medial side at +x and mirrored for the other arm; origin at the wrist, the arm along -y.
  *  The grip socket (-side * .028, -.312 from the elbow) sits inside the curl: held things keep their handle along z through it. */

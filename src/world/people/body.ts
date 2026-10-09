@@ -14,27 +14,29 @@ export interface Dims {
   armW: number; elbowR: number; foreW: number; wristW: number;
   hipX: number; hipR: number; thighW: number; kneeR: number; calfW: number; calfBack: number; ankleW: number;
   hand: number; shoe: number; shoeW: number;
+  /** the torso's profile (Book 5, Torso): how far the shoulder blades stand behind the back line, how far the small of the back and the waist's front draw in, how far the seat stands
+   *  out behind and the chest forward (a narrow frame carries a fuller chest and seat, a sturdy one less waist to draw in) */ blade: number; lumbar: number; seat: number; chestF: number;
 }
 
 const slim: Dims = { h: .275, chin: 1.575, shX: .203, rSh: .047, chestW: .30, waistW: .26, hipW: .32, chestD: .20, waistD: .165, hipD: .18, belly: 0, slope: .06, neckW: .098, neckD: .09, neckLean: .27, headFwd: .012,
-  armW: .075, elbowR: .034, foreW: .068, wristW: .045, hipX: .084, hipR: .064, thighW: .125, kneeR: .048, calfW: .095, calfBack: .014, ankleW: .06, hand: .185, shoe: .27, shoeW: .088 };
+  armW: .075, elbowR: .034, foreW: .068, wristW: .045, hipX: .084, hipR: .064, thighW: .125, kneeR: .048, calfW: .095, calfBack: .014, ankleW: .06, hand: .185, shoe: .27, shoeW: .088 , blade: .02, lumbar: .016, seat: .022, chestF: .008 };
 const standard: Dims = { h: .285, chin: 1.60, shX: .233, rSh: .052, chestW: .335, waistW: .30, hipW: .36, chestD: .23, waistD: .19, hipD: .2, belly: 0, slope: .05, neckW: .108, neckD: .1, neckLean: .22, headFwd: .004,
-  armW: .09, elbowR: .038, foreW: .08, wristW: .05, hipX: .09, hipR: .07, thighW: .145, kneeR: .054, calfW: .108, calfBack: .016, ankleW: .066, hand: .19, shoe: .285, shoeW: .094 };
+  armW: .09, elbowR: .038, foreW: .08, wristW: .05, hipX: .09, hipR: .07, thighW: .145, kneeR: .054, calfW: .108, calfBack: .016, ankleW: .066, hand: .19, shoe: .285, shoeW: .094 , blade: .024, lumbar: .018, seat: .026, chestF: .01 };
 const sturdy: Dims = { h: .295, chin: 1.616, shX: .258, rSh: .062, chestW: .38, waistW: .37, hipW: .40, chestD: .27, waistD: .245, hipD: .235, belly: .035, slope: .037, neckW: .128, neckD: .118, neckLean: .13, headFwd: -.004,
-  armW: .11, elbowR: .045, foreW: .098, wristW: .058, hipX: .096, hipR: .082, thighW: .17, kneeR: .062, calfW: .125, calfBack: .02, ankleW: .075, hand: .2, shoe: .3, shoeW: .1 };
+  armW: .11, elbowR: .045, foreW: .098, wristW: .058, hipX: .096, hipR: .082, thighW: .17, kneeR: .062, calfW: .125, calfBack: .02, ankleW: .075, hand: .2, shoe: .3, shoeW: .1 , blade: .024, lumbar: .01, seat: .022, chestF: .006 };
 
 /** The child (Book 3): its own authored family at about 5.5 heads, not a scaled adult. On the adult rig (joints are not moved) the head is larger, the neck short, the shoulders, chest and limbs narrow,
  *  the belly a little forward, the hands and feet small. The crown stands at 1.885 on the rig, an adult's height; the figure builder then scales the whole child by `CHILD_SCALE` (with its stature),
  *  which is what makes it a child's size: the crown at about 1.36 m, at an adult's chest to shoulder. Spawn sites never scale a child of the new builder. */
 export const CHILD_SCALE = .72;
 const child: Dims = { h: .335, chin: 1.55, shX: .165, rSh: .04, chestW: .25, waistW: .245, hipW: .27, chestD: .175, waistD: .165, hipD: .17, belly: .02, slope: .07, neckW: .092, neckD: .085, neckLean: .12, headFwd: .01,
-  armW: .062, elbowR: .028, foreW: .056, wristW: .037, hipX: .07, hipR: .052, thighW: .108, kneeR: .04, calfW: .08, calfBack: .01, ankleW: .05, hand: .15, shoe: .22, shoeW: .075 };
+  armW: .062, elbowR: .028, foreW: .056, wristW: .037, hipX: .07, hipR: .052, thighW: .108, kneeR: .04, calfW: .08, calfBack: .01, ankleW: .05, hand: .15, shoe: .22, shoeW: .075 , blade: .018, lumbar: .01, seat: .018, chestF: 0 };
 
 /** The narrow frame: shoulders and hips about equal, a higher and smaller waist, a slimmer neck and wrist. Only what differs from the broad record. */
 const NARROW: Record<Family, Partial<Dims>> = {
-  slim: { shX: .178, chestW: .27, waistW: .23, hipW: .34, chestD: .19, neckW: .084, wristW: .042, hipD: .2 },
-  standard: { shX: .198, chestW: .30, waistW: .27, hipW: .38, chestD: .22, neckW: .094, wristW: .046, hipD: .225 },
-  sturdy: { shX: .218, chestW: .34, waistW: .33, hipW: .43, chestD: .255, neckW: .114, wristW: .054, hipD: .265 },
+  slim: { blade: .017, seat: .034, chestF: .016, shX: .178, chestW: .27, waistW: .23, hipW: .34, chestD: .19, neckW: .084, wristW: .042, hipD: .2 },
+  standard: { blade: .02, seat: .038, chestF: .019, shX: .198, chestW: .30, waistW: .27, hipW: .38, chestD: .22, neckW: .094, wristW: .046, hipD: .225 },
+  sturdy: { blade: .025, seat: .032, chestF: .015, shX: .218, chestW: .34, waistW: .33, hipW: .43, chestD: .255, neckW: .114, wristW: .054, hipD: .265 },
 };
 export const dimsOf = (family: LookFamily, frame: Frame): Dims => family === 'child' ? child : ({ ...{ slim, standard, sturdy }[family], ...(frame === 'narrow' ? NARROW[family] : {}) });
 
@@ -43,28 +45,31 @@ export const RIG = { hip: .97, knee: .54, ankle: .045, shoulder: 1.43, elbow: 1.
 
 export const ring = (y: number, W: number, D: number, zc = 0, n = 2.2, x = 0): Ring => ({ y, w: W / 2, f: D / 2, b: D / 2, z: zc, x, n });
 
-/** Ribcage and shoulder girdle, from the waist overlap to the base of the neck. Egg-shaped, widest at the chest line, tilted back; the girdle above it is thin front to back. */
-export function ribcage(d: Dims): Ring[] { return [
-  ring(1.04, d.waistW + .004, d.waistD + d.belly * .8, -.004 + d.belly * .35, 2.2),
-  ring(1.10, d.waistW, d.waistD + d.belly, -.002 + d.belly * .4, 2.2),
-  ring(1.20, (d.waistW + d.chestW) / 2 + .004, (d.waistD + d.chestD) / 2 + d.belly * .35, .004 + d.belly * .15, 2.3),
-  ring(1.30, d.chestW - .004, d.chestD - .006, .01, 2.45),
-  ring(1.36, d.chestW, d.chestD, .012, 2.5),
-  ring(1.42, d.chestW - .004, d.chestD - .02, .006, 2.4),
-  // the shoulder girdle: the trapezius runs from the neck out to the point of the shoulder, thin in depth
-  ring(1.535 - d.slope, (d.shX - .008) * 2, d.chestD * .5, -.002, 2.1),
-  ring(1.535 - d.slope * .5, d.shX * 1.2, d.chestD * .47, -.004, 2.1),
+/** Ribcage and shoulder girdle, from the waist overlap to the base of the neck. Egg-shaped, widest at the chest line, tilted back; the girdle above it is thin front to back.
+ *  In profile the torso is an S (Book 5): the chest stands forward of the waist and the shoulder blades behind it, the waist draws in front and back (the small of the back), so the
+ *  outline curves from the collar to the hip rather than running straight. The amounts are the family's and frame's (`blade`, `lumbar`, `chestF`); widths are untouched. */
+export function ribcage(d: Dims): Ring[] { const B = d.blade, L = d.lumbar, C = d.chestF, r = (y: number, W: number, D: number, zc: number, n: number, f: number, b: number): Ring => { const q = ring(y, W, D, zc, n); return { ...q, f: q.f + f, b: q.b + b }; }; return [
+  r(1.04, d.waistW + .004, d.waistD + d.belly * .8, -.004 + d.belly * .35, 2.2, -L * .2, -L * .7),
+  r(1.10, d.waistW, d.waistD + d.belly, -.002 + d.belly * .4, 2.2, -L * .45, -L),
+  r(1.20, (d.waistW + d.chestW) / 2 + .004, (d.waistD + d.chestD) / 2 + d.belly * .35, .004 + d.belly * .15, 2.3, C * .4, B * .3 - L * .35),
+  r(1.30, d.chestW - .004, d.chestD - .006, .01, 2.45, C, B * .9),
+  r(1.36, d.chestW, d.chestD, .012, 2.5, C * .8, B),
+  r(1.42, d.chestW - .004, d.chestD - .02, .006, 2.4, C * .2, B * .75),
+  // the shoulder girdle: the trapezius runs from the neck out to the point of the shoulder, thin in depth, rounding over the top of the shoulder blades behind
+  r(1.535 - d.slope, (d.shX - .008) * 2, d.chestD * .5, -.002, 2.1, 0, B * .55),
+  r(1.535 - d.slope * .5, d.shX * 1.2, d.chestD * .47, -.004, 2.1, 0, B * .3),
   ring(1.535 - d.slope * .18, d.neckW * 1.9, d.neckD * 1.05, -.004, 2.1),
   ring(1.538, d.neckW * 1.15, d.neckD * .92, -.002, 2.1),
 ]; }
 
-/** The pelvis: a bucket, tilted forward, widest at the hip joints, set back into a seat, closing under into the crotch. */
-export function pelvis(d: Dims): Ring[] { return [
-  ring(1.13, d.waistW + .006, d.waistD + d.belly * .9, -.002 + d.belly * .4, 2.2),
-  ring(1.06, Math.max((d.waistW + d.hipW) / 2, d.waistW + .006), Math.max((d.waistD + d.hipD) / 2 + d.belly * .6, d.waistD + d.belly * .85 + .006), -.004 + d.belly * .35, 2.2),
-  ring(.99, d.hipW, d.hipD + d.belly * .35, -.01, 2.25),
-  ring(.93, d.hipW - .004, d.hipD + .004, -.011, 2.25),
-  ring(.88, d.hipW * .86, d.hipD * .94, -.008, 2.2),
+/** The pelvis: a bucket, tilted forward, widest at the hip joints, set back into a seat, closing under into the crotch. In profile the small of the back draws in above the seat, which
+ *  stands out behind (`seat`), and the low belly rounds a little forward of the waist before the front turns under. */
+export function pelvis(d: Dims): Ring[] { const L = d.lumbar, S = d.seat, r = (y: number, W: number, D: number, zc: number, n: number, f: number, b: number): Ring => { const q = ring(y, W, D, zc, n); return { ...q, f: q.f + f, b: q.b + b }; }; return [
+  r(1.13, d.waistW + .006, d.waistD + d.belly * .9, -.002 + d.belly * .4, 2.2, -L * .45, -L),
+  r(1.06, Math.max((d.waistW + d.hipW) / 2, d.waistW + .006), Math.max((d.waistD + d.hipD) / 2 + d.belly * .6, d.waistD + d.belly * .85 + .006), -.004 + d.belly * .35, 2.2, L * .15, -L * .3 + S * .2),
+  r(.99, d.hipW, d.hipD + d.belly * .35, -.01, 2.25, L * .1, S * .8),
+  r(.93, d.hipW - .004, d.hipD + .004, -.011, 2.25, -L * .1, S),
+  r(.88, d.hipW * .86, d.hipD * .94, -.008, 2.2, -L * .2, S * .6),
   ring(.85, d.hipW * .56, d.hipD * .72, -.008, 2.2),
 ]; }
 

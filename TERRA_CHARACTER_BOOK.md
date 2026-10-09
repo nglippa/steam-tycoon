@@ -243,6 +243,8 @@ Two masses with their own transforms, joined at the waist.
   every stride, so the two overlap by at least 6 cm and the outer garment covers the overlap.
 - From the side the torso is an S: chest forward, small of the back in, seat back.
 
+**Rule: the torso is an S in profile (People XXVI).** The body reference carries the S, so every shirt, waistcoat, coat and belt cut from it carries it too: the shoulder blades stand 2 to 2.5 cm behind the small of the back, the small of the back and the waist's front draw in 1 to 1.8 cm, the seat stands 2.2 to 3.8 cm out behind, and the chest .6 to 1.9 cm forward (`blade`, `lumbar`, `seat`, `chestF` in `body.ts`, by family and frame: the narrow frame has the fuller chest and seat, the sturdy family the least waist to draw in, since its belly carries forward). Widths, ring heights and triangle counts are unchanged. A back line straight from the collar to the hip is the fail (`tests/body-form.test.ts`).
+
 ### Neck and shoulders
 
 - The neck is an oval column that **leans forward** 10 to 20 degrees from the shoulders into the

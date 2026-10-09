@@ -5,6 +5,7 @@ import { landmarks } from './world/people/headform';
 import { skullRings, ear, faceUV, noseWedge } from './world/people/head';
 import { ringAt } from './world/people/loft';
 import { dimsOf } from './world/people/body';
+import { FOOD } from './world/people/parts';
 import { CASTS, STORY, type CastId, type Family, type Frame } from './world/people/look';
 import { animateLife, setLifeConditions, type Activity } from './world/citizen-life';
 import { InkRenderer } from './world/ink-renderer';
@@ -90,6 +91,7 @@ for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
   n.group.position.set(x, y - sole, 0); n.group.updateMatrixWorld(true);
   tallest = Math.max(tallest, new T.Box3().setFromObject(n.head).max.y - y);
   if (how === 'sit' || how === 'eat' || how === 'bite') { const hip = n.legs[0].getWorldPosition(new T.Vector3()), seat = new T.Mesh(new T.BoxGeometry(.6, .05, .42), bench); seat.position.set(x, hip.y - .12, -.04); scene.add(seat); }
+  if (how === 'bite') { const bun = new T.Mesh(new T.SphereGeometry(1, 12, 8), painted(new T.MeshLambertMaterial({ color: '#c08a3e' }))); bun.position.set(...FOOD.at); bun.scale.set(...FOOD.size); n.grips[0].add(bun); bun.updateMatrixWorld(true); } // the food the game puts in an eater's hand (presentation.ts)
   if (how === 'carry') { const mid = n.grips[0].getWorldPosition(new T.Vector3()).add(n.grips[1].getWorldPosition(new T.Vector3())).multiplyScalar(.5), crate = new T.Mesh(new T.BoxGeometry(.3, .2, .26), bench); crate.position.copy(n.group.worldToLocal(mid)); n.group.add(crate); }
   figures.push({ role, seed, n, x, y });
 }
@@ -176,7 +178,13 @@ function measureHead() {
   }
   return res;
 }
-(window as unknown as { __SHEET__: unknown }).__SHEET__ = { measure, measureHead, probe, roles, seeds, view, pose: how, sil, px, stage, dist };
+/** Each face's painted band on screen, brow to mouth and eye corner to eye corner (CSS px: [x0, y0, x1, y1]), for measuring feature contrast on a capture with PIL. */
+function faces() {
+  return figures.map(({ n }) => { const f = n.face, b = new T.Box3().setFromBufferAttribute(f.geometry.attributes.position as T.BufferAttribute), H = b.max.y - b.min.y, xs: number[] = [], ys: number[] = [];
+    for (const [x, y] of [[-.24, .1], [.24, .1], [-.24, .6], [.24, .6]]) { const p = f.localToWorld(new T.Vector3((b.min.x + b.max.x) / 2 + x * H, b.min.y + y * H, b.max.z)).project(camera); xs.push((p.x + 1) / 2 * innerWidth); ys.push((1 - p.y) / 2 * innerHeight); }
+    return [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)].map(Math.round); });
+}
+(window as unknown as { __SHEET__: unknown }).__SHEET__ = { measure, measureHead, probe, faces, roles, seeds, view, pose: how, sil, px, stage, dist };
 
 // A fixed few frames let the shaders and textures settle, then rendering stops.
 let frames = 0;
