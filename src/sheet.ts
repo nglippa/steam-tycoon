@@ -184,7 +184,7 @@ function faces() {
     for (const [x, y] of [[-.24, .1], [.24, .1], [-.24, .6], [.24, .6]]) { const p = f.localToWorld(new T.Vector3((b.min.x + b.max.x) / 2 + x * H, b.min.y + y * H, b.max.z)).project(camera); xs.push((p.x + 1) / 2 * innerWidth); ys.push((1 - p.y) / 2 * innerHeight); }
     return [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)].map(Math.round); });
 }
-(window as unknown as { __SHEET__: unknown }).__SHEET__ = { measure, measureHead, probe, faces, roles, seeds, view, pose: how, sil, px, stage, dist };
+(window as unknown as { __SHEET__: unknown }).__SHEET__ = { measure, measureHead, probe, faces, expressions: () => figures.map(f => f.n.expression), roles, seeds, view, pose: how, sil, px, stage, dist };
 
 // A fixed few frames let the shaders and textures settle, then rendering stops.
 let frames = 0;

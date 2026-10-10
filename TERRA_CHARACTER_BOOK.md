@@ -392,6 +392,8 @@ least 1.35 on the mid and dark skins. No shape is drawn narrower than about a pi
 face is too small for its painted features to be told apart each shape doubles its depth, so the
 eye row lands on every tone at ~50 px. `tests/face-value.test.ts` holds the ordering and the limits.
 
+**Rule: features keep their contrast on every skin (People XXVI).** One atlas serves every skin, so its absolute-colour lashes, brows and irises lost about half their contrast against the darkest skin at seed-row scale (a dark-feature luma delta of 28-33 against 73-83 on the lightest; courier seeds 0 and 8 lost their eyes). Once a pixel covers 3 to 14 tile units, the face shader inks up the features of the mid and dark skins (`FACE_INK`, 0 / .5 / 1: up to 3x as opaque and their averaged colour raised to up to the 2.6th power); close up nothing changes. Measured on the cast sheet with PIL, the darkest skin's delta is now 46-53 and every face's darkest feature is at most luma ~62. A shut or happy eye is drawn with the open eye's weight of line (11 units and a lash at the outer corner, not 6, which went to nothing at a few metres), and `smiling` keeps the eyes open with the lower lid lifted (eye 14), so a smiling face does not read blank (the stallholder's darkest feature was luma 92, now 52).
+
 ---
 
 ## 7. Hair and hats
@@ -487,6 +489,8 @@ hat 1,940 to 2,360. People VI's were 1,370 to 1,960 and 2,000 to 2,500.
 A separate small set, attached to the lip and jaw and never painted: a moustache in two tapered
 halves parted at the philtrum, on the upper lip and well clear of the painted mouth; a short beard;
 sideburns.
+
+**Rule: a beard is a cut mass, not a strap (People XXVI).** The short beard is one mass with the moustache over the lip, round the chin and up the cheeks into the sideburns by the ear, fullest at the chin and thinning toward the ear; the mouth stays clear. A band of even depth along the jaw from ear to ear, with no moustache, read as a chin-strap mask (`tests/hair-reads.test.ts`).
 
 ### Colour
 

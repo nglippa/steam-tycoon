@@ -6,7 +6,7 @@ import { box, cyl, sphere, torus, bake, mats, thinLine, seeded, type Material } 
 import { painted } from './tone';
 import { resolveLook, type Look, type CastId, type LookFamily, type Frame } from './people/look';
 import { buildFigure, peopleNext, type Kit } from './people/figure';
-import { FACE_PAINT, FACE_PAINT_HEAD, FACE_VALUE } from './people/head';
+import { FACE_PAINT, FACE_PAINT_HEAD, FACE_VALUE, FACE_INK } from './people/head';
 import { drapeState, type Drape } from './drape';
 
 const ramp = new T.DataTexture(new Uint8Array([128, 202, 255]), 3, 1, T.RedFormat);
@@ -59,7 +59,7 @@ function outfitMaterial(early:string,late=early){const key=early+late;let m=ward
 /** A face is a choice of eye, brow and mouth (see the atlas below). The first seven names are the originals and keep working. */
 const LOOK = {
   neutral: [0, 0, 0], happy: [4, 6, 2], tired: [5, 7, 0], focused: [1, 0, 0], annoyed: [1, 3, 3], blink: [3, 0, 0], surprised: [2, 1, 7],
-  relaxed: [0, 0, 1], smiling: [4, 6, 2], hopeful: [14, 6, 1], curious: [9, 5, 0], worried: [15, 2, 11], guarded: [6, 0, 4], irritated: [1, 4, 3], suspicious: [6, 5, 4], startled: [2, 1, 7], stern: [0, 4, 4], angry: [8, 3, 4], talking: [0, 0, 5],
+  relaxed: [0, 0, 1], smiling: [14, 6, 2], hopeful: [14, 6, 1], curious: [9, 5, 0], worried: [15, 2, 11], guarded: [6, 0, 4], irritated: [1, 4, 3], suspicious: [6, 5, 4], startled: [2, 1, 7], stern: [0, 4, 4], angry: [8, 3, 4], talking: [0, 0, 5],
   cold: [10, 4, 4], scrutiny: [11, 4, 4], sideeye: [12, 5, 4], impatient: [12, 4, 3], contempt: [11, 5, 8], challenge: [10, 3, 4], scan: [10, 4, 4], barking: [11, 3, 9], bored: [5, 0, 4], weary: [5, 7, 3],
 } as const satisfies Record<string, readonly [number, number, number]>;
 export type Expression = keyof typeof LOOK;
@@ -123,9 +123,9 @@ type Ctx = CanvasRenderingContext2D;
 function paintEye(c: Ctx, f: FaceType, side: number, v: number) {
   const x = 256 + side * (f.sx ?? 50), y = 300, inner = x - side * f.w, outer = x + side * f.w, up = f.tilt;
   c.strokeStyle = '#120f16';
-  if (v === 3 || v === 4) { c.lineWidth = 6; c.beginPath();
+  if (v === 3 || v === 4) { c.lineWidth = 11; c.lineCap = 'round'; c.beginPath(); // a shut or happy eye carries the open eye's weight of line (People XXVI: at 6 it went to nothing at a few metres, and the face read blank)
     if (v === 4) { c.moveTo(inner, y - 3); c.quadraticCurveTo(x, y - 38, outer, y - 8 - up); } else { c.moveTo(inner, y - 8); c.quadraticCurveTo(x, y + 12, outer + side * 3, y - 12 - up); }
-    c.stroke(); return; }
+    c.stroke(); c.lineWidth = 6; c.beginPath(); c.moveTo(outer - side * 4, y - 9 - up); c.lineTo(outer + side * 9, y - 14 - up); c.stroke(); c.lineCap = 'butt'; return; } // and a lash at the outer corner
   if (v >= 10 && v <= 13) {
     const sq = v === 11, inY = y - (sq ? 0 : 3), outY = y - 14 - up - (sq ? 4 : 0), L = sq ? 15 : 23;
     c.save(); c.beginPath(); c.moveTo(inner, inY); c.lineTo(outer, outY); c.quadraticCurveTo(x + side * 3, y + L * 2.05, inner, inY); c.closePath(); c.fillStyle = '#e6dfcf'; c.fill(); c.clip();
@@ -244,7 +244,7 @@ vec4 fs=textureGrad(map,vMapUv+vec2(fcol/${FACE_COLS}.,0.),dFdx(vMapUv),dFdy(vMa
 const faceMaterial = (tone: number, next = false) => {
   const look = { value: new T.Vector3() }, m = new T.MeshToonMaterial({ map: next ? faceAtlasNext() : faceAtlas(), color: skinColors[tone], gradientMap: ramp, emissive: P.neutral.paper, emissiveIntensity: .12 });
   m.userData.faceAtlas = true; m.userData.look = look.value;
-  m.onBeforeCompile = shader => { shader.uniforms.uFace = look; shader.uniforms.uPaint = { value: new T.Vector3(...FACE_VALUE[tone]) };
+  m.onBeforeCompile = shader => { shader.uniforms.uFace = look; shader.uniforms.uPaint = { value: new T.Vector3(...FACE_VALUE[tone]) }; shader.uniforms.uInk = { value: FACE_INK[tone] };
     if (next) shader.vertexShader = 'attribute float faceMask;varying float vMask;\n' + shader.vertexShader.replace('void main() {', 'void main() {\nvMask = faceMask;');
     shader.vertexShader = 'uniform vec3 uFace;flat varying vec3 vFace;\n' + shader.vertexShader.replace('#include <color_vertex>', '#include <color_vertex>\n#ifdef USE_BATCHING_COLOR\nvColor=vec3(1.);vFace=batchingColor;\n#else\nvFace=uFace;\n#endif');
     shader.fragmentShader = (next ? FACE_PAINT_HEAD + 'varying float vMask;\n' : '') + 'flat varying vec3 vFace;\n' + shader.fragmentShader.replace('#include <map_fragment>', next ? FACE_MAP.replace('fs.a)', 'fs.a*vMask)').replace('diffuseColor.rgb=mix', FACE_PAINT + `if(ft>=${tV(BAND[4])}&&ft<${tV(BAND[3])}&&dot(fs.rgb,vec3(.333))<.4)fs.rgb=diffuseColor.rgb*mix(vec3(.64,.43,.44),vec3(.42,.27,.3),smoothstep(.24,.29,dot(fs.rgb,vec3(.333))));diffuseColor.rgb=mix`) : FACE_MAP).replace('#include <emissivemap_fragment>', 'totalEmissiveRadiance*=diffuseColor.rgb;'); };
