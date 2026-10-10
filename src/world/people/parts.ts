@@ -5,24 +5,27 @@ import type { Dims } from './body';
 export type Pt = [number, number, number];
 export const put0 = (g: T.Object3D, geo: T.BufferGeometry, mat: T.Material, p?: Pt, r?: Pt) => { const m = new T.Mesh(geo, mat); if (p) m.position.set(...p); if (r) m.rotation.set(...r); g.add(m); return m; };
 
-/** The food a seated eater holds (presentation.ts `eat`, the cast sheet's bite): an ellipsoid of these half-sizes at this point in the grip's frame. */
-export const FOOD = { at: [.009, 0, .05] as Pt, size: [.05, .045, .07] as Pt };
+/** The food a seated eater holds (presentation.ts `eat`, the cast sheet's bite): an ellipsoid of these half-sizes at this point in the grip's frame, cupped in the curl of the fingers
+ *  on the palm's side, so in the bite it is the food that meets the lips and the hand stays under it (People XXVI). */
+export const FOOD = { at: [.03, -.075, .014] as Pt, size: [.036, .033, .048] as Pt };
 
 /** A relaxed hand (Book 5): a palm wedge thick at the heel and broad at the knuckles, two finger masses (the index, and the other three) in a loose C, a two-segment thumb turned out of
  *  the palm's plane, a wrist narrower than the palm. As long as the face. Built with the medial side at +x and mirrored for the other arm; origin at the wrist, the arm along -y.
- *  The grip socket (-side * .028, -.312 from the elbow) sits inside the curl: held things keep their handle along z through it. */
+ *  The grip socket (-side * .028, -.312 from the elbow) sits against the palm inside the curl: held things keep their handle along z through it.
+ *  People XXVI: the fingers were one mass hooked back up past the knuckles, so the hand was a short block or a hook about .12 m long; they now run on from the knuckles in a loose C
+ *  to about the hand's length, the index apart from the other three (a notch at the tips), and the thumb stands off the front of the palm, so the hand reads as a hand with a thumb. */
 export function hand(d: Dims, side: number): T.BufferGeometry {
   const s = d.hand / .19, w = d.wristW / .05;
   const palm = loft([
     { y: 0, w: .0125 * w, f: .0255 * w, b: .0255 * w, n: 2.3 }, { y: -.022 * s, w: .0155 * w, f: .031 * w, b: .028 * w, x: .002, n: 2.4 },
     { y: -.055 * s, w: .0135, f: .04 * w, b: .037 * w, x: .001, n: 2.6 }, { y: -.085 * s, w: .0105, f: .043 * w, b: .04 * w, n: 2.8 },
   ], { seg: 6, capEnd: 'flat' });
-  // the curl, in the (x medial, y down) plane: knuckle, first, second and third joint, tip
-  const C = [[.004, -.084], [.012, -.106], [.028, -.118], [.042, -.108], [.044, -.092]];
-  // fingers together: one broad, flat mass (the four fingers), curled loosely toward the palm; the thumb lies alongside the index side
-  const mass = sweep(C.map(([x, y], i) => ({ p: [x * s * (1 - i * .03), y * s, -.004 * w] as Pt, a: .0345 * w * (1 - i * .07) * (i === 4 ? .75 : 1), b: .0105 * (1 - i * .07) * (i === 4 ? .7 : 1), n: [1, 0, 0] as Pt })), { seg: 5, capStart: true, capEnd: true });
-  const thumb = sweep([[.006, -.05, .038], [.014, -.07, .047], [.022, -.088, .05], [.028, -.101, .049]].map(([x, y, z], i) => ({ p: [x, y * s, z * w] as Pt, a: .0105 - i * .0011, b: .0095 - i * .0012, n: [1, 0, 0] as Pt })), { seg: 4, capStart: true, capEnd: true });
-  const g = merge([palm, mass, thumb]);
+  // the curl, in the (x medial, y down) plane: knuckle, first, second and third joint, tip: a loose C, the tips turned in toward the palm's side
+  const C = [[.002, -.08], [.006, -.108], [.016, -.133], [.03, -.148], [.04, -.151]];
+  const finger = (z: number, half: number, len: number, curl: number) => sweep(C.map(([x, y], i) => ({ p: [x * s * curl, (C[0][1] + (y - C[0][1]) * len) * s, z * w] as Pt, a: half * w * (1 - i * .06) * (i === 4 ? .8 : 1), b: .0098 * (1 - i * .07) * (i === 4 ? .75 : 1), n: [1, 0, 0] as Pt })), { seg: 5, capStart: true, capEnd: true });
+  const index = finger(.026, .0095, 1, 1), rest = finger(-.01, .026, .93, 1.2);
+  const thumb = sweep([[.003, -.03, .03], [.01, -.055, .046], [.02, -.078, .053], [.029, -.095, .051]].map(([x, y, z], i) => ({ p: [x, y * s, z * w] as Pt, a: .0108 - i * .0011, b: .0096 - i * .0012, n: [1, 0, 0] as Pt })), { seg: 4, capStart: true, capEnd: true });
+  const g = merge([palm, index, rest, thumb]);
   return side > 0 ? mirrorX(g) : g;
 }
 

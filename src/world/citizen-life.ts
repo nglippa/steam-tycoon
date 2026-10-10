@@ -3,6 +3,7 @@ import type { Citizen, Expression } from './citizens';
 import type { Archetype } from './palette';
 import { walk, advance, MIN, pose, legZ, STANCE, REST, SOLE, HEEL_X, TOE_X, type Params } from '../simulation/gait';
 import { drape, readLegs, rest, drapeSplit, restSplit, holdSplit, seatPanel, carryPanel, LAP_SEATED } from './drape';
+import { FOOD } from './people/parts';
 import { isOccupier, conduct, bodyFor, faceAllowed, moodOfTone, stepMood, nearBand, type Trait, type MoodIn } from '../simulation/occupation';
 export type Activity='talk'|'browse'|'guard'|'carry'|'walk'|'read'|'hammer'|'sweep'|'warm'|'gauge'|'valve'|'argue'|'sit'|'eat'|'lean'|'watch'|'clipboard'|'repair';
 /** `seed` and `trait` cast one scene by hand: who is let out (0..1, low is out in a harder street) and how they carry themselves. */
@@ -169,7 +170,9 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
     // The bite: the mouth is level with the crown of the shoulder, so the upper arm comes up and across and the elbow closes until the food is at the lips (solved against the rig: the grip's food point lands within 1 cm of the mouth).
     // A mug is raised with the same stroke, its rim to the lips (the wrist then keeps it level, below).
     if(activity==='eat'){const bite=ease(clamp01(Math.max(0,Math.sin(phase*.9))*1.25)),mug=n.group.userData.upright;sip=bite;
-      const nx=n.group.userData.next,lo=nx?.55:0;/* the new head's mouth is about 9 cm lower and the shoulders are set differently: the stroke stops shorter, folds more and comes in with the shoulder width (solved with the sheet's probe(): the hand lands within 2 cm of the mouth's height and about 9 cm off its front, as the old pose does) */n.arms[0].rotation.set(-.4-((mug?1.01:1.24)-lo)*bite,.21*bite,.05+(mug?.3:.49)*bite+(nx?.3+(Math.abs(n.arms[0].position.x)-.233)*3:0)*bite);n.elbows[0].rotation.x=-.8-(mug?.84:.49)*bite-(nx?.7:0)*bite;if(bite>.8)expression='smiling';}}
+      const nx=n.group.userData.next,lo=nx?.55:0;/* the new builder's food is aimed at the lips (People XXVI: biteReach); a mug keeps the stroke solved with the sheet's probe(): the stroke stops shorter, folds more and comes in with the shoulder width */
+      if(nx&&!mug){const s=n.group.userData.bite??=biteReach(n,occupier);n.arms[0].rotation.set(-.4+(s[0]+.4)*bite,s[1]*bite,.05+(s[2]-.05)*bite);n.elbows[0].rotation.x=-.8+(s[3]+.8)*bite;}
+      else{n.arms[0].rotation.set(-.4-((mug?1.01:1.24)-lo)*bite,.21*bite,.05+(mug?.3:.49)*bite+(nx?.3+(Math.abs(n.arms[0].position.x)-.233)*3:0)*bite);n.elbows[0].rotation.x=-.8-(mug?.84:.49)*bite-(nx?.7:0)*bite;}if(bite>.8)expression='smiling';}}
   const umbrella=n.group.userData.umbrella as T.Object3D|undefined;
   const uh=(n.group.userData.umbrellaHand as number|undefined)??1;
   if(umbrella){umbrella.visible=raining;if(raining){n.arms[uh].rotation.set(-.55,0,uh?-.1:.1);n.elbows[uh].rotation.x=-1.3;}}
@@ -249,6 +252,7 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
   // A front panel (an apron, the foundry slab: People XXIV) is its own part: seated it rests on the thighs and falls from the knees; otherwise it is carried as the long cloth is.
   if(n.drape?.panel){if(seated)seatPanel(n.drape,n.pelvis,n.tails,n.hem,n.legs,n.knees,n.ankles);else carryPanel(n.drape.panel,n.hem);}
   // Head stabilization: the head cancels torso lean and twist.
+  if(activity==='eat'&&n.group.userData.next){headYaw*=1-sip;pitch*=1-sip;}/* the head comes round to the food as it reaches the lips (People XXVI) */
   const blend=1-Math.exp(-dt*(occupier?8:4));n.head.rotation.y=T.MathUtils.lerp(n.head.rotation.y,T.MathUtils.clamp(headYaw-n.body.rotation.y,occupier?-.85:-.6,occupier?.85:.6),blend);
   n.head.rotation.x=T.MathUtils.lerp(n.head.rotation.x,pitch-n.body.rotation.x*.8+nod+(speaking?Math.sin(phase*2)*.03:0),blend);
   n.head.rotation.z=calm?0:breath*.012+tilt;
@@ -268,6 +272,21 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
   // Only the blink and, near the camera, a speaking mouth move between decisions; the Ordinance blinks less.
   n.setExpression(expression,(phase%(occupier?6.3:4.7))<.13,(speaking||spoken)&&near<400?Math.floor(time*7+n.phase*3)%3:-1,eye);
 }
+/** The bite (People XXVI), solved once per figure from its own rig: the shoulder, upper arm and elbow turns that put the food (parts.ts `FOOD`, in the grip) just ahead of the lips
+ *  (`head.userData.mouth`, the head unturned) while every point of the hand stays under the lips, so the hand reaches the mouth with the food and never crosses the nose. A pattern search
+ *  from the old stroke's top, kept near it, within the arm's range. Returns [shoulder x, y, z, elbow x] in the body's frame. */
+const BA=new T.Matrix4(),BB=new T.Matrix4(),BQ=new T.Vector3(),BEu=new T.Euler();
+const HAND_KEYS:[number,number,number][]=[[0,-.24,0],[.002,-.32,.03],[.002,-.32,-.03],[.029,-.335,.05],[.03,-.39,0],[.048,-.393,0],[.04,-.393,.026],[.05,-.39,-.02]];
+function biteReach(n:Citizen,occupier:boolean):number[]{
+  const arm=n.arms[0],grip=n.grips[0],m=(n.head.userData.mouth as number[]|undefined)??[0,.08,.1],sh=arm.position.clone();
+  if(occupier){sh.x=(arm.userData.sx??arm.position.x)*1.05;sh.y=1.455;}
+  const mouth=new T.Vector3(m[0],m[1],m[2]).add(n.head.position),target=mouth.clone().add(BQ.set(.004,-.006,.028)),el=n.elbows[0].position,food=grip.position.clone().add(BQ.set(...FOOD.at));
+  const at=(q:number[],p:T.Vector3,out:T.Vector3)=>{BA.makeRotationFromEuler(BEu.set(q[0],q[1],q[2]));BB.makeRotationFromEuler(BEu.set(q[3],0,0));return out.copy(p).applyMatrix4(BB).add(el).applyMatrix4(BA).add(sh);};
+  const q0=[-1.09,.21,.84+(Math.abs(arm.position.x)-.233)*3,-1.99],lo=[-2.4,-.7,-.3,-2.6],hi=[0,.9,1.4,-.2],p=new T.Vector3(),k=new T.Vector3();
+  const cost=(q:number[])=>{let c=at(q,food,p).distanceToSquared(target);for(const h of HAND_KEYS){at(q,k.set(...h),p);const up=p.y-(mouth.y+.004);if(up>0)c+=6*up*up;}for(let i=0;i<4;i++)c+=.004*(q[i]-q0[i])**2;return c;};
+  const q=q0.slice();let best=cost(q),step=.25;
+  while(step>2e-4){let moved=false;for(let i=0;i<4;i++)for(const d of [step,-step]){const t=q.slice();t[i]=T.MathUtils.clamp(t[i]+d,lo[i],hi[i]);const c=cost(t);if(c<best){best=c;q[i]=t[i];moved=true;}}if(!moved)step*=.5;}
+  return q;}
 const kq=new T.Quaternion(),fv=new T.Vector3(),feet=[{y:0,th:0,rho:1},{y:0,th:0,rho:1}];
 /** Feet standing (People XXII). The idle pose bends the free knee up to .19 rad and its foot pitched toe down with the shin, its toe 2.8-5.5 cm into the pavement (.13 under the origin in the
  * world); the weighted leg, nearly straight, is 7 mm longer than the rest hip height allows (REST .97 against .925 of leg and .052 of sole), and the breath's bob took that to 1 cm. So the

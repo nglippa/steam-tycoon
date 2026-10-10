@@ -174,6 +174,8 @@ export function buildFigure(look: Look, opts: FigureOpts, kit: Kit) {
   const head = new T.Group(), hg = new T.Group(), swing = new T.Group(), faceMat = kit.face(look.skin);
   const neckTop = neckR[neckR.length - 1], pivotZ = (neckTop.z ?? 0);
   head.position.set(0, d.chin - CHIN_TO_PIVOT + LIFT, pivotZ); hg.position.set(0, CHIN_TO_PIVOT, headZ - pivotZ); head.add(hg); body.add(head);
+  // the lips in the head's frame (the bite is aimed at them: citizen-life.ts `biteReach`): the lip line at .13 H on the front of the face
+  { const r = ringAt(skullRings(look.headShape, h), .13 * h); head.userData.mouth = [0, CHIN_TO_PIVOT + .13 * h, headZ - pivotZ + (r.z ?? 0) + r.f]; }
   put0(hg, skull(look, h), faceMat);
   for (const s of [-1, 1]) put0(hg, ear(s, h, look.headShape), skin);
   const hatted = look.hat !== 'none' && !opts.bare, hairs = hairOf(look, h, hatted); if (opts.bare) { hairs.hair.length = 0; hairs.under.length = 0; hairs.swing.length = 0; }

@@ -301,6 +301,8 @@ A hand is as long as the face, chin to hairline. It is built from:
 The relaxed hand is a loose C. The grip socket stays in the palm with the handle along local z, as
 now. No spheres, no boxes, no thumbless mittens.
 
+**Rule: a hand reads as a hand at the game's sizes (People XXVI).** The fingers run on from the knuckles to about the hand's length in a loose C, never hooked back up past the knuckle line (that was a block or a hook about 12 cm long); the index is its own mass beside the other three, so the tips show a notch; the thumb stands off the front of the palm. Four sweeps and a palm loft, about 50 triangles more a hand.
+
 ### Feet
 
 Shoes and boots, not pods. In side view a shoe is a wedge: narrow heel, high instep, wider toe box,
@@ -876,6 +878,8 @@ eating stroke (`activity === 'eat'`) stops 0.55 rad short at the shoulder, folds
 the elbow and comes in with the shoulder width (`citizen-life.ts`, marked by `group.userData.next`).
 Solved with the sheet's `probe()`: the grip lands within 2 cm of the mouth's height and about 9 cm
 off its front, as the old pose does.
+
+**Rule: the bite reaches the mouth (People XXVI).** The food (parts.ts `FOOD`) is cupped in the curl of the fingers, and the stroke's top is solved once per figure from its own rig (citizen-life.ts `biteReach`): the food's centre just ahead of the lips (`head.userData.mouth`), every point of the hand under the lips, near the old stroke. The head comes round to face the food as it reaches the lips. At the top of the bite the food is within 4 cm of the lips and no part of the forearm or hand rises past the nose, for every representative, the child and the elder (`tests/body-form.test.ts`). The mug keeps the stroke solved with the sheet's `probe()`.
 
 ### Poses that must hold
 

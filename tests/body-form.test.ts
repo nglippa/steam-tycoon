@@ -38,3 +38,18 @@ test('an elbow is a landmark (People XXVI): the arm and its sleeve draw in over 
     assert.ok(elbow < upper * .92, `${label}: the sleeve is ${(elbow * 100).toFixed(1)} cm deep at the elbow against ${(upper * 100).toFixed(1)} cm a third of the way down`);
   }
 });
+
+test('the bite reaches the mouth (People XXVI): at the top of the stroke the food is at the lips and no part of the hand rises past the nose, every representative, the child and the elder', async () => {
+  // The blind review: the fist went into the nose and the food stood off beside the face. The stroke is now solved per figure (citizen-life.ts `biteReach`) for parts.ts `FOOD`.
+  const { make, REPS } = await import('./people-rig.ts'), { animateLife } = await import('../src/world/citizen-life.ts'), { FOOD } = await import('../src/world/people/parts.ts'), { CHIN_TO_PIVOT } = await import('../src/world/people/head.ts'), T = await import('three');
+  const player = new T.Vector3(0, 1.7, 25), cast: [string, string, number][] = [...REPS, ['child', 'child.child.narrow', 3], ['elder', 'elder.slim.narrow', 5]];
+  for (const [label, combo, seed] of cast) {
+    const n = make(combo, seed); let best = -Infinity, food = 0, over = 0;
+    for (let i = 0; i < 345; i++) { animateLife(n, 'eat', 1 / 30, i / 30, false, player); if (i < 45 || -n.elbows[0].rotation.x <= best) continue; best = -n.elbows[0].rotation.x; n.group.updateMatrixWorld(true);
+      const m = n.head.userData.mouth as number[], mouth = n.head.localToWorld(new T.Vector3(m[0], m[1], m[2])), f = n.grips[0].localToWorld(new T.Vector3(...FOOD.at)), noseY = m[1] + (m[1] - CHIN_TO_PIVOT);
+      food = f.distanceTo(mouth); over = -Infinity; const inv = n.head.matrixWorld.clone().invert(), v = new T.Vector3();
+      for (const o of n.elbows[0].children) if (o instanceof T.Mesh) { const p = o.geometry.attributes.position; for (let k = 0; k < p.count; k++) { v.fromBufferAttribute(p, k).applyMatrix4(o.matrixWorld).applyMatrix4(inv); over = Math.max(over, v.y - noseY); } } }
+    assert.ok(food < .04, `${label}: the food's centre is ${(food * 100).toFixed(1)} cm from the lips at the top of the bite`);
+    assert.ok(over < 0, `${label}: the forearm or hand rises ${(over * 100).toFixed(1)} cm past the nose at the top of the bite`);
+  }
+});
