@@ -838,6 +838,8 @@ knee. Long skirts and coats still trail.
 
 **Rule: a seated apron lies on the lap (People XXIV).** Seated, an apron or the foundry slab worn over trousers is its own part (`drape.ts` `seatPanel`): its lap lies along the thighs' tops, within 3 cm of the thighs and knees, and ends on the knee; its hem falls from a fold over the knee down the shins, never more than 3 cm ahead of them. It is never a board over the lap or past the knees. An apron over a skirt is carried with the skirt, and standing or walking every apron is carried with the long cloth.
 
+**Rule: under a long skirt is the skirt (People XXV).** Under a full skirt the thighs, with their round tops at the hip, are cut in the skirt's own cloth, the stockings only from the knee down (`wardrobe.ts`, `legs`' `thighM`). Seated, the skirt's lap lies along the thighs and its back does not wrap the seat, so the thighs' tops at the hip and their backs are what shows under and behind it: in stocking soot they read as a dark mass through the skirt, in its cloth as the skirt sat on.
+
 **Rule: cloth has weight (People XIX).** The hem trails the upper part on a softer, underdamped spring: it lags, swings past and settles, and it bends at the knee, sideways too. It never turns
 with the lap as one board.
 

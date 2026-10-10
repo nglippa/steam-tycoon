@@ -326,7 +326,7 @@ export function dress(x: X) {
     if (asym.has('pouchHip')) pouch(tails, rings, -.2, .62, 1.02, leatherM);
     if (asym.has('apronTie')) { const ap = c(P.cloth.bone); apron(ap, { hemY: .44, hemW: .5, hemD: .6, aw: .8, over: rings }); }
     arms({ upM: blouse, off: .017, cuffM: blouse, rolled: s => false });
-    legs({ thighM: c(P.cloth.soot), boot: leatherDM, sole: lea(shade(LEATHERD, .7)), soft: true, turnup: false, top: -.3 });
+    legs({ thighM: skirtM /* (People XXV: under a full skirt the thighs and their round tops at the hip are the skirt's cloth: seated, they are what shows under and behind its lap, and in stocking soot they read as a dark hip mass) */, shinM: c(P.cloth.soot), boot: leatherDM, sole: lea(shade(LEATHERD, .7)), soft: true, turnup: false, top: -.3 });
   }
   if (id === 'elder') {
     const coat = wool(I('coat')), vest = wool(I('waistcoat')), trou = wool(I('trousers'));
@@ -356,7 +356,7 @@ export function dress(x: X) {
       hemLoft(rings, .008, .01, 'ladyhem', trim);
       skirt.drop = .34; skirt.depth = .4;
       arms({ upM: frock, off: .016, cuffM: trim, glove, rolled: () => false });
-      legs({ thighM: c(P.cloth.soot), boot: leatherDM, sole: lea(shade(LEATHERD, .7)), soft: true, turnup: false, top: -.3 });
+      legs({ thighM: sk, shinM: c(P.cloth.soot), boot: leatherDM, sole: lea(shade(LEATHERD, .7)), soft: true, turnup: false, top: -.3 });
       if (asym.has('watchChain')) { const q = surface(offset(rib, .02), 1.33, .3, .006); put0(x.finery, sweep([0, .5, 1].map(t => ({ p: [q.p.x - .06 * t, q.p.y - .1 * t, q.p.z + .0] as Pt, a: .004, b: .004, n: [0, 0, 1] as Pt })), { seg: 4, capStart: true, capEnd: true }), brass); }
     }
   }
@@ -371,7 +371,7 @@ export function dress(x: X) {
     if (look.outfit === 'stallholder.shawl') shawl(wool(I('scarf')), c(mix(I('scarf'), P.cloth.bone, .5))); // People XX: the shawl outfit
     if (asym.has('pouchHip')) pouch(lifted, offset(rib, .04), 1.06, -1.02, -.62, leatherM);
     arms({ upM: blouse, off: .017, rolled: () => true });
-    legs({ thighM: c(P.cloth.soot), boot: leatherDM, sole: lea(shade(LEATHERD, .7)), heavy: true, turnup: false, top: -.3 });
+    legs({ thighM: skirtM, shinM: c(P.cloth.soot), boot: leatherDM, sole: lea(shade(LEATHERD, .7)), heavy: true, turnup: false, top: -.3 });
   }
   if (id === 'shopMerchant') {
     const vest = c(I('waistcoat')), sh = c(I('shirt')), trou = wool(I('trousers')), ap = c(I('apron')), garter = lea(mix(P.cloth.burgundy, '#202020', .3));
