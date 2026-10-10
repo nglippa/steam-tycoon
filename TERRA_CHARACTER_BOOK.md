@@ -881,6 +881,8 @@ off its front, as the old pose does.
 
 **Rule: the bite reaches the mouth (People XXVI).** The food (parts.ts `FOOD`) is cupped in the curl of the fingers, and the stroke's top is solved once per figure from its own rig (citizen-life.ts `biteReach`): the food's centre just ahead of the lips (`head.userData.mouth`), every point of the hand under the lips, near the old stroke. The head comes round to face the food as it reaches the lips. At the top of the bite the food is within 4 cm of the lips and no part of the forearm or hand rises past the nose, for every representative, the child and the elder (`tests/body-form.test.ts`). The mug keeps the stroke solved with the sheet's `probe()`.
 
+**Rule: seated knees part (People XXVI).** Seated, the thighs splay out from the hips (citizen-life.ts `SPLAY`, .13 rad in trousers, .075 under a coat's skirt or an apron, .035 under a long skirt or coat), each figure unevenly by up to .04 rad, so from the front there are two knees and two shins with daylight between them, about hip width apart in trousers. A long coat cut narrower than .45 of its drop keeps the knees together as it is cut, since its hem closes round the calves. The soles are solved onto the pavement after the splay, as before (`tests/body-form.test.ts`, `tests/walk.test.ts`, `tests/drape.test.ts`).
+
 ### Poses that must hold
 
 Seated, with thighs level. Arm raised overhead. Both arms forward with a load. Hand to mouth. Deep

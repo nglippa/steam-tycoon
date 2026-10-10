@@ -113,7 +113,7 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
   n.body.position.set(shift*.022+w*gait.sway,bodyHeight+w*(gait.H-REST)+.13*(1-1/n.group.scale.y)/* the pavement sits .13 under the origin, in the figure's own scale */-(seated?.46-.42*(1/n.group.scale.y-1)/* seated, the seat stays .42 m over the pavement whatever the stature: the spawn sites put a bench, a crate or a step there */:0)+(seated?0:breath*.003*(1-w))/* (seated, the hips rest on the seat: they do not bob, or the planted feet would slide) */,0);
   n.body.rotation.set(g*(pr.lean+tired*.05)+w*gp.lean+(1-g)*tired*.06-(activity==='lean'?.07:0)-(activity==='carry'?.08:0)+(seated?-.06:0),-.7*twist+m.turn*.06,shift*.025-.5*roll);
   n.legs.forEach((leg,k)=>{leg.position.y=hipHeight-(seated?.46:0);
-    if(seated){leg.position.z=0;leg.rotation.set(-1.42,0,(k?-1:1)*.06);n.knees[k].rotation.x=1.4;return;}/* (the seated thigh, knee and foot are solved once the hips are placed: seatLegs) */
+    if(seated){leg.position.z=0;const a=((n.phase*7.31)%1-.5)*.08;/* the seated knees part about hip width (People XXVI): the thigh splays out (the old .06 rad turned it in, so the shins met in one column), each figure a little unevenly */const long=n.skirt.drop>.3,narrow=long&&n.skirt.depth<.45*n.skirt.drop,sp=narrow?-.06:(long?SPLAY_SKIRT:n.drape?.panel||n.skirt.depth?SPLAY_CLOTH:SPLAY)+(k?-a*.6:a)*(long?.4:1);/* (under a coat's skirt or an apron the knees part less, under a long skirt or coat least, and a long coat cut narrower than .45 of its drop keeps them together as it is cut: the cloth closes round the calves) */leg.rotation.set(-1.42,0,(k?1:-1)*sp);n.knees[k].rotation.x=1.4;return;}/* (the seated thigh, knee and foot are solved once the hips are placed: seatLegs) */
     const stance=k===0?Math.max(0,-shift):Math.max(0,shift);
     leg.position.z=0;leg.rotation.set((1-w)*(k?-.02:.03)-w*gait.thigh[k],0,activity==='lean'&&k===1?-.1:(k?-1:1)*stance*.02);
     const an=n.ankles[k];n.knees[k].rotation.x=(1-w)*(.05+(k===0?Math.max(0,shift):Math.max(0,-shift))*.14)+w*gait.knee[k];an.rotation.set(w*gait.ankle[k],an.userData.out??an.rotation.y,0);});
@@ -305,6 +305,8 @@ function standFeet(n:Citizen){const gnd=-.13/n.group.scale.y+.001,sole=n.ankles[
   return rise;}
 /** How a seated leg is carried: the shin leans `SHIN` forward of plumb, the foot ahead of the knee as on a low bench, and the thigh takes whatever pitch puts the ankle one sole over the
  *  pavement, held between `UP` above level and `DOWN` below it (a child's short leg reaches the pavement with the thigh sloping down from the step). */
+/** The seated thigh's splay out from the hip, either side (People XXVI): the knees part about hip width, before each figure's unevenness of up to .04 rad. */
+const SPLAY=.13,SPLAY_CLOTH=.075,SPLAY_SKIRT=.035;
 const SHIN=.24,UP=.2,DOWN=.3,sq=new T.Quaternion(),fq=new T.Quaternion(),eu=new T.Euler(),sv=new T.Vector3(),su=new T.Vector3(),pin=new T.Quaternion();
 /** Seated legs (People XXIII). The seat is .42 m over the pavement for every stature (People XIX), and the old fixed pose (thigh .15 rad below level, shin plumb) put a figure's shin and sole
  *  7.7-13.1 cm under the pavement. Each leg is now solved on the figure's own hip, limb lengths and pavement (two bones in the sagittal plane, the legs' yaw and splay included): the thigh's

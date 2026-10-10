@@ -53,3 +53,20 @@ test('the bite reaches the mouth (People XXVI): at the top of the stroke the foo
     assert.ok(over < 0, `${label}: the forearm or hand rises ${(over * 100).toFixed(1)} cm past the nose at the top of the bite`);
   }
 });
+
+test('seated knees part (People XXVI): two knees with daylight between them, about hip width apart in trousers, a little closer under long cloth, every representative, the child and the elder', async () => {
+  // The blind review: seated, from the front, both shins fused into one column (the thighs were splayed .06 rad inward, so the knee centres stood 7-10 cm apart, closer than two knees are wide).
+  // A long coat cut narrower than .45 of its drop keeps the knees together as it is cut (its hem closes round the calves): it is the one exception.
+  const { make, REPS } = await import('./people-rig.ts'), { animateLife } = await import('../src/world/citizen-life.ts'), T = await import('three');
+  const player = new T.Vector3(0, 1.7, 25), cast: [string, string, number][] = [...REPS, ['child', 'child.child.narrow', 3], ['elder', 'elder.slim.narrow', 5]];
+  for (const [label, combo, seed] of cast) {
+    const n = make(combo, seed), [family, frame] = combo.split(':')[0].split('.').slice(1) as ['slim', 'broad'], d = dimsOf(family, frame);
+    if (n.skirt.drop > .3 && n.skirt.depth < .45 * n.skirt.drop) continue;
+    for (const a of ['sit', 'eat'] as const) {
+      for (let i = 0; i < 120; i++) animateLife(n, a, 1 / 60, i / 60, false, player); n.group.updateMatrixWorld(true);
+      const [k0, k1] = n.knees.map(k => k.getWorldPosition(new T.Vector3()).applyMatrix4(n.group.matrixWorld.clone().invert())), gap = Math.abs(k0.x - k1.x) - 2 * (d.kneeR + .007);
+      assert.ok(gap > .02, `${label} (${a}): ${(gap * 100).toFixed(1)} cm between the seated knees`);
+      if (!n.drape?.panel && !n.skirt.depth) assert.ok(Math.abs(k0.x - k1.x) >= 2 * d.hipX, `${label} (${a}): the knees are ${(Math.abs(k0.x - k1.x) * 100).toFixed(1)} cm apart against the hip joints' ${(2 * d.hipX * 100).toFixed(1)}`);
+    }
+  }
+});
