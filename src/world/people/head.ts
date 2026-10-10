@@ -143,9 +143,10 @@ const sm = (a: number, lo: number, hi: number) => T.MathUtils.smoothstep(a, lo, 
 /** Facial hair: attached to the lip and jaw, never painted. */
 export function facialOf(look: Look, h: number): T.BufferGeometry[] {
   const k = h / .285, rings = skullRings(look.headShape, h), out: T.BufferGeometry[] = [];
-  // a moustache: a full shape over the whole upper lip, wider than the nose and following the lip down to the mouth's corners, in two halves that meet at the philtrum and taper
-  // to their ends; it sits on the lip, clear above the painted mouth
-  const moustache = () => { for (const s of [-1, 1]) out.push(strand(rings, [[s * .0, .0545, .0072, .0095], [s * .1, .0535, .0082, .0088], [s * .2, .0485, .0068, .0062], [s * .3, .0425, .0038, .002]].map(([a, y, o, w]) => [a, y * k, o * k, w * k]), .0052 * k, 4)); };
+  // a moustache (People XXVI): a parted chevron, never a toothbrush. Two halves over the whole upper lip, thin where they part at the philtrum, fullest over each half of the lip and
+  // sweeping down past the mouth's corners to tapered points, so it is wider than the mouth and has no square lower edge; it sits on the lip, clear above the painted mouth. (The
+  // old shape stopped at the mouth's corners, thick and level: at seated scale on a dark-haired Ordinance guard it read as a square block under the nose, a toothbrush.)
+  const moustache = () => { for (const s of [-1, 1]) out.push(strand(rings, [[s * .0, .0545, .0068, .0055], [s * .09, .055, .0086, .0092], [s * .2, .0505, .0078, .0086], [s * .32, .04, .0055, .0056], [s * .43, .03, .0032, .0022]].map(([a, y, o, w]) => [a, y * k, o * k, w * k]), .0055 * k, 4)); };
   if (look.facial === 'moustache') moustache();
   if (look.facial === 'sideburns') for (const s of [-1, 1]) out.push(strand(rings, [[s * 1.42, .15, .006, .016], [s * 1.38, .115, .008, .017], [s * 1.34, .075, .006, .014]].map(([a, y, o, w]) => [a, y * k, o * k, w * k]), .007 * k));
   // a short full beard (People XXVI): one mass from the moustache down round the chin and up the cheeks into the sideburns, fullest at the chin and thinning to the ear, so it reads as a

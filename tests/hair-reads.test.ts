@@ -56,3 +56,22 @@ test('the older mechanic reads older: grey hair, mostly a moustache, a heavier b
   assert.ok(beard.some(p => Math.abs(p.x) < .012 && p.y > lip + .004), 'the beard has no moustache joined to it');
   assert.ok(beard.some(p => Math.abs(p.x) > .07 && p.y > .25 * h), 'the beard stops at the jaw instead of rising into the sideburns');
 });
+
+test('no moustache is a toothbrush (People XXVI): it is wider than the mouth by far, parted thin at the philtrum and swept down past the mouth\'s corners, on every head shape and every Ordinance face', async () => {
+  // The blind review: seated, the introGuard's square black moustache read as a toothbrush moustache, a loaded shape for an occupying authority. The one moustache (also joined to the
+  // short beard) is a parted chevron; a toothbrush is a level block about the nose's width, as thick at the middle as anywhere and with a flat lower edge.
+  const { STORY } = await import('../src/world/people/look.ts');
+  const chevron = (lk: Look, label: string) => {
+    const h = .285 * ((lk.family === 'sturdy' ? .295 : lk.family === 'slim' ? .275 : .285) / .285), k = h / .285, ps = pts(facialOf({ ...lk, facial: 'moustache' }, h)).filter(p => p.y > .1 * h && Math.abs(p.x) < .1 * k);
+    const maxX = Math.max(...ps.map(p => Math.abs(p.x))), mid = ps.filter(p => Math.abs(p.x) < .004 * k), full = ps.filter(p => Math.abs(p.x) > .008 * k && Math.abs(p.x) < .016 * k), ends = ps.filter(p => Math.abs(p.x) > .8 * maxX);
+    const height = (q: T.Vector3[]) => Math.max(...q.map(p => p.y)) - Math.min(...q.map(p => p.y));
+    assert.ok(2 * maxX > .055 * k, `${label}: the moustache is ${(2 * maxX * 100).toFixed(1)} cm wide, about a nose's width`);
+    assert.ok(height(mid) < .8 * height(full), `${label}: the moustache is as deep at the philtrum (${(height(mid) * 1000).toFixed(1)} mm) as over the lip (${(height(full) * 1000).toFixed(1)} mm): not parted`);
+    assert.ok(Math.min(...ends.map(p => p.y)) < Math.min(...full.map(p => p.y)) - .008 * k, `${label}: the moustache's ends do not sweep down past the mouth's corners: a level block`);
+  };
+  for (const shape of ['oval', 'square', 'long', 'heart'] as const) chevron(look({ headShape: shape }), shape);
+  const ordinance = Object.entries(STORY).filter(([, l]) => l.cast === 'garrison' || l.cast === 'inspector');
+  assert.ok(ordinance.some(([id]) => id === 'introGuard'));
+  for (const [id, l] of ordinance) if (l.facial !== 'none') chevron(l, id);
+  for (const cast of ['garrison', 'inspector'] as const) for (const [f] of CASTS[cast].facial) assert.ok(['none', 'moustache', 'beard', 'sideburns'].includes(f), `${cast}: ${f}`);
+});

@@ -490,6 +490,8 @@ A separate small set, attached to the lip and jaw and never painted: a moustache
 halves parted at the philtrum, on the upper lip and well clear of the painted mouth; a short beard;
 sideburns.
 
+**Rule: no moustache is a toothbrush (People XXVI).** The moustache is a parted chevron: thin where its halves part at the philtrum, fullest over each half of the lip, and sweeping down past the mouth's corners to tapered points, about 7 cm across. A level block about the nose's width, as deep at the middle as anywhere, is the fail: on the introGuard, a dark-haired soldier of an occupying authority, it read as a toothbrush moustache. There is one moustache shape, also joined to the short beard, so no Ordinance face (the introGuard, the overseer, a garrison or inspector dealt one) can wear the toothbrush (`tests/hair-reads.test.ts`).
+
 **Rule: a beard is a cut mass, not a strap (People XXVI).** The short beard is one mass with the moustache over the lip, round the chin and up the cheeks into the sideburns by the ear, fullest at the chin and thinning toward the ear; the mouth stays clear. A band of even depth along the jaw from ear to ear, with no moustache, read as a chin-strap mask (`tests/hair-reads.test.ts`).
 
 ### Colour
