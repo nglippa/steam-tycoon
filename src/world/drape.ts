@@ -190,7 +190,7 @@ export function bands(rings: { y: number; w: number; f: number; b: number; z?: n
 /** Standing and walking, a front panel is carried exactly as the rest of the long cloth: its part lies square on `tails` and its hinge copies `hem`'s. */
 export function carryPanel(p: Panel, hem: T.Object3D | undefined) {
   p.tails.matrixAutoUpdate = true; p.tails.position.set(0, 0, 0); p.tails.rotation.set(0, 0, 0); p.tails.scale.set(1, 1, 1);
-  if (p.hem && hem) { p.hem.matrixAutoUpdate = true; p.hem.position.copy(hem.position); p.hem.rotation.copy(hem.rotation); p.hem.scale.copy(hem.scale); }
+  if (p.hem && hem) { p.hem.matrixAutoUpdate = hem.matrixAutoUpdate; p.hem.position.copy(hem.position); p.hem.rotation.copy(hem.rotation); p.hem.scale.copy(hem.scale); if (!hem.matrixAutoUpdate) { p.hem.matrix.copy(hem.matrix); p.hem.matrixWorldNeedsUpdate = true; } } // (seated, the hem's matrix is set: seatLong)
 }
 
 /** How close a seated panel lies to what it rests on (the thigh's top, the knee, the shin's front). */
@@ -273,4 +273,72 @@ export function seatPanel(d: Drape, pelvis: T.Object3D, tails: T.Object3D, hem: 
   const phi = Math.atan2(-uz, -uy);
   M1.copy(M2).invert().multiply(M2.compose(PV.set(0, qy, qz), PU.setFromAxisAngle(XA, phi), KS.set(1, 1, k)));
   pn.hem.matrixAutoUpdate = false; pn.hem.matrix.copy(M1); pn.hem.matrixWorldNeedsUpdate = true;
+}
+
+/** The seat a figure sits on (People XXV), in metres from the figure's origin (its feet's pavement is .13 under it): the top .42 over the pavement for every stature (People XIX), the front edge
+ *  .305 ahead and the back .185 behind (the game's benches, art-kit.ts `bench`, with the sitter at the bench's origin; the cast sheet's is the same). */
+export const SEAT = { top: .42, front: .305, back: -.185, pave: .13 };
+/** How far the lining of long cloth is inside its outer face, and how far ahead of the seat's edge a hem falling from the knees keeps its back (so the fold over the edge is seen). */
+const LIP = .026, CLEAR = .045;
+const SK = [new T.Vector3(), new T.Vector3()], SA = [new T.Vector3(), new T.Vector3()], MP = new T.Matrix4(), MQ = new T.Matrix4(), MC = new T.Matrix4(), MR = new T.Matrix4(), SV = new T.Vector3(), SD = new T.Vector3();
+/** Where each part's position was built (a seated part is moved; `unseatLong` puts it back). */
+const home = (o: T.Object3D) => (o.userData.home as T.Vector3 | undefined) ?? (o.userData.home = o.position.clone());
+/** Squeezes a part's depth to `s` (from `s0`) about its front: its back comes forward by (s0 - s)(f + b) while its front at the reference depth `f` stays where it is. */
+function squeeze(o: T.Object3D, s0: number, s: number, f: number) { o.scale.z = s; SD.set(0, 0, (s0 - s) * f).applyEuler(o.rotation); o.position.copy(home(o)).add(SD); o.updateMatrix(); }
+/** The largest depth in [lo, s0] for which `ok` holds (ok(lo) is taken to hold): a bisection. */
+function deepest(ok: (s: number) => boolean, lo: number, s0: number) { if (ok(s0)) return s0; let a = lo, b = s0; for (let i = 0; i < 10; i++) { const m = (a + b) / 2; if (ok(m)) a = m; else b = m; } return a; }
+/** Seated, long cloth stays out of the seat (People XXV). The lap lies along the thighs (`seatCloth`) and its underside, flattened as a whole to a lap, still dipped 2-3 cm into the plank under
+ *  the thighs where the cloth is deep (a short jacket's skirt, an elder's coat); and the cloth below the knee, hung along the shins at .8 of its depth, kept its back as far behind the shins as a
+ *  bell is, so a full skirt's and a greatcoat's hem came down through the seat's front edge and on below it (up to 4.4 cm into the plank). Now the underside of the lap rests on the seat
+ *  wherever it is over it, and each hem's back hangs a little ahead of the seat's edge, the cloth folding over the edge: each part's depth is taken in about its front (a scale and a shift along
+ *  its depth, so its front stays on the thighs and before the shins) just as far as that asks, and no further. Read in the figure's own frame, where the seat is. */
+export function seatLong(d: Drape, group: T.Object3D, pelvis: T.Object3D, tails: T.Object3D, hem: T.Object3D | undefined, legs: T.Object3D[], knees: T.Object3D[], ankles: T.Object3D[]) {
+  const gs = [...d.garments, ...(d.split?.garments ?? [])].filter(g => !g.panel); if (!gs.length) return;
+  const k = group.scale.y || 1, top = (SEAT.top - SEAT.pave) / k, front = SEAT.front / k, back = SEAT.back / k;
+  pelvis.updateMatrix(); home(tails);
+  // the shins, in the figure's frame: each knee and ankle, and a shin's axis and radius at a point's height (the leg itself: the knee and calf radii without the allowance a walking leg
+  // asks of long cloth), or -1 where it does not reach
+  for (let i = 0; i < 2; i++) { legs[i].updateMatrix(); knees[i].updateMatrix(); ankles[i].updateMatrix(); MQ.multiplyMatrices(legs[i].matrix, knees[i].matrix);
+    SK[i].setFromMatrixPosition(MQ); SA[i].setFromMatrixPosition(MQ.multiply(ankles[i].matrix)); }
+  const shin = (p: T.Vector3, i: number) => { const K = SK[i], A = SA[i]; if (p.y > K.y || p.y < A.y || K.y - A.y < .05) return -1; const t = (K.y - p.y) / (K.y - A.y);
+    return { z: K.z + (A.z - K.z) * t, r: d.knee - .02 + (d.calf - d.knee + .008) * t }; };
+  // the lap: its underside (each band's back, to its outer face) is over the seat nowhere lower than its top. It is taken in about its own axis (its front comes down as far as its back
+  // comes up: seated, the lap is far deeper than the thighs it lies on), but where its end, past the knee, comes down over the front of a shin it is not drawn up off it (a short coat's
+  // lap is what covers the shin's front under the knee, and drawn up it bared a strip of the shin over a heel lifted in the eat)
+  const s0 = tails.scale.z, lapAt = (s: number, f: (p: T.Vector3) => boolean) => { squeeze(tails, s0, s, 0); MP.multiplyMatrices(pelvis.matrix, tails.matrix);
+    for (const g of gs) for (const r of g.up) { if (!f(SV.set(0, r.y, r.z - r.b - LIP).applyMatrix4(MP))) return false; } return true; };
+  const before = (p: T.Vector3) => { for (let i = 0; i < 2; i++) { const c = shin(p, i); if (c !== -1 && p.z > c.z && p.z < c.z + c.r + .005) return true; } return false; };
+  // (the lowest a hem's front comes: under that, a shin's front is the lap's to cover)
+  let low = Infinity; MP.multiplyMatrices(pelvis.matrix, tails.matrix);
+  const hems: [T.Object3D | undefined, T.Object3D | undefined, Garment[]][] = [[undefined, hem, d.garments], ...(d.split ? [d.split.front, d.split.back].map(q => [q.tails, q.hem, d.split!.garments] as [T.Object3D, T.Object3D | undefined, Garment[]]) : [])];
+  for (const [pt, h, lo] of hems) if (h) { h.updateMatrix(); MQ.copy(MP); if (pt) { pt.updateMatrix(); MQ.multiply(pt.matrix); } MQ.multiply(h.matrix);
+    for (const g of lo) if (!g.panel && g.lo.length) { const r = g.lo[g.lo.length - 1]; low = Math.min(low, SV.set(0, r.y, r.z + r.f).applyMatrix4(MQ).y); } }
+  /** the lowest the lap's end comes over the front of a shin */
+  const end = (s: number) => { let y = Infinity; lapAt(s, p => { if (before(p)) y = Math.min(y, p.y); return true; }); return y; };
+  const seat = (s: number) => lapAt(s, p => !(p.z > back && p.z < front && p.y < top + .002));
+  const sl = deepest(seat, s0 * .35, s0), e0 = end(s0), e1 = end(sl);
+  // drawn up, the lap's end may stop over a shin's front above where it hung and under the hem's lowest (a short coat's: its lap's end is what came down over the shin under the knee):
+  // there the hems are let down to it, or a strip of the shin would show under the lap
+  const down = sl < s0 && e0 < low && e1 > e0 + .001 && e1 < low ? low - e1 + .01 : 0;
+  squeeze(tails, s0, sl, 0);
+  MP.multiplyMatrices(pelvis.matrix, tails.matrix);
+  // what hangs from the lap is not taken in with it: its matrix is taken back through the change (MC, in the lap's own frame), so the cloth below the knee stays as it was
+  MC.compose(tails.position, tails.quaternion, KS.set(tails.scale.x, tails.scale.y, s0)).premultiply(MR.copy(tails.matrix).invert());
+  // the hems: below the seat's top, the back is ahead of its edge; but it still closes behind the calves (where a calf is behind the seat's edge, the calf wins: the cloth is on the edge)
+  const hang = (h: T.Object3D, parent: T.Matrix4, lo: Garment[]) => { const k0 = h.scale.z, fh = Math.max(...lo.flatMap(g => g.lo.map(r => r.z + r.f))); home(h);
+    if (down) { const len = -Math.min(...lo.flatMap(g => g.lo.map(r => r.y))); h.scale.y = (len + down) / len; } // (about its fullest front, so no front of it comes back toward the shins)
+    let j = 0; const was: number[] = [], each = (s: number, f: (p: T.Vector3) => boolean) => { squeeze(h, k0, s, fh); MQ.multiplyMatrices(parent, MC).multiply(h.matrix); j = 0;
+      for (const g of lo) for (const r of g.lo) { if (!f(SV.set(0, r.y, r.z - r.b - LIP).applyMatrix4(MQ))) return false; } return true; };
+    each(k0, p => { was[j] = p.z; return true; });
+    const seat = (s: number) => each(s, p => p.y >= top + .005 || p.z >= front + CLEAR);
+    // (a back already ahead of a calf is not taken in further there)
+    const calves = (s: number) => each(s, p => { for (let i = 0; i < 2; i++) { const c = shin(p, i); if (c !== -1 && p.z > Math.max(was[j] + 1e-4, c.z - c.r - LIP)) return false; } return true; });
+    const least = calves(k0 * .3) ? k0 * .3 : k0 - deepest(s => calves(k0 - s), 0, k0 * .7); // (the most the calves allow it to be taken in)
+      squeeze(h, k0, Math.max(least, deepest(seat, k0 * .3, k0)), fh); h.matrix.premultiply(MC); h.matrixAutoUpdate = false; h.matrixWorldNeedsUpdate = true; };
+  if (hem && d.garments.some(g => !g.panel && g.lo.length)) hang(hem, MP, d.garments.filter(g => !g.panel && g.lo.length));
+  const sp = d.split; if (sp) for (const p of [sp.front, sp.back]) if (p.hem) { p.tails.updateMatrix(); hang(p.hem, new T.Matrix4().multiplyMatrices(MP, p.tails.matrix), sp.garments); }
+}
+/** Every part seated cloth moved, back where it was built (each frame before the seated cloth is placed, and standing again). */
+export function unseatLong(d: Drape, tails: T.Object3D, hem: T.Object3D | undefined) {
+  for (const o of [tails, hem, d.split?.front.hem, d.split?.back.hem]) if (o?.userData.home) { o.position.copy(o.userData.home as T.Vector3); o.scale.y = 1; o.matrixAutoUpdate = true; }
 }

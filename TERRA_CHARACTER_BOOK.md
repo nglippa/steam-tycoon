@@ -840,6 +840,8 @@ knee. Long skirts and coats still trail.
 
 **Rule: under a long skirt is the skirt (People XXV).** Under a full skirt the thighs, with their round tops at the hip, are cut in the skirt's own cloth, the stockings only from the knee down (`wardrobe.ts`, `legs`' `thighM`). Seated, the skirt's lap lies along the thighs and its back does not wrap the seat, so the thighs' tops at the hip and their backs are what shows under and behind it: in stocking soot they read as a dark mass through the skirt, in its cloth as the skirt sat on.
 
+**Rule: seated cloth stays out of the seat (People XXV).** The seat is the game's bench (`drape.ts` `SEAT`: its top .42 over the pavement, from .185 behind the sitter's origin to .305 ahead; the cast sheet draws the same bench, turned with the sitter). Seated, no long cloth is under the seat's top anywhere over it (`seatLong`): the lap's underside is taken in about its axis until it rests on the seat (the lap is far deeper than the thighs it lies on, so its front comes down toward them as its back comes up), and each hem hung from the knees takes its back in about its front until, under the seat's top, it hangs 4.5 cm ahead of the seat's edge: the cloth folds over the edge and falls, it never goes into the plank or on below it. Neither is taken in past the legs: a hem's back stays behind the calves, and where a short coat's lap is what covers a shin's front under the knee and is drawn up off it, the hem is let down to meet it. What hangs from the lap is not squeezed with it.
+
 **Rule: cloth has weight (People XIX).** The hem trails the upper part on a softer, underdamped spring: it lags, swings past and settles, and it bends at the knee, sideways too. It never turns
 with the lap as one board.
 

@@ -2,7 +2,7 @@ import * as T from 'three';
 import type { Citizen, Expression } from './citizens';
 import type { Archetype } from './palette';
 import { walk, advance, MIN, pose, legZ, STANCE, REST, SOLE, HEEL_X, TOE_X, type Params } from '../simulation/gait';
-import { drape, readLegs, rest, drapeSplit, restSplit, holdSplit, seatPanel, carryPanel, LAP_SEATED } from './drape';
+import { drape, readLegs, rest, drapeSplit, restSplit, holdSplit, seatPanel, carryPanel, seatLong, unseatLong, LAP_SEATED } from './drape';
 import { isOccupier, conduct, bodyFor, faceAllowed, moodOfTone, stepMood, nearBand, type Trait, type MoodIn } from '../simulation/occupation';
 export type Activity='talk'|'browse'|'guard'|'carry'|'walk'|'read'|'hammer'|'sweep'|'warm'|'gauge'|'valve'|'argue'|'sit'|'eat'|'lean'|'watch'|'clipboard'|'repair';
 /** `seed` and `trait` cast one scene by hand: who is let out (0..1, low is out in a harder street) and how they carry themselves. */
@@ -242,7 +242,8 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
     leg.rotation.y=(1-w)*n.pelvis.rotation.y;if(!seated)leg.rotation.z-=sway/REST;});
   if(!seated&&g<.6){const up=standFeet(n);n.body.position.y+=up;n.pelvis.position.y+=up;for(const leg of n.legs)leg.position.y+=up;}
   // Seated, the legs are solved to put the soles on the pavement, and the lap and the hem below the knee follow the knees and shins they solve (People XXIII). Eating, the free foot's heel bobs.
-  if(seated){seatLegs(n,activity==='eat'?.018*Math.max(0,Math.sin(phase)):0);seatCloth(n);}
+  if(n.drape)unseatLong(n.drape,n.tails,n.hem);/* (People XXV: what seatLong moved last frame is put back first, so the lap is read from where it was built) */
+  if(seated){seatLegs(n,activity==='eat'?.018*Math.max(0,Math.sin(phase)):0);seatCloth(n);if(n.drape)seatLong(n.drape,n.group,n.pelvis,n.tails,n.hem,n.legs,n.knees,n.ankles);/* (People XXV: and kept out of the seat) */}
   // Long cloth follows the legs, now they are where they will be drawn: a lifted knee never pierces it, the upper part leads with the knees and the hem trails it with weight
   // (beyond 40 m it is solved every third frame, and standing still it eases back to plumb).
   if(follows){if(w>.02){if(lively||(m.cloth.tick=(m.cloth.tick+1)%3)===0){readLegs(n.pelvis,n.tails,n.legs,n.knees,n.ankles);drape(n.drape!,m.cloth,n.tails,n.hem,dt,g,n.tails.rotation.z,lively?m.tail*.6:-g*.06,lively);drapeSplit(n.drape!,n.tails,dt,g,lively);}}else{rest(m.cloth,n.tails,n.hem,dt,n.tails.rotation.z);restSplit(n.drape!,dt);}}

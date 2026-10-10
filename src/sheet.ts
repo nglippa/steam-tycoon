@@ -7,6 +7,7 @@ import { ringAt } from './world/people/loft';
 import { dimsOf } from './world/people/body';
 import { CASTS, STORY, type CastId, type Family, type Frame } from './world/people/look';
 import { animateLife, setLifeConditions, type Activity } from './world/citizen-life';
+import { SEAT } from './world/drape';
 import { InkRenderer } from './world/ink-renderer';
 import { tone, painted } from './world/tone';
 import { palette, type Archetype } from './world/palette';
@@ -89,7 +90,7 @@ for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
   const sole = ground ? -.13 : Math.min(...n.ankles.map(a => new T.Box3().setFromObject(a).min.y)), x = (c - (cols - 1) / 2) * SX, y = (rows - 1 - r) * SY; // &ground=1: the pavement (.13 under the origin in the world, as the spawn sites stand people), not the lowest sole, stands on the row's line
   n.group.position.set(x, y - sole, 0); n.group.updateMatrixWorld(true);
   tallest = Math.max(tallest, new T.Box3().setFromObject(n.head).max.y - y);
-  if (how === 'sit' || how === 'eat' || how === 'bite') { const hip = n.legs[0].getWorldPosition(new T.Vector3()), seat = new T.Mesh(new T.BoxGeometry(.6, .05, .42), bench); seat.position.set(x, hip.y - .12, -.04); scene.add(seat); }
+  if (how === 'sit' || how === 'eat' || how === 'bite') { const r = yaw, seat = new T.Mesh(new T.BoxGeometry(1.9, .05, SEAT.front - SEAT.back), bench); seat.rotation.y = r; seat.position.set(x + Math.sin(r) * (SEAT.front + SEAT.back) / 2, y - sole - SEAT.pave + SEAT.top - .025, Math.cos(r) * (SEAT.front + SEAT.back) / 2); scene.add(seat); } // (the game's bench, turned with the sitter: drape.ts SEAT, People XXV)
   if (how === 'carry') { const mid = n.grips[0].getWorldPosition(new T.Vector3()).add(n.grips[1].getWorldPosition(new T.Vector3())).multiplyScalar(.5), crate = new T.Mesh(new T.BoxGeometry(.3, .2, .26), bench); crate.position.copy(n.group.worldToLocal(mid)); n.group.add(crate); }
   figures.push({ role, seed, n, x, y });
 }

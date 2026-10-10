@@ -17,8 +17,9 @@ export const REPS: [string, string, number][] = [
 ];
 /** `combo` is cast.family.frame, optionally with an outfit after a colon (`stallholder.sturdy.broad:stallholder.shawl`, in the outfit's first palette): the seed draws the rest. */
 export function make(combo: string, seed: number): Citizen {
-  const [cut, outfit] = combo.split(':'), [cast, family, frame] = cut.split('.') as [CastId, never, never], archetype = CASTS[cast].archetype;
-  const drawn = resolveLook(seed, archetype, { cast, family, frame, casts: BUILT }), o = outfit ? CASTS[cast].outfits.find(x => x.id === outfit) : undefined;
+  const story = combo.startsWith('look:') ? resolveLook(seed, 'guard', { look: combo.slice(5) }) : undefined; // `look:introGuard`: a named story character (People XXV)
+  const [cut, outfit] = story ? [`${story.cast}.${story.family}.${story.frame}`] : combo.split(':'), [cast, family, frame] = cut.split('.') as [CastId, never, never], archetype = CASTS[cast].archetype;
+  const drawn = story ?? resolveLook(seed, archetype, { cast, family, frame, casts: BUILT }), o = outfit ? CASTS[cast].outfits.find(x => x.id === outfit) : undefined;
   if (outfit && !o) throw new Error(`people-rig: ${cast} has no outfit ${outfit}`);
   const look = o ? { ...drawn, outfit: o.id, palette: Object.keys(o.palettes)[0] } : drawn;
   const f = buildFigure(look, { solo: true }, kit()); f.group.userData.next = true;
