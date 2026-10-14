@@ -47,3 +47,11 @@ export function beltGap(combo: string, seed: number) {
       if (!h) { lost++; continue; } const gap = h.distance - (b.userData.belt as number); bw = Math.max(bw, gap); if (gap > worst) { worst = gap; where = `(${v.x.toFixed(3)}, ${v.y.toFixed(3)}, ${v.z.toFixed(3)})`; } } per.push(bw); }
   return { worst, lost, where, belts: belts.length, per };
 }
+
+test('belts, bands and straps lie on what they wrap: every QA cast and the garrison in other builds has each within 6 mm of the cloth under it and none lost', () => {
+  // People XXV: the garrison's crossbelt was 19.4 mm clear of the coat over the chest and shoulder. It was a flat strap swept through ten points over a coat of ten flat facets, so its middle
+  // stood off the facets' middles and its edges off the next facets; it is now a ribbon laid on the coat's own triangles, riding the buttoned front's plate where it crosses it.
+  const casts: [string, number][] = [...REPS.map(([, c, s]) => [c, s] as [string, number]), ['garrison.standard.narrow', 3], ['garrison.slim.broad', 7], ['look:introGuard', 1]];
+  for (const [combo, seed] of casts) { const r = beltGap(combo, seed); assert.ok(r.belts > 0 || !/garrison|inspector|stallholder/.test(combo), `${combo} s${seed}: no belt found`);
+    assert.ok(r.worst <= .006 && r.lost === 0, `${combo} s${seed}: a belt stands ${(r.worst * 1000).toFixed(1)} mm off at ${r.where}, ${r.lost} outer vertices found nothing under them`); }
+});

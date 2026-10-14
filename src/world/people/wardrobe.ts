@@ -1,5 +1,5 @@
 import * as T from 'three';
-import { loft, sweep, place, plate, offset, ringAt, surface, onFace, shared, inward, type Ring, type SweepPt } from './loft';
+import { loft, sweep, place, plate, offset, ringAt, ringPoint, surface, onFace, shared, inward, type Ring, type SweepPt } from './loft';
 import { upperArm, forearm, thigh as thighRings, shin as shinRings, ring, RIG, ELBOW_GATHER, type Dims } from './body';
 import type { Look } from './look';
 import type { Kit } from './figure';
@@ -8,6 +8,8 @@ import { palette as P } from '../palette';
 import { landmarks } from './headform';
 import { skullRings } from './head';
 import { bands, type Garment } from '../drape';
+
+const TAU = Math.PI * 2;
 
 /** The ten civilian wardrobes (Terra Character Book 8 and 9). Every garment is a shell measured from the body reference: turned edges, an opening, a thickness, a lining wherever the shell can be
  *  seen from inside. Cloth is the stitched cloth map; leather and metal are the PLAIN material (no map: smooth, so they do not read as stitched) with a darker swatch, a lighter edge binding
@@ -295,9 +297,9 @@ export function dress(x: X) {
     // the crossbelt wraps the torso: over one shoulder, across the chest, round the side to a pouch on the opposite hip, crossing on the back. People XXV: one strap, unbroken from the hip
     // up across the chest, over the shoulder and down the back to the other hip, lying on the coat (its inner face 5.5 mm off, over the buttoned front's overlap) and tucked under the
     // waist belt at both ends; it was two straps capped where they met on the shoulder and below the belt, which read in 3/4 as a broken Z and from the side as two slabs
-    const sd = side, W = (pts: number[][]) => pts.map(([y, a]) => { const q = surface(r.cR, y, a, .0085); return { p: q.p.toArray() as Pt, a: .027, b: .003, n: q.n.toArray() as Pt }; });
+    const sd = side;
     if (asym.has('crossbelt')) {
-    put0(lifted, sweep(W([[1.118, -sd * 1.12], [1.18, -sd * .6], [1.27, -sd * .05], [1.36, sd * .46], [1.44, sd * .9], [1.5, sd * 1.3], [1.44, sd * 1.9], [1.34, sd * 2.45], [1.22, sd * 2.95], [1.118, sd * (2 * Math.PI - 2.75)]]), { seg: 4, capStart: true, capEnd: true }), strap).userData.belt = .006;
+    put0(lifted, strapOn(r.cR, [[1.118, -sd * 1.12], [1.18, -sd * .6], [1.27, -sd * .05], [1.36, sd * .46], [1.44, sd * .9], [1.5, sd * 1.3], [1.44, sd * 1.9], [1.34, sd * 2.45], [1.22, sd * 2.95], [1.118, sd * (2 * Math.PI - 2.75)]], .027, .0045, .004, 10), strap).userData.belt = .004;
     { const q = surface(r.cR, 1.27, -sd * .05, .013); put0(lifted, new T.Mesh(new T.BoxGeometry(.04, .034, .008), brass).geometry, brass, q.p.toArray() as Pt); }
     pouch(r.at(-sd * .8), r.rings!, -.02, -sd * .62, -sd * 1.02, black); } // (props sit in front of the hip, clear of the hanging and swinging arm: Book 12)
     arms({ upM: coat, off: .027, cuffM: coat, glove: black, board: board(coat, black, .066, .04, .034, false) });
@@ -519,4 +521,43 @@ export function headgear(x: X, hg: T.Group, h: number) {
     put0(hg, sweep([{ p: [r[0] + .01 * k, y + .05 * k, r[2] - .03 * k], a: .0032 * k, b: .0032 * k, n: [1, 0, 0] }, { p: [r[0] + .012 * k, y + .045 * k, r[2] + .025 * k], a: .0032 * k, b: .0032 * k, n: [1, 0, 0] }], { seg: 4, capStart: true, capEnd: true }), kit.plain('#b8602f'));
   }
 }
+/** The point and outward normal on a closed coat's faceted shell (a loft of `seg` flat facets round, so a facet's middle is inside the true curve by up to 1 cm at the chest) at height y and
+ *  angle a, pushed out by `off`: what a strap laid across the coat must follow, not the smooth curve through the facets' corners. */
+const facetSurface = (rg: Ring[], y: number, a: number, seg: number, off: number) => {
+  // (the shell is the loft's own triangles: each facet between two rings is a quad cut along one diagonal, and where the rings differ a lot it is not flat, so the two halves are taken as the loft lays them)
+  const up = rg[rg.length - 1].y > rg[0].y, yc = Math.min(Math.max(rg[0].y, rg[rg.length - 1].y), Math.max(Math.min(rg[0].y, rg[rg.length - 1].y), y)), t = (((a % TAU) + TAU) % TAU) / TAU * seg, i = Math.floor(t), f = t - i;
+  let j = 0; while (j < rg.length - 2 && (up ? yc > rg[j + 1].y : yc < rg[j + 1].y)) j++;
+  const u = Math.min(1, Math.max(0, (yc - rg[j].y) / (rg[j + 1].y - rg[j].y))), pt = (r: Ring, k: number) => new T.Vector3(...ringPoint(r, k / seg * TAU)),
+    P00 = pt(rg[j], i), P10 = pt(rg[j], i + 1), P01 = pt(rg[j + 1], i), P11 = pt(rg[j + 1], i + 1), lower = f + u <= 1;
+  const p = lower ? P00.clone().addScaledVector(P10.clone().sub(P00), f).addScaledVector(P01.clone().sub(P00), u) : P10.clone().addScaledVector(P11.clone().sub(P10), u).addScaledVector(P01.clone().sub(P11), 1 - f),
+    n = (lower ? new T.Vector3().crossVectors(P10.clone().sub(P00), P01.clone().sub(P00)) : new T.Vector3().crossVectors(P11.clone().sub(P10), P01.clone().sub(P10))).normalize();
+  if (n.dot(new T.Vector3(p.x, 0, p.z - (ringAt(rg, yc).z ?? 0))) < 0) n.negate();
+  return { p: p.addScaledVector(n, off), n }; };
+/** The ring angle (0 the front) of a point on a shell: what a plate cut on the smooth curve is measured by, where a faceted shell's own parameter runs a little ahead of it. */
+const angleOf = (rg: Ring[], p: T.Vector3) => { const r = ringAt(rg, p.y), k = 2 / (r.n ?? 2), dz = p.z - (r.z ?? 0), sa = Math.sign(p.x - (r.x ?? 0)) * Math.pow(Math.min(1, Math.abs(p.x - (r.x ?? 0)) / r.w), 1 / k), ca = Math.sign(dz) * Math.pow(Math.min(1, Math.abs(dz) / (dz >= 0 ? r.f : r.b)), 1 / k); return Math.atan2(sa, ca); };
+/** A flat strap laid across a closed coat's faceted shell from control points (height, angle): a ribbon cut fine along its course and across its width, every point of it set on the shell
+ *  by `facetSurface` (a flat strap swept as one plane stood 1-2 cm off the coat wherever its edge ran onto the next facet), `off` the strap's middle off the shell and `th` its thickness.
+ *  Over the buttoned front's overlap (the plate, angles -.6..+.17, which is cut on the smooth curve and 6 mm thick) it rides the plate. */
+const strapOn = (rg: Ring[], ctrl: number[][], hw: number, off: number, th: number, seg: number) => {
+  const pts = spline(ctrl, 16), C = 9, N = pts.length, pos: number[] = [], nrm: number[] = [], idx: number[] = [], id = (i: number, l: number, c: number) => (i * 2 + l) * C + c;
+  // (its normals are the shell's own, so it is lit as the coat is and not as a sheet bent over a ridge)
+  const ride = (a: number, y: number) => { const t = ((a % TAU) + TAU) % TAU, u = t >= TAU - .6 ? t - (TAU - .6) : t + .6; return u >= .02 && u <= .75 && y >= 1.06 && y <= 1.47 ? 1 : 0; }; // (whether it is over the plate: a point is on the plate or on the coat, and the strap steps up onto the plate's edge)
+  for (let i = 0; i < N; i++) { const [y, a] = pts[i], pr = pts[Math.max(0, i - 1)], nx = pts[Math.min(N - 1, i + 1)], r0 = ringAt(rg, y), rad = (r0.w + (r0.f + r0.b) / 2) / 2,
+      dy = nx[0] - pr[0], dm = (nx[1] - pr[1]) * rad, len = Math.hypot(dy, dm) || 1;
+    for (const l of [0, 1]) for (let c = 0; c < C; c++) { const sd = (c / (C - 1) * 2 - 1) * hw, yy = y - dm / len * sd, aa = a + dy / len * sd / rad, o = off + (l ? -th / 2 : th / 2), q = facetSurface(rg, yy, aa, seg, o), ang = angleOf(rg, q.p), k = ride(ang, yy), m = k ? surface(rg, yy, ang, o + .006).p : q.p; pos.push(q.p.x + (m.x - q.p.x) * k, q.p.y + (m.y - q.p.y) * k, q.p.z + (m.z - q.p.z) * k); nrm.push(q.n.x * (l ? -1 : 1), q.n.y * (l ? -1 : 1), q.n.z * (l ? -1 : 1)); } }
+  const dups = new Map<number, number>(), dup = (k: number) => { let d = dups.get(k); if (d === undefined) { d = pos.length / 3; dups.set(k, d); pos.push(pos[k * 3], pos[k * 3 + 1], pos[k * 3 + 2]); nrm.push(nrm[k * 3], nrm[k * 3 + 1], nrm[k * 3 + 2]); } return d; }; // (a wall's own vertices, so its edge does not tilt the face's normals)
+  const quad = (a: number, b: number, c: number, d: number) => idx.push(a, b, c, b, d, c);
+  for (let i = 0; i < N - 1; i++) { for (let c = 0; c < C - 1; c++) { quad(id(i, 0, c), id(i, 0, c + 1), id(i + 1, 0, c), id(i + 1, 0, c + 1)); quad(id(i, 1, c + 1), id(i, 1, c), id(i + 1, 1, c + 1), id(i + 1, 1, c)); }
+    quad(dup(id(i, 1, 0)), dup(id(i, 0, 0)), dup(id(i + 1, 1, 0)), dup(id(i + 1, 0, 0))); quad(dup(id(i, 0, C - 1)), dup(id(i, 1, C - 1)), dup(id(i + 1, 0, C - 1)), dup(id(i + 1, 1, C - 1))); }
+  for (const i of [0, N - 1]) for (let c = 0; c < C - 1; c++) { const f = i ? 1 : -1; if (f > 0) quad(id(i, 0, c + 1), id(i, 0, c), id(i, 1, c + 1), id(i, 1, c)); else quad(id(i, 0, c), id(i, 0, c + 1), id(i, 1, c), id(i, 1, c + 1)); }
+  const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); g.setIndex(idx); g.computeVertexNormals();
+  { const n = g.attributes.normal as T.BufferAttribute, p = g.attributes.position as T.BufferAttribute, k = id(Math.floor(N / 2), 0, 3); // outer face must look away from the body's axis
+    if (n.getX(k) * p.getX(k) + n.getZ(k) * (p.getZ(k) - (ringAt(rg, p.getY(k)).z ?? 0)) < 0) { const ix = g.index!; for (let t = 0; t < ix.count; t += 3) { const x = ix.getX(t + 1); ix.setX(t + 1, ix.getX(t + 2)); ix.setX(t + 2, x); } g.computeVertexNormals(); } }
+  g.setAttribute('normal', new T.Float32BufferAttribute(nrm, 3)); g.setAttribute('uv', new T.Float32BufferAttribute(new Float32Array(pos.length / 3 * 2), 2)); return g; };
+/** A strap's course through (height, angle) control points, a Catmull-Rom curve cut finer (`sub` steps a span): a strap between its few control points runs straight across a round torso,
+ *  standing off its middle (the crossbelt was up to 19 mm clear of the coat over the chest and shoulder). */
+const spline = (pts: number[][], sub = 4) => { const out: number[][] = [], at = (i: number) => pts[Math.max(0, Math.min(pts.length - 1, i))];
+  for (let i = 0; i < pts.length - 1; i++) for (let k = 0; k < sub; k++) { const t = k / sub, p0 = at(i - 1), p1 = at(i), p2 = at(i + 1), p3 = at(i + 2);
+    out.push([0, 1].map(j => { const v = .5 * (2 * p1[j] + (p2[j] - p0[j]) * t + (2 * p0[j] - 5 * p1[j] + 4 * p2[j] - p3[j]) * t * t + (3 * p1[j] - p0[j] - 3 * p2[j] + p3[j]) * t * t * t); return j ? v : Math.max(Math.min(...pts.map(q => q[0])), Math.min(Math.max(...pts.map(q => q[0])), v)); })); }
+  out.push(pts[pts.length - 1]); return out; };
 const surfaceAt = (rg: Ring[], y: number, a: number): [number, number, number] => { const s = surface(rg, y, a, .003); return [s.p.x, s.p.y, s.p.z]; };
