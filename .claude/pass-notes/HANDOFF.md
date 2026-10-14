@@ -8,15 +8,16 @@ The brief is `.claude/pass-notes/brief-full.md`. Read sections 0–21.
 
 - It is a presentation-only pass: people (character construction), a slimmer UI and lighter ink/shader rendering.
 - No gameplay, economy, story, spawn-count, path or role changes. Every commit so far keeps gameplay unchanged.
-- The user's standing instruction: every requirement in the brief must be met before anything merges to `main`.
-- `main` is untouched: `70f73c4` = `origin/main`. **Never merge to `main` or push `main` without the user's explicit approval.**
+- The brief's standing rule was that every requirement must be met before anything merged to `main`. On 2026-10-14 the user asked for the work to be pullable, so `presentation` (with `people-xxvi` merged in) was fast-forwarded into `main` and pushed. The brief is **not** yet complete: §5 below is still the remaining work.
+- Continue on `main` (or a branch from it). Ask the user before any further push to `main`.
 
 ## 1. Branches and worktrees
 
 | Branch | Worktree | Tip | Contents |
 |---|---|---|---|
-| `presentation` | `.claude/worktrees/presentation` | see `git log -1` | The integration branch: People I–XXV, HUD I–V, Ink I–VII, QA I–V-b, merge of People XX–XXIII. Pushed to `origin/presentation`. |
-| `people-xxvi` | `.claude/worktrees/people-xxvi` | `f536d13` | Branched from `presentation` @ `3cc0c49`: People XXVI (torso S-curve, elbows, hands + bite, seated knee spread, faces, moustache) and People XXVII (variety). Pushed to `origin/people-xxvi`. **Not yet merged into `presentation`.** |
+| `main` | the repo root | same as `presentation` | Everything: People I–XXVII, HUD I–V, Ink I–VII, QA I–V-b, and the merges of People XX–XXIII and XXVI–XXVII. Pushed. |
+| `presentation` | `.claude/worktrees/presentation` | see `git log -1` | The integration branch. `main` was fast-forwarded to it. |
+| `people-xxvi` | `.claude/worktrees/people-xxvi` | `f536d13` | People XXVI–XXVII. **Merged** into `presentation` as `d557845`, plus the merge fix `92bc1f9`: a seated lap is flattened only as far as XXVI's parted thighs allow. |
 
 Other worktrees under `.claude/worktrees/` (`people`, `people-xx`, `fixes`, `pass3`, `pass4`, `resistance`, `two-paths`, `agent-*`) belong to earlier passes. Leave them alone.
 
@@ -97,24 +98,14 @@ Not started:
 
 ## 5. What to do next, in order
 
-### 5.1 Merge `people-xxvi` into `presentation`
+### 5.1 Merge `people-xxvi` into `presentation`: DONE
 
-In `.claude/worktrees/presentation`:
+Merged as `d557845`, with follow-up fix `92bc1f9`. 269 tests pass.
 
-```
-git merge --no-ff people-xxvi
-```
-
-A dry run (`git merge-tree`) shows conflicts in `src/sheet.ts` and `src/world/citizen-life.ts`:
-
-- `src/sheet.ts`: both sides added sheet parameters. Keep both: XXVI added the bite food and `__SHEET__.faces()`/`expressions()`; XXV and XXIV added seated cast options.
-- `src/world/citizen-life.ts`: XXVI changed `seatLegs` (knee spread) and the bite pose; XXV changed `seatCloth` and the drape calls. Keep both.
-
-After resolving:
-
-1. Typecheck, test and build. Expect about 270+ tests.
-2. Pay attention to the seated cloth-vs-bench test (`tests/cloth.test.ts`) and the leg-through-lap tests. XXVI spread the knees and XXV fitted the cloth before that spread, so check the seated captures (`node tools/qa-captures.mjs --part=seated`) for calves through hems and for cloth in the plank.
-3. Merge message: `Merge People XXVI–XXVII (torso, elbows, hands, faces, variety) into presentation`.
+- `sheet.ts`: keeps XXV's bench (`SEAT`), XXVI's bite food (`FOOD`) and `faces()`/`expressions()`.
+- `citizen-life.ts`: keeps both sides.
+- The two sides interacted in one place. XXV's `seatLong` flattened a seated lap until its underside rested on the bench, and XXVI's spread thighs then poked 0.6 cm through it. `seatLong` now flattens the lap only as far as the thighs allow.
+- Seated captures show no cloth in the bench and no calves through hems.
 
 ### 5.2 Finish People XXV (cloth), on `presentation`
 
