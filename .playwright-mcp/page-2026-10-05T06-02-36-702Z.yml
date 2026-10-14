@@ -1,0 +1,75 @@
+- generic [active]:
+  - generic "First-person view of the city of Terra" [ref=f3e1]
+  - generic:
+    - banner:
+      - generic:
+        - generic:
+          - generic: CITY TYCOON · TERRA
+          - generic: THE LOWWORKS
+      - group "Compass, clock and ward":
+        - generic [aria-hidden]:
+          - generic:
+            - generic: "N"
+            - generic: NE
+            - generic: E
+            - generic: SE
+            - generic: S
+            - generic: SW
+            - generic: W
+            - generic: NW
+            - generic: "N"
+            - generic: NE
+            - generic: E
+            - generic: SE
+            - generic: S
+            - generic: SW
+            - generic: W
+            - generic: NW
+            - generic: "N"
+            - generic: NE
+            - generic: E
+            - generic: SE
+            - generic: S
+            - generic: SW
+            - generic: W
+            - generic: NW
+            - generic: "N"
+        - generic: 17:16
+        - generic:
+          - generic: DRIZZLE · DUSK
+          - generic: HEAVY 80%
+      - generic:
+        - generic: TREASURY
+        - generic:
+          - generic [aria-hidden]: ♜
+          - strong: "35"
+        - generic: +0 Crowns / sec
+    - contentinfo:
+      - generic:
+        - generic: A CITY WORTH SAVING
+        - paragraph: Report to work at Rook & Son Salvage.
+        - generic:
+          - generic: STEP 1 / 6
+          - generic: 00 / THE LOWWORKS
+      - generic:
+        - generic:
+          - generic: W
+          - generic: A
+          - generic: S
+          - generic: D
+          - text: Walk
+        - generic:
+          - generic: E
+          - text: Interact
+        - generic:
+          - generic: ⇧
+          - text: Sprint
+        - button "TAB Ledger" [ref=f3e2] [cursor=pointer]:
+          - generic [ref=f3e3]: TAB
+          - text: Ledger
+    - text: → →
+    - status
+    - generic:
+      - generic: TERRA
+      - generic: A CITY WORTH SAVING
+  - generic: "Review: warming up"
