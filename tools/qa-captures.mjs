@@ -296,4 +296,18 @@ if (part === 'seated') {
   await sheetShot(page, `${pre}-seated-sit-side-feet`, `${fq}&view=side&pose=sit&fov=12&zoom=2.2&fy=.2`, `People XXIII · seated · side · the feet against the pavement (red): ${few.map(r => r[0]).join(', ')}`, { width: 1600, relabel: few.map(r => `<b>${r[0]}</b>`) });
   merge('console.json', `seated-${pre}`, log);
 }
+// ---- People XXV-b / XXVIII (the hem in a stride, the elder's brim, the ponytail, the stallholder's bun, the shoulders) -------------------------------------------
+// --part=xxviii writes the close-ups the round is judged on into <outDir>: the apron hems side-on at the stride's peak knee, the elders in hats (seeds 12 13 15 16 22), the courier ponytails,
+// the stallholder's hair from three sides, and the sheet's front line-up at 50 px. Run it at the commit before and at the commit after.
+if (part === 'xxviii') {
+  const page = await browser.newPage({ viewport: { width: 1600, height: 720 }, deviceScaleFactor: 1 }); watch(page, 'sheet.html (xxviii)');
+  const hemC = [['shop merchant', 'shopMerchant.standard.broad', 9], ['foundry worker', 'foundry.sturdy.broad', 7]];
+  for (const at of [0, 12, 24, 36]) await sheetShot(page, `hem-stride-side-${at}`, `build=new&combos=${hemC.map(r => r[1]).join(',')}&seeds=${hemC.map(r => r[2]).join(',')}&view=side&pose=stride&at=${at}&fov=12&zoom=1.6&fy=.4`, `People XXV-b · apron hems · side · stride frame ${at} of 48`, { relabel: hemC.map(r => `<b>${r[0]}</b>`) });
+  const eld = [12, 13, 15, 16, 22], eq = `build=new&combos=${eld.map(() => 'elder.slim.narrow').join(',')}&seeds=${eld.join(',')}`;
+  for (const v of ['front', 'quarter', 'side', 'back']) await sheetShot(page, `elder-hat-${v}`, `${eq}&view=${v}&pose=stand&fov=12&zoom=3.2&fy=.9`, `People XXVIII · elder.slim.narrow in a hat · seeds ${eld.join(' ')} · ${v} · the white hair at the brim`);
+  for (const v of ['side', 'back', 'quarter']) await sheetShot(page, `ponytail-${v}`, `build=new&roles=courier&seeds=2,5,6,13&view=${v}&pose=stand&fov=12&zoom=2&fy=.75`, `People XXVIII · courier ponytails · seeds 2 5 6 13 · ${v}`);
+  for (const v of ['front', 'quarter', 'side', 'back']) await sheetShot(page, `stallholder-hair-${v}`, `build=new&combos=stallholder.standard.narrow,stallholder.sturdy.broad&seeds=8,3&view=${v}&pose=stand&fov=12&zoom=3.2&fy=.9`, `People XXVIII · the stallholders' hair · seeds 8 3 · ${v}`);
+  for (const v of ['front', 'quarter', 'side']) await sheetShot(page, `shoulders-${v}`, `${repQuery}&view=${v}&pose=stand&fov=12&zoom=2&fy=.78&sx=.9`, `People XXVIII · shoulders and sleeve caps · ${v} · ${REPS.map(r => r[0]).join(', ')}`, { width: 2560 });
+  merge('console.json', 'xxviii', log);
+}
 await browser.close();

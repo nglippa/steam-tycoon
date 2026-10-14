@@ -444,7 +444,7 @@ export function dress(x: X) {
   if (id === 'youngMechanic') {
     const jk = wool(I('jacket')), sh = c(I('shirt')), trou = wool(I('trousers')), glove = lea(I('roll'));
     shirt(sh, { placket: true, collar: true, yoke: false, front: 1.1 });
-    const r = jacket(jk, { off: .02, aL: .45, aR: .45, hem: .86, hemW: .46, hemD: .34, buttons: 2, lapel: false, stand: false });
+    const r = jacket(jk, { off: .02, aL: .45, aR: .45, hem: .6, hemW: .52, hemD: .46, buttons: 2, lapel: false, stand: false });
     belt(leatherM, 1.07, .02, .003, 1.05); // (under the open jacket, on the shirt's front)
     const hipR = offset(rib, .05), side = asym.has('toolRoll') ? 1 : -1;
     pouch(lifted, hipR, 1.05, side * .6, side * 1.0, leatherM);

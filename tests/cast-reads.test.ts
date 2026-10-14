@@ -29,3 +29,10 @@ test('the sturdy stallholder is sturdier in outline than the standard one, not t
   const hemRatio = width(su, .15, .35) / width(sd, .15, .35); // (the two skirts were cut to one hem: the same outline under a wider top)
   assert.ok(hemRatio >= 1.15, `the sturdy hem is ${hemRatio.toFixed(2)}x the standard`);
 });
+
+test('at 50 px the three pairs the review found alike keep apart: same-scale silhouette IoU under .78, front and side', async () => {
+  // People XXVIII: the young mechanic's hip-length jacket left only the cap's peak to tell him from the labourer from the side (.838); he now wears a skirted jacket with a tail, and the
+  // Ordinance's coats differ in length and in the shoulder. Measured as tools/variety-measure.ts does (the sheet's standing pose, the silhouette rasterised front and side).
+  const { silhouettes } = await import('../tools/variety-measure.ts');
+  for (const p of silhouettes()) { assert.ok(p.front < .78, `${p.a} / ${p.b}: front ${p.front.toFixed(3)}`); assert.ok(p.side < .78, `${p.a} / ${p.b}: side ${p.side.toFixed(3)}`); }
+});
