@@ -1,0 +1,743 @@
+{
+  "base": "http://127.0.0.1:5791",
+  "people": "old",
+  "day": 0.5,
+  "viewport": [
+    1280,
+    720
+  ],
+  "deviceScaleFactor": 1,
+  "problems": [],
+  "shots": [
+    {
+      "name": "hud-normal.png",
+      "url": "http://127.0.0.1:5791/?dev=1&intro=0&view=street&people=old&weather=clear",
+      "pixelRatio": 1,
+      "devicePixelRatio": 1,
+      "canvasBuffer": [
+        1280,
+        720
+      ],
+      "canvasCss": [
+        1280,
+        720
+      ],
+      "quality": "high",
+      "drawCalls": 626,
+      "triangles": 837014,
+      "clockHour": 12,
+      "weather": "clear",
+      "stage": 0,
+      "camera": {
+        "x": 0,
+        "y": 1.93,
+        "z": 30,
+        "yaw": 0,
+        "pitch": -0.02
+      },
+      "locked": true,
+      "people": "old",
+      "set": "hud",
+      "note": "persistent HUD, standing in the Great Main, pointer locked",
+      "lock": {
+        "locked": true,
+        "fallback": false
+      },
+      "loadMs": 2697
+    },
+    {
+      "name": "hud-toast.png",
+      "url": "http://127.0.0.1:5791/?dev=1&intro=0&view=street&people=old&weather=clear",
+      "pixelRatio": 1,
+      "devicePixelRatio": 1,
+      "canvasBuffer": [
+        1280,
+        720
+      ],
+      "canvasCss": [
+        1280,
+        720
+      ],
+      "quality": "high",
+      "drawCalls": 630,
+      "triangles": 837434,
+      "clockHour": 12,
+      "weather": "clear",
+      "stage": 0,
+      "camera": {
+        "x": 0,
+        "y": 1.93,
+        "z": 30,
+        "yaw": 0,
+        "pitch": -0.02
+      },
+      "locked": true,
+      "people": "old",
+      "set": "hud",
+      "note": "a toast showing",
+      "lock": {
+        "locked": true,
+        "fallback": false
+      }
+    },
+    {
+      "name": "hud-prompt.png",
+      "url": "http://127.0.0.1:5791/?dev=1&intro=0&view=street&people=old&weather=clear",
+      "pixelRatio": 1,
+      "devicePixelRatio": 1,
+      "canvasBuffer": [
+        1280,
+        720
+      ],
+      "canvasCss": [
+        1280,
+        720
+      ],
+      "quality": "high",
+      "drawCalls": 934,
+      "triangles": 1241349,
+      "clockHour": 12,
+      "weather": "clear",
+      "stage": 0,
+      "camera": {
+        "x": -8.6,
+        "y": 1.93,
+        "z": 37,
+        "yaw": 1.5708,
+        "pitch": 0
+      },
+      "locked": true,
+      "people": "old",
+      "set": "hud",
+      "note": "interaction prompt for the Rook workbench",
+      "prompt": {
+        "hidden": false,
+        "text": "ERook & Son SalvageOPEN PROPERTY LEDGER"
+      },
+      "lock": {
+        "locked": true,
+        "fallback": false
+      }
+    },
+    {
+      "name": "hud-dialogue.png",
+      "url": "http://127.0.0.1:5791/?dev=1&intro=0&view=street&people=old&weather=clear",
+      "pixelRatio": 1,
+      "devicePixelRatio": 1,
+      "canvasBuffer": [
+        1280,
+        720
+      ],
+      "canvasCss": [
+        1280,
+        720
+      ],
+      "quality": "high",
+      "drawCalls": 626,
+      "triangles": 831266,
+      "clockHour": 12,
+      "weather": "clear",
+      "stage": 0,
+      "camera": {
+        "x": 0,
+        "y": 1.93,
+        "z": 30,
+        "yaw": 0,
+        "pitch": -0.02
+      },
+      "locked": true,
+      "people": "old",
+      "set": "hud",
+      "note": "a dialogue line flashed over the street",
+      "said": true,
+      "lock": {
+        "locked": true,
+        "fallback": false
+      }
+    },
+    {
+      "name": "product-test-clear.png",
+      "url": "http://127.0.0.1:5791/?dev=1&intro=0&view=street&people=old&weather=clear&level=2",
+      "pixelRatio": 1,
+      "devicePixelRatio": 1,
+      "canvasBuffer": [
+        1280,
+        720
+      ],
+      "canvasCss": [
+        1280,
+        720
+      ],
+      "quality": "high",
+      "drawCalls": 349,
+      "triangles": 729420,
+      "clockHour": 12,
+      "weather": "clear",
+      "stage": 2,
+      "camera": {
+        "x": -5,
+        "y": 1.93,
+        "z": -16,
+        "yaw": 0,
+        "pitch": 0.06
+      },
+      "locked": true,
+      "people": "old",
+      "set": "product",
+      "note": "Market Square product-test placement, HUD shown",
+      "placed": [
+        -5,
+        -16,
+        0,
+        null,
+        0.06
+      ],
+      "boxes": {
+        "identity": [
+          28,
+          12,
+          206,
+          44
+        ],
+        "ribbon": [
+          464,
+          12,
+          352,
+          44
+        ],
+        "treasury": [
+          1070,
+          12,
+          182,
+          44
+        ],
+        "objective": [
+          28,
+          631,
+          340,
+          61
+        ],
+        "hints": [
+          864,
+          662,
+          388,
+          30
+        ]
+      },
+      "status": "12:00 · (day) · CLEAR SKIES · OCCUPATION · HEAVY 76%",
+      "lock": {
+        "locked": true,
+        "fallback": false
+      },
+      "loadMs": 2594
+    },
+    {
+      "name": "product-test-clear-world.png",
+      "url": "http://127.0.0.1:5791/?dev=1&intro=0&view=street&people=old&weather=clear&level=2",
+      "pixelRatio": 1,
+      "devicePixelRatio": 1,
+      "canvasBuffer": [
+        1280,
+        720
+      ],
+      "canvasCss": [
+        1280,
+        720
+      ],
+      "quality": "high",
+      "drawCalls": 350,
+      "triangles": 729076,
+      "clockHour": 12,
+      "weather": "clear",
+      "stage": 2,
+      "camera": {
+        "x": -5,
+        "y": 1.93,
+        "z": -16,
+        "yaw": 0,
+        "pitch": 0.06
+      },
+      "locked": true,
+      "people": "old",
+      "set": "product",
+      "note": "the same frame with the HUD hidden: the world behind the plates",
+      "placed": [
+        -5,
+        -16,
+        0,
+        null,
+        0.06
+      ],
+      "boxes": {
+        "identity": [
+          28,
+          12,
+          206,
+          44
+        ],
+        "ribbon": [
+          464,
+          12,
+          352,
+          44
+        ],
+        "treasury": [
+          1070,
+          12,
+          182,
+          44
+        ],
+        "objective": [
+          28,
+          631,
+          340,
+          61
+        ],
+        "hints": [
+          864,
+          662,
+          388,
+          30
+        ]
+      }
+    },
+    {
+      "name": "product-test-rain.png",
+      "url": "http://127.0.0.1:5791/?dev=1&intro=0&view=street&people=old&weather=clear&level=2",
+      "pixelRatio": 1,
+      "devicePixelRatio": 1,
+      "canvasBuffer": [
+        1280,
+        720
+      ],
+      "canvasCss": [
+        1280,
+        720
+      ],
+      "quality": "high",
+      "drawCalls": 354,
+      "triangles": 734694,
+      "clockHour": 12,
+      "weather": "rain",
+      "stage": 2,
+      "camera": {
+        "x": -5,
+        "y": 1.93,
+        "z": -16,
+        "yaw": 0,
+        "pitch": 0.06
+      },
+      "locked": true,
+      "people": "old",
+      "set": "product",
+      "note": "Market Square product-test placement, HUD shown",
+      "placed": [
+        -5,
+        -16,
+        0,
+        null,
+        0.06
+      ],
+      "boxes": {
+        "identity": [
+          28,
+          12,
+          206,
+          44
+        ],
+        "ribbon": [
+          473,
+          12,
+          335,
+          44
+        ],
+        "treasury": [
+          1070,
+          12,
+          182,
+          44
+        ],
+        "objective": [
+          28,
+          631,
+          340,
+          61
+        ],
+        "hints": [
+          864,
+          662,
+          388,
+          30
+        ]
+      },
+      "status": "12:00 · (day) · DRIZZLE · OCCUPATION · HEAVY 76%",
+      "lock": {
+        "locked": true,
+        "fallback": false
+      },
+      "loadMs": 2594
+    },
+    {
+      "name": "product-test-rain-world.png",
+      "url": "http://127.0.0.1:5791/?dev=1&intro=0&view=street&people=old&weather=clear&level=2",
+      "pixelRatio": 1,
+      "devicePixelRatio": 1,
+      "canvasBuffer": [
+        1280,
+        720
+      ],
+      "canvasCss": [
+        1280,
+        720
+      ],
+      "quality": "high",
+      "drawCalls": 353,
+      "triangles": 733864,
+      "clockHour": 12,
+      "weather": "rain",
+      "stage": 2,
+      "camera": {
+        "x": -5,
+        "y": 1.93,
+        "z": -16,
+        "yaw": 0,
+        "pitch": 0.06
+      },
+      "locked": true,
+      "people": "old",
+      "set": "product",
+      "note": "the same frame with the HUD hidden: the world behind the plates",
+      "placed": [
+        -5,
+        -16,
+        0,
+        null,
+        0.06
+      ],
+      "boxes": {
+        "identity": [
+          28,
+          12,
+          206,
+          44
+        ],
+        "ribbon": [
+          473,
+          12,
+          335,
+          44
+        ],
+        "treasury": [
+          1070,
+          12,
+          182,
+          44
+        ],
+        "objective": [
+          28,
+          631,
+          340,
+          61
+        ],
+        "hints": [
+          864,
+          662,
+          388,
+          30
+        ]
+      }
+    },
+    {
+      "name": "product-test-fog.png",
+      "url": "http://127.0.0.1:5791/?dev=1&intro=0&view=street&people=old&weather=clear&level=2",
+      "pixelRatio": 1,
+      "devicePixelRatio": 1,
+      "canvasBuffer": [
+        1280,
+        720
+      ],
+      "canvasCss": [
+        1280,
+        720
+      ],
+      "quality": "high",
+      "drawCalls": 349,
+      "triangles": 729416,
+      "clockHour": 12,
+      "weather": "fog",
+      "stage": 2,
+      "camera": {
+        "x": -5,
+        "y": 1.93,
+        "z": -16,
+        "yaw": 0,
+        "pitch": 0.06
+      },
+      "locked": true,
+      "people": "old",
+      "set": "product",
+      "note": "Market Square product-test placement, HUD shown",
+      "placed": [
+        -5,
+        -16,
+        0,
+        null,
+        0.06
+      ],
+      "boxes": {
+        "identity": [
+          28,
+          12,
+          206,
+          44
+        ],
+        "ribbon": [
+          450,
+          12,
+          379,
+          44
+        ],
+        "treasury": [
+          1070,
+          12,
+          182,
+          44
+        ],
+        "objective": [
+          28,
+          631,
+          340,
+          61
+        ],
+        "hints": [
+          864,
+          662,
+          388,
+          30
+        ]
+      },
+      "status": "12:00 · (day) · INDUSTRIAL FOG · OCCUPATION · HEAVY 76%",
+      "lock": {
+        "locked": true,
+        "fallback": false
+      },
+      "loadMs": 2594
+    },
+    {
+      "name": "product-test-fog-world.png",
+      "url": "http://127.0.0.1:5791/?dev=1&intro=0&view=street&people=old&weather=clear&level=2",
+      "pixelRatio": 1,
+      "devicePixelRatio": 1,
+      "canvasBuffer": [
+        1280,
+        720
+      ],
+      "canvasCss": [
+        1280,
+        720
+      ],
+      "quality": "high",
+      "drawCalls": 348,
+      "triangles": 729080,
+      "clockHour": 12,
+      "weather": "fog",
+      "stage": 2,
+      "camera": {
+        "x": -5,
+        "y": 1.93,
+        "z": -16,
+        "yaw": 0,
+        "pitch": 0.06
+      },
+      "locked": true,
+      "people": "old",
+      "set": "product",
+      "note": "the same frame with the HUD hidden: the world behind the plates",
+      "placed": [
+        -5,
+        -16,
+        0,
+        null,
+        0.06
+      ],
+      "boxes": {
+        "identity": [
+          28,
+          12,
+          206,
+          44
+        ],
+        "ribbon": [
+          450,
+          12,
+          379,
+          44
+        ],
+        "treasury": [
+          1070,
+          12,
+          182,
+          44
+        ],
+        "objective": [
+          28,
+          631,
+          340,
+          61
+        ],
+        "hints": [
+          864,
+          662,
+          388,
+          30
+        ]
+      }
+    },
+    {
+      "name": "product-test-clear-night.png",
+      "url": "http://127.0.0.1:5791/?dev=1&intro=0&view=street&people=old&weather=clear&level=2",
+      "pixelRatio": 1,
+      "devicePixelRatio": 1,
+      "canvasBuffer": [
+        1280,
+        720
+      ],
+      "canvasCss": [
+        1280,
+        720
+      ],
+      "quality": "high",
+      "drawCalls": 355,
+      "triangles": 702414,
+      "clockHour": 23,
+      "weather": "clear",
+      "stage": 2,
+      "camera": {
+        "x": -5,
+        "y": 1.93,
+        "z": -16,
+        "yaw": 0,
+        "pitch": 0.06
+      },
+      "locked": true,
+      "people": "old",
+      "set": "product",
+      "note": "Market Square product-test placement, HUD shown",
+      "placed": [
+        -5,
+        -16,
+        0,
+        null,
+        0.06
+      ],
+      "boxes": {
+        "identity": [
+          28,
+          12,
+          206,
+          44
+        ],
+        "ribbon": [
+          425,
+          12,
+          430,
+          44
+        ],
+        "treasury": [
+          1070,
+          12,
+          182,
+          44
+        ],
+        "objective": [
+          28,
+          631,
+          340,
+          61
+        ],
+        "hints": [
+          864,
+          662,
+          388,
+          30
+        ]
+      },
+      "status": "23:00 · (night) · CURFEW · CLEAR SKIES · OCCUPATION · HEAVY 76%",
+      "lock": {
+        "locked": true,
+        "fallback": false
+      },
+      "loadMs": 2594
+    },
+    {
+      "name": "product-test-clear-night-world.png",
+      "url": "http://127.0.0.1:5791/?dev=1&intro=0&view=street&people=old&weather=clear&level=2",
+      "pixelRatio": 1,
+      "devicePixelRatio": 1,
+      "canvasBuffer": [
+        1280,
+        720
+      ],
+      "canvasCss": [
+        1280,
+        720
+      ],
+      "quality": "high",
+      "drawCalls": 354,
+      "triangles": 702030,
+      "clockHour": 23,
+      "weather": "clear",
+      "stage": 2,
+      "camera": {
+        "x": -5,
+        "y": 1.93,
+        "z": -16,
+        "yaw": 0,
+        "pitch": 0.06
+      },
+      "locked": true,
+      "people": "old",
+      "set": "product",
+      "note": "the same frame with the HUD hidden: the world behind the plates",
+      "placed": [
+        -5,
+        -16,
+        0,
+        null,
+        0.06
+      ],
+      "boxes": {
+        "identity": [
+          28,
+          12,
+          206,
+          44
+        ],
+        "ribbon": [
+          425,
+          12,
+          430,
+          44
+        ],
+        "treasury": [
+          1070,
+          12,
+          182,
+          44
+        ],
+        "objective": [
+          28,
+          631,
+          340,
+          61
+        ],
+        "hints": [
+          864,
+          662,
+          388,
+          30
+        ]
+      }
+    }
+  ]
+}

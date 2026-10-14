@@ -1,0 +1,65 @@
+[
+  {
+    "role": "worker",
+    "seed": 3,
+    "height": 2.1412,
+    "head": 0.5487,
+    "headsTall": 3.9025,
+    "shoulderWidth": 0.6614,
+    "hipWidth": 0.4071
+  },
+  {
+    "role": "engineer",
+    "seed": 3,
+    "height": 2.1412,
+    "head": 0.5487,
+    "headsTall": 3.9025,
+    "shoulderWidth": 0.5722,
+    "hipWidth": 0.351
+  },
+  {
+    "role": "merchant",
+    "seed": 3,
+    "height": 2.1412,
+    "head": 0.5487,
+    "headsTall": 3.9025,
+    "shoulderWidth": 0.6001,
+    "hipWidth": 0.351
+  },
+  {
+    "role": "guard",
+    "seed": 3,
+    "height": 2.1412,
+    "head": 0.5487,
+    "headsTall": 3.9025,
+    "shoulderWidth": 0.7388,
+    "hipWidth": 0.4071
+  },
+  {
+    "role": "resident",
+    "seed": 3,
+    "height": 2.1412,
+    "head": 0.5487,
+    "headsTall": 3.9025,
+    "shoulderWidth": 0.6001,
+    "hipWidth": 0.351
+  },
+  {
+    "role": "courier",
+    "seed": 3,
+    "height": 2.1412,
+    "head": 0.5487,
+    "headsTall": 3.9025,
+    "shoulderWidth": 0.5722,
+    "hipWidth": 0.351
+  },
+  {
+    "role": "ordinal",
+    "seed": 3,
+    "height": 2.1412,
+    "head": 0.5487,
+    "headsTall": 3.9025,
+    "shoulderWidth": 0.7788,
+    "hipWidth": 0.4071
+  }
+]

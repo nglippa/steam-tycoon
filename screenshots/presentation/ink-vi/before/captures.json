@@ -1,0 +1,1466 @@
+{
+  "base": "http://127.0.0.1:5791",
+  "people": "old",
+  "day": 0.5,
+  "viewport": [
+    1280,
+    720
+  ],
+  "deviceScaleFactor": 1,
+  "problems": [],
+  "shots": [
+    {
+      "name": "shader-close-character-storefront.png",
+      "url": "http://127.0.0.1:5791/?dev=1&intro=0&view=street&people=old&weather=clear&level=2",
+      "pixelRatio": 1,
+      "devicePixelRatio": 1,
+      "canvasBuffer": [
+        1280,
+        720
+      ],
+      "canvasCss": [
+        1280,
+        720
+      ],
+      "quality": "high",
+      "drawCalls": 435,
+      "triangles": 772358,
+      "clockHour": 12,
+      "weather": "clear",
+      "stage": 2,
+      "camera": {
+        "x": -3,
+        "y": 1.93,
+        "z": 22,
+        "yaw": 1.5708,
+        "pitch": 0.02
+      },
+      "locked": false,
+      "people": "old",
+      "set": "shader",
+      "shot": "close-character-storefront",
+      "requested": {
+        "worker": 13,
+        "dist": 4,
+        "pitch": 0.02
+      },
+      "placed": [
+        -3,
+        22,
+        1.5707963267948966,
+        1.93,
+        0.02
+      ],
+      "loadMs": 3360,
+      "level": 2
+    },
+    {
+      "name": "shader-mid-street.png",
+      "url": "http://127.0.0.1:5791/?dev=1&intro=0&view=street&people=old&weather=clear&level=2",
+      "pixelRatio": 1,
+      "devicePixelRatio": 1,
+      "canvasBuffer": [
+        1280,
+        720
+      ],
+      "canvasCss": [
+        1280,
+        720
+      ],
+      "quality": "high",
+      "drawCalls": 768,
+      "triangles": 1037152,
+      "clockHour": 12,
+      "weather": "clear",
+      "stage": 2,
+      "camera": {
+        "x": 0,
+        "y": 1.93,
+        "z": 40,
+        "yaw": 0,
+        "pitch": 0.03
+      },
+      "locked": false,
+      "people": "old",
+      "set": "shader",
+      "shot": "mid-street",
+      "requested": [
+        0,
+        40,
+        0,
+        null,
+        0.03
+      ],
+      "placed": [
+        0,
+        40,
+        0,
+        null,
+        0.03
+      ],
+      "loadMs": 3360,
+      "level": 2
+    },
+    {
+      "name": "shader-mid-market-square.png",
+      "url": "http://127.0.0.1:5791/?dev=1&intro=0&view=street&people=old&weather=clear&level=2",
+      "pixelRatio": 1,
+      "devicePixelRatio": 1,
+      "canvasBuffer": [
+        1280,
+        720
+      ],
+      "canvasCss": [
+        1280,
+        720
+      ],
+      "quality": "high",
+      "drawCalls": 363,
+      "triangles": 751934,
+      "clockHour": 12,
+      "weather": "clear",
+      "stage": 2,
+      "camera": {
+        "x": 0,
+        "y": 1.93,
+        "z": -12.5,
+        "yaw": 0,
+        "pitch": 0.07
+      },
+      "locked": false,
+      "people": "old",
+      "set": "shader",
+      "shot": "mid-market-square",
+      "requested": [
+        0,
+        -12.5,
+        0,
+        null,
+        0.07
+      ],
+      "placed": [
+        0,
+        -12.5,
+        0,
+        null,
+        0.07
+      ],
+      "loadMs": 3360,
+      "level": 2
+    },
+    {
+      "name": "shader-far-clock-tower.png",
+      "url": "http://127.0.0.1:5791/?dev=1&intro=0&view=street&people=old&weather=clear&level=2",
+      "pixelRatio": 1,
+      "devicePixelRatio": 1,
+      "canvasBuffer": [
+        1280,
+        720
+      ],
+      "canvasCss": [
+        1280,
+        720
+      ],
+      "quality": "high",
+      "drawCalls": 471,
+      "triangles": 833571,
+      "clockHour": 12,
+      "weather": "clear",
+      "stage": 2,
+      "camera": {
+        "x": 0,
+        "y": 1.93,
+        "z": 6,
+        "yaw": 0,
+        "pitch": 0.2
+      },
+      "locked": false,
+      "people": "old",
+      "set": "shader",
+      "shot": "far-clock-tower",
+      "requested": [
+        0,
+        6,
+        0,
+        null,
+        0.2
+      ],
+      "placed": [
+        0,
+        6,
+        0,
+        null,
+        0.2
+      ],
+      "loadMs": 3360,
+      "level": 2
+    },
+    {
+      "name": "shader-far-rooftops-overview.png",
+      "url": "http://127.0.0.1:5791/?dev=1&intro=0&view=street&people=old&weather=clear&level=2",
+      "pixelRatio": 1,
+      "devicePixelRatio": 1,
+      "canvasBuffer": [
+        1280,
+        720
+      ],
+      "canvasCss": [
+        1280,
+        720
+      ],
+      "quality": "high",
+      "drawCalls": 925,
+      "triangles": 1156718,
+      "clockHour": 12,
+      "weather": "clear",
+      "stage": 2,
+      "camera": {
+        "x": 30,
+        "y": 25,
+        "z": 65,
+        "yaw": 0.65,
+        "pitch": -0.22
+      },
+      "locked": false,
+      "people": "old",
+      "set": "shader",
+      "shot": "far-rooftops-overview",
+      "requested": [
+        30,
+        65,
+        0.65,
+        25,
+        -0.22
+      ],
+      "placed": [
+        30,
+        65,
+        0.65,
+        25,
+        -0.22
+      ],
+      "loadMs": 3360,
+      "level": 2
+    },
+    {
+      "name": "shader-veryfar-skyline-edge.png",
+      "url": "http://127.0.0.1:5791/?dev=1&intro=0&view=street&people=old&weather=clear&level=2",
+      "pixelRatio": 1,
+      "devicePixelRatio": 1,
+      "canvasBuffer": [
+        1280,
+        720
+      ],
+      "canvasCss": [
+        1280,
+        720
+      ],
+      "quality": "high",
+      "drawCalls": 158,
+      "triangles": 501978,
+      "clockHour": 12,
+      "weather": "clear",
+      "stage": 2,
+      "camera": {
+        "x": 0,
+        "y": 1.93,
+        "z": 84.5,
+        "yaw": 3.4416,
+        "pitch": 0.02
+      },
+      "locked": false,
+      "people": "old",
+      "set": "shader",
+      "shot": "veryfar-skyline-edge",
+      "requested": [
+        0,
+        84.5,
+        3.441592653589793,
+        null,
+        0.02
+      ],
+      "placed": [
+        0,
+        84.5,
+        3.441592653589793,
+        null,
+        0.02
+      ],
+      "loadMs": 3360,
+      "level": 2
+    },
+    {
+      "name": "shader-mid-market-square-rain.png",
+      "url": "http://127.0.0.1:5791/?dev=1&intro=0&view=street&people=old&weather=clear&level=2",
+      "pixelRatio": 1,
+      "devicePixelRatio": 1,
+      "canvasBuffer": [
+        1280,
+        720
+      ],
+      "canvasCss": [
+        1280,
+        720
+      ],
+      "quality": "high",
+      "drawCalls": 366,
+      "triangles": 749184,
+      "clockHour": 12,
+      "weather": "rain",
+      "stage": 2,
+      "camera": {
+        "x": 0,
+        "y": 1.93,
+        "z": -12.5,
+        "yaw": 0,
+        "pitch": 0.07
+      },
+      "locked": false,
+      "people": "old",
+      "set": "shader",
+      "shot": "mid-market-square-rain",
+      "requested": [
+        0,
+        -12.5,
+        0,
+        null,
+        0.07
+      ],
+      "placed": [
+        0,
+        -12.5,
+        0,
+        null,
+        0.07
+      ],
+      "loadMs": 3360,
+      "level": 2
+    },
+    {
+      "name": "shader-far-clock-tower-rain.png",
+      "url": "http://127.0.0.1:5791/?dev=1&intro=0&view=street&people=old&weather=clear&level=2",
+      "pixelRatio": 1,
+      "devicePixelRatio": 1,
+      "canvasBuffer": [
+        1280,
+        720
+      ],
+      "canvasCss": [
+        1280,
+        720
+      ],
+      "quality": "high",
+      "drawCalls": 480,
+      "triangles": 833739,
+      "clockHour": 12,
+      "weather": "rain",
+      "stage": 2,
+      "camera": {
+        "x": 0,
+        "y": 1.93,
+        "z": 6,
+        "yaw": 0,
+        "pitch": 0.2
+      },
+      "locked": false,
+      "people": "old",
+      "set": "shader",
+      "shot": "far-clock-tower-rain",
+      "requested": [
+        0,
+        6,
+        0,
+        null,
+        0.2
+      ],
+      "placed": [
+        0,
+        6,
+        0,
+        null,
+        0.2
+      ],
+      "loadMs": 3360,
+      "level": 2
+    },
+    {
+      "name": "shader-mid-market-square-fog.png",
+      "url": "http://127.0.0.1:5791/?dev=1&intro=0&view=street&people=old&weather=clear&level=2",
+      "pixelRatio": 1,
+      "devicePixelRatio": 1,
+      "canvasBuffer": [
+        1280,
+        720
+      ],
+      "canvasCss": [
+        1280,
+        720
+      ],
+      "quality": "high",
+      "drawCalls": 361,
+      "triangles": 746908,
+      "clockHour": 12,
+      "weather": "fog",
+      "stage": 2,
+      "camera": {
+        "x": 0,
+        "y": 1.93,
+        "z": -12.5,
+        "yaw": 0,
+        "pitch": 0.07
+      },
+      "locked": false,
+      "people": "old",
+      "set": "shader",
+      "shot": "mid-market-square-fog",
+      "requested": [
+        0,
+        -12.5,
+        0,
+        null,
+        0.07
+      ],
+      "placed": [
+        0,
+        -12.5,
+        0,
+        null,
+        0.07
+      ],
+      "loadMs": 3360,
+      "level": 2
+    },
+    {
+      "name": "shader-far-clock-tower-fog.png",
+      "url": "http://127.0.0.1:5791/?dev=1&intro=0&view=street&people=old&weather=clear&level=2",
+      "pixelRatio": 1,
+      "devicePixelRatio": 1,
+      "canvasBuffer": [
+        1280,
+        720
+      ],
+      "canvasCss": [
+        1280,
+        720
+      ],
+      "quality": "high",
+      "drawCalls": 484,
+      "triangles": 833823,
+      "clockHour": 12,
+      "weather": "fog",
+      "stage": 2,
+      "camera": {
+        "x": 0,
+        "y": 1.93,
+        "z": 6,
+        "yaw": 0,
+        "pitch": 0.2
+      },
+      "locked": false,
+      "people": "old",
+      "set": "shader",
+      "shot": "far-clock-tower-fog",
+      "requested": [
+        0,
+        6,
+        0,
+        null,
+        0.2
+      ],
+      "placed": [
+        0,
+        6,
+        0,
+        null,
+        0.2
+      ],
+      "loadMs": 3360,
+      "level": 2
+    },
+    {
+      "name": "strain-far-clock-tower.png",
+      "url": "http://127.0.0.1:5791/?dev=1&intro=0&view=street&people=old&weather=clear&level=2",
+      "pixelRatio": 1.1653431646335017,
+      "devicePixelRatio": 2,
+      "canvasBuffer": [
+        2237,
+        1258
+      ],
+      "canvasCss": [
+        1920,
+        1080
+      ],
+      "quality": "high",
+      "drawCalls": 485,
+      "triangles": 833871,
+      "clockHour": 12,
+      "weather": "clear",
+      "stage": 2,
+      "camera": {
+        "x": 0,
+        "y": 1.93,
+        "z": 6,
+        "yaw": 0,
+        "pitch": 0.2
+      },
+      "locked": false,
+      "people": "old",
+      "set": "strain",
+      "shot": "far-clock-tower",
+      "deviceScaleFactor": 2,
+      "burn": "30 ms per frame, shot at 15 s while still loaded",
+      "placed": [
+        0,
+        6,
+        0,
+        null,
+        0.2
+      ],
+      "loadMs": 2669,
+      "level": 2,
+      "samples": [
+        {
+          "t": 0.5,
+          "pixelRatio": 1.457,
+          "frameMs": 33.7
+        },
+        {
+          "t": 1,
+          "pixelRatio": 1.457,
+          "frameMs": 35.2
+        },
+        {
+          "t": 1.6,
+          "pixelRatio": 1.457,
+          "frameMs": 35.1
+        },
+        {
+          "t": 2,
+          "pixelRatio": 1.457,
+          "frameMs": 34.9
+        },
+        {
+          "t": 2.5,
+          "pixelRatio": 1.303,
+          "frameMs": 35.5
+        },
+        {
+          "t": 3,
+          "pixelRatio": 1.303,
+          "frameMs": 34.8
+        },
+        {
+          "t": 3.5,
+          "pixelRatio": 1.303,
+          "frameMs": 34.9
+        },
+        {
+          "t": 4,
+          "pixelRatio": 1.303,
+          "frameMs": 34.3
+        },
+        {
+          "t": 4.5,
+          "pixelRatio": 1.165,
+          "frameMs": 34.8
+        },
+        {
+          "t": 5,
+          "pixelRatio": 1.165,
+          "frameMs": 34.5
+        },
+        {
+          "t": 5.5,
+          "pixelRatio": 1.165,
+          "frameMs": 34.9
+        },
+        {
+          "t": 6,
+          "pixelRatio": 1.165,
+          "frameMs": 34.7
+        },
+        {
+          "t": 6.5,
+          "pixelRatio": 1.165,
+          "frameMs": 34.5
+        },
+        {
+          "t": 7,
+          "pixelRatio": 1.165,
+          "frameMs": 34.5
+        },
+        {
+          "t": 7.5,
+          "pixelRatio": 1.165,
+          "frameMs": 34.7
+        },
+        {
+          "t": 8,
+          "pixelRatio": 1.165,
+          "frameMs": 34.9
+        },
+        {
+          "t": 8.5,
+          "pixelRatio": 1.165,
+          "frameMs": 34.6
+        },
+        {
+          "t": 9,
+          "pixelRatio": 1.165,
+          "frameMs": 35.6
+        },
+        {
+          "t": 9.5,
+          "pixelRatio": 1.165,
+          "frameMs": 35.5
+        },
+        {
+          "t": 10,
+          "pixelRatio": 1.165,
+          "frameMs": 34.4
+        },
+        {
+          "t": 10.5,
+          "pixelRatio": 1.165,
+          "frameMs": 34.5
+        },
+        {
+          "t": 11,
+          "pixelRatio": 1.165,
+          "frameMs": 34.7
+        },
+        {
+          "t": 11.5,
+          "pixelRatio": 1.165,
+          "frameMs": 34.2
+        },
+        {
+          "t": 12,
+          "pixelRatio": 1.165,
+          "frameMs": 34.1
+        },
+        {
+          "t": 12.5,
+          "pixelRatio": 1.165,
+          "frameMs": 34.1
+        },
+        {
+          "t": 13,
+          "pixelRatio": 1.165,
+          "frameMs": 34.8
+        },
+        {
+          "t": 13.5,
+          "pixelRatio": 1.165,
+          "frameMs": 35.3
+        },
+        {
+          "t": 14,
+          "pixelRatio": 1.165,
+          "frameMs": 36.2
+        },
+        {
+          "t": 14.5,
+          "pixelRatio": 1.165,
+          "frameMs": 35.4
+        },
+        {
+          "t": 15,
+          "pixelRatio": 1.165,
+          "frameMs": 34.4
+        }
+      ],
+      "start": 1.457,
+      "lowest": 1.165,
+      "atShot": 1.1653431646335017
+    },
+    {
+      "name": "strain-far-rooftops-overview.png",
+      "url": "http://127.0.0.1:5791/?dev=1&intro=0&view=street&people=old&weather=clear&level=2",
+      "pixelRatio": 1.1653431646335017,
+      "devicePixelRatio": 2,
+      "canvasBuffer": [
+        2237,
+        1258
+      ],
+      "canvasCss": [
+        1920,
+        1080
+      ],
+      "quality": "high",
+      "drawCalls": 923,
+      "triangles": 1151850,
+      "clockHour": 12,
+      "weather": "clear",
+      "stage": 2,
+      "camera": {
+        "x": 30,
+        "y": 25,
+        "z": 65,
+        "yaw": 0.65,
+        "pitch": -0.22
+      },
+      "locked": false,
+      "people": "old",
+      "set": "strain",
+      "shot": "far-rooftops-overview",
+      "deviceScaleFactor": 2,
+      "burn": "30 ms per frame, shot at 15 s while still loaded",
+      "placed": [
+        30,
+        65,
+        0.65,
+        25,
+        -0.22
+      ],
+      "loadMs": 2689,
+      "level": 2,
+      "samples": [
+        {
+          "t": 0.5,
+          "pixelRatio": 1.457,
+          "frameMs": 34.3
+        },
+        {
+          "t": 1,
+          "pixelRatio": 1.457,
+          "frameMs": 35.8
+        },
+        {
+          "t": 1.5,
+          "pixelRatio": 1.457,
+          "frameMs": 35.7
+        },
+        {
+          "t": 2,
+          "pixelRatio": 1.457,
+          "frameMs": 35.6
+        },
+        {
+          "t": 2.5,
+          "pixelRatio": 1.303,
+          "frameMs": 36.1
+        },
+        {
+          "t": 3,
+          "pixelRatio": 1.303,
+          "frameMs": 35.8
+        },
+        {
+          "t": 3.6,
+          "pixelRatio": 1.303,
+          "frameMs": 36
+        },
+        {
+          "t": 4,
+          "pixelRatio": 1.303,
+          "frameMs": 35.1
+        },
+        {
+          "t": 4.5,
+          "pixelRatio": 1.165,
+          "frameMs": 36
+        },
+        {
+          "t": 5,
+          "pixelRatio": 1.165,
+          "frameMs": 35.5
+        },
+        {
+          "t": 5.5,
+          "pixelRatio": 1.165,
+          "frameMs": 35.2
+        },
+        {
+          "t": 6,
+          "pixelRatio": 1.165,
+          "frameMs": 35
+        },
+        {
+          "t": 6.5,
+          "pixelRatio": 1.165,
+          "frameMs": 35.1
+        },
+        {
+          "t": 7,
+          "pixelRatio": 1.165,
+          "frameMs": 35.2
+        },
+        {
+          "t": 7.5,
+          "pixelRatio": 1.165,
+          "frameMs": 35.8
+        },
+        {
+          "t": 8,
+          "pixelRatio": 1.165,
+          "frameMs": 35.2
+        },
+        {
+          "t": 8.5,
+          "pixelRatio": 1.165,
+          "frameMs": 35
+        },
+        {
+          "t": 9,
+          "pixelRatio": 1.165,
+          "frameMs": 35.1
+        },
+        {
+          "t": 9.5,
+          "pixelRatio": 1.165,
+          "frameMs": 35.1
+        },
+        {
+          "t": 10,
+          "pixelRatio": 1.165,
+          "frameMs": 35
+        },
+        {
+          "t": 10.5,
+          "pixelRatio": 1.165,
+          "frameMs": 35.2
+        },
+        {
+          "t": 11,
+          "pixelRatio": 1.165,
+          "frameMs": 35.2
+        },
+        {
+          "t": 11.5,
+          "pixelRatio": 1.165,
+          "frameMs": 35.2
+        },
+        {
+          "t": 12,
+          "pixelRatio": 1.165,
+          "frameMs": 35.3
+        },
+        {
+          "t": 12.5,
+          "pixelRatio": 1.165,
+          "frameMs": 35.4
+        },
+        {
+          "t": 13,
+          "pixelRatio": 1.165,
+          "frameMs": 35.2
+        },
+        {
+          "t": 13.5,
+          "pixelRatio": 1.165,
+          "frameMs": 35.1
+        },
+        {
+          "t": 14,
+          "pixelRatio": 1.165,
+          "frameMs": 35.2
+        },
+        {
+          "t": 14.5,
+          "pixelRatio": 1.165,
+          "frameMs": 35.1
+        },
+        {
+          "t": 15,
+          "pixelRatio": 1.165,
+          "frameMs": 35.5
+        }
+      ],
+      "start": 1.457,
+      "lowest": 1.165,
+      "atShot": 1.1653431646335017
+    },
+    {
+      "name": "strain-veryfar-skyline-edge.png",
+      "url": "http://127.0.0.1:5791/?dev=1&intro=0&view=street&people=old&weather=clear&level=2",
+      "pixelRatio": 1.1653431646335017,
+      "devicePixelRatio": 2,
+      "canvasBuffer": [
+        2237,
+        1258
+      ],
+      "canvasCss": [
+        1920,
+        1080
+      ],
+      "quality": "high",
+      "drawCalls": 158,
+      "triangles": 501978,
+      "clockHour": 12,
+      "weather": "clear",
+      "stage": 2,
+      "camera": {
+        "x": 0,
+        "y": 1.93,
+        "z": 84.5,
+        "yaw": 3.4416,
+        "pitch": 0.02
+      },
+      "locked": false,
+      "people": "old",
+      "set": "strain",
+      "shot": "veryfar-skyline-edge",
+      "deviceScaleFactor": 2,
+      "burn": "30 ms per frame, shot at 15 s while still loaded",
+      "placed": [
+        0,
+        84.5,
+        3.441592653589793,
+        null,
+        0.02
+      ],
+      "loadMs": 2322,
+      "level": 2,
+      "samples": [
+        {
+          "t": 0.6,
+          "pixelRatio": 1.457,
+          "frameMs": 32.6
+        },
+        {
+          "t": 1,
+          "pixelRatio": 1.457,
+          "frameMs": 33.5
+        },
+        {
+          "t": 1.6,
+          "pixelRatio": 1.457,
+          "frameMs": 33.4
+        },
+        {
+          "t": 2,
+          "pixelRatio": 1.457,
+          "frameMs": 33.4
+        },
+        {
+          "t": 2.6,
+          "pixelRatio": 1.303,
+          "frameMs": 33.6
+        },
+        {
+          "t": 3,
+          "pixelRatio": 1.303,
+          "frameMs": 33.8
+        },
+        {
+          "t": 3.5,
+          "pixelRatio": 1.303,
+          "frameMs": 33.3
+        },
+        {
+          "t": 4,
+          "pixelRatio": 1.303,
+          "frameMs": 33
+        },
+        {
+          "t": 4.5,
+          "pixelRatio": 1.165,
+          "frameMs": 33.4
+        },
+        {
+          "t": 5,
+          "pixelRatio": 1.165,
+          "frameMs": 32.9
+        },
+        {
+          "t": 5.5,
+          "pixelRatio": 1.165,
+          "frameMs": 33
+        },
+        {
+          "t": 6,
+          "pixelRatio": 1.165,
+          "frameMs": 33.2
+        },
+        {
+          "t": 6.5,
+          "pixelRatio": 1.165,
+          "frameMs": 32.9
+        },
+        {
+          "t": 7,
+          "pixelRatio": 1.165,
+          "frameMs": 32.9
+        },
+        {
+          "t": 7.5,
+          "pixelRatio": 1.165,
+          "frameMs": 33
+        },
+        {
+          "t": 8,
+          "pixelRatio": 1.165,
+          "frameMs": 33.4
+        },
+        {
+          "t": 8.5,
+          "pixelRatio": 1.165,
+          "frameMs": 34.1
+        },
+        {
+          "t": 9,
+          "pixelRatio": 1.165,
+          "frameMs": 33
+        },
+        {
+          "t": 9.5,
+          "pixelRatio": 1.165,
+          "frameMs": 34.2
+        },
+        {
+          "t": 10,
+          "pixelRatio": 1.165,
+          "frameMs": 34.4
+        },
+        {
+          "t": 10.5,
+          "pixelRatio": 1.165,
+          "frameMs": 33
+        },
+        {
+          "t": 11,
+          "pixelRatio": 1.165,
+          "frameMs": 32.8
+        },
+        {
+          "t": 11.5,
+          "pixelRatio": 1.165,
+          "frameMs": 33.4
+        },
+        {
+          "t": 12,
+          "pixelRatio": 1.165,
+          "frameMs": 33
+        },
+        {
+          "t": 12.5,
+          "pixelRatio": 1.165,
+          "frameMs": 33.1
+        },
+        {
+          "t": 13,
+          "pixelRatio": 1.165,
+          "frameMs": 33
+        },
+        {
+          "t": 13.5,
+          "pixelRatio": 1.165,
+          "frameMs": 33
+        },
+        {
+          "t": 14,
+          "pixelRatio": 1.165,
+          "frameMs": 32.8
+        },
+        {
+          "t": 14.5,
+          "pixelRatio": 1.165,
+          "frameMs": 33.2
+        },
+        {
+          "t": 15,
+          "pixelRatio": 1.165,
+          "frameMs": 33.2
+        }
+      ],
+      "start": 1.457,
+      "lowest": 1.165,
+      "atShot": 1.1653431646335017
+    },
+    {
+      "name": "strain-far-clock-tower-rain.png",
+      "url": "http://127.0.0.1:5791/?dev=1&intro=0&view=street&people=old&weather=clear&level=2",
+      "pixelRatio": 1.1653431646335017,
+      "devicePixelRatio": 2,
+      "canvasBuffer": [
+        2237,
+        1258
+      ],
+      "canvasCss": [
+        1920,
+        1080
+      ],
+      "quality": "high",
+      "drawCalls": 487,
+      "triangles": 833787,
+      "clockHour": 12,
+      "weather": "rain",
+      "stage": 2,
+      "camera": {
+        "x": 0,
+        "y": 1.93,
+        "z": 6,
+        "yaw": 0,
+        "pitch": 0.2
+      },
+      "locked": false,
+      "people": "old",
+      "set": "strain",
+      "shot": "far-clock-tower-rain",
+      "deviceScaleFactor": 2,
+      "burn": "30 ms per frame, shot at 15 s while still loaded",
+      "placed": [
+        0,
+        6,
+        0,
+        null,
+        0.2
+      ],
+      "loadMs": 2368,
+      "level": 2,
+      "samples": [
+        {
+          "t": 0.5,
+          "pixelRatio": 1.457,
+          "frameMs": 33.5
+        },
+        {
+          "t": 1.1,
+          "pixelRatio": 1.457,
+          "frameMs": 35.2
+        },
+        {
+          "t": 1.5,
+          "pixelRatio": 1.457,
+          "frameMs": 35
+        },
+        {
+          "t": 2,
+          "pixelRatio": 1.457,
+          "frameMs": 34.9
+        },
+        {
+          "t": 2.6,
+          "pixelRatio": 1.303,
+          "frameMs": 35.2
+        },
+        {
+          "t": 3,
+          "pixelRatio": 1.303,
+          "frameMs": 34.9
+        },
+        {
+          "t": 3.5,
+          "pixelRatio": 1.303,
+          "frameMs": 34.8
+        },
+        {
+          "t": 4,
+          "pixelRatio": 1.303,
+          "frameMs": 34.6
+        },
+        {
+          "t": 4.5,
+          "pixelRatio": 1.165,
+          "frameMs": 34.8
+        },
+        {
+          "t": 5,
+          "pixelRatio": 1.165,
+          "frameMs": 34.5
+        },
+        {
+          "t": 5.6,
+          "pixelRatio": 1.165,
+          "frameMs": 34.7
+        },
+        {
+          "t": 6,
+          "pixelRatio": 1.165,
+          "frameMs": 34.4
+        },
+        {
+          "t": 6.6,
+          "pixelRatio": 1.165,
+          "frameMs": 34.5
+        },
+        {
+          "t": 7,
+          "pixelRatio": 1.165,
+          "frameMs": 34.5
+        },
+        {
+          "t": 7.5,
+          "pixelRatio": 1.165,
+          "frameMs": 34.5
+        },
+        {
+          "t": 8,
+          "pixelRatio": 1.165,
+          "frameMs": 34.4
+        },
+        {
+          "t": 8.5,
+          "pixelRatio": 1.165,
+          "frameMs": 34.3
+        },
+        {
+          "t": 9,
+          "pixelRatio": 1.165,
+          "frameMs": 34.8
+        },
+        {
+          "t": 9.5,
+          "pixelRatio": 1.165,
+          "frameMs": 35.4
+        },
+        {
+          "t": 10,
+          "pixelRatio": 1.165,
+          "frameMs": 34.5
+        },
+        {
+          "t": 10.5,
+          "pixelRatio": 1.165,
+          "frameMs": 34.9
+        },
+        {
+          "t": 11,
+          "pixelRatio": 1.165,
+          "frameMs": 34.7
+        },
+        {
+          "t": 11.5,
+          "pixelRatio": 1.165,
+          "frameMs": 34.6
+        },
+        {
+          "t": 12.1,
+          "pixelRatio": 1.165,
+          "frameMs": 34.5
+        },
+        {
+          "t": 12.5,
+          "pixelRatio": 1.165,
+          "frameMs": 34.1
+        },
+        {
+          "t": 13,
+          "pixelRatio": 1.165,
+          "frameMs": 34.4
+        },
+        {
+          "t": 13.5,
+          "pixelRatio": 1.165,
+          "frameMs": 34.9
+        },
+        {
+          "t": 14,
+          "pixelRatio": 1.165,
+          "frameMs": 34.5
+        },
+        {
+          "t": 14.5,
+          "pixelRatio": 1.165,
+          "frameMs": 34.2
+        },
+        {
+          "t": 15,
+          "pixelRatio": 1.165,
+          "frameMs": 34.3
+        }
+      ],
+      "start": 1.457,
+      "lowest": 1.165,
+      "atShot": 1.1653431646335017
+    },
+    {
+      "name": "strain-far-clock-tower-fog.png",
+      "url": "http://127.0.0.1:5791/?dev=1&intro=0&view=street&people=old&weather=clear&level=2",
+      "pixelRatio": 1.1653431646335017,
+      "devicePixelRatio": 2,
+      "canvasBuffer": [
+        2237,
+        1258
+      ],
+      "canvasCss": [
+        1920,
+        1080
+      ],
+      "quality": "high",
+      "drawCalls": 484,
+      "triangles": 833787,
+      "clockHour": 12,
+      "weather": "fog",
+      "stage": 2,
+      "camera": {
+        "x": 0,
+        "y": 1.93,
+        "z": 6,
+        "yaw": 0,
+        "pitch": 0.2
+      },
+      "locked": false,
+      "people": "old",
+      "set": "strain",
+      "shot": "far-clock-tower-fog",
+      "deviceScaleFactor": 2,
+      "burn": "30 ms per frame, shot at 15 s while still loaded",
+      "placed": [
+        0,
+        6,
+        0,
+        null,
+        0.2
+      ],
+      "loadMs": 2542,
+      "level": 2,
+      "samples": [
+        {
+          "t": 0.5,
+          "pixelRatio": 1.457,
+          "frameMs": 33.5
+        },
+        {
+          "t": 1,
+          "pixelRatio": 1.457,
+          "frameMs": 34.9
+        },
+        {
+          "t": 1.5,
+          "pixelRatio": 1.457,
+          "frameMs": 35.2
+        },
+        {
+          "t": 2,
+          "pixelRatio": 1.457,
+          "frameMs": 34.7
+        },
+        {
+          "t": 2.5,
+          "pixelRatio": 1.303,
+          "frameMs": 34.8
+        },
+        {
+          "t": 3,
+          "pixelRatio": 1.303,
+          "frameMs": 34.6
+        },
+        {
+          "t": 3.5,
+          "pixelRatio": 1.303,
+          "frameMs": 34.8
+        },
+        {
+          "t": 4,
+          "pixelRatio": 1.303,
+          "frameMs": 35.5
+        },
+        {
+          "t": 4.6,
+          "pixelRatio": 1.165,
+          "frameMs": 35.9
+        },
+        {
+          "t": 5,
+          "pixelRatio": 1.165,
+          "frameMs": 35.8
+        },
+        {
+          "t": 5.5,
+          "pixelRatio": 1.165,
+          "frameMs": 34.5
+        },
+        {
+          "t": 6,
+          "pixelRatio": 1.165,
+          "frameMs": 34.3
+        },
+        {
+          "t": 6.5,
+          "pixelRatio": 1.165,
+          "frameMs": 34.3
+        },
+        {
+          "t": 7,
+          "pixelRatio": 1.165,
+          "frameMs": 33.9
+        },
+        {
+          "t": 7.5,
+          "pixelRatio": 1.165,
+          "frameMs": 34.1
+        },
+        {
+          "t": 8,
+          "pixelRatio": 1.165,
+          "frameMs": 34.4
+        },
+        {
+          "t": 8.5,
+          "pixelRatio": 1.165,
+          "frameMs": 34.1
+        },
+        {
+          "t": 9,
+          "pixelRatio": 1.165,
+          "frameMs": 34.2
+        },
+        {
+          "t": 9.5,
+          "pixelRatio": 1.165,
+          "frameMs": 34.6
+        },
+        {
+          "t": 10,
+          "pixelRatio": 1.165,
+          "frameMs": 34.2
+        },
+        {
+          "t": 10.5,
+          "pixelRatio": 1.165,
+          "frameMs": 34.4
+        },
+        {
+          "t": 11,
+          "pixelRatio": 1.165,
+          "frameMs": 34.1
+        },
+        {
+          "t": 11.5,
+          "pixelRatio": 1.165,
+          "frameMs": 34.1
+        },
+        {
+          "t": 12,
+          "pixelRatio": 1.165,
+          "frameMs": 34.3
+        },
+        {
+          "t": 12.5,
+          "pixelRatio": 1.165,
+          "frameMs": 34.3
+        },
+        {
+          "t": 13.1,
+          "pixelRatio": 1.165,
+          "frameMs": 34.7
+        },
+        {
+          "t": 13.5,
+          "pixelRatio": 1.165,
+          "frameMs": 34.8
+        },
+        {
+          "t": 14,
+          "pixelRatio": 1.165,
+          "frameMs": 34.4
+        },
+        {
+          "t": 14.5,
+          "pixelRatio": 1.165,
+          "frameMs": 34.1
+        },
+        {
+          "t": 15,
+          "pixelRatio": 1.165,
+          "frameMs": 34.3
+        }
+      ],
+      "start": 1.457,
+      "lowest": 1.165,
+      "atShot": 1.1653431646335017
+    }
+  ]
+}

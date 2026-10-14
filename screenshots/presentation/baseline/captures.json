@@ -1,0 +1,159 @@
+{
+  "base": "http://127.0.0.1:5731",
+  "people": "old",
+  "day": 0.5,
+  "viewport": [
+    1280,
+    720
+  ],
+  "deviceScaleFactor": 1,
+  "problems": [],
+  "shots": [
+    {
+      "name": "hud-normal.png",
+      "url": "http://127.0.0.1:5731/?dev=1&intro=0&view=street&people=old&weather=clear",
+      "pixelRatio": 1,
+      "devicePixelRatio": 1,
+      "canvasBuffer": [
+        1280,
+        720
+      ],
+      "canvasCss": [
+        1280,
+        720
+      ],
+      "quality": "high",
+      "drawCalls": 624,
+      "triangles": 836990,
+      "clockHour": 12,
+      "weather": "clear",
+      "stage": 0,
+      "camera": {
+        "x": 0,
+        "y": 1.93,
+        "z": 30,
+        "yaw": 0,
+        "pitch": -0.02
+      },
+      "locked": true,
+      "people": "old",
+      "set": "hud",
+      "note": "persistent HUD, standing in the Great Main, pointer locked",
+      "lock": {
+        "locked": true,
+        "fallback": false
+      },
+      "loadMs": 2806
+    },
+    {
+      "name": "hud-toast.png",
+      "url": "http://127.0.0.1:5731/?dev=1&intro=0&view=street&people=old&weather=clear",
+      "pixelRatio": 1,
+      "devicePixelRatio": 1,
+      "canvasBuffer": [
+        1280,
+        720
+      ],
+      "canvasCss": [
+        1280,
+        720
+      ],
+      "quality": "high",
+      "drawCalls": 628,
+      "triangles": 837410,
+      "clockHour": 12,
+      "weather": "clear",
+      "stage": 0,
+      "camera": {
+        "x": 0,
+        "y": 1.93,
+        "z": 30,
+        "yaw": 0,
+        "pitch": -0.02
+      },
+      "locked": true,
+      "people": "old",
+      "set": "hud",
+      "note": "a toast showing",
+      "lock": {
+        "locked": true,
+        "fallback": false
+      }
+    },
+    {
+      "name": "hud-prompt.png",
+      "url": "http://127.0.0.1:5731/?dev=1&intro=0&view=street&people=old&weather=clear",
+      "pixelRatio": 1,
+      "devicePixelRatio": 1,
+      "canvasBuffer": [
+        1280,
+        720
+      ],
+      "canvasCss": [
+        1280,
+        720
+      ],
+      "quality": "high",
+      "drawCalls": 338,
+      "triangles": 660831,
+      "clockHour": 12,
+      "weather": "clear",
+      "stage": 0,
+      "camera": {
+        "x": -8.6,
+        "y": 1.93,
+        "z": 37,
+        "yaw": 1.5708,
+        "pitch": 0
+      },
+      "locked": true,
+      "people": "old",
+      "set": "hud",
+      "note": "interaction prompt for the Rook workbench",
+      "prompt": {
+        "hidden": false,
+        "text": "ERook & Son SalvageOPEN PROPERTY LEDGER"
+      },
+      "lock": {
+        "locked": true,
+        "fallback": false
+      }
+    },
+    {
+      "name": "hud-dialogue.png",
+      "url": "http://127.0.0.1:5731/?dev=1&intro=0&view=street&people=old&weather=clear",
+      "pixelRatio": 1,
+      "devicePixelRatio": 1,
+      "canvasBuffer": [
+        1280,
+        720
+      ],
+      "canvasCss": [
+        1280,
+        720
+      ],
+      "quality": "high",
+      "drawCalls": 624,
+      "triangles": 831242,
+      "clockHour": 12,
+      "weather": "clear",
+      "stage": 0,
+      "camera": {
+        "x": 0,
+        "y": 1.93,
+        "z": 30,
+        "yaw": 0,
+        "pitch": -0.02
+      },
+      "locked": true,
+      "people": "old",
+      "set": "hud",
+      "note": "a dialogue line flashed over the street",
+      "said": true,
+      "lock": {
+        "locked": true,
+        "fallback": false
+      }
+    }
+  ]
+}

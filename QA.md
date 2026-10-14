@@ -422,3 +422,83 @@ Typecheck, 34 tests and the build pass. Traversal sweep unchanged and passing.
 - **Drape, measured.** The review harness now records, every frame, how far any thigh reaches past its hem for every visible skirted or coated character (`data-poke` on `#life-status`). Over the sweep the worst value is -0.015 m: no leg reaches its hem. Before this pass the hem was rigid and legs came through at every stride.
 - **Faces and motion** were judged from renders, not measured: `screenshots/review-2026-10-01-people/` has before and after face lineups, the walk strip before, and strips of skirted and aproned walkers after.
 - Not checked: every activity's arm pose at close range after the easing was added, and how the eased poses look on a phone.
+
+## The Signal: first irreversible commitment — acceptance (2026-10-06)
+
+Typecheck, 204 tests and the build pass. All browser work was headless.
+
+**Scope.** Signal I–VIII (`c43f296..0461fad`, base `08323ee`), then this pass:
+- `94c9c33`: the sealed cellar takes no KNOCK.
+- `6bc74c0`: the pen is offered only after "You're certain?".
+
+**Commitment invariants.**
+
+| Invariant | Code | Tests |
+|---|---|---|
+| One writer: `Economy.commit` | `src/simulation/economy.ts:314` | alignment: "the economy is the one writer…"; "Economy.commit is refused before both sites settle…" |
+| Gameplay calls it only from `call.lamp` (Resistance, `call.sent`) and `call.ledger` (Ordinance, `call.reported`); the dev-only `api.commit` is inside `if (dev)` | `src/world/ward-call.ts:151`, `:160`; `src/main.ts:107`, `:109` | call: "only SEND (call.lamp) and SIGN (call.ledger) ever reach Economy.commit…"; "SEND is the lamp key and nothing else…" |
+| Once, for one side; the opposite act is then unavailable | `src/simulation/alignment.ts:33-34`, `:44` | alignment: "commit is pure and once…"; call: "after dusk SEND commits the Embers exactly once…", "SIGN IT IN commits the Ordinance exactly once…", "after a resistance commitment no gate interaction is offered" |
+| Deeds, outcomes and `broke` untouched | `src/simulation/alignment.ts:35` (`{ ...a, commit }`) | alignment: "commit is pure and once…", "a commit leaves the deeds and outcomes exactly as they were…" |
+| Save version unchanged: 3 | `src/simulation/economy.ts:158`, `:171`, `:177` | alignment: "a fresh save and an older save without alignment…" |
+| Old saves load uncommitted | `src/simulation/economy.ts:195-196` | alignment: "an uncommitted pre-Signal save decodes uncommitted…", "an old finished Resistance save … is not committed" |
+
+**Save and reset.** In the browser, after the Ordinance commit, save and reload kept the commitment, and the cellar stayed sealed with no KNOCK. `Economy.commit` saves on the frame of signing (`economy.ts:316`). New Game, migration and sanitising are covered by tests, not re-checked in the browser:
+- reset: "Economy.commit is refused … it succeeds once, persists, and reset clears it"; "the dusk watch is kept once per save … a new game clears it";
+- migration: "an uncommitted pre-Signal save decodes uncommitted…";
+- sanitising: "an invalid side, a mismatched by or an unknown by decodes to no commitment"; "bad alignment values clamp…".
+- New Game was not re-run in the browser in this pass.
+
+**Resistance.** This pass changed no Resistance code path. The send sequence is covered by tests:
+- the lamp commits `call.sent`: "after dusk SEND commits the Embers exactly once…";
+- the card is then fixed in the frame (TAKE THE CARD BACK is off): "SEND is the lamp key and nothing else…";
+- the answering lamps: "the send-and-answer sequence is paced…".
+
+The natural run could not reach the Weathervane top from the alley at x≈−49, z −29..−32.5, because an obstacle is in the way. After the Ordinance commit, the Resistance targets were checked as off through their `when()`.
+
+**Ordinance, natural play** (headless Chrome, real pointer lock, WASD/E). Dev preconditions only: `?dev=1&intro=0&level=1&outcome=ordinance&run=ordinance`, with the clock set for a day arrival. From the card onward, real input only.
+- Finch's hand speaks. READ THE ORDER on the yard door (call 0→1). TAKE THE CARD at the bench from about 1.3 m.
+- By day the boom stops the Steward, so the route to the square is the east freight lane at x≈4.2. The officer says "Report." at about 8 m.
+- REPORT (E) puts the card on the sill: "Put it there." At 2.58 s he asks "You're certain?". SIGN IT IN is offered only then; E on the ledger during the wait did nothing. TAKE IT BACK works during the wait.
+- SIGN IT IN commits on that frame: `{side:'ordinance', by:'call.reported'}`. What follows at once:
+  - the toast "You sign the card in. The officer turns it over once and sends a runner up the Great Main.";
+  - the officer's signed line;
+  - the card pinned on the box;
+  - four bone-white gallery lamps light over about 7.5 s;
+  - the garrison turns out at about 10 s.
+- The player keeps control. `call.lamp` is unavailable and the relay reads SEALED.
+- The sign target is narrow on purpose: 0.3 m, about ±0.09 rad from 1.7 m.
+- Verdict: the institution takes the signature quietly, by design. Because the question comes before the pen, signing reads as the decisive act without any alignment UI.
+
+**The cellar (`market.cell`).** Gate: `src/world/market-square.ts:155`, `src/world/ward-call.ts:139`. Test: "the Finch cellar takes no knock once it is boarded and sealed, and only then…".
+
+| State | Boards | KNOCK |
+|---|---|---|
+| Right after signing | not yet | offered |
+| After walking >45 m away (48.7 m) and back | sealed | none, and E does nothing |
+| After reload | sealed | none |
+| Uncommitted, square held | — | offered |
+| Uncommitted, both sites settled | — | offered |
+| `?commit=resistance` | — | offered |
+| `?commit=ordinance` | sealed | none |
+
+**Visual and performance** (headless, one sample each, at the square).
+
+| Sample | FPS | Draw calls | Triangles | Lights |
+|---|---|---|---|---|
+| Before REPORT | 60.2 | 251 | 556,230 | 8 |
+| Right after signing | 60.2 | 256 | 547,488 | 8 |
+| About 12 s later | 59.5 | 258 | 547,440 | 8 |
+
+There are no new real lights; the gallery lamps are emissive. This pass added no per-frame allocation or polling: the cellar gate is a getter read when targeting, and the sign gate uses the existing countdown. The console showed no errors or warnings from the game.
+
+**Deferred and accepted.**
+- **Liberated-Market conflict, explicitly deferred; nothing implemented.** The Market can be liberated before the Signal becomes available.
+- Lane trestles narrow the side lanes to one line.
+- The relay shutter is permanent before the offer, and cannot be closed while the card is seated.
+- The Finch winch scar is partly hidden.
+- The Resistance watchers stand still.
+- The Ordinance is quieter than the Resistance, as intended.
+- Observed, not fixed:
+  - at night, the curfew patrol can fine and detain a Steward standing at the sentry box with REPORT showing (curfew rules are frozen);
+  - "Put it there." is said after the card is already down;
+  - the 2.5 s question timer runs even if the player walks out of earshot.

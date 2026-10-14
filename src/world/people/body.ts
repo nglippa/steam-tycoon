@@ -1,0 +1,116 @@
+import type { Ring } from './loft';
+import type { Family, Frame, LookFamily } from './look';
+
+/** The body reference (Terra Character Book 3 and 5). Most of it is never drawn: garments are shells derived from these rings by an offset.
+ *  Families are authored records, not a width multiplier: each has its own neck, slope of shoulder, belly and limb profile, and a frame (broad or narrow) overrides what differs.
+ *  Heights are above the sole (the figure adds .01 for body-local y); limb rings are local to their pivot, y running down. All widths are full widths unless named `*R` (radius). */
+export interface Dims {
+  /** head height (crown to chin), and the height of the chin above the sole: a slim head sits a little lower, a sturdy one a little higher, so each family stands 6.5 to 6.8 heads */ h: number; chin: number;
+  /** half spacing of the shoulder joints and the deltoid radius */ shX: number; rSh: number;
+  chestW: number; waistW: number; hipW: number; chestD: number; waistD: number; hipD: number;
+  /** extra depth forward of the waist (a belly carries forward of the chest line) */ belly: number;
+  /** how far the shoulder line drops from the base of the neck to the point of the shoulder */ slope: number;
+  neckW: number; neckD: number; neckLean: number; /** how far forward the head is set */ headFwd: number;
+  armW: number; elbowR: number; foreW: number; wristW: number;
+  hipX: number; hipR: number; thighW: number; kneeR: number; calfW: number; calfBack: number; ankleW: number;
+  hand: number; shoe: number; shoeW: number;
+  /** the torso's profile (Book 5, Torso): how far the shoulder blades stand behind the back line, how far the small of the back and the waist's front draw in, how far the seat stands
+   *  out behind and the chest forward (a narrow frame carries a fuller chest and seat, a sturdy one less waist to draw in) */ blade: number; lumbar: number; seat: number; chestF: number;
+}
+
+const slim: Dims = { h: .275, chin: 1.575, shX: .203, rSh: .047, chestW: .30, waistW: .26, hipW: .32, chestD: .20, waistD: .165, hipD: .18, belly: 0, slope: .06, neckW: .098, neckD: .09, neckLean: .27, headFwd: .012,
+  armW: .075, elbowR: .032, foreW: .068, wristW: .045, hipX: .084, hipR: .064, thighW: .125, kneeR: .048, calfW: .095, calfBack: .014, ankleW: .06, hand: .185, shoe: .27, shoeW: .088 , blade: .02, lumbar: .016, seat: .022, chestF: .008 };
+const standard: Dims = { h: .285, chin: 1.60, shX: .233, rSh: .052, chestW: .335, waistW: .30, hipW: .36, chestD: .23, waistD: .19, hipD: .2, belly: 0, slope: .05, neckW: .108, neckD: .1, neckLean: .22, headFwd: .004,
+  armW: .09, elbowR: .038, foreW: .08, wristW: .05, hipX: .09, hipR: .07, thighW: .145, kneeR: .054, calfW: .108, calfBack: .016, ankleW: .066, hand: .19, shoe: .285, shoeW: .094 , blade: .024, lumbar: .018, seat: .026, chestF: .01 };
+const sturdy: Dims = { h: .295, chin: 1.616, shX: .258, rSh: .062, chestW: .38, waistW: .37, hipW: .40, chestD: .27, waistD: .245, hipD: .235, belly: .035, slope: .037, neckW: .128, neckD: .118, neckLean: .13, headFwd: -.004,
+  armW: .11, elbowR: .045, foreW: .098, wristW: .058, hipX: .096, hipR: .082, thighW: .17, kneeR: .062, calfW: .125, calfBack: .02, ankleW: .075, hand: .2, shoe: .3, shoeW: .1 , blade: .024, lumbar: .01, seat: .022, chestF: .006 };
+
+/** The child (Book 3): its own authored family at about 5.5 heads, not a scaled adult. On the adult rig (joints are not moved) the head is larger, the neck short, the shoulders, chest and limbs narrow,
+ *  the belly a little forward, the hands and feet small. The crown stands at 1.885 on the rig, an adult's height; the figure builder then scales the whole child by `CHILD_SCALE` (with its stature),
+ *  which is what makes it a child's size: the crown at about 1.36 m, at an adult's chest to shoulder. Spawn sites never scale a child of the new builder. */
+export const CHILD_SCALE = .72;
+const child: Dims = { h: .335, chin: 1.55, shX: .165, rSh: .04, chestW: .25, waistW: .245, hipW: .27, chestD: .175, waistD: .165, hipD: .17, belly: .02, slope: .07, neckW: .092, neckD: .085, neckLean: .12, headFwd: .01,
+  armW: .062, elbowR: .026, foreW: .056, wristW: .037, hipX: .07, hipR: .052, thighW: .108, kneeR: .04, calfW: .08, calfBack: .01, ankleW: .05, hand: .15, shoe: .22, shoeW: .075 , blade: .018, lumbar: .01, seat: .018, chestF: 0 };
+
+/** The narrow frame: shoulders and hips about equal, a higher and smaller waist, a slimmer neck and wrist. Only what differs from the broad record. */
+const NARROW: Record<Family, Partial<Dims>> = {
+  slim: { blade: .017, seat: .034, chestF: .016, shX: .178, chestW: .27, waistW: .23, hipW: .34, chestD: .19, neckW: .084, wristW: .042, hipD: .2 },
+  standard: { blade: .02, seat: .038, chestF: .019, shX: .198, chestW: .30, waistW: .27, hipW: .38, chestD: .22, neckW: .094, wristW: .046, hipD: .225 },
+  sturdy: { blade: .025, seat: .032, chestF: .015, shX: .218, chestW: .34, waistW: .33, hipW: .43, chestD: .255, neckW: .114, wristW: .054, hipD: .265 },
+};
+export const dimsOf = (family: LookFamily, frame: Frame): Dims => family === 'child' ? child : ({ ...{ slim, standard, sturdy }[family], ...(frame === 'narrow' ? NARROW[family] : {}) });
+
+/** The rig, in sole heights (Book section 2). */
+export const RIG = { hip: .97, knee: .54, ankle: .045, shoulder: 1.43, elbow: 1.18, wrist: .94, crotch: .845, waist: 1.1, thigh: .43, shin: .495, upperArm: .25, forearm: .24, chin: 1.61 } as const;
+
+export const ring = (y: number, W: number, D: number, zc = 0, n = 2.2, x = 0): Ring => ({ y, w: W / 2, f: D / 2, b: D / 2, z: zc, x, n });
+
+/** Ribcage and shoulder girdle, from the waist overlap to the base of the neck. Egg-shaped, widest at the chest line, tilted back; the girdle above it is thin front to back.
+ *  In profile the torso is an S (Book 5): the chest stands forward of the waist and the shoulder blades behind it, the waist draws in front and back (the small of the back), so the
+ *  outline curves from the collar to the hip rather than running straight. The amounts are the family's and frame's (`blade`, `lumbar`, `chestF`); widths are untouched. */
+export function ribcage(d: Dims): Ring[] { const B = d.blade, L = d.lumbar, C = d.chestF, r = (y: number, W: number, D: number, zc: number, n: number, f: number, b: number): Ring => { const q = ring(y, W, D, zc, n); return { ...q, f: q.f + f, b: q.b + b }; }; return [
+  r(1.04, d.waistW + .004, d.waistD + d.belly * .8, -.004 + d.belly * .35, 2.2, -L * .2, -L * .7),
+  r(1.10, d.waistW, d.waistD + d.belly, -.002 + d.belly * .4, 2.2, -L * .45, -L),
+  r(1.20, (d.waistW + d.chestW) / 2 + .004, (d.waistD + d.chestD) / 2 + d.belly * .35, .004 + d.belly * .15, 2.3, C * .4, B * .3 - L * .35),
+  r(1.30, d.chestW - .004, d.chestD - .006, .01, 2.45, C, B * .9),
+  r(1.36, d.chestW, d.chestD, .012, 2.5, C * .8, B),
+  r(1.42, d.chestW - .004, d.chestD - .02, .006, 2.4, C * .2, B * .75),
+  // the shoulder girdle: the trapezius runs from the neck out to the point of the shoulder, thin in depth, rounding over the top of the shoulder blades behind
+  r(1.535 - d.slope, (d.shX - .008) * 2, d.chestD * .5, -.002, 2.1, 0, B * .55),
+  r(1.535 - d.slope * .5, d.shX * 1.2, d.chestD * .47, -.004, 2.1, 0, B * .3),
+  ring(1.535 - d.slope * .18, d.neckW * 1.9, d.neckD * 1.05, -.004, 2.1),
+  ring(1.538, d.neckW * 1.15, d.neckD * .92, -.002, 2.1),
+]; }
+
+/** The pelvis: a bucket, tilted forward, widest at the hip joints, set back into a seat, closing under into the crotch. In profile the small of the back draws in above the seat, which
+ *  stands out behind (`seat`), and the low belly rounds a little forward of the waist before the front turns under. */
+export function pelvis(d: Dims): Ring[] { const L = d.lumbar, S = d.seat, r = (y: number, W: number, D: number, zc: number, n: number, f: number, b: number): Ring => { const q = ring(y, W, D, zc, n); return { ...q, f: q.f + f, b: q.b + b }; }; return [
+  r(1.13, d.waistW + .006, d.waistD + d.belly * .9, -.002 + d.belly * .4, 2.2, -L * .45, -L),
+  r(1.06, Math.max((d.waistW + d.hipW) / 2, d.waistW + .006), Math.max((d.waistD + d.hipD) / 2 + d.belly * .6, d.waistD + d.belly * .85 + .006), -.004 + d.belly * .35, 2.2, L * .15, -L * .3 + S * .2),
+  r(.99, d.hipW, d.hipD + d.belly * .35, -.01, 2.25, L * .1, S * .8),
+  r(.93, d.hipW - .004, d.hipD + .004, -.011, 2.25, -L * .1, S),
+  r(.88, d.hipW * .86, d.hipD * .94, -.008, 2.2, -L * .2, S * .6),
+  ring(.85, d.hipW * .56, d.hipD * .72, -.008, 2.2),
+]; }
+
+/** The neck: an oval column that leans forward into the skull and enters behind the jaw. Rings are sole heights; the lean moves the centre forward with height. */
+export function neck(d: Dims): Ring[] { const lean = Math.tan(d.neckLean); return (d.chin < 1.58 ? [1.47, 1.5, d.chin - .015, d.chin + .03] : [1.47, 1.52, d.chin - .035, d.chin + .03]).map((y, i) => ring(y, d.neckW * (1 - i * .06), d.neckD * 1.02 * (1 - i * .05), -.012 + (y - 1.47) * lean + d.headFwd * (i / 3), 2.15)); }
+
+/** Upper arm: local to the shoulder pivot. The cap (the deltoid) is the first ring; fullest a third of the way down, front and back unequal; then a taper into the elbow, which is
+ *  narrower than both the upper arm and the forearm's swell below it (the landmark, People XXVI), with a point at the back. */
+export function upperArm(d: Dims): Ring[] { const a = d.armW / 2; return [
+  { y: 0, w: d.rSh, f: d.rSh, b: d.rSh, n: 2 },
+  { y: -.07, w: a, f: a * 1.08, b: a * .98, z: .004, n: 2.1 },
+  { y: -.14, w: a * .92, f: a * .97, b: a * .92, z: .002, n: 2.1 },
+  { y: -.205, w: (a * .7 + d.elbowR * .3), f: (a * .66 + d.elbowR * .34), b: (a * .7 + d.elbowR * .3) + .003, n: 2.05 },
+  { y: -.25, w: d.elbowR, f: d.elbowR * .96, b: d.elbowR + .011, z: -.003, n: 2 },
+]; }
+/** The elbow's landmark on a sleeve: the cloth draws in over the joint (this much under the sleeve's offset), so the sleeve breaks there and does not run on as one tube. */
+export const ELBOW_GATHER = .009;
+/** Forearm: local to the elbow. Widest a third below the elbow, tapering to a wrist twice as wide as it is deep: the wide axis turns from sideways to front-to-back, because the palm faces the thigh. */
+export function forearm(d: Dims): Ring[] { const a = d.foreW / 2, w = d.wristW / 2; return [
+  { y: 0, w: d.elbowR, f: d.elbowR, b: d.elbowR, n: 2 },
+  { y: -.07, w: a * 1.05, f: a * .98, b: a * 1.0, z: .002, n: 2.05 },
+  { y: -.11, w: a * .93, f: a * .97, b: a * .96, n: 2.05 },
+  { y: -.18, w: w * 1.0, f: w * 1.18, b: w * 1.14, n: 2.1 },
+  { y: -.24, w: w * .52, f: w, b: w, n: 2.3 },
+]; }
+
+/** Thigh: local to the hip. Fullest in the upper middle, bowed forward in side view, narrowing to the knee; the knee ring is a circle (the shared-centre cap). `inward` runs the leg in toward the knee. */
+export function thigh(d: Dims, side: number): Ring[] { const a = d.thighW / 2, inward = -side * .022, at = (y: number) => inward * (-y / .43); return [
+  { y: 0, w: d.hipR, f: d.hipR, b: d.hipR, x: 0, n: 2 },
+  { y: -.1, w: a, f: a * 1.1, b: a * 1.04, z: .006, x: at(-.1), n: 2.1 },
+  { y: -.2, w: a * .93, f: a * 1.05, b: a * 1.0, z: .006, x: at(-.2), n: 2.1 },
+  { y: -.32, w: a * .8, f: a * .84, b: a * .8, z: .004, x: at(-.32), n: 2.05 },
+  { y: -.4, w: d.kneeR * 1.04, f: d.kneeR * 1.04, b: d.kneeR * 1.0, z: .002, x: at(-.4), n: 2.05 },
+  { y: -.43, w: d.kneeR, f: d.kneeR * 1.05, b: d.kneeR, x: inward, n: 2 },
+]; }
+/** Shin: local to the knee. The calf swells behind a straight shin: the front line barely moves while the back belies a third of the way down, then a long taper to the ankle. */
+export function shin(d: Dims): Ring[] { const k = d.kneeR, c = d.calfW / 2, an = d.ankleW / 2; return [
+  { y: 0, w: k, f: k, b: k, n: 2 },
+  { y: -.05, w: k * 1.04, f: k * .98, b: k * 1.08, n: 2.05 },
+  { y: -.15, w: c, f: k * .9, b: c + d.calfBack, n: 2.1 },
+  { y: -.27, w: c * .82, f: k * .8, b: c * .9, n: 2.1 },
+  { y: -.4, w: an * 1.12, f: k * .7, b: an * 1.18, n: 2.1 },
+  { y: -.495, w: an, f: an * 1.05, b: an * .95, n: 2.1 },
+]; }

@@ -102,8 +102,8 @@ export class MarketSquare implements SiteModule {
     const aim = new T.Group(); aim.position.y = .55; aim.rotation.x = -.98; this.yoke.add(aim); cyl(aim, 0, 0, 0, .36, .6, O.iron); cyl(aim, 0, -.31, 0, .3, .03, mats.glow);
     lightCone(aim, 2.4, 18).position.y = -.32;
     // Two soldiers: one holds the boom, one walks the beat between the gate and the Finch.
-    this.officer = pres.addWorker(5.75, GZ + .8, 0, 'guard', { role: 'ordinal', when: () => this.view.control < SITE_LIBERATED });
-    const beat = pres.addWorker(-1.25, -13.8, Math.PI, 'walk', { role: 'ordinal', when: () => this.view.control < SITE_LIBERATED });
+    this.officer = pres.addWorker(5.75, GZ + .8, 0, 'guard', { role: 'ordinal', look: 'officer', when: () => this.view.control < SITE_LIBERATED });
+    const beat = pres.addWorker(-1.25, -13.8, Math.PI, 'walk', { role: 'ordinal', look: 'beat', when: () => this.view.control < SITE_LIBERATED });
     this.patrol = new Patrol(city, pres.workers[beat], [[-1.25, -13.8], [-1.25, -26.9], [-3.45, -29.3], [-3.45, -32.9], [-1.6, -34.6]].map(([x, z]) => new T.Vector2(x, z)), pres.root);
     this.patrol.hot.push({ x: CELLAR.x, z: CELLAR.z, r: 3.4 });
     this.patrol.onConfront = () => { const actor = pres.workers[beat].person, o = city.incident('minor', actor.group.position.x, actor.group.position.z); actor.tone = { tone: o.tier >= 2 ? 'hostile' : 'authoritative', until: performance.now() / 1000 + 1e9 }; this.spoke = 5; };
@@ -131,7 +131,7 @@ export class MarketSquare implements SiteModule {
     for (const x of [-6.75, 6.75]) { const rib = fabricOf(Q); box(lib, x, 1.05, GZ + .61, .34, .16, .02, rib); box(lib, x + .1, .75, GZ + .62, .08, .5, .02, rib); }
     { const m = new T.Mesh(new T.PlaneGeometry(.8, .8), decalMat(emberPaint, .95)); m.position.set(10.85, 1.5, -32.31); lib.add(m); const drape = box(lib, 10.85, 2.42, -32.9, 1.3, .1, 1.3, fabricOf(Q)); drape.rotation.y = .1; }
     const a = pres.addWorker(8.7, -36.9, -2.4, 'talk', { role: 'courier', when: () => this.view.control >= SITE_LIBERATED }); const b = pres.addWorker(7.9, -37.6, .7, 'talk', { role: 'worker', when: () => this.view.control >= SITE_LIBERATED }); pres.workers[a].partner = b; pres.workers[b].partner = a;
-    pres.addWorker(-1.38, -29.62, -.78, 'sit', { y: .42, role: 'resident', when: () => this.view.control >= SITE_LIBERATED });
+    pres.addWorker(-1.38, -29.62, -.78, 'sit', { role: 'resident', when: () => this.view.control >= SITE_LIBERATED }); // feet on the paving, seat on the rim (y was the rim's height, which lifted the whole figure off it)
     // RESTORATION: the circuit ---------------------------------------------------------
     // Every strip carries its distance from the spring, so the wake travels in order:
     // basin and jets, the channels, the gate threshold, up the piers and around the arch.
@@ -151,7 +151,8 @@ export class MarketSquare implements SiteModule {
     this.springTarget = new T.Mesh(new T.CylinderGeometry(.8, .8, 3.2, 8), mats.dark); this.springTarget.position.set(SX, 1.9, SZ); this.springTarget.visible = false; live.add(this.springTarget);
     const restored = () => this.view.control >= SITE_RESTORED;
     pres.addWorker(-1.6, -33.6, .56, 'watch', { role: 'resident', scale: .72, when: restored }); pres.addWorker(-2.25, -34.15, .5, 'watch', { role: 'resident', when: restored });
-    this.targets.push({ object: this.cellarTarget, spot: 'cell', label: 'Copper Finch cellar', hint: 'KNOCK' }, { object: this.springTarget, spot: 'spring', label: 'Ordinance seal', hint: 'EXAMINE' });
+    // The cellar takes no knock while the Directorate's boards and seal are on it (ward-call.ts): the door and the knock agree because both read the one visible group.
+    this.targets.push({ object: this.cellarTarget, spot: 'cell', label: 'Copper Finch cellar', hint: 'KNOCK', when: () => !pres.wardCall?.cellarSealed }, { object: this.springTarget, spot: 'spring', label: 'Ordinance seal', hint: 'EXAMINE' });
     this.site.seal();
   }
   sync(view: SiteView) {

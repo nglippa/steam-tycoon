@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { wireUniforms } from './assets';
 
 /** One scene submission plus a screen-space ink pass, including animated crowds.
  * Depth curvature finds silhouettes and creases without outlining texture noise. */
@@ -12,6 +13,7 @@ export class InkRenderer {
     uniforms: {
       picture: { value: this.target.texture }, depth: { value: this.target.depthTexture },
       texel: { value: new T.Vector2(1, 1) }, near: { value: .08 }, far: { value: 500 }, recovery: { value: 0 },
+      fogColor: { value: new T.Color() }, fogDensity: { value: 0 }, lineScale: { value: 1 },
     },
     vertexShader: 'varying vec2 uvInk; void main(){uvInk=uv;gl_Position=vec4(position.xy,0.,1.);}',
     fragmentShader: `
@@ -19,6 +21,7 @@ export class InkRenderer {
       uniform sampler2D picture, depth;
       uniform vec2 texel;
       uniform float near, far, recovery;
+      uniform vec3 fogColor; uniform float fogDensity, lineScale;
       float distanceAt(vec2 uv) {
         float d = texture2D(depth, uv).r;
         return (near * far) / (far - d * (far - near));
@@ -33,18 +36,31 @@ export class InkRenderer {
         vec4 sample0 = texture2D(picture, uvInk); vec3 color = sample0.rgb;
         float text = 1. - step(.25, sample0.a); // printed surfaces: keep silhouettes, skip interior ink
         float centerDist = distanceAt(uvInk);
-        // Line weight: heavy near the eye, thinning with distance, modulated along its length.
-        float weight = mix(3.0, 1.2, smoothstep(6., 80., centerDist)) * (.8 + .45 * vnoise(px * .045));
-        // Wobble: sample points drift a little, so straight edges read hand-drawn.
-        vec2 wob = (vec2(vnoise(px * .02), vnoise(px * .02 + 17.3)) - .5) * 1.6;
+        // Calm: past ~15 m the pen stops wandering, so far lines hold still while the view turns. Taken at the nearest of
+        // four taps, so the outer half of a near silhouette against the sky keeps the near hand.
+        vec2 reach = texel * 3.;
+        float calm = smoothstep(15., 60., min(min(centerDist, min(distanceAt(uvInk + vec2(reach.x, 0.)), distanceAt(uvInk - vec2(reach.x, 0.)))),
+                                                    min(distanceAt(uvInk + vec2(0., reach.y)), distanceAt(uvInk - vec2(0., reach.y)))));
+        // Line weight: heavy near the eye, thinning with distance, modulated along its length (near lines only). lineScale
+        // keeps the width in CSS pixels when the resolution steps down; one buffer pixel is the least a line can be.
+        // Wobble: sample points drift a little, so straight edges read hand-drawn. Once the pen is calm neither the weight
+        // noise nor the wobble is drawn, so the noise is not computed there (the sky and everything past 60 m).
+        float pen = 1.; vec2 wob = vec2(0.);
+        if (calm < 1.) { pen = mix(.8 + .45 * vnoise(px * .045), 1., calm); wob = (vec2(vnoise(px * .02), vnoise(px * .02 + 17.3)) - .5) * 1.6 * (1. - calm); }
+        float weight = max(1., mix(3.0, 1.2, smoothstep(6., 80., centerDist)) * lineScale * pen);
         vec2 uv = uvInk + wob * texel;
         // Line class: printed (a<.25) / thin people+props (a~.5) / world (a=1). Neighbours decide,
         // so both sides of a character's silhouette get the thin line.
         vec2 p0 = texel * weight;
-        float cls = min(min(texture2D(picture, uv + vec2(p0.x, 0.)).a, texture2D(picture, uv - vec2(p0.x, 0.)).a), min(texture2D(picture, uv + vec2(0., p0.y)).a, texture2D(picture, uv - vec2(0., p0.y)).a));
-        cls = min(cls, sample0.a);
+        float k1 = texture2D(picture, uv + vec2(p0.x, 0.)).a, k2 = texture2D(picture, uv - vec2(p0.x, 0.)).a;
+        float k3 = texture2D(picture, uv + vec2(0., p0.y)).a, k4 = texture2D(picture, uv - vec2(0., p0.y)).a;
+        float cls = min(min(min(k1, k2), min(k3, k4)), sample0.a);
         // Narrow band: MSAA-resolved alpha at a world/thin edge must not read as thin.
         float thin = step(.35, cls) * (1. - step(.65, cls));
+        // Inside a tree's crown (foliage, a=.75, on this pixel and every class tap): the clumps' own creases, colour edges and
+        // the depth steps between them. The crown's edge, where any tap leaves the foliage, is not inside and keeps its line.
+        // Ramps, not steps: a multisampled edge resolves between the classes, and a hard cut there dithered the outline.
+        float leafy = smoothstep(.6, .7, cls) * (1. - smoothstep(.8, .9, max(max(max(k1, k2), max(k3, k4)), sample0.a)));
         vec2 o = texel * weight * mix(1., .38, thin);
         float c0 = distanceAt(uv);
         float l = distanceAt(uv - vec2(o.x, 0.)), r = distanceAt(uv + vec2(o.x, 0.));
@@ -52,27 +68,59 @@ export class InkRenderer {
         float a1 = distanceAt(uv + o * vec2(.7, .7)), a2 = distanceAt(uv + o * vec2(-.7, .7));
         float a3 = distanceAt(uv - o * vec2(.7, .7)), a4 = distanceAt(uv - o * vec2(-.7, .7));
         float nearest = min(min(min(c0, l), min(r, u)), min(min(d, a1), min(min(a2, a3), a4)));
+        float farthest = max(max(max(c0, l), max(r, u)), max(max(d, a1), max(max(a2, a3), a4)));
+        // Outer edges: against the sky, or with the background well behind. Inner edges (a cornice, a chimney on its own
+        // roof) are a small depth ratio. Bands: mid thins the creases, far keeps outer silhouettes only.
+        float outer = max(step(far * .9, farthest), smoothstep(1.3, 1.8, farthest / nearest));
+        float tMid = smoothstep(30., 90., nearest), tFar = smoothstep(90., 160., nearest);
+        // Mid cut: past 30 m (full by 50 m) inner creases need twice the step, so a third fewer of them draw, and foliage
+        // keeps only its outer silhouette. Silhouettes keep their strength.
+        float tCut = smoothstep(30., 50., nearest);
         // A flat surface is linear in 1/z at any viewing angle, so the second difference of inverse
         // distance is ~0 on a plane (even grazing ground) and large only at creases and silhouettes.
         float ic = 1. / c0;
         float e = max(max(abs(1. / l + 1. / r - 2. * ic), abs(1. / u + 1. / d - 2. * ic)),
                       max(abs(1. / a1 + 1. / a3 - 2. * ic), abs(1. / a2 + 1. / a4 - 2. * ic))) * c0;
-        float silhouette = smoothstep(.07, .18, e);
-        float crease = smoothstep(.02, .05, e);
+        float silhouette = smoothstep(.07, .18, e) * mix(1., outer, max(tFar, leafy * tCut));
+        // (The raised step is for inner creases only: along an outer edge the crease term fills the gaps of an aliased
+        // silhouette, and taking it away there leaves a dotted outline.)
+        float cut = mix(1., 2., tCut * (1. - outer));
+        float crease = smoothstep(mix(.02, .035, tMid) * cut, mix(.05, .09, tMid) * cut, e) * (1. - tFar) * (1. - leafy * tCut);
         // Interior lines where color blocks meet (frames, trims, clothing panels) — not on sky.
         float lc = luma(texture2D(picture, uv).rgb);
-        float gl = abs(luma(texture2D(picture, uv - vec2(o.x, 0.)).rgb) - luma(texture2D(picture, uv + vec2(o.x, 0.)).rgb))
-                 + abs(luma(texture2D(picture, uv - vec2(0., o.y)).rgb) - luma(texture2D(picture, uv + vec2(0., o.y)).rgb));
+        float lL = luma(texture2D(picture, uv - vec2(o.x, 0.)).rgb), lR = luma(texture2D(picture, uv + vec2(o.x, 0.)).rgb);
+        float lU = luma(texture2D(picture, uv + vec2(0., o.y)).rgb), lD = luma(texture2D(picture, uv - vec2(0., o.y)).rgb);
+        float gl = abs(lL - lR) + abs(lD - lU);
         float solid = 1. - step(far * .9, nearest);
         // Texture contrast on grazing surfaces (distant ground) is aliasing, not a drawn line.
         float slope = (abs(l - r) + abs(u - d)) / (c0 * 2. * length(o / texel));
-        float colorEdge = smoothstep(.16, .3, gl / max(lc, .18)) * solid * (1. - smoothstep(14., 42., nearest)) * (1. - smoothstep(.0012, .0025, slope));
-        // Far lines would break into flickering dashes: take them down early to a light steady line.
-        float fade = 1. - smoothstep(40., 140., nearest) * .75;
-        float ink = max(max(silhouette, crease * .85 * (1. - text)), colorEdge * .6 * (1. - text)) * fade;
-        // Ink is a deep, color-aware navy-grey rather than black.
-        vec3 inkColor = mix(vec3(.06, .05, .05), color * .25, .2);
-        color = mix(color, inkColor, clamp(ink, 0., 1.) * .95);
+        float colorEdge = smoothstep(.16, .3, gl / max(lc, .18)) * solid * (1. - smoothstep(14., 42., nearest)) * (1. - smoothstep(.0012, .0025, slope)) * (1. - leafy * tCut);
+        // Strength and tone, only where there is a line to draw (most of the screen has none and skips the work).
+        float ink = 0.;
+        vec3 inkColor = color;
+        if (max(max(silhouette, crease), colorEdge) > 0.) {
+          // Dark on dark (a chimney on its own smoke, a tree on the iron gantry behind): value cannot separate them, and a
+          // fog-toned line is lighter than both (ink only darkens, so it vanishes). Where the two sides differ by under ~.1
+          // (in a perceptual, square-root scale) and both are dark, up to ~120 m, the silhouette keeps its full strength and
+          // its dark, untinted line.
+          float lo = sqrt(min(min(min(lL, lR), min(lU, lD)), lc)), range = sqrt(max(max(max(lL, lR), max(lU, lD)), lc)) - lo;
+          float low = (1. - smoothstep(.06, .12, range)) * (1. - smoothstep(.3, .5, lo)) * (1. - smoothstep(90., 120., nearest));
+          // Far lines would break into flickering dashes: take them down to a light steady line. The scene's own FogExp2 at
+          // the line's nearer side does the rest, so lines thin out in the haze with the geometry under them.
+          float fade = 1. - smoothstep(40., 140., nearest) * .6;
+          float fogF = 1. - exp(-fogDensity * fogDensity * nearest * nearest);
+          fade *= 1. - .75 * fogF;
+          // Far shapes against the sky (the skyline planes and isles are tinted, not fogged) keep a faint outline.
+          fade = max(fade, .3 * step(far * .9, farthest) * tFar);
+          ink = max(silhouette * mix(fade, 1., low), max(crease * .85, colorEdge * .6) * (1. - text) * fade);
+          // Ink is a deep, color-aware navy-grey rather than black.
+          vec3 dark = mix(vec3(.06, .05, .05), color * .25, .2);
+          // In haze the pen takes a darker tone of the fog, not black (fog colour is linear, like the target). Far away
+          // (80-120 m on) the line itself is 40% the haze, so far shapes part by value as well as by line.
+          inkColor = mix(mix(mix(dark, fogColor * .45, fogF), fogColor, .4 * smoothstep(80., 120., nearest)), dark, low);
+        }
+        // Ink only ever darkens: a fog-toned line must not show up light across smoke or a dark wall.
+        color = min(color, mix(color, inkColor, clamp(ink, 0., 1.) * .95));
         // Dreary grade: soot-tinted desaturation, crushed highlights, lifted smoky blacks and a
         // heavy vignette. Recovery (prosperity) gives back some colour, never the full candy.
         float gradeL = dot(color, vec3(.299, .587, .114));
@@ -89,6 +137,8 @@ export class InkRenderer {
     renderer.info.autoReset = false;
     this.scene.add(new T.Mesh(new T.PlaneGeometry(2, 2), this.material));
   }
+  /** Rendered pixel ratio over the unstrained one: lines keep their width on screen when the resolution steps down. */
+  set lineScale(scale: number) { this.material.uniforms.lineScale.value = scale; }
   setRecovery(stage: number) { this.material.uniforms.recovery.value = Math.min(1, stage / 5); }
   setQuality(high: boolean) {
     const samples = high ? Math.min(4, this.renderer.capabilities.maxSamples) : 0;
@@ -105,6 +155,10 @@ export class InkRenderer {
     }
     this.material.uniforms.near.value = camera.near;
     this.material.uniforms.far.value = camera.far;
+    wireUniforms.wirePx.value = 2 * Math.tan(camera.fov * Math.PI / 360) / (camera.zoom * this.size.y); // radians per buffer pixel
+    const fog = scene.fog as T.FogExp2 | null;
+    this.material.uniforms.fogDensity.value = fog?.density ?? 0;
+    if (fog) this.material.uniforms.fogColor.value.copy(fog.color);
     this.renderer.setRenderTarget(this.target);
     this.renderer.render(scene, camera);
     this.renderer.setRenderTarget(null);

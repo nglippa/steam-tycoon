@@ -2,7 +2,9 @@ import * as T from 'three';
 import { Atlas, place, type Placed } from './sign-atlas';
 import { box,holed,cyl,sphere,torus,beam,gear,barrel,crate,sign,arch,bake,mats,seeded,illustrated,tree,bareTree,blossom,windowUnit,printed,windowGlass,asProp } from './assets';
 import { V,pipe,cable,crest,gauge,lampHead,railing,canopy,artMats,roof,pressureRing,wingedValve,bench,pressureStation,mailPost,fabricOf,poster,meterBox,labeledCrate,stencilBarrel,stove,workbench,cafeTable,anvil,pipeStack } from './art-kit';
-import { citizen } from './citizens';
+import { person as makePerson, PEOPLE, type Citizen } from './citizens';
+import { siteScale } from './people/figure';
+import { FOOD } from './people/parts';
 import type { Archetype } from './palette';
 import { animateLife, turnTaking, eased, type Activity } from './citizen-life';
 import { reducedMotion } from '../motion';
@@ -43,7 +45,7 @@ const IDLE=new Set<Activity>(['talk','argue','watch','warm','browse','eat','sit'
 export class Presentation {
   root=new T.Group(); restored=new T.Group(); worn=new T.Group(); market=new T.Group();
   mechanisms:{object:T.Object3D;axis:'x'|'y'|'z';speed:number}[]=[];
-  workers:{person:ReturnType<typeof citizen>;kind:Activity;tool?:T.Group;minStage:number;maxStage:number;time:'any'|'day'|'night';partner?:number;path?:{a:T.Vector3;b:T.Vector3;speed:number};y:number;when?:()=>boolean;/** Where they belong and how early they leave the street as occupation rises. Story-staged people (`when`) and `keep` are exempt. */district:DistrictId;standing:Standing;seed:number;importance:Importance;base:T.Vector3}[]=[];
+  workers:{person:Citizen;kind:Activity;tool?:T.Group;minStage:number;maxStage:number;time:'any'|'day'|'night';partner?:number;path?:{a:T.Vector3;b:T.Vector3;speed:number};y:number;when?:()=>boolean;/** Where they belong and how early they leave the street as occupation rises. Story-staged people (`when`) and `keep` are exempt. */district:DistrictId;standing:Standing;seed:number;importance:Importance;base:T.Vector3}[]=[];
   /** Every Ordinance post and what it is for. */
   posts:{index:number;role:PostRole;rank:number;district:DistrictId}[]=[];checkpoints!:Checkpoints;borders!:Borders;
   /** The Ordinance's extra people: decorative, staged by district. Only the nearest few are ever asked whether they can see the Steward. */
@@ -224,7 +226,7 @@ export class Presentation {
     box(g,-25.7,.2,9.3,.7,.35,.4,mats.red);box(g,-25.7,.42,9.3,.5,.08,.25,mats.iron);
     this.addWorker(-25.6,8,-Math.PI/2,'repair',{maxStage:2});this.addWorker(-25.9,8.2,-Math.PI/2,'clipboard',{minStage:3,role:'engineer'});
     // Lunch on the benches.
-    this.addWorker(-7.0,22,Math.PI/2,'eat',{role:'worker',tool:'eat'});this.addWorker(7.0,-6,-Math.PI/2,'sit',{role:'resident',minStage:2});
+    this.addWorker(-7.0,22,Math.PI/2,'eat',{role:'worker',tool:'eat'});this.addWorker(7.0,-7.0,-Math.PI/2,'sit',{role:'resident',minStage:2});/* on the bench at (7.1, -7.4), not past its end */
     // A child and parent watching the airship from Clock Square.
     this.addWorker(3.3,-36.5,Math.PI,'watch',{role:'resident',scale:.72});this.addWorker(4.2,-36.1,Math.PI+.2,'watch',{role:'resident'});
     // The calliope: a street machine that gathers a crowd once Terra recovers.
@@ -234,7 +236,7 @@ export class Presentation {
     this.addWorker(-8.9,-47.9,.4,'valve',{role:'engineer',minStage:2});
     for(const [x,z,yaw] of [[-7.3,-44.6,Math.PI+.25],[-6.3,-45.4,-2.2],[-8.6,-44.5,2.9]] as const)this.addWorker(x,z,yaw,'watch',{minStage:2});
     // Terrace life: two on the benches, a guard at the tower door, a flower seller with trade.
-    for(const a of [.75,3.95]){const bx=Math.sin(a)*7.25,bz=TERRACE.z+Math.cos(a)*7.25;this.addWorker(bx,bz,a+Math.PI,'sit',{y:TERRACE.rise,role:a<2?'resident':'merchant'});}
+    for(const a of [.75,3.95]){const bx=Math.sin(a)*7.4,bz=TERRACE.z+Math.cos(a)*7.4;this.addWorker(bx,bz,a+Math.PI,'sit',{y:TERRACE.rise,role:a<2?'resident':'merchant'});}
     this.addWorker(1.6,-40.9,0,'guard',{y:TERRACE.rise,role:'guard'});
     this.addWorker(6.2,-53.4,-2.2,'browse',{y:TERRACE.rise,role:'merchant',minStage:3});
     // Balconies: residents above the street once homes are cared for.
@@ -269,15 +271,15 @@ export class Presentation {
     this.addWorker(-13.15,17,Math.PI/2,'lean',{role:'courier'});
     this.addWorker(24.85,21,Math.PI/2,'lean',{role:'worker'});
     this.addWorker(-42.6,33,Math.PI/2,'lean',{role:'resident',minStage:1});
-    this.addWorker(-42.4,4.3,Math.PI/2,'sit',{role:'resident'});
-    this.addWorker(-42.4,-19.4,Math.PI/2,'eat',{role:'worker',tool:'eat',minStage:1});
+    this.addWorker(-42.4,4.3,Math.PI/2,'sit',{y:-.02,role:'resident'});/* down onto the bench (2 cm over it) */
+    this.addWorker(-42.4,-19.4,Math.PI/2,'eat',{y:-.03,role:'worker',tool:'eat',minStage:1});/* down onto the bench (3 cm over it) */
     this.addWorker(-42.4,49.6,Math.PI/2,'sit',{role:'resident',scale:.74,minStage:2});
     // Early Terra is poor, not empty: a brazier circle, a blanket seller, a lamp repair and an argument.
     const brazier=new T.Group();brazier.position.set(-40.6,0,12);g.add(brazier);cyl(brazier,0,.45,0,.34,.9,mats.rust);for(const y of [.2,.7])cyl(brazier,0,y,0,.36,.06,mats.iron);cyl(brazier,0,.93,0,.28,.05,artMats.ember);sphere(brazier,0,.98,0,.16,artMats.furnace);
     for(const a of [0,2.1,4.2])this.addWorker(-40.6+Math.sin(a)*.95,12+Math.cos(a)*.95,a+Math.PI,'warm',{maxStage:1,role:a>3?'resident':'worker'});
     this.steamOrigins.push(V(-40.6,1.1,12));
     box(g,-7.9,.1,60.8,1.6,.04,2.2,artMats.wine);for(let k=0;k<5;k++)box(g,-7.6-(k%2)*.5,.22,60.1+k*.35,.28,.22,.24,[mats.copper,mats.iron,artMats.ochre][k%3]);
-    this.addWorker(-8.5,60.9,Math.PI/2,'sit',{maxStage:1,role:'resident'});this.addWorker(-6.6,60.2,-Math.PI/2+.3,'browse',{maxStage:1,role:'worker'});
+    crate(g,-8.5,.05,60.9,.43);this.addWorker(-8.5,60.9,Math.PI/2,'sit',{maxStage:1,role:'resident'});/* on a crate by the rug */this.addWorker(-6.6,60.2,-Math.PI/2+.3,'browse',{maxStage:1,role:'worker'});
     const ladder=new T.Group();ladder.position.set(9.3,0,38);ladder.rotation.z=.2;g.add(ladder);for(const x of [-.25,.25])box(ladder,x,2,0,.06,4,.06,mats.wood);for(let y=.4;y<4;y+=.45)box(ladder,0,y,0,.5,.05,.05,mats.wood);
     this.addWorker(8.9,38.6,Math.PI,'repair',{maxStage:1,y:1.2,role:'worker'});this.addWorker(8.4,37.2,-Math.PI/2+.5,'clipboard',{maxStage:1,role:'engineer'});
     const r1=this.addWorker(-40.6,36.3,.8,'argue',{maxStage:1,role:'resident'});const r2=this.addWorker(-39.7,37.3,-2.4,'argue',{maxStage:1,role:'worker'});this.workers[r1].partner=r2;this.workers[r2].partner=r1;
@@ -304,7 +306,7 @@ export class Presentation {
     for(const z of [45,33,19,9,-11,-21]){const a=V(-42.9,8.2+(z%3)*.3,z),b=V(-24.6,7.6,z+1.2);const curve=cable(g,a,b,.9);
       if(z%2){for(let k=1;k<5;k++){const p=curve.getPoint(k/5);const cloth=new T.Mesh(new T.PlaneGeometry(.7,1),[mats.cream,artMats.wine,mats.teal,artMats.ochre][k%4]);cloth.position.set(p.x,p.y-.55,p.z);cloth.rotation.y=Math.PI/2+(k%2?.1:-.1);g.add(cloth);}}}
     // Trolley wires above the rails, hung from span wires between the lamp standards.
-    for(const x of [-2.15,2.15])box(g,x,6.2,10,.03,.03,128,mats.iron);
+    for(const x of [-2.15,2.15])cable(g,V(x,6.2,-54),V(x,6.2,74),0);
     for(let z=57;z>=-38;z-=19){cable(g,V(-9.8,6.5,z),V(9.8,6.5,z),.28);for(const x of [-2.15,2.15])box(g,x,6.28,z,.05,.18,.05,mats.brass);}
     // Posters on civic masonry: bridge piers and regulator towers.
     for(const [x,z,yaw] of [[-12.6,7.32,0],[12.6,3.88,Math.PI],[-11.9,30.51,0],[11.9,27.49,Math.PI],[-12.6,3.88,Math.PI]] as const)poster(g,x,2.2,z,Math.abs(Math.round(x+z)),yaw);
@@ -490,10 +492,11 @@ export class Presentation {
   /** Those who can be asked to act: posts with a job that involves watching, and the Ordinance's story people who stand still. */
   get authority(){return this.actors??=this.posts.filter(q=>canAct(q.role)).map(q=>q.index).concat(this.ordinance);}private actors?:number[];
   get ordinance(){return this.staticOrdinance??=this.workers.map((w,i)=>isOccupier(w.person.archetype)&&!this.garrisonPosts.includes(i)&&!w.path?i:-1).filter(i=>i>=0);}private staticOrdinance?:number[];
-  addWorker(x:number,z:number,yaw:number,kind:Activity,o:{y?:number;role?:Archetype;minStage?:number;maxStage?:number;time?:'any'|'day'|'night';scale?:number;partner?:number;path?:[number,number,number];tool?:string;when?:()=>boolean;essential?:boolean;mask?:boolean}={}) {
+  addWorker(x:number,z:number,yaw:number,kind:Activity,o:{y?:number;role?:Archetype;minStage?:number;maxStage?:number;time?:'any'|'day'|'night';scale?:number;/** a named story character (people/look.ts): takes effect under the new builder */look?:string;partner?:number;path?:[number,number,number];tool?:string;when?:()=>boolean;essential?:boolean;mask?:boolean}={}) {
     if(kind==='sit'&&o.tool==='mug')kind='eat';// whoever sits with a mug drinks from it
     const role=o.role??(kind==='gauge'||kind==='valve'||kind==='clipboard'?'engineer':kind==='browse'||(z<0&&kind==='read')?'merchant':kind==='read'||kind==='watch'||kind==='lean'?'resident':'worker');
-    const person=citizen(mats.rust,this.workers.length+43,role,o.mask?{mask:true}:undefined);const y=o.y!==undefined?o.y+.18:this.city.groundHeight(x,z);person.group.position.set(x,y,z);person.group.rotation.y=yaw;if(o.scale)person.group.scale.multiplyScalar(o.scale);this.root.add(person.group);
+    const child=o.scale!==undefined&&o.scale<.8,person=makePerson(mats.rust,this.workers.length+43,role,{mask:o.mask,look:o.look,child});const y=o.y!==undefined?o.y+.18:this.city.groundHeight(x,z);person.group.position.set(x,y,z);person.group.rotation.y=yaw;person.group.scale.multiplyScalar(siteScale(o.scale,child,PEOPLE.next));// the old builder's child is an adult scaled down here; the new child cast owns its size
+    this.root.add(person.group);
     // Held things sit in the right hand's grip socket, authored grip-first: the handle runs through
     // the fist along z and the rest hangs off it (figure-construction: arms-hands). Crates are
     // carried against the body between both palms.
@@ -504,7 +507,7 @@ export class Presentation {
     if(t==='read'){const sheet=box(tool,inward+.13,-.03,.02,.26,.2,.012,artMats.paper);sheet.rotation.x=.9;}
     if(t==='clipboard'){box(tool,inward+.11,.03,.03,.24,.32,.02,mats.wood);box(tool,inward+.11,.03,.042,.2,.26,.006,artMats.paper);box(tool,inward+.11,.17,.045,.07,.03,.02,mats.brass);}
     if(t==='repair'){box(tool,0,0,.09,.028,.028,.28,mats.iron);torus(tool,0,0,.25,.045,.016,mats.iron);}
-    if(t==='eat'){const bun=sphere(tool,inward*.3,0,.05,1,artMats.ochre);bun.scale.set(.05,.045,.07);}
+    if(t==='eat'){const bun=sphere(tool,...FOOD.at,1,artMats.ochre);bun.scale.set(...FOOD.size);}
     if(t==='mug'){cyl(tool,inward+.035,.01,.01,.042,.11,mats.copper);torus(tool,inward*.3,.01,.01,.028,.009,mats.copper).rotation.x=Math.PI/2;}
     if(t==='basket'){torus(tool,0,-.02,0,.1,.011,mats.wood).rotation.y=Math.PI/2;cyl(tool,0,-.2,0,.13,.16,mats.wood);sphere(tool,0,-.12,0,.07,mats.red);}
     if(t==='carry'){const cargo=new T.Group();cargo.position.set(0,1.05,.31);person.body.add(cargo);box(cargo,0,0,0,.43,.32,.33,mats.wood);for(const y of [-.11,.11])box(cargo,0,y,.175,.45,.035,.02,mats.cream);asProp(cargo);bake(cargo);}

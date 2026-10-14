@@ -1,0 +1,325 @@
+{
+ "method": "Text contrast of the HUD plates against the real world behind them.\n  python3 tools/hud-contrast.py <dir with game-captures --sets=product output> [out.json]\nFor each `*-world.png` (the frame with the HUD hidden) every pixel under a plate is composited with the plate's paper at its\nopacity, as the browser does (sRGB), and the WCAG ratio of each text colour on it is taken; the minimum and 1st percentile\nare reported, and the same over a black scene. The ribbon's rows (tape, status line) are reported separately.",
+ "shots": {
+  "product-test-clear-world.png": {
+   "ribbon tape ink": {
+    "opacity": 0.72,
+    "min": 7.27,
+    "p1": 7.34,
+    "overBlack": 5.94
+   },
+   "ribbon status ink": {
+    "opacity": 0.72,
+    "min": 7.2,
+    "p1": 7.3,
+    "overBlack": 5.94
+   },
+   "ribbon@before(.88) tape hud-soft": {
+    "opacity": 0.88,
+    "min": 6.76,
+    "p1": 6.78,
+    "overBlack": 6.26
+   },
+   "ribbon@before(.88) tape burgundy": {
+    "opacity": 0.88,
+    "min": 5.26,
+    "p1": 5.28,
+    "overBlack": 4.87
+   },
+   "ribbon@before(.88) status hud-soft": {
+    "opacity": 0.88,
+    "min": 6.73,
+    "p1": 6.77,
+    "overBlack": 6.26
+   },
+   "ribbon@before(.88) status burgundy": {
+    "opacity": 0.88,
+    "min": 5.24,
+    "p1": 5.27,
+    "overBlack": 4.87
+   },
+   "identity all ink": {
+    "opacity": 0.88,
+    "min": 9.37,
+    "p1": 9.37,
+    "overBlack": 8.9
+   },
+   "treasury all ink": {
+    "opacity": 0.88,
+    "min": 9.36,
+    "p1": 9.39,
+    "overBlack": 8.9
+   },
+   "treasury all hud-soft": {
+    "opacity": 0.88,
+    "min": 6.58,
+    "p1": 6.61,
+    "overBlack": 6.26
+   },
+   "treasury all hud-good": {
+    "opacity": 0.88,
+    "min": 5.06,
+    "p1": 5.08,
+    "overBlack": 4.81
+   },
+   "objective all ink": {
+    "opacity": 0.88,
+    "min": 9.42,
+    "p1": 9.44,
+    "overBlack": 8.9
+   },
+   "objective all hud-soft": {
+    "opacity": 0.88,
+    "min": 6.62,
+    "p1": 6.64,
+    "overBlack": 6.26
+   },
+   "objective all burgundy": {
+    "opacity": 0.88,
+    "min": 5.16,
+    "p1": 5.16,
+    "overBlack": 4.87
+   }
+  },
+  "product-test-rain-world.png": {
+   "ribbon tape ink": {
+    "opacity": 0.72,
+    "min": 7.15,
+    "p1": 7.15,
+    "overBlack": 5.94
+   },
+   "ribbon status ink": {
+    "opacity": 0.72,
+    "min": 7.14,
+    "p1": 7.17,
+    "overBlack": 5.94
+   },
+   "ribbon@before(.88) tape hud-soft": {
+    "opacity": 0.88,
+    "min": 6.71,
+    "p1": 6.71,
+    "overBlack": 6.26
+   },
+   "ribbon@before(.88) tape burgundy": {
+    "opacity": 0.88,
+    "min": 5.22,
+    "p1": 5.22,
+    "overBlack": 4.87
+   },
+   "ribbon@before(.88) status hud-soft": {
+    "opacity": 0.88,
+    "min": 6.71,
+    "p1": 6.72,
+    "overBlack": 6.26
+   },
+   "ribbon@before(.88) status burgundy": {
+    "opacity": 0.88,
+    "min": 5.22,
+    "p1": 5.23,
+    "overBlack": 4.87
+   },
+   "identity all ink": {
+    "opacity": 0.88,
+    "min": 9.37,
+    "p1": 9.37,
+    "overBlack": 8.9
+   },
+   "treasury all ink": {
+    "opacity": 0.88,
+    "min": 9.36,
+    "p1": 9.37,
+    "overBlack": 8.9
+   },
+   "treasury all hud-soft": {
+    "opacity": 0.88,
+    "min": 6.58,
+    "p1": 6.59,
+    "overBlack": 6.26
+   },
+   "treasury all hud-good": {
+    "opacity": 0.88,
+    "min": 5.06,
+    "p1": 5.07,
+    "overBlack": 4.81
+   },
+   "objective all ink": {
+    "opacity": 0.88,
+    "min": 9.42,
+    "p1": 9.43,
+    "overBlack": 8.9
+   },
+   "objective all hud-soft": {
+    "opacity": 0.88,
+    "min": 6.62,
+    "p1": 6.63,
+    "overBlack": 6.26
+   },
+   "objective all burgundy": {
+    "opacity": 0.88,
+    "min": 5.16,
+    "p1": 5.16,
+    "overBlack": 4.87
+   }
+  },
+  "product-test-fog-world.png": {
+   "ribbon tape ink": {
+    "opacity": 0.72,
+    "min": 7.21,
+    "p1": 7.25,
+    "overBlack": 5.94
+   },
+   "ribbon status ink": {
+    "opacity": 0.72,
+    "min": 7.17,
+    "p1": 7.26,
+    "overBlack": 5.94
+   },
+   "ribbon@before(.88) tape hud-soft": {
+    "opacity": 0.88,
+    "min": 6.74,
+    "p1": 6.75,
+    "overBlack": 6.26
+   },
+   "ribbon@before(.88) tape burgundy": {
+    "opacity": 0.88,
+    "min": 5.24,
+    "p1": 5.25,
+    "overBlack": 4.87
+   },
+   "ribbon@before(.88) status hud-soft": {
+    "opacity": 0.88,
+    "min": 6.72,
+    "p1": 6.75,
+    "overBlack": 6.26
+   },
+   "ribbon@before(.88) status burgundy": {
+    "opacity": 0.88,
+    "min": 5.23,
+    "p1": 5.26,
+    "overBlack": 4.87
+   },
+   "identity all ink": {
+    "opacity": 0.88,
+    "min": 9.37,
+    "p1": 9.37,
+    "overBlack": 8.9
+   },
+   "treasury all ink": {
+    "opacity": 0.88,
+    "min": 9.36,
+    "p1": 9.38,
+    "overBlack": 8.9
+   },
+   "treasury all hud-soft": {
+    "opacity": 0.88,
+    "min": 6.58,
+    "p1": 6.59,
+    "overBlack": 6.26
+   },
+   "treasury all hud-good": {
+    "opacity": 0.88,
+    "min": 5.06,
+    "p1": 5.07,
+    "overBlack": 4.81
+   },
+   "objective all ink": {
+    "opacity": 0.88,
+    "min": 9.42,
+    "p1": 9.43,
+    "overBlack": 8.9
+   },
+   "objective all hud-soft": {
+    "opacity": 0.88,
+    "min": 6.62,
+    "p1": 6.63,
+    "overBlack": 6.26
+   },
+   "objective all burgundy": {
+    "opacity": 0.88,
+    "min": 5.16,
+    "p1": 5.16,
+    "overBlack": 4.87
+   }
+  },
+  "product-test-clear-night-world.png": {
+   "ribbon tape ink": {
+    "opacity": 0.72,
+    "min": 6.92,
+    "p1": 6.93,
+    "overBlack": 5.94
+   },
+   "ribbon status ink": {
+    "opacity": 0.72,
+    "min": 6.93,
+    "p1": 6.93,
+    "overBlack": 5.94
+   },
+   "ribbon@before(.88) tape hud-soft": {
+    "opacity": 0.88,
+    "min": 6.63,
+    "p1": 6.63,
+    "overBlack": 6.26
+   },
+   "ribbon@before(.88) tape burgundy": {
+    "opacity": 0.88,
+    "min": 5.16,
+    "p1": 5.16,
+    "overBlack": 4.87
+   },
+   "ribbon@before(.88) status hud-soft": {
+    "opacity": 0.88,
+    "min": 6.63,
+    "p1": 6.63,
+    "overBlack": 6.26
+   },
+   "ribbon@before(.88) status burgundy": {
+    "opacity": 0.88,
+    "min": 5.16,
+    "p1": 5.16,
+    "overBlack": 4.87
+   },
+   "identity all ink": {
+    "opacity": 0.88,
+    "min": 9.37,
+    "p1": 9.38,
+    "overBlack": 8.9
+   },
+   "treasury all ink": {
+    "opacity": 0.88,
+    "min": 9.36,
+    "p1": 9.37,
+    "overBlack": 8.9
+   },
+   "treasury all hud-soft": {
+    "opacity": 0.88,
+    "min": 6.58,
+    "p1": 6.59,
+    "overBlack": 6.26
+   },
+   "treasury all hud-good": {
+    "opacity": 0.88,
+    "min": 5.06,
+    "p1": 5.07,
+    "overBlack": 4.81
+   },
+   "objective all ink": {
+    "opacity": 0.88,
+    "min": 9.42,
+    "p1": 9.43,
+    "overBlack": 8.9
+   },
+   "objective all hud-soft": {
+    "opacity": 0.88,
+    "min": 6.62,
+    "p1": 6.63,
+    "overBlack": 6.26
+   },
+   "objective all burgundy": {
+    "opacity": 0.88,
+    "min": 5.16,
+    "p1": 5.16,
+    "overBlack": 4.87
+   }
+  }
+ }
+}

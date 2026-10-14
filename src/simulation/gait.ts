@@ -3,11 +3,13 @@
 // with real clearance. A planar two-bone IK turns the ankle path into hip and knee angles, the foot's ground-relative pitch becomes the ankle angle,
 // and the pelvis rides at the height the stance legs allow. Positive angles: knee flexes backward, foot pitch is toe-down.
 export const L1 = .43, L2 = .495, SOLE = .052, HIP = .09, STANCE = .62, REST = .97;
-/** The boot's sole rolls on two arcs (radius `r`, centred over the flat sole at `x` ahead of the ankle): the heel's, small, and the forefoot's, wide enough to lie under the toe cap. */
-export const HEEL = { x: -.015, r: .04 }, BALL = { x: .065, r: .33 };
+/** The boot's sole is flat (people/parts.ts `foot`), so a pitched foot can stand only on one of its two edges: toe up on the back of the heel, toe down on the tip of the toe. It rolls on
+ *  them (People XXI: it rolled on a forefoot arc of 33 cm that lay above the flat sole, so at heel-off the toe went up to 4.7 cm into the pavement). `HEEL_X` and `TOE_X` are a standard
+ *  boot's, ahead of the ankle; a figure passes its own (`Params.heel`, `Params.toe`). */
+export const HEEL_X = -.068, TOE_X = .225;
 const REACH = .9985 * (L1 + L2), DEG = Math.PI / 180, N = 512, TAU = Math.PI * 2;
 /** What a person's walk is made of: `want` is the half-sweep of a stance (m) the speed asks for, `pelvis` scales yaw, roll and sway, `knee` the stance flexion. */
-export interface Params { stance: number; want: number; clear: number; knee: number; pelvis: number }
+export interface Params { stance: number; want: number; clear: number; knee: number; pelvis: number; /** the sole's back and front edges ahead of the ankle (a figure's own boot) */ heel?: number; toe?: number }
 /** One frame of walk. Per-leg values are [left, right]; `ankle` is the joint angle, `foot` the ground-relative pitch. `x`, `y`: ankle relative to the hip centre line, and above ground. */
 export interface Pose { H: number; yaw: number; roll: number; sway: number; thigh: Float64Array; knee: Float64Array; ankle: Float64Array; foot: Float64Array; x: Float64Array; y: Float64Array }
 export const pose = (): Pose => ({ H: REST, yaw: 0, roll: 0, sway: 0, thigh: new Float64Array(2), knee: new Float64Array(2), ankle: new Float64Array(2), foot: new Float64Array(2), x: new Float64Array(2), y: new Float64Array(2) });
@@ -65,16 +67,16 @@ export function ik(x: number, h: number, o: Float64Array, i: number) {
   o[i] = Math.atan2(x, h) + Math.atan2(L2 * Math.sin(phi), L1 + L2 * Math.cos(phi)); return phi;
 }
 const foot0 = new Float64Array(3), foot1 = new Float64Array(3);
-/** The ankle (x, y) and foot pitch during stance (u < stance). A flat foot's ankle rides back with the ground; pitched, the sole rolls on its heel or forefoot
- * arc without slipping (the arc's centre moves r*pitch along the ground), so the material in contact stays put. */
-function planted(u: number, o: Float64Array, back: number, heel: number) {
-  const th = at(PITCH_T, u) * DEG * heel, a = th <= 0 ? HEEL : BALL, c = Math.cos(th), s = Math.sin(th);
-  o[0] = back + a.x + a.r * th - a.x * c - (a.r - SOLE) * s; o[1] = a.r + a.x * s + (SOLE - a.r) * c; o[2] = th;
+/** The ankle (x, y) and foot pitch during stance (u < stance). A flat foot's ankle rides back with the ground; pitched, the sole turns on the edge it stands on (the heel's, toe up; the
+ * toe's, toe down), which stays where it touched, so no point of the sole goes below the ground and the edge does not slip. */
+function planted(u: number, o: Float64Array, back: number, heel: number, p: Params) {
+  const th = at(PITCH_T, u) * DEG * heel, x = th <= 0 ? p.heel ?? HEEL_X : p.toe ?? TOE_X, c = Math.cos(th), s = Math.sin(th);
+  o[0] = back + x - x * c + SOLE * s; o[1] = x * s + SOLE * c; o[2] = th;
 }
 /** The foot's place for one leg: planted in stance, a Hermite arc from toe-off to the next contact (carrying the ground's speed at both ends) in swing. */
 function place(u: number, p: Params, st: Float64Array, o: Float64Array, leg: number) {
-  if (u < p.stance) return planted(u, o, st[leg] - st[2 + leg], heelOf(st[leg]));
-  const next = sweep(st, leg, p.want); planted(p.stance, foot0, st[4 + leg], heelOf(st[leg])); planted(0, foot1, next, heelOf(next));
+  if (u < p.stance) return planted(u, o, st[leg] - st[2 + leg], heelOf(st[leg]), p);
+  const next = sweep(st, leg, p.want); planted(p.stance, foot0, st[4 + leg], heelOf(st[leg]), p); planted(0, foot1, next, heelOf(next), p);
   const t = (u - p.stance) / (1 - p.stance), t2 = t * t, t3 = t2 * t, m = -(st[leg] + next) / p.stance * (1 - p.stance);
   o[0] = (2 * t3 - 3 * t2 + 1) * foot0[0] + (t3 - 2 * t2 + t) * m + (-2 * t3 + 3 * t2) * foot1[0] + (t3 - t2) * m;
   o[1] = foot0[1] + (foot1[1] - foot0[1]) * t2 * (3 - 2 * t) + p.clear * Math.sin(Math.PI * t); o[2] = at(PITCH_T, u) * DEG * (heelOf(st[leg]) + (heelOf(next) - heelOf(st[leg])) * t);

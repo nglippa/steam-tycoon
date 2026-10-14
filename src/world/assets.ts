@@ -231,6 +231,35 @@ export function illustrated(material: T.MeshStandardMaterial) {
 }
 for (const material of Object.values(mats)) illustrated(material);
 illustrated(leafShade);illustrated(blossom);
+/** A line class of its own for the ink pass (the render target's alpha): foliage, .75, draws no lines inside a crown
+ * past 30 m. */
+function lineClass<M extends T.Material>(m: M, a: number, name: string): M {
+  const previous = m.onBeforeCompile.bind(m);
+  m.onBeforeCompile = (shader, r) => { previous(shader, r); shader.fragmentShader = shader.fragmentShader.replace('#include <opaque_fragment>', `#include <opaque_fragment>\ngl_FragColor.a = ${a.toFixed(2)};`); };
+  const key = m.customProgramCacheKey.bind(m); m.customProgramCacheKey = () => key() + '|' + name; return m;
+}
+for (const m of [mats.leaf, leafShade, blossom]) lineClass(m, .75, 'foliage');
+/** Cables and trolley wires (3.6 cm across) are drawn after the opaque world and write no depth, so the ink pass never
+ * outlines them: a wire narrower than a pixel is in the one-sample depth target only here and there, and its outline broke
+ * into dashes that crawled. A wire draws itself as the line instead: it is never thinner than 2.4 px (past ~8 m its tube is
+ * widened to 2.4 px), its opacity falls with the widening but never under .8 (falling with distance as the ink does, to .32
+ * by 140 m), and as it thins its colour turns to the ink's. So a span wire 40-80 m off is a steady drawn line, not lost or
+ * beaded, and the scene's fog takes it with the geometry. The widening follows the tube's own normals, so a wire must be a
+ * tube 3.6 cm across (`art-kit.cable`). It blends its colour only: the target's alpha (the line class of what is behind it)
+ * is left as it was, so a wire across a crown does not end the crown there. */
+export const wireUniforms = { wirePx: { value: .002 } }; // radians per buffer pixel, set each frame by the ink pass
+export const wireMat = (() => {
+  const c = mats.iron.clone(); illustrated(c); c.color = mats.iron.color; c.transparent = true; c.depthWrite = false;
+  c.blending = T.CustomBlending; c.blendSrc = T.SrcAlphaFactor; c.blendDst = T.OneMinusSrcAlphaFactor; c.blendSrcAlpha = T.ZeroFactor; c.blendDstAlpha = T.OneFactor;
+  const previous = c.onBeforeCompile.bind(c);
+  c.onBeforeCompile = (shader, r) => { previous(shader, r); shader.uniforms.wirePx = wireUniforms.wirePx;
+    shader.vertexShader = 'uniform float wirePx; varying float vWireCover, vWireInk;\n' + shader.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>
+      float wireD = -(modelViewMatrix * vec4(transformed, 1.)).z, wireR = max(.018, wireD * wirePx * 1.2);
+      transformed += normalize(objectNormal) * (wireR - .018);
+      vWireCover = min(1., max(.018 / wireR, .8 * (1. - .6 * smoothstep(40., 140., wireD)))); vWireInk = 1. - .018 / wireR;`);
+    shader.fragmentShader = 'varying float vWireCover, vWireInk;\n' + shader.fragmentShader.replace('#include <opaque_fragment>', 'diffuseColor.a *= vWireCover; outgoingLight = mix(outgoingLight, vec3(.05, .045, .045), vWireInk);\n#include <opaque_fragment>'); };
+  const key = c.customProgramCacheKey.bind(c); c.customProgramCacheKey = () => key() + '|wire'; return c;
+})();
 
 /** Restore selected materials, not a global saturation filter. Shared meshes follow. */
 export function applyWorldPalette(stage:number){

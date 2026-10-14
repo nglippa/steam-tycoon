@@ -17,7 +17,7 @@ export class TouchControls {
       <button class="touch-btn touch-use" type="button" aria-label="Interact">USE</button>
       <button class="touch-btn touch-jump" type="button" aria-label="Jump">JUMP</button>
       <button class="touch-btn touch-ledger" type="button" aria-label="City ledger">LEDGER</button>
-      <button class="touch-btn touch-pause" type="button" aria-label="Pause">II</button>`;
+      <button class="touch-btn touch-pause" type="button" aria-label="Pause"><svg viewBox="0 0 12 14" aria-hidden="true"><path d="M1.5 1h3v12h-3zM7.5 1h3v12h-3z"/></svg></button>`;
     document.body.append(this.root);
     this.base = this.root.querySelector('.stick-base')!; this.knob = this.root.querySelector('.stick-knob')!; this.use = this.root.querySelector('.touch-use')!;
     const tap = (sel: string, fn: () => void) => { const b = this.root.querySelector<HTMLButtonElement>(sel)!; b.addEventListener('touchstart', e => { e.preventDefault(); e.stopPropagation(); fn(); }, { passive: false }); b.addEventListener('click', fn); };

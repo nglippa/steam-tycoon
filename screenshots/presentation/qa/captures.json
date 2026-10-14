@@ -1,0 +1,548 @@
+{
+  "game-new": [
+    {
+      "name": "product-test-clear.png",
+      "note": "Final product test (default state clear): Market Square, the placement with the most people 2.5-12 m away in view, facing north: the HUD, the stalls and the Clock Tower beyond",
+      "people": "new",
+      "drawCalls": 348,
+      "triangles": 753650,
+      "pixelRatio": 1,
+      "weather": "clear",
+      "clockHour": 12,
+      "camera": [
+        -5,
+        1.93,
+        -16,
+        0,
+        0.06
+      ],
+      "inView12m": {
+        "cam": [
+          -5,
+          -16,
+          0
+        ],
+        "n": 4,
+        "close": 2,
+        "blocked": false
+      },
+      "inView9m": {
+        "cam": [
+          -5,
+          -16,
+          0
+        ],
+        "n": 4,
+        "close": 1,
+        "blocked": false
+      },
+      "ward": "12:00 · CLEAR SKIES ·  · HEAVY 76%"
+    },
+    {
+      "name": "product-test-rain.png",
+      "note": "Final product test (default state rain): Market Square, the placement with the most people 2.5-12 m away in view, facing north: the HUD, the stalls and the Clock Tower beyond",
+      "people": "new",
+      "drawCalls": 350,
+      "triangles": 760404,
+      "pixelRatio": 1,
+      "weather": "rain",
+      "clockHour": 12,
+      "camera": [
+        -5,
+        1.93,
+        -16,
+        0,
+        0.06
+      ],
+      "inView12m": {
+        "cam": [
+          -5,
+          -16,
+          0
+        ],
+        "n": 4,
+        "close": 2,
+        "blocked": false
+      },
+      "inView9m": {
+        "cam": [
+          -5,
+          -16,
+          0
+        ],
+        "n": 4,
+        "close": 2,
+        "blocked": false
+      },
+      "ward": "12:00 · DRIZZLE ·  · HEAVY 76%"
+    },
+    {
+      "name": "product-test-fog.png",
+      "note": "Final product test (default state fog): Market Square, the placement with the most people 2.5-12 m away in view, facing north: the HUD, the stalls and the Clock Tower beyond",
+      "people": "new",
+      "drawCalls": 347,
+      "triangles": 758484,
+      "pixelRatio": 1,
+      "weather": "fog",
+      "clockHour": 12,
+      "camera": [
+        -5,
+        1.93,
+        -16,
+        0,
+        0.06
+      ],
+      "inView12m": {
+        "cam": [
+          -5,
+          -16,
+          0
+        ],
+        "n": 4,
+        "close": 1,
+        "blocked": false
+      },
+      "inView9m": {
+        "cam": [
+          -5,
+          -16,
+          0
+        ],
+        "n": 4,
+        "close": 1,
+        "blocked": false
+      },
+      "ward": "12:00 · INDUSTRIAL FOG ·  · HEAVY 76%"
+    },
+    {
+      "name": "market-square-close.png",
+      "note": "Market Square: the placement with the most people 2-7 m away in view (any heading, no one within 2 m in front)",
+      "people": "new",
+      "drawCalls": 245,
+      "triangles": 658298,
+      "pixelRatio": 1,
+      "weather": "clear",
+      "clockHour": 12,
+      "camera": [
+        -2,
+        1.93,
+        -35,
+        0,
+        0
+      ],
+      "inView": {
+        "cam": [
+          -2,
+          -35,
+          0
+        ],
+        "n": 3,
+        "close": 2,
+        "blocked": false
+      }
+    },
+    {
+      "name": "street-crowd.png",
+      "note": "The Great Main: the placement with the most people 3-30 m away in view",
+      "people": "new",
+      "drawCalls": 854,
+      "triangles": 1138176,
+      "pixelRatio": 1,
+      "weather": "clear",
+      "clockHour": 12,
+      "camera": [
+        2,
+        1.93,
+        58,
+        0,
+        0.03
+      ],
+      "inView": {
+        "cam": [
+          2,
+          58,
+          0
+        ],
+        "n": 7,
+        "close": 4,
+        "blocked": false
+      }
+    },
+    {
+      "name": "seated-mug-1.png",
+      "note": "a seated worker with a mug (worker 38, sip cycle frame 1)",
+      "people": "new",
+      "drawCalls": 140,
+      "triangles": 473367,
+      "pixelRatio": 1,
+      "weather": "clear",
+      "clockHour": 12,
+      "camera": [
+        -62.4,
+        1.78,
+        53.6,
+        1.841,
+        -0.12
+      ],
+      "worker": {
+        "i": 38,
+        "kind": "eat",
+        "mug": true,
+        "p": [
+          -64.6,
+          0.18,
+          54.2
+        ],
+        "yaw": 1.571,
+        "visible": true
+      }
+    },
+    {
+      "name": "seated-mug-2.png",
+      "note": "a seated worker with a mug (worker 38, sip cycle frame 2)",
+      "people": "new",
+      "drawCalls": 140,
+      "triangles": 473367,
+      "pixelRatio": 1,
+      "weather": "clear",
+      "clockHour": 12,
+      "camera": [
+        -62.4,
+        1.78,
+        53.6,
+        1.841,
+        -0.12
+      ],
+      "worker": {
+        "i": 38,
+        "kind": "eat",
+        "mug": true,
+        "p": [
+          -64.6,
+          0.18,
+          54.2
+        ],
+        "yaw": 1.571,
+        "visible": true
+      }
+    },
+    {
+      "name": "seated-mug-3.png",
+      "note": "a seated worker with a mug (worker 38, sip cycle frame 3)",
+      "people": "new",
+      "drawCalls": 140,
+      "triangles": 473367,
+      "pixelRatio": 1,
+      "weather": "clear",
+      "clockHour": 12,
+      "camera": [
+        -62.4,
+        1.78,
+        53.6,
+        1.841,
+        -0.12
+      ],
+      "worker": {
+        "i": 38,
+        "kind": "eat",
+        "mug": true,
+        "p": [
+          -64.6,
+          0.18,
+          54.2
+        ],
+        "yaw": 1.571,
+        "visible": true
+      }
+    },
+    {
+      "name": "seated-mug-side.png",
+      "note": "the same seated worker from their right side (what they sit on)",
+      "people": "new",
+      "drawCalls": 194,
+      "triangles": 519587,
+      "pixelRatio": 1,
+      "weather": "clear",
+      "clockHour": 12,
+      "camera": [
+        -64.6,
+        1.48,
+        51.8,
+        3.142,
+        -0.1
+      ],
+      "worker": {
+        "i": 38,
+        "kind": "eat",
+        "mug": true,
+        "p": [
+          -64.6,
+          0.18,
+          54.2
+        ],
+        "yaw": 1.571,
+        "visible": true
+      }
+    },
+    {
+      "name": "umbrella-rain.png",
+      "note": "rain: a walking street person with an open umbrella, from ahead",
+      "people": "new",
+      "drawCalls": 346,
+      "triangles": 719362,
+      "pixelRatio": 1,
+      "weather": "rain",
+      "clockHour": 12,
+      "camera": [
+        -5.1,
+        1.88,
+        35.2,
+        3.142,
+        0.12
+      ],
+      "umbrellas": {
+        "open": 3,
+        "total": 15,
+        "nearest": {
+          "i": 21,
+          "d": 9.994735361183604,
+          "p": [
+            -5.1,
+            0.18,
+            38.595623010584745
+          ],
+          "yaw": 3.141592653589793
+        }
+      }
+    },
+    {
+      "name": "product-test-site3-clear.png",
+      "note": "Final product test (site3-clear): Market Square, the placement with the most people 2.5-12 m away in view, facing north: the HUD, the stalls and the Clock Tower beyond",
+      "people": "new",
+      "drawCalls": 361,
+      "triangles": 744661,
+      "pixelRatio": 1,
+      "weather": "clear",
+      "clockHour": 12,
+      "camera": [
+        -5,
+        1.93,
+        -16,
+        0.3,
+        0.06
+      ],
+      "inView12m": {
+        "cam": [
+          -5,
+          -16,
+          0.3
+        ],
+        "n": 6,
+        "close": 1,
+        "blocked": false
+      },
+      "inView9m": {
+        "cam": [
+          -5,
+          -16,
+          0.3
+        ],
+        "n": 3,
+        "close": 1,
+        "blocked": false
+      },
+      "ward": "12:00 · CLEAR SKIES ·  · LOW 38%"
+    },
+    {
+      "name": "market-square-site3-close.png",
+      "note": "Market Square: the placement with the most people 2-7 m away in view (any heading, no one within 2 m in front)",
+      "people": "new",
+      "drawCalls": 302,
+      "triangles": 707169,
+      "pixelRatio": 1,
+      "weather": "clear",
+      "clockHour": 12,
+      "camera": [
+        -6,
+        1.93,
+        -22,
+        0,
+        0
+      ],
+      "inView": {
+        "cam": [
+          -6,
+          -22,
+          0
+        ],
+        "n": 3,
+        "close": 2,
+        "blocked": false
+      }
+    },
+    {
+      "name": "product-test-site5-clear.png",
+      "note": "Final product test (site5-clear): Market Square, the placement with the most people 2.5-12 m away in view, facing north: the HUD, the stalls and the Clock Tower beyond",
+      "people": "new",
+      "drawCalls": 294,
+      "triangles": 698706,
+      "pixelRatio": 1,
+      "weather": "clear",
+      "clockHour": 12,
+      "camera": [
+        -4,
+        1.93,
+        -22,
+        0,
+        0.06
+      ],
+      "inView12m": {
+        "cam": [
+          -4,
+          -22,
+          0
+        ],
+        "n": 6,
+        "close": 3,
+        "blocked": false
+      },
+      "inView9m": {
+        "cam": [
+          -4,
+          -22,
+          0
+        ],
+        "n": 4,
+        "close": 2,
+        "blocked": false
+      },
+      "ward": "12:00 · CLEAR SKIES ·  · FREE 0%"
+    },
+    {
+      "name": "market-square-site5-close.png",
+      "note": "Market Square: the placement with the most people 2-7 m away in view (any heading, no one within 2 m in front)",
+      "people": "new",
+      "drawCalls": 261,
+      "triangles": 631144,
+      "pixelRatio": 1,
+      "weather": "clear",
+      "clockHour": 12,
+      "camera": [
+        3,
+        1.93,
+        -33,
+        -0.5,
+        0
+      ],
+      "inView": {
+        "cam": [
+          3,
+          -33,
+          -0.5
+        ],
+        "n": 4,
+        "close": 2,
+        "blocked": false
+      }
+    }
+  ],
+  "intro-new": {
+    "steps": [
+      {
+        "at": "start",
+        "beat": "black",
+        "locked": true
+      },
+      {
+        "at": "after the knocks",
+        "beat": "room"
+      },
+      {
+        "at": "door answered",
+        "beat": "guards"
+      },
+      {
+        "at": "guards gone",
+        "beat": "walk"
+      },
+      {
+        "at": "at the porch",
+        "beat": "porch"
+      },
+      {
+        "at": "farewell",
+        "beat": "after"
+      }
+    ],
+    "shots": [
+      {
+        "name": "intro-1-door-guards.png",
+        "note": "the intro: the door answered, the two Ordinance men at it (their first line on the card)",
+        "people": "new",
+        "drawCalls": 548,
+        "triangles": 784887,
+        "pixelRatio": 1,
+        "weather": "clear",
+        "clockHour": 6.33,
+        "camera": [
+          -2.8,
+          10.2,
+          5.55,
+          1.463,
+          -0.03
+        ]
+      },
+      {
+        "name": "intro-2-stranger-porch.png",
+        "note": "the intro: the masked stranger seated on the stoop, the porch line on the card",
+        "people": "new",
+        "drawCalls": 589,
+        "triangles": 896391,
+        "pixelRatio": 1,
+        "weather": "clear",
+        "clockHour": 6.33,
+        "camera": [
+          -18.8,
+          1.93,
+          -3.1,
+          -1.501,
+          -0.286
+        ]
+      },
+      {
+        "name": "intro-2b-stranger-porch-nocard.png",
+        "note": "the same moment with the dialogue card hidden for the figure",
+        "people": "new",
+        "drawCalls": 590,
+        "triangles": 896727,
+        "pixelRatio": 1,
+        "weather": "clear",
+        "clockHour": 6.33,
+        "camera": [
+          -18.8,
+          1.93,
+          -3.1,
+          -1.501,
+          -0.286
+        ]
+      },
+      {
+        "name": "intro-3-stranger-leaves.png",
+        "note": "the intro: the stranger up from the stoop, going to chalk the doorpost",
+        "people": "new",
+        "drawCalls": 592,
+        "triangles": 896945,
+        "pixelRatio": 1,
+        "weather": "clear",
+        "clockHour": 6.36,
+        "camera": [
+          -18.8,
+          1.93,
+          -3.1,
+          -1.501,
+          -0.286
+        ]
+      }
+    ]
+  }
+}

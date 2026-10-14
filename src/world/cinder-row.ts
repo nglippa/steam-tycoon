@@ -1,6 +1,6 @@
 import * as T from 'three';
 import { box, cyl, sphere, beam, crate, mats } from './assets';
-import { V, fabricOf } from './art-kit';
+import { V, fabricOf, bench } from './art-kit';
 import { LayeredSite, when, type SiteModule, type SiteView, type When } from './layers';
 import { inView, Attention } from './patrol';
 import { Consignment } from './logistics';
@@ -68,11 +68,11 @@ export class CinderRow implements SiteModule {
     const marked = this.site.layer(when.covert(1));
     { const m = new T.Mesh(new T.PlaneGeometry(.3, .3), decalMat(emberChalk, .95)); m.position.set(WAYMARK.x, .42, WAYMARK.z - .14); m.rotation.y = Math.PI; marked.add(m);
       const c = new T.Mesh(new T.PlaneGeometry(.46, .46), decalMat(emberChalk, .85)); c.position.set(10.4, 1.25, -7.02); marked.add(c); }
-    this.chalker = pres.addWorker(CHALKER.x, CHALKER.z, 0, 'repair', { essential: true, role: 'resident', when: () => this.view.control >= 1 && !this.facts.rowFree });
-    this.lookout = pres.addWorker(LOOKOUT.x, LOOKOUT.z, Math.PI / 2, 'lean', { essential: true, role: 'courier', when: () => this.view.control >= 1 && !this.facts.rowFree });
+    this.chalker = pres.addWorker(CHALKER.x, CHALKER.z, 0, 'repair', { essential: true, role: 'resident', look: 'embersChalker', when: () => this.view.control >= 1 && !this.facts.rowFree });
+    this.lookout = pres.addWorker(LOOKOUT.x, LOOKOUT.z, Math.PI / 2, 'lean', { essential: true, role: 'courier', look: 'embersLookout', when: () => this.view.control >= 1 && !this.facts.rowFree });
     // The courier: the network made visible. A worker with the yard's satchel walking the
     // Row to the Finch and back, from the first chalk mark to the end.
-    this.courier = pres.addWorker(ROUTE[0].x, ROUTE[0].y, Math.PI, 'carry', { essential: true, role: 'courier', tool: 'carry', when: () => this.facts.courierRun });
+    this.courier = pres.addWorker(ROUTE[0].x, ROUTE[0].y, Math.PI, 'carry', { essential: true, role: 'courier', look: 'embersCourier', tool: 'carry', when: () => this.facts.courierRun });
     // THE DIRECTORATE NOTICES ------------------------------------------------------------
     // Crates leave the yard light and couriers use the Row: an inspection post appears mid-Row,
     // a notice goes up, the shortcut north is closed, and a searchlight watches at night.
@@ -139,7 +139,7 @@ export class CinderRow implements SiteModule {
     const rowFree = () => this.facts.rowFree;
     const seller = pres.addWorker(TABLE.x, TABLE.z - .85, 0, 'browse', { role: 'merchant', when: rowFree }), buyer = pres.addWorker(TABLE.x + .2, TABLE.z + 1.05, Math.PI, 'talk', { role: 'worker', when: rowFree });
     pres.workers[seller].partner = buyer; pres.workers[buyer].partner = seller;
-    for (const x of [19.7, 21.3]) pres.addWorker(x, 4.08, Math.PI, 'sit', { y: .3, role: 'resident', when: rowFree });
+    bench(free, 20.5, 4.08, Math.PI); for (const x of [19.7, 21.3]) pres.addWorker(x, 4.08, Math.PI, 'sit', { role: 'resident', when: rowFree }); // the two sit on a bench (People XIX: they sat on air)
     const a = pres.addWorker(11.4, -1.9, 1.1, 'talk', { role: 'resident', when: rowFree }), b = pres.addWorker(12.5, -1.3, -2.2, 'talk', { role: 'engineer', when: rowFree }); pres.workers[a].partner = b; pres.workers[b].partner = a;
     this.targets.push({ object: this.waymark, spot: 'waymark', label: 'Old waymark', hint: 'EXAMINE' }, { object: this.junction, spot: 'junction', label: 'Directorate junction box', hint: 'EXAMINE' },
       { object: this.table, spot: 'post', label: 'Inspection table', hint: 'EXAMINE' }, { object: this.cutters.target, spot: 'crate', label: 'Crate of cutters', hint: 'CARRY' });

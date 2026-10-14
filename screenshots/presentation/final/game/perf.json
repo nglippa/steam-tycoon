@@ -1,0 +1,389 @@
+{
+  "head": "3cc0c49",
+  "method": "tools/qa-captures.mjs --part=perf (the QA IV method, 18e9d4f): 1280x720, device scale 1, quality high, noon clear, one page per builder; per view 2.5 s settle then 10 s of frames: CPU time of the game frame callback and its parts, renderer.info after the frame, the people's share as the same frame with the crowd batches hidden, JS heap after gc (--enable-precise-memory-info, --expose-gc), the ink quad timed alone. Run 1 measured ?people=new then ?people=old; run 2 measured old then new. Raw output: perf-run/perf.json and perf-run2/perf.json.",
+  "views": {
+    "street": [
+      0,
+      40,
+      0,
+      null,
+      0.03
+    ],
+    "marketSquare": [
+      0,
+      -12.5,
+      0,
+      null,
+      0.07
+    ]
+  },
+  "runs": {
+    "run1": {
+      "new": {
+        "street": {
+          "frameCpuMeanMs": 4.516,
+          "frameCpuP95Ms": 5.4,
+          "rafDeltaP50Ms": 16.7,
+          "cityUpdateMeanMs": 1.445,
+          "presentationUpdateMeanMs": 0.537,
+          "crowdBatchUpdateMeanMs": 0.525,
+          "triangles": 1095688,
+          "peopleTriangles": 227484,
+          "drawCalls": 766,
+          "peopleDrawCalls": 11,
+          "programs": 53,
+          "sceneMaterials": 158,
+          "jsHeapUsedMB": 239.7,
+          "inkQuadMedianMs": 0.645
+        },
+        "marketSquare": {
+          "frameCpuMeanMs": 3.913,
+          "frameCpuP95Ms": 5.1,
+          "rafDeltaP50Ms": 16.7,
+          "cityUpdateMeanMs": 1.51,
+          "presentationUpdateMeanMs": 0.59,
+          "crowdBatchUpdateMeanMs": 0.548,
+          "triangles": 786612,
+          "peopleTriangles": 123332,
+          "drawCalls": 381,
+          "peopleDrawCalls": 8,
+          "programs": 54,
+          "sceneMaterials": 158,
+          "jsHeapUsedMB": 239.9,
+          "inkQuadMedianMs": 0.595
+        }
+      },
+      "old": {
+        "street": {
+          "frameCpuMeanMs": 4.451,
+          "frameCpuP95Ms": 5.1,
+          "rafDeltaP50Ms": 16.7,
+          "cityUpdateMeanMs": 1.307,
+          "presentationUpdateMeanMs": 0.484,
+          "crowdBatchUpdateMeanMs": 0.478,
+          "triangles": 1041614,
+          "peopleTriangles": 173410,
+          "drawCalls": 766,
+          "peopleDrawCalls": 11,
+          "programs": 53,
+          "sceneMaterials": 158,
+          "jsHeapUsedMB": 195,
+          "inkQuadMedianMs": 0.54
+        },
+        "marketSquare": {
+          "frameCpuMeanMs": 3.761,
+          "frameCpuP95Ms": 4.8,
+          "rafDeltaP50Ms": 16.7,
+          "cityUpdateMeanMs": 1.342,
+          "presentationUpdateMeanMs": 0.497,
+          "crowdBatchUpdateMeanMs": 0.484,
+          "triangles": 752258,
+          "peopleTriangles": 88978,
+          "drawCalls": 381,
+          "peopleDrawCalls": 8,
+          "programs": 54,
+          "sceneMaterials": 158,
+          "jsHeapUsedMB": 195.1,
+          "inkQuadMedianMs": 0.595
+        }
+      }
+    },
+    "run2": {
+      "new": {
+        "street": {
+          "frameCpuMeanMs": 4.533,
+          "frameCpuP95Ms": 5.8,
+          "rafDeltaP50Ms": 16.7,
+          "cityUpdateMeanMs": 1.471,
+          "presentationUpdateMeanMs": 0.565,
+          "crowdBatchUpdateMeanMs": 0.528,
+          "triangles": 1095688,
+          "peopleTriangles": 227484,
+          "drawCalls": 766,
+          "peopleDrawCalls": 11,
+          "programs": 53,
+          "sceneMaterials": 158,
+          "jsHeapUsedMB": 239.7,
+          "inkQuadMedianMs": 0.625
+        },
+        "marketSquare": {
+          "frameCpuMeanMs": 4.054,
+          "frameCpuP95Ms": 4.9,
+          "rafDeltaP50Ms": 16.7,
+          "cityUpdateMeanMs": 1.57,
+          "presentationUpdateMeanMs": 0.613,
+          "crowdBatchUpdateMeanMs": 0.527,
+          "triangles": 786612,
+          "peopleTriangles": 123332,
+          "drawCalls": 381,
+          "peopleDrawCalls": 8,
+          "programs": 54,
+          "sceneMaterials": 158,
+          "jsHeapUsedMB": 239.9,
+          "inkQuadMedianMs": 0.535
+        }
+      },
+      "old": {
+        "street": {
+          "frameCpuMeanMs": 4.642,
+          "frameCpuP95Ms": 6,
+          "rafDeltaP50Ms": 16.7,
+          "cityUpdateMeanMs": 1.371,
+          "presentationUpdateMeanMs": 0.49,
+          "crowdBatchUpdateMeanMs": 0.535,
+          "triangles": 1041614,
+          "peopleTriangles": 173410,
+          "drawCalls": 766,
+          "peopleDrawCalls": 11,
+          "programs": 53,
+          "sceneMaterials": 158,
+          "jsHeapUsedMB": 259.4,
+          "inkQuadMedianMs": 0.685
+        },
+        "marketSquare": {
+          "frameCpuMeanMs": 3.761,
+          "frameCpuP95Ms": 4.7,
+          "rafDeltaP50Ms": 16.7,
+          "cityUpdateMeanMs": 1.348,
+          "presentationUpdateMeanMs": 0.484,
+          "crowdBatchUpdateMeanMs": 0.485,
+          "triangles": 752258,
+          "peopleTriangles": 88978,
+          "drawCalls": 381,
+          "peopleDrawCalls": 8,
+          "programs": 54,
+          "sceneMaterials": 158,
+          "jsHeapUsedMB": 195.1,
+          "inkQuadMedianMs": 0.605
+        }
+      }
+    }
+  },
+  "qaIV": {
+    "new": {
+      "street": {
+        "frameCpuMeanMs": 4.871,
+        "frameCpuP95Ms": 6.8,
+        "rafDeltaP50Ms": 16.7,
+        "cityUpdateMeanMs": 1.464,
+        "presentationUpdateMeanMs": 0.54,
+        "crowdBatchUpdateMeanMs": 0.589,
+        "triangles": 1085660,
+        "peopleTriangles": 217480,
+        "drawCalls": 763,
+        "peopleDrawCalls": 11,
+        "programs": 51,
+        "sceneMaterials": 157,
+        "jsHeapUsedMB": 232.2,
+        "inkQuadMedianMs": 0.665
+      },
+      "marketSquare": {
+        "frameCpuMeanMs": 3.749,
+        "frameCpuP95Ms": 4.9,
+        "rafDeltaP50Ms": 16.7,
+        "cityUpdateMeanMs": 1.335,
+        "presentationUpdateMeanMs": 0.48,
+        "crowdBatchUpdateMeanMs": 0.538,
+        "triangles": 780918,
+        "peopleTriangles": 117662,
+        "drawCalls": 378,
+        "peopleDrawCalls": 8,
+        "programs": 52,
+        "sceneMaterials": 157,
+        "jsHeapUsedMB": 232.4,
+        "inkQuadMedianMs": 0.625
+      }
+    },
+    "old": {
+      "street": {
+        "frameCpuMeanMs": 4.308,
+        "frameCpuP95Ms": 5.3,
+        "rafDeltaP50Ms": 16.7,
+        "cityUpdateMeanMs": 1.266,
+        "presentationUpdateMeanMs": 0.443,
+        "crowdBatchUpdateMeanMs": 0.513,
+        "triangles": 1041590,
+        "peopleTriangles": 173026,
+        "drawCalls": 763,
+        "peopleDrawCalls": 10,
+        "programs": 51,
+        "sceneMaterials": 157,
+        "jsHeapUsedMB": 194.4,
+        "inkQuadMedianMs": 0.64
+      },
+      "marketSquare": {
+        "frameCpuMeanMs": 3.637,
+        "frameCpuP95Ms": 4.7,
+        "rafDeltaP50Ms": 16.7,
+        "cityUpdateMeanMs": 1.275,
+        "presentationUpdateMeanMs": 0.444,
+        "crowdBatchUpdateMeanMs": 0.511,
+        "triangles": 752234,
+        "peopleTriangles": 88978,
+        "drawCalls": 378,
+        "peopleDrawCalls": 8,
+        "programs": 52,
+        "sceneMaterials": 157,
+        "jsHeapUsedMB": 194.6,
+        "inkQuadMedianMs": 0.61
+      }
+    }
+  },
+  "comparison": {
+    "street": {
+      "frameCpuMeanMs": {
+        "old": 4.546,
+        "new": 4.524,
+        "newVsOldPct": -0.5,
+        "perRun": {
+          "old": [
+            4.451,
+            4.642
+          ],
+          "new": [
+            4.516,
+            4.533
+          ]
+        },
+        "qaIV": {
+          "old": 4.308,
+          "new": 4.871,
+          "newVsOldPct": 13.1
+        }
+      },
+      "peopleTriangles": {
+        "old": 173410,
+        "new": 227484,
+        "newVsOldPct": 31.2,
+        "qaIV": {
+          "old": 173026,
+          "new": 217480,
+          "newVsOldPct": 25.7
+        }
+      },
+      "triangles": {
+        "old": 1041614,
+        "new": 1095688,
+        "qaIV": {
+          "old": 1041590,
+          "new": 1085660
+        }
+      },
+      "drawCalls": {
+        "old": 766,
+        "new": 766,
+        "peopleOld": 11,
+        "peopleNew": 11,
+        "qaIV": {
+          "old": 763,
+          "new": 763,
+          "peopleOld": 10,
+          "peopleNew": 11
+        }
+      },
+      "programs": {
+        "old": 53,
+        "new": 53,
+        "qaIV": {
+          "old": 51,
+          "new": 51
+        }
+      },
+      "jsHeapUsedMB": {
+        "old": [
+          195,
+          259.4
+        ],
+        "new": [
+          239.7,
+          239.7
+        ],
+        "qaIV": {
+          "old": 194.4,
+          "new": 232.2
+        }
+      }
+    },
+    "marketSquare": {
+      "frameCpuMeanMs": {
+        "old": 3.761,
+        "new": 3.984,
+        "newVsOldPct": 5.9,
+        "perRun": {
+          "old": [
+            3.761,
+            3.761
+          ],
+          "new": [
+            3.913,
+            4.054
+          ]
+        },
+        "qaIV": {
+          "old": 3.637,
+          "new": 3.749,
+          "newVsOldPct": 3.1
+        }
+      },
+      "peopleTriangles": {
+        "old": 88978,
+        "new": 123332,
+        "newVsOldPct": 38.6,
+        "qaIV": {
+          "old": 88978,
+          "new": 117662,
+          "newVsOldPct": 32.2
+        }
+      },
+      "triangles": {
+        "old": 752258,
+        "new": 786612,
+        "qaIV": {
+          "old": 752234,
+          "new": 780918
+        }
+      },
+      "drawCalls": {
+        "old": 381,
+        "new": 381,
+        "peopleOld": 8,
+        "peopleNew": 8,
+        "qaIV": {
+          "old": 378,
+          "new": 378,
+          "peopleOld": 8,
+          "peopleNew": 8
+        }
+      },
+      "programs": {
+        "old": 54,
+        "new": 54,
+        "qaIV": {
+          "old": 52,
+          "new": 52
+        }
+      },
+      "jsHeapUsedMB": {
+        "old": [
+          195.1,
+          195.1
+        ],
+        "new": [
+          239.9,
+          239.9
+        ],
+        "qaIV": {
+          "old": 194.6,
+          "new": 232.4
+        }
+      }
+    }
+  },
+  "summary": [
+    "Street, frame CPU (mean of two runs): ?people=old 4.55 ms, new 4.52 ms (-0.5%); per run old [4.451, 4.642], new [4.516, 4.533]. QA IV: 4.31 -> 4.87 ms (+13.0%).",
+    "Market Square, frame CPU: old 3.76 ms, new 3.98 ms (+5.9%); per run old [3.761, 3.761], new [3.913, 4.054]. QA IV: 3.64 -> 3.75 ms (+3.1%).",
+    "People triangles: street 173410 -> 227484 (+31.2%), Market Square 88978 -> 123332 (+38.6%). QA IV: street +25.7%, Market Square +32.2% (new 217480 / 117662; now 227484 / 123332).",
+    "Draw calls: street 766 both (people 11 both), Market Square 381 both (people 8 both); QA IV 763 / 378. Programs 53 street, 54 square, both builders (QA IV 51 / 52).",
+    "JS heap after gc: new 239.7-239.9 MB; old 195.0-195.1 MB, except one old street reading of 259.4 MB (run 2, its first view after load); old to new +44.7 MB on the matched readings. QA IV: 194.4 -> 232.2 MB (+37.8 MB)."
+  ]
+}

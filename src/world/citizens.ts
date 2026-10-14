@@ -2,8 +2,12 @@ import * as T from 'three';
 import { mannerOf, seedOf, newMood, type Tone } from '../simulation/occupation';
 import { footing } from '../simulation/gait';
 import { palette as P, wardrobes, type Archetype } from './palette';
-import { box, cyl, sphere, torus, bake, mats, thinLine, type Material } from './assets';
+import { box, cyl, sphere, torus, bake, mats, thinLine, seeded, type Material } from './assets';
 import { painted } from './tone';
+import { resolveLook, type Look, type CastId, type LookFamily, type Frame } from './people/look';
+import { buildFigure, peopleNext, type Kit } from './people/figure';
+import { FACE_PAINT, FACE_PAINT_HEAD, FACE_VALUE, FACE_INK } from './people/head';
+import { drapeState, type Drape } from './drape';
 
 const ramp = new T.DataTexture(new Uint8Array([128, 202, 255]), 3, 1, T.RedFormat);
 ramp.minFilter = ramp.magFilter = T.NearestFilter; ramp.generateMipmaps = false; ramp.needsUpdate = true;
@@ -38,13 +42,24 @@ painted(coloredToon);thinLine(coloredToon);
 // Hair, skin and metal share the wardrobe shader but not the stitched cloth texture.
 const plainToon=new T.MeshToonMaterial({vertexColors:true,gradientMap:ramp});
 plainToon.onBeforeCompile=wardrobeHook;plainToon.customProgramCacheKey=()=> 'terra-wardrobe-plain';painted(plainToon);thinLine(plainToon);
+/** The new figures' cloth: the same side seams, hatching and grime as `clothMap`, but without the stitched hems painted at both ends of every piece (Character Book 8: they drew a line round
+ * every knee and elbow), and seeded, so it is the same on every load. Same wardrobe shader, same terminator, same line class; `painted` is applied once. */
+function clothMapNext(){const W=256,c=document.createElement('canvas');c.width=c.height=W;const x=c.getContext('2d')!,r=seeded(4417);
+  x.fillStyle='#f4f0e6';x.fillRect(0,0,W,W);
+  for(let i=0;i<40;i++){x.strokeStyle='rgba(60,45,35,.12)';x.lineWidth=1.2;const px=r()*W,py=r()*W;x.beginPath();x.moveTo(px,py);x.lineTo(px+10,py+14);x.stroke();}
+  for(const u of [.25,.75]){x.strokeStyle='rgba(35,28,24,.7)';x.lineWidth=2.4;x.beginPath();x.moveTo(u*W,0);x.lineTo(u*W,W);x.stroke();}
+  for(let i=0;i<3;i++){x.fillStyle='rgba(255,250,235,.2)';x.fillRect(r()*W,r()*W,18,12);}
+  const t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;t.wrapS=t.wrapT=T.RepeatWrapping;return t;}
+const coloredToonNext = new T.MeshToonMaterial({ vertexColors:true, gradientMap:ramp, map:clothMapNext() });
+coloredToonNext.onBeforeCompile=wardrobeHook;coloredToonNext.customProgramCacheKey=()=> 'terra-wardrobe-colors';
+painted(coloredToonNext);thinLine(coloredToonNext);
 export function setCitizenProsperity(stage:number){wardrobePhase.value=Math.min(1,stage/5);}
 const wardrobeMaterials=new Map<string,T.MeshToonMaterial>();
 function outfitMaterial(early:string,late=early){const key=early+late;let m=wardrobeMaterials.get(key);if(!m){m=toon(early);m.userData.restoredColor=late;wardrobeMaterials.set(key,m);}return m;}
 /** A face is a choice of eye, brow and mouth (see the atlas below). The first seven names are the originals and keep working. */
 const LOOK = {
   neutral: [0, 0, 0], happy: [4, 6, 2], tired: [5, 7, 0], focused: [1, 0, 0], annoyed: [1, 3, 3], blink: [3, 0, 0], surprised: [2, 1, 7],
-  relaxed: [0, 0, 1], smiling: [4, 6, 2], hopeful: [14, 6, 1], curious: [9, 5, 0], worried: [15, 2, 11], guarded: [6, 0, 4], irritated: [1, 4, 3], suspicious: [6, 5, 4], startled: [2, 1, 7], stern: [0, 4, 4], angry: [8, 3, 4], talking: [0, 0, 5],
+  relaxed: [0, 0, 1], smiling: [14, 6, 2], hopeful: [14, 6, 1], curious: [9, 5, 0], worried: [15, 2, 11], guarded: [6, 0, 4], irritated: [1, 4, 3], suspicious: [6, 5, 4], startled: [2, 1, 7], stern: [0, 4, 4], angry: [8, 3, 4], talking: [0, 0, 5],
   cold: [10, 4, 4], scrutiny: [11, 4, 4], sideeye: [12, 5, 4], impatient: [12, 4, 3], contempt: [11, 5, 8], challenge: [10, 3, 4], scan: [10, 4, 4], barking: [11, 3, 9], bored: [5, 0, 4], weary: [5, 7, 3],
 } as const satisfies Record<string, readonly [number, number, number]>;
 export type Expression = keyof typeof LOOK;
@@ -59,7 +74,7 @@ function tailored(g:T.Object3D, rings:number[][], material:Material, segments=10
   const mesh=new T.Mesh(geometry,material);g.add(mesh);return mesh;
 }
 function panel(g:T.Object3D,points:number[][],z:number,material:Material){const shape=new T.Shape();points.forEach(([x,y],i)=>i?shape.lineTo(x,y):shape.moveTo(x,y));shape.closePath();const mesh=new T.Mesh(new T.ShapeGeometry(shape),material);mesh.position.z=z;g.add(mesh);return mesh;}
-function bakeCharacter(group:T.Group){
+function bakeCharacter(group:T.Group,cloth:T.Material=coloredToon){
   group.traverse(object=>{
     if(!(object instanceof T.Mesh)||!(object.material instanceof T.MeshToonMaterial)||object.material.map)return;
     const geometry=object.geometry.clone(),color=object.material.color,colors=new Float32Array(geometry.attributes.position.count*3);
@@ -67,7 +82,18 @@ function bakeCharacter(group:T.Group){
     geometry.setAttribute('color',new T.BufferAttribute(colors,3));
     const restored=new T.Color(object.material.userData.restoredColor??color),late=new Float32Array(colors.length);
     for(let i=0;i<late.length;i+=3){late[i]=restored.r;late[i+1]=restored.g;late[i+2]=restored.b;}
-    geometry.setAttribute('restoredColor',new T.BufferAttribute(late,3));object.geometry=geometry;object.material=object.material.userData.plain?plainToon:coloredToon;
+    // leather and metal carry a baked highlight in the same attribute: leather a narrow lighter band on the upward faces of its forms, metal a small hard spot where a face looks at the light
+    const kind=object.material.userData.kind as string|undefined,normal=geometry.attributes.normal as T.BufferAttribute|undefined;
+    if(kind&&normal&&!geometry.attributes.tint){const tt=new Float32Array(normal.count),pos=geometry.attributes.position as T.BufferAttribute;geometry.computeBoundingBox();const bb=geometry.boundingBox!,cx=(bb.min.x+bb.max.x)/2,cy=(bb.min.y+bb.max.y)/2,cz=(bb.min.z+bb.max.z)/2,sx=Math.max(1e-4,(bb.max.x-bb.min.x)/2),sy=Math.max(1e-4,(bb.max.y-bb.min.y)/2),sz=Math.max(1e-4,(bb.max.z-bb.min.z)/2);
+      for(let i=0;i<tt.length;i++){const ny=normal.getY(i);
+        if(kind==='leather')tt[i]=T.MathUtils.smoothstep(ny,.3,.8)*.9;
+        else{const lit=T.MathUtils.smoothstep(normal.getX(i)*-.35+ny*.55+normal.getZ(i)*.76,.4,.62),u=(pos.getX(i)-cx)/sx,v=(pos.getY(i)-cy)/sy,w=(pos.getZ(i)-cz)/sz;tt[i]=lit*T.MathUtils.smoothstep(-u*.55+v*.8+w*.3,.45,.75);}}
+      geometry.setAttribute('tint',new T.BufferAttribute(tt,1));}
+    // hair carries a baked tone (people/hair.ts): a sheen toward a lighter value of its own colour where `tint` > 0, a darker underside where it is < 0; consumed here, so every
+    // geometry in a batch keeps the same attributes
+    const tint=geometry.attributes.tint as T.BufferAttribute|undefined;
+    if(tint){for(const arr of [colors,late])for(let i=0;i<tint.count;i++){const t=tint.getX(i);for(let c=0;c<3;c++){const v=arr[i*3+c];arr[i*3+c]=t>0?v+(Math.min(1,v*1.9+.05)-v)*t*.6:v*(1+t*.32);}}geometry.deleteAttribute('tint');}
+    geometry.setAttribute('restoredColor',new T.BufferAttribute(late,3));object.geometry=geometry;object.material=object.material.userData.plain?plainToon:cloth;
   });return bake(group);
 }
 // One shared atlas for all three skin tones: eight face types (rows) by sixteen feature variants (columns). Skin is left transparent
@@ -77,7 +103,8 @@ function bakeCharacter(group:T.Group){
 // Types vary eye shape, brows, nose, mouth and marks independently, so a crowd reads as different people drawn by one hand.
 export const FACE_TYPES = 8, FACE_COLS = 16;
 type Nose = 'dash' | 'dot' | 'hook' | 'button'; type Mark = 'none' | 'freckles' | 'stubble' | 'mole' | 'bags' | 'scar' | 'lines';
-type FaceType = { rise: number; w: number; tilt: number; lash: number; iris: string; brow: [thick: number, arch: number, tilt: number]; nose: Nose; mouth: number; marks: Mark };
+type FaceType = { rise: number; w: number; tilt: number; lash: number; iris: string; brow: [thick: number, arch: number, tilt: number]; nose: Nose; mouth: number; marks: Mark;
+  /** the new head's face (all optional; the old atlas leaves them out): eye centre offset from the midline, brow height, no blush, one highlight */ sx?: number; by?: number; calm?: boolean };
 const faceTypes: FaceType[] = [
   { rise: 64, w: 33, tilt: 2, lash: 11, iris: '#3d6b9a', brow: [5, 8, 0], nose: 'dash', mouth: 1, marks: 'none' },
   { rise: 69, w: 34, tilt: 6, lash: 12, iris: '#7a4b35', brow: [4, 11, -2], nose: 'dot', mouth: .8, marks: 'freckles' },
@@ -94,11 +121,11 @@ type Ctx = CanvasRenderingContext2D;
 /** Eyes: 0 open, 1 narrowed, 2 wide, 3 shut, 4 happy arc, 5 heavy-lidded, 6 narrowed glance left, 7 narrowed glance right, 8 glare, 9 earnest (looking up), 14 smiling (lower lid lifted), 15 worried (lid rising to the inner corner, a thin brow bar above).
  * The Ordinance's eyes are 10 hard, 11 hard and narrowed, 12 and 13 hard glances: a straight lid line sloping down to the nose cuts the top of a small dull iris, under a heavy brow bar that is part of the eye. */
 function paintEye(c: Ctx, f: FaceType, side: number, v: number) {
-  const x = 256 + side * 50, y = 300, inner = x - side * f.w, outer = x + side * f.w, up = f.tilt;
+  const x = 256 + side * (f.sx ?? 50), y = 300, inner = x - side * f.w, outer = x + side * f.w, up = f.tilt;
   c.strokeStyle = '#120f16';
-  if (v === 3 || v === 4) { c.lineWidth = 6; c.beginPath();
+  if (v === 3 || v === 4) { c.lineWidth = 11; c.lineCap = 'round'; c.beginPath(); // a shut or happy eye carries the open eye's weight of line (People XXVI: at 6 it went to nothing at a few metres, and the face read blank)
     if (v === 4) { c.moveTo(inner, y - 3); c.quadraticCurveTo(x, y - 38, outer, y - 8 - up); } else { c.moveTo(inner, y - 8); c.quadraticCurveTo(x, y + 12, outer + side * 3, y - 12 - up); }
-    c.stroke(); return; }
+    c.stroke(); c.lineWidth = 6; c.beginPath(); c.moveTo(outer - side * 4, y - 9 - up); c.lineTo(outer + side * 9, y - 14 - up); c.stroke(); c.lineCap = 'butt'; return; } // and a lash at the outer corner
   if (v >= 10 && v <= 13) {
     const sq = v === 11, inY = y - (sq ? 0 : 3), outY = y - 14 - up - (sq ? 4 : 0), L = sq ? 15 : 23;
     c.save(); c.beginPath(); c.moveTo(inner, inY); c.lineTo(outer, outY); c.quadraticCurveTo(x + side * 3, y + L * 2.05, inner, inY); c.closePath(); c.fillStyle = '#e6dfcf'; c.fill(); c.clip();
@@ -121,7 +148,7 @@ function paintEye(c: Ctx, f: FaceType, side: number, v: number) {
   c.fillStyle = iris; c.beginPath(); c.ellipse(ix, iy, rx, ry, 0, 0, Math.PI * 2); c.fill();
   c.strokeStyle = 'rgba(18,15,30,.75)'; c.lineWidth = 3; c.beginPath(); c.ellipse(ix, iy, rx, ry, 0, 0, Math.PI * 2); c.stroke();
   c.fillStyle = '#120f1e'; c.beginPath(); c.ellipse(ix, iy - ry * .08, rx * (v === 2 ? .36 : .46), ry * (v === 2 ? .4 : .5), 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#ffffff'; c.beginPath(); c.ellipse(ix - side * -7 - 8, iy - ry * .42, 7.5, 9, 0, 0, Math.PI * 2); c.fill(); c.beginPath(); c.arc(ix + 9, iy + ry * .46, 3.2, 0, Math.PI * 2); c.fill();
+  c.fillStyle = '#ffffff'; c.beginPath(); c.ellipse(ix - side * -7 - 8, iy - ry * .42, 7.5, 9, 0, 0, Math.PI * 2); c.fill(); if (!f.calm) { c.beginPath(); c.arc(ix + 9, iy + ry * .46, 3.2, 0, Math.PI * 2); c.fill(); }
   // The lid's shadow is a soft fade at the top edge of the eye, not a block.
   const shade = c.createLinearGradient(0, y - H * 1.1, 0, y - H * .5); shade.addColorStop(0, 'rgba(22,16,34,.4)'); shade.addColorStop(1, 'rgba(22,16,34,0)'); c.fillStyle = shade; c.fillRect(inner - 40, y - H * 1.2, 120, H * .8);
   c.restore();
@@ -134,15 +161,22 @@ function paintEye(c: Ctx, f: FaceType, side: number, v: number) {
 // [inner end, outer end, raise, arch factor, arch added, thickness factor]
 const BROW = [[0, 2, 0, 1, 0, 1], [-4, -6, -20, 1, 6, 1], [-18, 6, -4, 0, 0, 1], [12, -12, 2, 0, 0, 1.3], [6, 0, 10, .2, 0, 1.25], [-6, -8, -18, 1, 6, 1], [-2, -4, -10, 1, 5, 1], [-6, 12, 8, .4, 0, .95]];
 function paintBrow(c: Ctx, f: FaceType, side: number, v: number) {
-  const x = 256 + side * 50, xi = x - side * (f.w - 4), xo = x + side * (f.w + 4), [thick, arch, set] = f.brow, by = 214;
+  const x = 256 + side * (f.sx ?? 50), xi = x - side * (f.w - 4), xo = x + side * (f.w + 4), [thick, arch, set] = f.brow, by = f.by ?? 214;
   const [di, dO, up, am, aa, tk] = v === 5 && side < 0 ? [6, 2, 8, .5, 0, 1.15] : BROW[v];
   c.strokeStyle = 'rgba(28,20,24,.9)'; c.lineWidth = thick * tk * 1.4; c.beginPath(); c.moveTo(xi, by + up + di + set); c.quadraticCurveTo(x, by + up + (di + dO) / 2 - 2 * (arch * am + aa), xo, by + up + dO - set * .5); c.stroke();
 }
-/** Mouths: 0 plain, 1 soft smile, 2 open smile, 3 frown, 4 tight, 5 speaking A, 6 speaking B, 7 O, 8 smirk, 9 shout, 10 worried. */
+/** Mouths: 0 plain, 1 soft smile, 2 open smile, 3 frown, 4 tight, 5 speaking A, 6 speaking B, 7 O, 8 smirk, 9 shout, 10 worried. The new faces (`calm`) draw every one of them as a short,
+ * restrained line of one weight, or a small opening when speaking: never a dark slab that reads as a moustache (Book 6). */
 function paintMouth(c: Ctx, f: FaceType, v: number) {
   const m = f.mouth, line = (a: number, b: number, k: number, w = 4.5, h = 10) => { c.strokeStyle = '#4a2a30'; c.lineWidth = w; c.beginPath(); c.moveTo(256 - h * m, a); c.quadraticCurveTo(256, k, 256 + h * m, b); c.stroke(); };
   const open = (rx: number, ry: number, y: number, fill = '#6c3b45') => { c.fillStyle = fill; c.beginPath(); c.ellipse(256, y, rx * m, ry, 0, 0, Math.PI * 2); c.fill(); c.strokeStyle = '#4a2a30'; c.lineWidth = 3; c.stroke(); };
-  if (v === 0) line(389, 389, 389.5); else if (v === 1) line(384, 384, 402, 5, 13); else if (v === 3) line(395, 395, 383, 5.5, 11); else if (v === 4) line(389, 389, 389, 5.5);
+  if (f.calm) { const W = 3.4;
+    if (v === 0) line(389, 389, 389.5, W); else if (v === 1) line(386, 386, 395, W, 11); else if (v === 2) line(385, 385, 397, W + .4, 12); else if (v === 3) line(392, 392, 386, W, 10); else if (v === 4) line(389, 389, 389, W + .4, 8.5);
+    else if (v === 5) open(3.6, 3.4, 390); else if (v === 6) open(5.4, 2.4, 390); else if (v === 7) open(3, 3.8, 390); else if (v === 9) open(5, 4.4, 391); else if (v === 11) open(4.4, 3.4, 391);
+    else if (v === 8) { c.strokeStyle = '#4a2a30'; c.lineWidth = W; c.beginPath(); c.moveTo(256 - 9 * m, 391); c.quadraticCurveTo(256 + 2, 390, 256 + 10 * m, 382); c.stroke(); }
+    else { c.strokeStyle = '#4a2a30'; c.lineWidth = W; c.beginPath(); c.moveTo(256 - 8 * m, 391); c.quadraticCurveTo(256 - 3 * m, 386, 256, 390); c.quadraticCurveTo(256 + 3 * m, 394, 256 + 8 * m, 390); c.stroke(); }
+    return; }
+  if (v === 0) line(389, 389, 389.5, 4.5); else if (v === 1) line(384, 384, 402, 5, 13); else if (v === 3) line(395, 395, 383, 5.5, 11); else if (v === 4) line(389, 389, 389, 5.5);
   else if (v === 2) { c.fillStyle = '#8c3a47'; c.beginPath(); c.moveTo(256 - 19 * m, 382); c.quadraticCurveTo(256, 424, 256 + 19 * m, 382); c.closePath(); c.fill(); c.fillStyle = '#f2e8d6'; c.fillRect(256 - 13 * m, 383, 26 * m, 5); c.fillStyle = '#e0848a'; c.beginPath(); c.ellipse(256, 402, 8 * m, 3.6, 0, 0, Math.PI * 2); c.fill(); }
   else if (v === 5) open(8, 8, 391); else if (v === 6) open(12, 4.5, 390); else if (v === 7) open(5.5, 7, 391); else if (v === 11) open(6.5, 5.5, 392);
   else if (v === 8) { c.strokeStyle = '#4a2a30'; c.lineWidth = 4.5; c.beginPath(); c.moveTo(256 - 10 * m, 392); c.quadraticCurveTo(256 + 2, 391, 256 + 12 * m, 379); c.stroke(); }
@@ -152,7 +186,7 @@ function paintMouth(c: Ctx, f: FaceType, v: number) {
 function paintFace(c: Ctx, f: FaceType, col: number) {
   const y = 300;
   // Soft cheek colour under every expression.
-  for (const side of [-1, 1]) { const blush = c.createRadialGradient(256 + side * 66, y + 50, 2, 256 + side * 66, y + 50, 30); blush.addColorStop(0, 'rgba(238,143,138,.2)'); blush.addColorStop(1, 'rgba(238,143,138,0)'); c.fillStyle = blush; c.fillRect(256 + side * 66 - 32, y + 18, 64, 64); }
+  if (!f.calm) for (const side of [-1, 1]) { const blush = c.createRadialGradient(256 + side * 66, y + 50, 2, 256 + side * 66, y + 50, 30); blush.addColorStop(0, 'rgba(238,143,138,.2)'); blush.addColorStop(1, 'rgba(238,143,138,0)'); c.fillStyle = blush; c.fillRect(256 + side * 66 - 32, y + 18, 64, 64); }
   // Marks: the small particular things that make a stranger someone.
   if (f.marks === 'freckles') { c.fillStyle = 'rgba(120,62,44,.55)'; for (const side of [-1, 1]) for (let k = 0; k < 7; k++) { c.beginPath(); c.arc(256 + side * (44 + (k * 13) % 34), y + 40 + (k * 7) % 18, 2.6, 0, Math.PI * 2); c.fill(); } }
   if (f.marks === 'stubble') { c.fillStyle = 'rgba(40,30,32,.22)'; for (let k = 0; k < 140; k++) { const a = (k * 2.399) % Math.PI, r = 78 + (k * 7) % 40; c.fillRect(256 + Math.cos(a) * r * .95 - 1, 382 + Math.sin(a) * r * .55 - 1, 2.4, 2.4); } }
@@ -164,15 +198,17 @@ function paintFace(c: Ctx, f: FaceType, col: number) {
   for (const side of [-1, 1]) { paintEye(c, f, side, col); paintBrow(c, f, side, col < 8 ? col : 0); }
   // Nose: halfway between the tops of the eyes and the chin.
   c.strokeStyle = 'rgba(150,96,88,.75)'; c.lineWidth = 2.6; c.fillStyle = 'rgba(150,96,88,.75)';
-  if (f.nose === 'dash') { c.beginPath(); c.moveTo(259, 352); c.lineTo(256, 359); c.stroke(); }
+  // the new faces: the nose is the built wedge, marked only by one light stroke down its shaded side; nothing under it that could read as hair, the mouth line well below
+  if (f.calm) { c.strokeStyle = 'rgba(150,96,88,.45)'; c.lineWidth = 2.2; c.beginPath(); c.moveTo(264, 334); c.quadraticCurveTo(266, 348, 262, 356); c.stroke(); }
+  else if (f.nose === 'dash') { c.beginPath(); c.moveTo(259, 352); c.lineTo(256, 359); c.stroke(); }
   if (f.nose === 'dot') { c.beginPath(); c.ellipse(257, 356, 2.8, 2.2, 0, 0, Math.PI * 2); c.fill(); }
   if (f.nose === 'hook') { c.beginPath(); c.moveTo(262, 340); c.quadraticCurveTo(266, 354, 256, 360); c.stroke(); }
   if (f.nose === 'button') { c.beginPath(); c.moveTo(251, 354); c.quadraticCurveTo(257, 361, 263, 354); c.stroke(); }
   paintMouth(c, f, col < 12 ? col : 0);
 }
-const faceAtlas = (() => {
+const paintAtlas = (types: FaceType[]) => {
   const W = 256 * FACE_COLS, H = 256 * FACE_TYPES, canvas = document.createElement('canvas'); canvas.width = W; canvas.height = H; const c = canvas.getContext('2d', { willReadFrequently: true })!;
-  for (let type = 0; type < FACE_TYPES; type++) for (let col = 0; col < FACE_COLS; col++) { c.save(); c.translate(col * 256, type * 256); c.scale(.5, .5); paintFace(c, faceTypes[type], col); c.restore(); }
+  for (let type = 0; type < FACE_TYPES; type++) for (let col = 0; col < FACE_COLS; col++) { c.save(); c.translate(col * 256, type * 256); c.scale(.5, .5); paintFace(c, types[type], col); c.restore(); }
   // Straight alpha, with the transparent texels carrying a skin-ish colour so mip levels do not darken the edge of a feature.
   const data = new Uint8Array(c.getImageData(0, 0, W, H).data.buffer), mid = skinColors.map(s => new T.Color(s)).reduce((a, s) => a.add(s), new T.Color(0, 0, 0)).multiplyScalar(1 / skinColors.length).convertLinearToSRGB();
   const [mr, mg, mb] = [mid.r, mid.g, mid.b].map(v => Math.round(v * 255));
@@ -180,7 +216,24 @@ const faceAtlas = (() => {
   canvas.width = canvas.height = 0;
   const map = new T.DataTexture(data, W, H, T.RGBAFormat); map.colorSpace = T.SRGBColorSpace; map.generateMipmaps = true; map.minFilter = T.LinearMipmapLinearFilter; map.magFilter = T.LinearFilter; map.anisotropy = 8; map.needsUpdate = true;
   return map;
-})();
+};
+/** Each atlas (4096 x 2048, about 33 MB of heap) is painted on first use, so a game only ever paints the one its builder draws. */
+let atlasOld: T.DataTexture | undefined, atlasNext: T.DataTexture | undefined;
+const faceAtlas = () => atlasOld ??= paintAtlas(faceTypes);
+/** The new head's faces: the same atlas layout and painters, eyes one eye-width apart and a fifth of the head wide (the tile is a front plane about 32 cm across), irises from palette.iris, a calm
+ * single highlight, thin brows close to the eye, a short mouth line, no blush, and a mark on at most three of the eight. */
+const IR = P.iris;
+export const faceTypesNext: FaceType[] = [
+  { rise: 58, w: 33, tilt: 2, lash: 11, iris: IR.slateBlue, brow: [3, 8, 0], nose: 'dash', mouth: 1.25, marks: 'none', sx: 68, by: 232, calm: true },
+  { rise: 60, w: 33, tilt: 4, lash: 11, iris: IR.brown, brow: [3, 10, -2], nose: 'dot', mouth: 1.25, marks: 'none', sx: 68, by: 232, calm: true },
+  { rise: 54, w: 34, tilt: -2, lash: 10, iris: IR.darkBrown, brow: [4, 4, 3], nose: 'hook', mouth: 1.25, marks: 'none', sx: 69, by: 234, calm: true },
+  { rise: 58, w: 32, tilt: 3, lash: 11, iris: IR.greyGreen, brow: [3, 9, -2], nose: 'button', mouth: 1.25, marks: 'none', sx: 67, by: 232, calm: true },
+  { rise: 55, w: 34, tilt: -4, lash: 10, iris: IR.grey, brow: [4, 5, 3], nose: 'dash', mouth: 1.25, marks: 'none', sx: 69, by: 234, calm: true },
+  { rise: 60, w: 32, tilt: 2, lash: 11, iris: IR.hazel, brow: [3, 10, 0], nose: 'dot', mouth: 1.25, marks: 'none', sx: 67, by: 232, calm: true },
+  { rise: 54, w: 34, tilt: 4, lash: 10, iris: IR.greyGreen, brow: [4, 3, -3], nose: 'hook', mouth: 1.25, marks: 'scar', sx: 69, by: 234, calm: true },
+  { rise: 58, w: 33, tilt: 0, lash: 11, iris: IR.darkBrown, brow: [3, 8, 2], nose: 'button', mouth: 1.25, marks: 'none', sx: 68, by: 232, calm: true },
+];
+export const faceAtlasNext = () => atlasNext ??= paintAtlas(faceTypesNext);
 /** Each band picks its own column: the shader reads the tile's height (the head's baked v) and takes the eye, brow or mouth column from the figure's `vFace`. Texture gradients come from the
  * unshifted uv, so the jump between columns does not pick a coarse mip at a seam. */
 const FACE_MAP = `vec3 fc=floor(vFace+.5);float ft=1.-fract(vMapUv.y*${FACE_TYPES}.);
@@ -188,15 +241,19 @@ float fcol=ft>=${tV(BAND[1])}&&ft<${tV(BAND[0])}?fc.y:ft>=${tV(BAND[2])}&&ft<${t
 vec4 fs=textureGrad(map,vMapUv+vec2(fcol/${FACE_COLS}.,0.),dFdx(vMapUv),dFdy(vMapUv));diffuseColor.rgb=mix(diffuseColor.rgb,fs.rgb,fs.a);`;
 /** A face material: the shared atlas over one skin tone. The three shared ones are batched (the feature numbers ride on the instance colour); a figure outside the
  * crowd batch takes its own (`uFace`, written by `setExpression`). */
-const faceMaterial = (tone: number) => {
-  const look = { value: new T.Vector3() }, m = new T.MeshToonMaterial({ map: faceAtlas, color: skinColors[tone], gradientMap: ramp, emissive: P.neutral.paper, emissiveIntensity: .12 });
+const faceMaterial = (tone: number, next = false) => {
+  const look = { value: new T.Vector3() }, m = new T.MeshToonMaterial({ map: next ? faceAtlasNext() : faceAtlas(), color: skinColors[tone], gradientMap: ramp, emissive: P.neutral.paper, emissiveIntensity: .12 });
   m.userData.faceAtlas = true; m.userData.look = look.value;
-  m.onBeforeCompile = shader => { shader.uniforms.uFace = look;
+  m.onBeforeCompile = shader => { shader.uniforms.uFace = look; shader.uniforms.uPaint = { value: new T.Vector3(...FACE_VALUE[tone]) }; shader.uniforms.uInk = { value: FACE_INK[tone] };
+    if (next) shader.vertexShader = 'attribute float faceMask;varying float vMask;\n' + shader.vertexShader.replace('void main() {', 'void main() {\nvMask = faceMask;');
     shader.vertexShader = 'uniform vec3 uFace;flat varying vec3 vFace;\n' + shader.vertexShader.replace('#include <color_vertex>', '#include <color_vertex>\n#ifdef USE_BATCHING_COLOR\nvColor=vec3(1.);vFace=batchingColor;\n#else\nvFace=uFace;\n#endif');
-    shader.fragmentShader = 'flat varying vec3 vFace;\n' + shader.fragmentShader.replace('#include <map_fragment>', FACE_MAP).replace('#include <emissivemap_fragment>', 'totalEmissiveRadiance*=diffuseColor.rgb;'); };
-  m.customProgramCacheKey = () => 'terra-face-bands'; return thinLine(painted(m));
+    shader.fragmentShader = (next ? FACE_PAINT_HEAD + 'varying float vMask;\n' : '') + 'flat varying vec3 vFace;\n' + shader.fragmentShader.replace('#include <map_fragment>', next ? FACE_MAP.replace('fs.a)', 'fs.a*vMask)').replace('diffuseColor.rgb=mix', FACE_PAINT + `if(ft>=${tV(BAND[4])}&&ft<${tV(BAND[3])}&&dot(fs.rgb,vec3(.333))<.4)fs.rgb=diffuseColor.rgb*mix(vec3(.64,.43,.44),vec3(.42,.27,.3),smoothstep(.24,.29,dot(fs.rgb,vec3(.333))));diffuseColor.rgb=mix`) : FACE_MAP).replace('#include <emissivemap_fragment>', 'totalEmissiveRadiance*=diffuseColor.rgb;'); };
+  m.customProgramCacheKey = () => next ? 'terra-face-bands-next' : 'terra-face-bands'; return thinLine(painted(m));
 };
-const faces = skinColors.map((_, i) => faceMaterial(i));
+/** The three shared face materials of each builder, made (with their atlas) on first use. */
+let shared: Material[] | undefined, sharedNext: Material[] | undefined;
+const faces = () => shared ??= skinColors.map((_, i) => faceMaterial(i));
+const facesNext = () => sharedNext ??= skinColors.map((_, i) => faceMaterial(i, true));
 const contactShape=new T.CircleGeometry(.28,14);
 const contactInk=new T.MeshBasicMaterial({color:'#253d40',transparent:true,opacity:.19,depthWrite:false});
 function hairChunk(g:T.Group,points:number[][],z:number,depth:number,material:Material){const shape=new T.Shape();points.forEach(([x,y],i)=>i?shape.lineTo(x,y):shape.moveTo(x,y));shape.closePath();const mesh=new T.Mesh(new T.ExtrudeGeometry(shape,{depth,bevelEnabled:true,bevelThickness:.018,bevelSize:.012,bevelSegments:2,curveSegments:4}),material);mesh.position.z=z;g.add(mesh);return mesh;}
@@ -330,7 +387,7 @@ export function citizen(coat:Material=mats.rust,seed=0,archetype:Archetype='work
   const faceType=(seed*5+Math.floor(seed/3)*3+archetype.length)%FACE_TYPES,skullShape=(seed*11+Math.floor(seed/2))%3,taper=[.1,.16,.26][skullShape],cheek=[1.04,1,.97][skullShape];
   // Anime head: a round cranium, soft cheeks and a small chin carried forward.
   const rings=[[-.228,.048,.042,.034],[-.2,.092*jaw,.094,.026],[-.15,.126*jaw,.13,.012],[-.11,.145,.142,.004],[-.07,.163,.154,0],[.03,.18,.172,-.006],[.13,.168,.163,-.016],[.205,.112,.112,-.022],[.245,.004,.004,-.022]];
-  const faceMat=opts.solo?faceMaterial(skinTone):faces[skinTone],skull=tailored(head,rings,faceMat,24,-Math.PI,Math.PI*2);
+  const faceMat=opts.solo?faceMaterial(skinTone):faces()[skinTone],skull=tailored(head,rings,faceMat,24,-Math.PI,Math.PI*2);
   const uv=skull.geometry.attributes.uv;for(let j=0;j<rings.length;j++)for(let i=0;i<=24;i++){uv.setX(j*25+i,uv.getX(j*25+i)/FACE_COLS);uv.setY(j*25+i,(faceType+1-(Math.max(-.22,rings[j][0])+.22)/.465)/FACE_TYPES);}
   // A soft head: the jaw narrows gently toward a small rounded chin and the front stays curved,
   // so no plane change is hard enough for the ink pass to draw a crease across the cheek.
@@ -444,11 +501,41 @@ export function citizen(coat:Material=mats.rust,seed=0,archetype:Archetype='work
   body.position.y-=.14;pelvis.position.y-=.14;for(const leg of legs)leg.position.y-=.14;
   group.scale.set(1+(seed%4-1.5)*.03,.95+(seed%5)*.022,1);
   group.traverse(o=>{if(o instanceof T.Mesh)o.castShadow=false;});
-  const motion={stride:seed*1.3,latch:footing(),gait:0,speed:0,prevX:NaN,prevZ:0,prevYaw:0,turn:0,tail:0,tailV:0,hair:0,hairV:0,tempo:.88+((seed*37)%25)/100,idle:0,drape:1,pose:null as Float32Array|null,mood:newMood(),pick:Math.abs(Math.sin(seed*12.9898+1.7)*43758.5453)%1};
-  return {group,body,pelvis,legs,knees,ankles,arms,elbows,grips,head,worn,finery,scarf,tails,skirt,swing,face,archetype,motion,phase:seed*1.7,expression:'neutral' as Expression,gaze:'away',manner:mannerOf(archetype,seedOf(seed)),/** A line being spoken, and until when: the body takes the register of the words (`palm`: until when a raised palm says halt). */tone:undefined as undefined|{tone:Tone;until:number;palm?:number},packed:0,
+  return finish({group,body,pelvis,legs,knees,ankles,arms,elbows,grips,head,worn,finery,scarf,tails,skirt,swing,face},faceMat,seed,archetype,opts);
+}
+/** The tail every figure shares, old builder and new: motion state, the expression API and the returned shape. A pure move out of `citizen()`. */
+function finish(n:{group:T.Group;body:T.Group;pelvis:T.Group;legs:T.Group[];knees:T.Group[];ankles:T.Group[];arms:T.Group[];elbows:T.Group[];grips:T.Group[];head:T.Group;worn:T.Group;finery:T.Group;scarf:T.Group;tails:T.Group;/** the hinge of long cloth at the knee (new builder only) */hem?:T.Group;/** how the long cloth follows the legs (new builder only, drape.ts) */drape?:Drape;skirt:{drop:number;depth:number};swing:T.Group;face:T.Mesh},faceMat:T.Material,seed:number,archetype:Archetype,opts:{solo?:boolean;mask?:boolean}){
+  const {group,body,pelvis,legs,knees,ankles,arms,elbows,grips,head,worn,finery,scarf,tails,hem,drape,skirt,swing,face}=n;
+  const motion={stride:seed*1.3,latch:footing(),gait:0,speed:0,prevX:NaN,prevZ:0,prevYaw:0,turn:0,tail:0,tailV:0,hair:0,hairV:0,tempo:.88+((seed*37)%25)/100,idle:0,drape:1,cloth:drapeState(),pose:null as Float32Array|null,mood:newMood(),pick:Math.abs(Math.sin(seed*12.9898+1.7)*43758.5453)%1};
+  return {group,body,pelvis,legs,knees,ankles,arms,elbows,grips,head,worn,finery,scarf,tails,hem,drape,skirt,swing,face,archetype,motion,phase:seed*1.7,expression:'neutral' as Expression,gaze:'away',manner:mannerOf(archetype,seedOf(seed)),/** A line being spoken, and until when: the body takes the register of the words (`palm`: until when a raised palm says halt). */tone:undefined as undefined|{tone:Tone;until:number;palm?:number},packed:0,
     /** Dress the face: a named look, with the eyes shut for a blink, the mouth moving (`talk` 0..2 is a frame of speech) or the eyes turned (`eye` 6 left, 7 right on the atlas). Writes only when the look changes. */
     setExpression(state:Expression,blink=false,talk=-1,eye=-1){const [e,b,m]=LOOK[state];let E:number=eye>=0?eye:e,M:number=m;if(blink&&E!==4)E=3;if(talk>=0){const t=TALK[m===9?1:0][talk];if(t>=0)M=t;}
       this.expression=blink?'blink':state;const p=E|b<<4|M<<8;if(p===this.packed)return;this.packed=p;face.userData.face=p;if(opts.solo)(faceMat.userData.look as T.Vector3).set(E,b,M);}};
 }
-
 export type Citizen=ReturnType<typeof citizen>;
+
+// ---- The next figure (People III): built beside the old one, from a resolved Look. The game still uses `citizen()` until the whole cast is dressed.
+const plainByColor=new Map<string,T.MeshToonMaterial>();
+/** `kind` says what the plain material is made of: leather takes a narrow lighter band on the tops of its forms, metal a small hard light spot (both baked into vertex colour by `bakeCharacter`, Book 8). */
+const plainMaterial=(color:string,late=color,kind?:'leather'|'metal')=>{const key=color+'>'+late+'>'+(kind??'');let m=plainByColor.get(key);if(!m){m=toon(color);m.userData.plain=true;if(kind)m.userData.kind=kind;if(late!==color)m.userData.restoredColor=late;plainByColor.set(key,m);}return m;};
+/** `look`: a named story character (people/look.ts). `cast`, `family`, `frame`: force part of a look (the cast sheet). */
+export type NextOpts={solo?:boolean;mask?:boolean;look?:string;/** dev: bare heads */bare?:boolean;/** dev: fields of the resolved look to overwrite (the cast sheet's `set=`) */over?:Partial<Look>;cast?:CastId;family?:LookFamily;frame?:Frame;/** the casts the scene wants (narrows the archetype's casts) */casts?:readonly CastId[]};
+export function citizenNext(coat:Material=mats.rust,seed=0,archetype:Archetype='worker',opts:NextOpts={}):Citizen{
+  void coat;
+  const look={...resolveLook(seed,archetype,{look:opts.look,cast:opts.cast,family:opts.family,frame:opts.frame,casts:opts.casts}),...opts.over};
+  const kit:Kit={cloth:(c,l)=>outfitMaterial(c,l),plain:plainMaterial,skin,face:tone=>opts.solo?faceMaterial(tone,true):facesNext()[tone],bake:g=>bakeCharacter(g,coloredToonNext),contact:new T.Mesh(contactShape,contactInk)};
+  const fig=buildFigure(look,opts,kit);
+  fig.group.userData.next=true; // the new builder's mark: a few poses are tuned to its head (citizen-life.ts)
+  const {faceMat,...nodes}=fig;
+  return finish(nodes,faceMat,seed,archetype,opts);
+}
+
+// ---- The switch (People XIV). Every place that makes a person goes through `person()`, which picks the old builder or the new one from this one flag.
+/** `next`: the whole game uses the new figure builder. On by default; `?people=old` forces the old builder (kept in the code for now, for comparison). */
+export const PEOPLE={next:(()=>{try{return peopleNext(location.search);}catch{return true;}})()};
+/** What a spawn site knows about the person: `look` is a named story character (people/look.ts `STORY`), `child` asks for the child cast. Both are inert under the old builder. */
+export type PersonOpts={solo?:boolean;mask?:boolean;look?:string;child?:boolean};
+export function person(coat:Material=mats.rust,seed=0,archetype:Archetype='worker',opts:PersonOpts={}):Citizen{
+  if(!PEOPLE.next)return citizen(coat,seed,archetype,{solo:opts.solo,mask:opts.mask});
+  return citizenNext(coat,seed,archetype,{solo:opts.solo,mask:opts.mask,look:opts.look,...(opts.child&&!opts.look?{cast:'child' as CastId,family:'child' as const,frame:'narrow' as const}:{})});
+}

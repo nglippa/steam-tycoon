@@ -91,7 +91,7 @@ export class FinchRun {
     this.releaseTarget = spot('finch.part', 'Finch’s bench', 'TAKE THE RELEASE', BENCH.x - .5, BENCH.z, 1, 1.2, () => this.offered);
     this.orderTarget = spot('finch.order', 'Directorate governor', 'SIGN FOR THE GOVERNOR', BENCH.x + .55, BENCH.z, .9, 1.2, () => this.offered && (this.part.carrying || benchOffer(this.stage, this.greatMain, this.level, this.outcome).governor));
     this.winchTarget = city.targets.find(t => t.id === 'finch.winch')!;
-    this.hand = pres.addWorker(HAND.x, HAND.z, Math.PI, 'repair', { role: 'worker', essential: true, when: () => this.present });
+    this.hand = pres.addWorker(HAND.x, HAND.z, Math.PI, 'repair', { role: 'worker', look: 'finchHand', essential: true, when: () => this.present });
   }
   /** What each side leaves on the run, built once and baked, shown by the outcome alone, and put on the faces the terrace sees (north and west) as well as the street's. The resistance's is small and covert: a brass release wedged in the winch, a cut lock, an ember in chalk, the Directorate's plate scratched, turquoise thread at the ladder head and on its lowest rung. The ordinance's is exact: a black-iron governor with an oxblood band and the brass plate, a caged lamp (an emissive only, no light), the number on the gantry plate and an enamel tag at each grille post. */
   private dress(root: T.Group, plate: string[]) {

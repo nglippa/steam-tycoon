@@ -1,7 +1,9 @@
 import * as T from 'three';
 import type { Citizen, Expression } from './citizens';
 import type { Archetype } from './palette';
-import { walk, advance, MIN, pose, legZ, STANCE, REST, type Params } from '../simulation/gait';
+import { walk, advance, MIN, pose, legZ, STANCE, REST, SOLE, HEEL_X, TOE_X, type Params } from '../simulation/gait';
+import { drape, readLegs, rest, drapeSplit, restSplit, holdSplit, seatPanel, carryPanel, seatLong, unseatLong, LAP_SEATED } from './drape';
+import { FOOD } from './people/parts';
 import { isOccupier, conduct, bodyFor, faceAllowed, moodOfTone, stepMood, nearBand, type Trait, type MoodIn } from '../simulation/occupation';
 export type Activity='talk'|'browse'|'guard'|'carry'|'walk'|'read'|'hammer'|'sweep'|'warm'|'gauge'|'valve'|'argue'|'sit'|'eat'|'lean'|'watch'|'clipboard'|'repair';
 /** `seed` and `trait` cast one scene by hand: who is let out (0..1, low is out in a harder street) and how they carry themselves. */
@@ -96,23 +98,25 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
   // Stride keeps lengthening above a brisk walk (the intro's guards leave at 2.9 m/s), so cadence stays that of a walk, then a stride.
   const hobble=n.skirt.drop>.3?.86:1,A=turning?.13:Math.min(.6,(Math.min(.42,Math.max(.12,.16+.3*m.speed))+Math.max(0,m.speed-1.2)*.1)*(pr.stride/.44)*hobble);
   // Each leg's sweep is latched at its own heel strike and its planted foot is pinned by the distance walked (gait.ts), so it stays put through starts, stops and turns.
+  // The distance is taken in the figure's own units (its stature is a group scale): a person scaled to .96 would otherwise slide 4 % of every stance forward.
   const gp=GAIT[mn.trait]??(occupier?PATROL:BASE),want=turning?MIN:LEG*A*gp.s/STANCE;
-  m.stride=Math.PI*2*advance(m.latch,m.stride/(Math.PI*2),moved,dt,want,gp.s,turning?2.4*pr.cad/(Math.PI*2):0);
+  m.stride=Math.PI*2*advance(m.latch,m.stride/(Math.PI*2),moved/n.group.scale.z,dt,want,gp.s,turning?2.4*pr.cad/(Math.PI*2):0);
   const c=m.stride,seated=activity==='sit'||activity==='eat',tired=weariness*(activity==='guard'?.3:1);
   const w=seated?0:clamp01(g/.35),q=clamp01((want-MIN)/.1);
+  const sole=n.ankles[0].userData.sole as [number,number]|undefined;walking.heel=sole?.[0];walking.toe=sole?.[1];
   walking.stance=gp.s;walking.want=want;walking.clear=.07*gp.clear*(.5+.5*q);walking.knee=gp.knee*(load>1?1.15:1);walking.pelvis=gp.pel;walk(walking,m.latch,c/(Math.PI*2),gait);
   const twist=gait.yaw*w,roll=gait.roll*w;
   // Idle weight transfer holds on one leg, then shifts: never a metronome.
-  const shift=Math.tanh(3*Math.sin(phase*.21+n.phase))*(1-g)*(occupier&&mn.trait!=='bored'?.4:1);
+  const shift=seated?0:Math.tanh(3*Math.sin(phase*.21+n.phase))*(1-g)*(occupier&&mn.trait!=='bored'?.4:1);/* (seated, the hips rest on the seat: no weight shift, or the planted feet would slide) */
   // The pelvis rides the height the stance legs allow, sways over the planted foot, drops on the swing side and turns with the stride;
   // the thorax answers against it (figure-construction: contrapposto), so the walk has torsion and not a rigid block.
-  n.body.position.set(shift*.022+w*gait.sway,bodyHeight+w*(gait.H-REST)+.13*(1-1/n.group.scale.y)/* the pavement sits .13 under the origin, in the figure's own scale */-(seated?.46:0)+breath*.003*(1-g),0);
+  n.body.position.set(shift*.022+w*gait.sway,bodyHeight+w*(gait.H-REST)+.13*(1-1/n.group.scale.y)/* the pavement sits .13 under the origin, in the figure's own scale */-(seated?.46-.42*(1/n.group.scale.y-1)/* seated, the seat stays .42 m over the pavement whatever the stature: the spawn sites put a bench, a crate or a step there */:0)+(seated?0:breath*.003*(1-w))/* (seated, the hips rest on the seat: they do not bob, or the planted feet would slide) */,0);
   n.body.rotation.set(g*(pr.lean+tired*.05)+w*gp.lean+(1-g)*tired*.06-(activity==='lean'?.07:0)-(activity==='carry'?.08:0)+(seated?-.06:0),-.7*twist+m.turn*.06,shift*.025-.5*roll);
   n.legs.forEach((leg,k)=>{leg.position.y=hipHeight-(seated?.46:0);
-    if(seated){leg.position.z=0;leg.rotation.set(-1.42,0,(k?-1:1)*.06);n.knees[k].rotation.x=1.4+(activity==='eat'&&k?Math.sin(phase)*.05:0);n.ankles[k].rotation.x=0;return;}
+    if(seated){leg.position.z=0;const a=((n.phase*7.31)%1-.5)*.08;/* the seated knees part about hip width (People XXVI): the thigh splays out (the old .06 rad turned it in, so the shins met in one column), each figure a little unevenly */const long=n.skirt.drop>.3,narrow=long&&n.skirt.depth<.45*n.skirt.drop,sp=narrow?-.06:(long?SPLAY_SKIRT:n.drape?.panel||n.skirt.depth?SPLAY_CLOTH:SPLAY)+(k?-a*.6:a)*(long?.4:1);/* (under a coat's skirt or an apron the knees part less, under a long skirt or coat least, and a long coat cut narrower than .45 of its drop keeps them together as it is cut: the cloth closes round the calves) */leg.rotation.set(-1.42,0,(k?1:-1)*sp);n.knees[k].rotation.x=1.4;return;}/* (the seated thigh, knee and foot are solved once the hips are placed: seatLegs) */
     const stance=k===0?Math.max(0,-shift):Math.max(0,shift);
     leg.position.z=0;leg.rotation.set((1-w)*(k?-.02:.03)-w*gait.thigh[k],0,activity==='lean'&&k===1?-.1:(k?-1:1)*stance*.02);
-    n.knees[k].rotation.x=(1-w)*(.05+(k===0?Math.max(0,shift):Math.max(0,-shift))*.14)+w*gait.knee[k];n.ankles[k].rotation.x=w*gait.ankle[k];});
+    const an=n.ankles[k];n.knees[k].rotation.x=(1-w)*(.05+(k===0?Math.max(0,shift):Math.max(0,-shift))*.14)+w*gait.knee[k];an.rotation.set(w*gait.ankle[k],an.userData.out??an.rotation.y,0);});
   // Arms oppose the legs and hang slightly away from the body. The forearm drags behind the
   // swing (the elbow bends as the arm comes forward, a beat late), and the back swing arcs out
   // so the hands clear the hips (figure-construction: motion).
@@ -166,20 +170,30 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
     // The bite: the mouth is level with the crown of the shoulder, so the upper arm comes up and across and the elbow closes until the food is at the lips (solved against the rig: the grip's food point lands within 1 cm of the mouth).
     // A mug is raised with the same stroke, its rim to the lips (the wrist then keeps it level, below).
     if(activity==='eat'){const bite=ease(clamp01(Math.max(0,Math.sin(phase*.9))*1.25)),mug=n.group.userData.upright;sip=bite;
-      n.arms[0].rotation.set(-.4-(mug?1.01:1.24)*bite,.21*bite,.05+(mug?.3:.49)*bite);n.elbows[0].rotation.x=-.8-(mug?.84:.49)*bite;if(bite>.8)expression='smiling';}}
+      const nx=n.group.userData.next,lo=nx?.55:0;/* the new builder's food is aimed at the lips (People XXVI: biteReach); a mug keeps the stroke solved with the sheet's probe(): the stroke stops shorter, folds more and comes in with the shoulder width */
+      if(nx&&!mug){const s=n.group.userData.bite??=biteReach(n,occupier);n.arms[0].rotation.set(-.4+(s[0]+.4)*bite,s[1]*bite,.05+(s[2]-.05)*bite);n.elbows[0].rotation.x=-.8+(s[3]+.8)*bite;}
+      else{n.arms[0].rotation.set(-.4-((mug?1.01:1.24)-lo)*bite,.21*bite,.05+(mug?.3:.49)*bite+(nx?.3+(Math.abs(n.arms[0].position.x)-.233)*3:0)*bite);n.elbows[0].rotation.x=-.8-(mug?.84:.49)*bite-(nx?.7:0)*bite;}if(bite>.8)expression='smiling';}}
   const umbrella=n.group.userData.umbrella as T.Object3D|undefined;
-  if(umbrella){umbrella.visible=raining;if(raining){n.arms[1].rotation.set(-.55,0,-.1);n.elbows[1].rotation.x=-1.3;}}
+  const uh=(n.group.userData.umbrellaHand as number|undefined)??1;
+  if(umbrella){umbrella.visible=raining;if(raining){n.arms[uh].rotation.set(-.55,0,uh?-.1:.1);n.elbows[uh].rotation.x=-1.3;}}
   // Secondary motion: damped springs driven by gait, acceleration and turning.
   const near=(player.x-pos.x)**2+(player.z-pos.z)**2;
-  if(!calm&&near<1600){
+  const lively=!calm&&near<1600,follows=!!(n.drape&&!seated);
+  if(lively){
     const tailTarget=-g*.1-clamp01(Math.abs(accel))*Math.sign(accel)*.12+Math.sin(c*2)*.03*g,hairTarget=.08+g*.22-m.turn*.05;
     m.tailV+=((tailTarget-m.tail)*55-m.tailV*8)*dt;m.tail+=m.tailV*dt;m.hairV+=((hairTarget-m.hair)*35-m.hairV*6)*dt;m.hair+=m.hairV*dt;
     n.tails.rotation.set(seated?-1.25:m.tail,0,g*Math.sin(c)*.035-m.turn*.03);n.swing.rotation.set(m.hair,0,Math.sin(c)*.08*g-m.turn*.08);n.scarf.rotation.x=m.tail*.8+Math.sin(phase*2.2)*.02;
-  } else {n.tails.rotation.set(seated?-1.25:0,0,0);n.swing.rotation.set(.05,0,0);n.scarf.rotation.x=0;}
+  } else {n.tails.rotation.set(seated?-1.25:follows?n.tails.rotation.x:0,0,0);n.swing.rotation.set(.05,0,0);n.scarf.rotation.x=0;}
+  // The knee hinge of long cloth (new builder only; the old figures have none): seated, it is set again from the solved legs (seatCloth). Standing and walking, the
+  // new builder's long cloth follows the legs (drape.ts, solved below once the legs are placed).
+  if(n.hem&&!follows){n.hem.rotation.x=-n.tails.rotation.x*(seated?1:.6);n.hem.scale.z=seated?HEM_SEATED:1;}
+  if(n.drape?.split&&!follows)holdSplit(n.drape,-n.tails.rotation.x*(seated?1:.6),seated?HEM_SEATED:1);
   // Drape. Cloth never lets a leg through: the hem is carried by whichever thigh reaches furthest, front and
   // back together, so a skirt, coat or apron opens into an oval over the stride and closes as the legs pass.
-  if(n.skirt.depth){const reach=seated?0:Math.max(...n.legs.map(leg=>Math.abs(Math.tan(Math.min(1.1,Math.abs(leg.rotation.x))))*n.skirt.drop))+.1,want=Math.max(1,reach/n.skirt.depth);
-    m.drape+=(want-m.drape)*Math.min(1,dt*(want>m.drape?30:9));const open=Math.max(m.drape,want);n.tails.scale.set(1-Math.min(.12,(open-1)*.12),1,open);}
+  if(n.skirt.depth&&!follows){const reach=seated?0:Math.max(...n.legs.map(leg=>Math.abs(Math.tan(Math.min(1.1,Math.abs(leg.rotation.x))))*n.skirt.drop))+.1,want=Math.max(1,reach/n.skirt.depth);
+    m.drape+=(want-m.drape)*Math.min(1,dt*(want>m.drape?30:9));const open=Math.max(m.drape,want);n.tails.scale.set(1-Math.min(.12,(open-1)*.12),1,open);
+    // seated, the cloth above the knee that a walking knee needs is flattened to a lap (the new builder's long cloth keeps its depth for the walk)
+    if(seated&&n.drape)n.tails.scale.z*=Math.min(1,LAP_SEATED/n.drape.lap);}
   // Brief, staggered glances; turns are led by the head.
   const dx=player.x-pos.x,dz=player.z-pos.z,close=dx*dx+dz*dz<14;
   const glance=close&&(phase%mn.glance)<1.35;
@@ -229,7 +243,17 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
   // The thighs keep the line of walk (the foot is not swung round by the pelvis) and the weight-shift tilt keeps the planted feet in place.
   n.legs.forEach(leg=>{hipPoint.set(leg.userData.hipX??=leg.position.x,pelvis,0).applyEuler(n.pelvis.rotation).add(n.pelvis.position);leg.position.copy(hipPoint);
     leg.rotation.y=(1-w)*n.pelvis.rotation.y;if(!seated)leg.rotation.z-=sway/REST;});
+  if(!seated&&g<.6){const up=standFeet(n);n.body.position.y+=up;n.pelvis.position.y+=up;for(const leg of n.legs)leg.position.y+=up;}
+  // Seated, the legs are solved to put the soles on the pavement, and the lap and the hem below the knee follow the knees and shins they solve (People XXIII). Eating, the free foot's heel bobs.
+  if(n.drape)unseatLong(n.drape,n.tails,n.hem);/* (People XXV: what seatLong moved last frame is put back first, so the lap is read from where it was built) */
+  if(seated){seatLegs(n,activity==='eat'?.018*Math.max(0,Math.sin(phase)):0);seatCloth(n);if(n.drape)seatLong(n.drape,n.group,n.pelvis,n.tails,n.hem,n.legs,n.knees,n.ankles);/* (People XXV: and kept out of the seat) */}
+  // Long cloth follows the legs, now they are where they will be drawn: a lifted knee never pierces it, the upper part leads with the knees and the hem trails it with weight
+  // (beyond 40 m it is solved every third frame, and standing still it eases back to plumb).
+  if(follows){if(w>.02){if(lively||(m.cloth.tick=(m.cloth.tick+1)%3)===0){readLegs(n.pelvis,n.tails,n.legs,n.knees,n.ankles);drape(n.drape!,m.cloth,n.tails,n.hem,dt,g,n.tails.rotation.z,lively?m.tail*.6:-g*.06,lively);drapeSplit(n.drape!,n.tails,dt,g,lively);}}else{rest(m.cloth,n.tails,n.hem,dt,n.tails.rotation.z);restSplit(n.drape!,dt);}}
+  // A front panel (an apron, the foundry slab: People XXIV) is its own part: seated it rests on the thighs and falls from the knees; otherwise it is carried as the long cloth is.
+  if(n.drape?.panel){if(seated)seatPanel(n.drape,n.pelvis,n.tails,n.hem,n.legs,n.knees,n.ankles);else carryPanel(n.drape.panel,n.hem);}
   // Head stabilization: the head cancels torso lean and twist.
+  if(activity==='eat'&&n.group.userData.next){headYaw*=1-sip;pitch*=1-sip;}/* the head comes round to the food as it reaches the lips (People XXVI) */
   const blend=1-Math.exp(-dt*(occupier?8:4));n.head.rotation.y=T.MathUtils.lerp(n.head.rotation.y,T.MathUtils.clamp(headYaw-n.body.rotation.y,occupier?-.85:-.6,occupier?.85:.6),blend);
   n.head.rotation.x=T.MathUtils.lerp(n.head.rotation.x,pitch-n.body.rotation.x*.8+nod+(speaking?Math.sin(phase*2)*.03:0),blend);
   n.head.rotation.z=calm?0:breath*.012+tilt;
@@ -242,11 +266,88 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
     n.arms[0].rotation.x=p[0];n.arms[0].rotation.z=p[1];n.arms[1].rotation.x=p[2];n.arms[1].rotation.z=p[3];n.elbows[0].rotation.x=p[4];n.elbows[1].rotation.x=p[5]; }
   // A held mug is kept level through whatever the forearm does, and tipped to the lips on a sip (the wrist is the grip socket).
   if(n.group.userData.upright)n.grips[0].rotation.x=-(n.arms[0].rotation.x+n.elbows[0].rotation.x)-.44*sip;
+  // An umbrella's shaft runs through the closed right hand; the wrist keeps it upright over the head.
+  if(umbrella&&raining)n.grips[uh].rotation.set(-(n.arms[uh].rotation.x+n.elbows[uh].rotation.x+n.body.rotation.x),0,-n.arms[uh].rotation.z-n.body.rotation.z);
   // Last word on the face: nobody smiles under the Ordinance's eye, and the Ordinance does not smile at all.
   if(!faceAllowed(n.archetype,expression))expression='cold';else if(!cd.smile&&(expression==='happy'||expression==='smiling'||expression==='hopeful'))expression='neutral';
   // Only the blink and, near the camera, a speaking mouth move between decisions; the Ordinance blinks less.
   n.setExpression(expression,(phase%(occupier?6.3:4.7))<.13,(speaking||spoken)&&near<400?Math.floor(time*7+n.phase*3)%3:-1,eye);
 }
+/** The bite (People XXVI), solved once per figure from its own rig: the shoulder, upper arm and elbow turns that put the food (parts.ts `FOOD`, in the grip) just ahead of the lips
+ *  (`head.userData.mouth`, the head unturned) while every point of the hand stays under the lips, so the hand reaches the mouth with the food and never crosses the nose. A pattern search
+ *  from the old stroke's top, kept near it, within the arm's range. Returns [shoulder x, y, z, elbow x] in the body's frame. */
+const BA=new T.Matrix4(),BB=new T.Matrix4(),BQ=new T.Vector3(),BEu=new T.Euler();
+const HAND_KEYS:[number,number,number][]=[[0,-.24,0],[.002,-.32,.03],[.002,-.32,-.03],[.029,-.335,.05],[.03,-.39,0],[.048,-.393,0],[.04,-.393,.026],[.05,-.39,-.02]];
+function biteReach(n:Citizen,occupier:boolean):number[]{
+  const arm=n.arms[0],grip=n.grips[0],m=(n.head.userData.mouth as number[]|undefined)??[0,.08,.1],sh=arm.position.clone();
+  if(occupier){sh.x=(arm.userData.sx??arm.position.x)*1.05;sh.y=1.455;}
+  const mouth=new T.Vector3(m[0],m[1],m[2]).add(n.head.position),target=mouth.clone().add(BQ.set(.004,-.006,.028)),el=n.elbows[0].position,food=grip.position.clone().add(BQ.set(...FOOD.at));
+  const at=(q:number[],p:T.Vector3,out:T.Vector3)=>{BA.makeRotationFromEuler(BEu.set(q[0],q[1],q[2]));BB.makeRotationFromEuler(BEu.set(q[3],0,0));return out.copy(p).applyMatrix4(BB).add(el).applyMatrix4(BA).add(sh);};
+  const q0=[-1.09,.21,.84+(Math.abs(arm.position.x)-.233)*3,-1.99],lo=[-2.4,-.7,-.3,-2.6],hi=[0,.9,1.4,-.2],p=new T.Vector3(),k=new T.Vector3();
+  const cost=(q:number[])=>{let c=at(q,food,p).distanceToSquared(target);for(const h of HAND_KEYS){at(q,k.set(...h),p);const up=p.y-(mouth.y+.004);if(up>0)c+=6*up*up;}for(let i=0;i<4;i++)c+=.004*(q[i]-q0[i])**2;return c;};
+  const q=q0.slice();let best=cost(q),step=.25;
+  while(step>2e-4){let moved=false;for(let i=0;i<4;i++)for(const d of [step,-step]){const t=q.slice();t[i]=T.MathUtils.clamp(t[i]+d,lo[i],hi[i]);const c=cost(t);if(c<best){best=c;q[i]=t[i];moved=true;}}if(!moved)step*=.5;}
+  return q;}
+const kq=new T.Quaternion(),fv=new T.Vector3(),feet=[{y:0,th:0,rho:1},{y:0,th:0,rho:1}];
+/** Feet standing (People XXII). The idle pose bends the free knee up to .19 rad and its foot pitched toe down with the shin, its toe 2.8-5.5 cm into the pavement (.13 under the origin in the
+ * world); the weighted leg, nearly straight, is 7 mm longer than the rest hip height allows (REST .97 against .925 of leg and .052 of sole), and the breath's bob took that to 1 cm. So the
+ * figure first rises by whatever a flat weighted sole is under the pavement, and then each foot keeps the pitch the pose gives it unless an edge of its sole would go under: it turns at the
+ * ankle just far enough to stand on that edge, and the free foot rests on its toe with the heel up, as a relaxed leg does. Walking, gait.ts holds the sole to the ground; this runs while the gait
+ * is under .6 (standing, and a walk starting or stopping, where the blend into the gait dipped up to 3.6 mm). Returns the rise, for the caller to give the body, pelvis and legs. */
+function standFeet(n:Citizen){const gnd=-.13/n.group.scale.y+.001,sole=n.ankles[0].userData.sole as [number,number]|undefined,heel=sole?.[0]??HEEL_X,toe=sole?.[1]??TOE_X;let rise=0;
+  n.legs.forEach((leg,k)=>{const kn=n.knees[k],an=n.ankles[k],f=feet[k];kq.copy(leg.quaternion).multiply(kn.quaternion);
+    f.y=leg.position.y+fv.copy(kn.position).applyQuaternion(leg.quaternion).y+fv.copy(an.position).applyQuaternion(kq).y;
+    // the ankle's frame without its own turn: the heights of its up and forward axes give the shin's pitch, and how far a roll tips the sole off it
+    const uy=fv.set(0,1,0).applyQuaternion(kq).y,zy=fv.set(0,0,1).applyQuaternion(kq).y;f.rho=Math.hypot(uy,zy);f.th=Math.atan2(-zy,uy);rise=Math.max(rise,gnd-(f.y-f.rho*SOLE));});
+  n.ankles.forEach((an,k)=>{const f=feet[k],P=f.th+an.rotation.x,D=(f.y+rise-gnd)/f.rho;
+    // an edge e (ahead of the ankle) is at y - rho (SOLE cos P + e sin P): toe down it is the toe's, toe up the heel's
+    const e=P>=0?toe:heel;if(SOLE*Math.cos(P)+e*Math.sin(P)<=D)return;
+    const q2=Math.asin(Math.min(1,D/Math.hypot(e,SOLE)))-Math.atan2(SOLE,Math.abs(e));an.rotation.x+=(P>=0?1:-1)*Math.max(0,q2)-P;});
+  return rise;}
+/** How a seated leg is carried: the shin leans `SHIN` forward of plumb, the foot ahead of the knee as on a low bench, and the thigh takes whatever pitch puts the ankle one sole over the
+ *  pavement, held between `UP` above level and `DOWN` below it (a child's short leg reaches the pavement with the thigh sloping down from the step). */
+/** The seated thigh's splay out from the hip, either side (People XXVI): the knees part about hip width, before each figure's unevenness of up to .04 rad. */
+const SPLAY=.13,SPLAY_CLOTH=.075,SPLAY_SKIRT=.035;
+const SHIN=.24,UP=.2,DOWN=.3,sq=new T.Quaternion(),fq=new T.Quaternion(),eu=new T.Euler(),sv=new T.Vector3(),su=new T.Vector3(),pin=new T.Quaternion();
+/** Seated legs (People XXIII). The seat is .42 m over the pavement for every stature (People XIX), and the old fixed pose (thigh .15 rad below level, shin plumb) put a figure's shin and sole
+ *  7.7-13.1 cm under the pavement. Each leg is now solved on the figure's own hip, limb lengths and pavement (two bones in the sagittal plane, the legs' yaw and splay included): the thigh's
+ *  pitch from the knee height the leaning shin needs, the knee's bend from the ankle's height (its sole 2 mm over the pavement), and the ankle turned so the sole lies flat on the pavement
+ *  whatever the leg's turn and splay, toes out as built. `tap` lifts the second foot's heel that far (eating), its knee and thigh solved to carry the ankle round the toe's tip, which stays put on the pavement. */
+function seatLegs(n:Citizen,tap:number){const pave=-.13/n.group.scale.y,y0=pave+SOLE+.002,toe=(n.ankles[0].userData.sole as [number,number]|undefined)?.[1]??TOE_X;
+  n.legs.forEach((leg,k)=>{const kn=n.knees[k],an=n.ankles[k],L2=-an.position.y;an.userData.out??=an.rotation.y;
+    // the thigh: (Rx(a) w).y, w the knee's offset through the leg's yaw and splay, is the knee's height over the hip
+    eu.set(0,leg.rotation.y,leg.rotation.z);sv.copy(kn.position).applyEuler(eu);const R0=Math.hypot(sv.y,sv.z),d=y0+L2*Math.cos(SHIN)-leg.position.y;
+    leg.rotation.x=T.MathUtils.clamp(-Math.atan2(sv.z,sv.y)+Math.acos(T.MathUtils.clamp(d/R0,-1,1)),-Math.PI/2-UP,-Math.PI/2+DOWN);
+    // the knee: the shin's drop from the knee to the ankle's height, leaning forward (the root with the foot ahead)
+    const ky=leg.position.y+sv.copy(kn.position).applyQuaternion(leg.quaternion).y,uy=su.set(0,1,0).applyQuaternion(leg.quaternion).y,zy=su.set(0,0,1).applyQuaternion(leg.quaternion).y;
+    kn.rotation.x=Math.atan2(zy,uy)-Math.acos(T.MathUtils.clamp((ky-y0)/(L2*Math.hypot(uy,zy)),-1,1));
+    // the foot rolls on its toe tip: the pitch that keeps the tip on the pavement with the ankle `tap` higher, and the ankle carried round the tip so the tip does not slide
+    let P=0;if(k===1&&tap>0){P=Math.max(0,Math.asin(Math.min(1,(SOLE+tap)/Math.hypot(toe,SOLE)))-Math.atan2(SOLE,toe));const a0=ankleAt(leg,kn,an);
+      solve2(leg,kn,an,a0.y+tap,a0.z+toe*(1-Math.cos(P))+SOLE*Math.sin(P));}
+    // the foot: flat (or rolled on the toe), turned as the leg and the toe-out turn it
+    sq.copy(leg.quaternion).multiply(kn.quaternion);su.set(0,0,1).applyEuler(eu.set(0,an.userData.out,0)).applyQuaternion(sq);
+    fq.setFromEuler(eu.set(P,Math.atan2(su.x,su.z),0,'YXZ'));an.quaternion.copy(sq.invert()).multiply(fq);eu.order='XYZ';});}
+const av=new T.Vector3();
+/** The ankle's position in the figure's frame, from the leg's and the knee's current turns. */
+function ankleAt(leg:T.Object3D,kn:T.Object3D,an:T.Object3D){return av.copy(an.position).applyQuaternion(kn.quaternion).add(kn.position).applyQuaternion(leg.quaternion).add(leg.position);}
+/** Turns the thigh and knee (Newton's method, at most four steps; it converges in two or three) until the ankle is at height y and depth z. */
+function solve2(leg:T.Object3D,kn:T.Object3D,an:T.Object3D,y:number,z:number){const h=1e-3;
+  for(let i=0;i<4;i++){const a=ankleAt(leg,kn,an),ay=a.y,az=a.z,ey=y-ay,ez=z-az;if(Math.abs(ey)+Math.abs(ez)<1e-5)return;
+    leg.rotation.x+=h;ankleAt(leg,kn,an);const j11=(av.y-ay)/h,j21=(av.z-az)/h;leg.rotation.x-=h;
+    kn.rotation.x+=h;ankleAt(leg,kn,an);const j12=(av.y-ay)/h,j22=(av.z-az)/h;kn.rotation.x-=h;
+    const det=j11*j22-j12*j21;if(Math.abs(det)<1e-9)return;leg.rotation.x+=(ey*j22-j12*ez)/det;kn.rotation.x+=(j11*ez-j21*ey)/det;}}
+/** How deep the cloth below the knee is, seated, against its cut: it lies along the shins, which lean forward of the knee, so a hem narrowed to .45 (as it was when it hung plumb from the knees,
+ *  to fall between them and not under the thighs) left the back of the calf showing below the knee; at .8 it closes round the calf and still ends well ahead of the seat. */
+const HEM_SEATED=.8;
+/** The lap's turn from the knees' line: the cloth's axis from its waist pivot lies this much above the line to the knees (as the fixed seated lap lay over the old fixed knees). */
+const LAP_LEAD=-.03;
+/** Seated cloth (People XXIII): the lap turns about the waist to lie along the solved thighs, toward the knees (it was a fixed -1.25 rad, made for the old fixed thighs), and the cloth below
+ *  the knee hangs along the shins (it hung plumb from the knees), front and back of a split coat with it. Read in the pelvis's frame, where the cloth hangs. */
+function seatCloth(n:Citizen){pin.copy(n.pelvis.quaternion).invert();let knee=0,shin=0;
+  n.legs.forEach((leg,k)=>{sv.copy(n.knees[k].position).applyQuaternion(leg.quaternion).add(leg.position).sub(n.pelvis.position).applyQuaternion(pin).sub(n.tails.position);knee+=Math.atan2(-sv.y,sv.z)/2;
+    su.set(0,-1,0).applyQuaternion(sq.copy(leg.quaternion).multiply(n.knees[k].quaternion)).applyQuaternion(pin);shin+=Math.atan2(su.z,-su.y)/2;});
+  n.tails.rotation.x=knee-Math.PI/2+LAP_LEAD;const hem=-shin-n.tails.rotation.x;
+  if(n.hem)n.hem.rotation.x=hem;if(n.drape?.split)holdSplit(n.drape,hem,HEM_SEATED);}
 /** Route distance with acceleration and deceleration ramps (meters). */
 export function eased(d:number,L:number,a=1.1){const k=L/(L-a);if(d<a)return d*d/(2*a)*k;if(d<L-a)return (d-a/2)*k;return (L-a-(L-d)*(L-d)/(2*a))*k;}
 /** Where on its route a walker is: going out, or coming back (the turn at the far end counts as out). `clock` is the person's own route clock. */

@@ -1,0 +1,314 @@
+{
+  "new": {
+    "people": "new",
+    "loadMs": 2681,
+    "views": {
+      "street": {
+        "camera": [
+          0,
+          40,
+          0,
+          null,
+          0.03
+        ],
+        "timing": {
+          "presentationUpdate": {
+            "n": 600,
+            "meanMs": 0.537,
+            "p50Ms": 0.5,
+            "p95Ms": 0.7,
+            "maxMs": 1.1
+          },
+          "crowdBatchUpdate": {
+            "n": 600,
+            "meanMs": 0.525,
+            "p50Ms": 0.5,
+            "p95Ms": 0.7,
+            "maxMs": 0.9
+          },
+          "cityUpdate": {
+            "n": 600,
+            "meanMs": 1.445,
+            "p50Ms": 1.4,
+            "p95Ms": 1.7,
+            "maxMs": 2.2
+          },
+          "renderSubmit": {
+            "n": 600,
+            "meanMs": 2.964,
+            "p50Ms": 3,
+            "p95Ms": 3.5,
+            "maxMs": 4.5
+          },
+          "frameCpu": {
+            "n": 600,
+            "meanMs": 4.516,
+            "p50Ms": 4.5,
+            "p95Ms": 5.4,
+            "maxMs": 6.7
+          },
+          "rafDelta": {
+            "n": 599,
+            "meanMs": 16.666,
+            "p50Ms": 16.7,
+            "p95Ms": 16.8,
+            "maxMs": 16.8
+          }
+        },
+        "scene": {
+          "drawCalls": 766,
+          "triangles": 1095688,
+          "programs": 53,
+          "geometries": 888,
+          "textures": 85,
+          "visibleMeshes": 1169,
+          "sceneMaterials": 158,
+          "crowdBatches": 17,
+          "crowdBatchMaterials": 17,
+          "crowdInstances": 6214,
+          "peopleDrawCalls": 11,
+          "peopleTriangles": 227484,
+          "jsHeapUsedMB": 239.7,
+          "jsHeapTotalMB": 317.7,
+          "pixelRatio": 1,
+          "started": true
+        },
+        "inkQuad": {
+          "medianMs": 0.645,
+          "note": "one full-screen ink quad, mean of 20 draws timed between one-pixel reads, median over 30 frames"
+        }
+      },
+      "marketSquare": {
+        "camera": [
+          0,
+          -12.5,
+          0,
+          null,
+          0.07
+        ],
+        "timing": {
+          "presentationUpdate": {
+            "n": 600,
+            "meanMs": 0.59,
+            "p50Ms": 0.6,
+            "p95Ms": 0.8,
+            "maxMs": 1.2
+          },
+          "crowdBatchUpdate": {
+            "n": 600,
+            "meanMs": 0.548,
+            "p50Ms": 0.5,
+            "p95Ms": 0.8,
+            "maxMs": 1
+          },
+          "cityUpdate": {
+            "n": 600,
+            "meanMs": 1.51,
+            "p50Ms": 1.5,
+            "p95Ms": 2,
+            "maxMs": 2.7
+          },
+          "renderSubmit": {
+            "n": 600,
+            "meanMs": 2.271,
+            "p50Ms": 2.3,
+            "p95Ms": 3,
+            "maxMs": 4.1
+          },
+          "frameCpu": {
+            "n": 600,
+            "meanMs": 3.913,
+            "p50Ms": 4,
+            "p95Ms": 5.1,
+            "maxMs": 6.1
+          },
+          "rafDelta": {
+            "n": 599,
+            "meanMs": 16.666,
+            "p50Ms": 16.7,
+            "p95Ms": 16.7,
+            "maxMs": 16.8
+          }
+        },
+        "scene": {
+          "drawCalls": 381,
+          "triangles": 786612,
+          "programs": 54,
+          "geometries": 890,
+          "textures": 86,
+          "visibleMeshes": 1169,
+          "sceneMaterials": 158,
+          "crowdBatches": 17,
+          "crowdBatchMaterials": 17,
+          "crowdInstances": 6214,
+          "peopleDrawCalls": 8,
+          "peopleTriangles": 123332,
+          "jsHeapUsedMB": 239.9,
+          "jsHeapTotalMB": 317.7,
+          "pixelRatio": 1,
+          "started": true
+        },
+        "inkQuad": {
+          "medianMs": 0.595,
+          "note": "one full-screen ink quad, mean of 20 draws timed between one-pixel reads, median over 30 frames"
+        }
+      }
+    }
+  },
+  "old": {
+    "people": "old",
+    "loadMs": 2535,
+    "views": {
+      "street": {
+        "camera": [
+          0,
+          40,
+          0,
+          null,
+          0.03
+        ],
+        "timing": {
+          "presentationUpdate": {
+            "n": 601,
+            "meanMs": 0.484,
+            "p50Ms": 0.5,
+            "p95Ms": 0.6,
+            "maxMs": 1.1
+          },
+          "crowdBatchUpdate": {
+            "n": 601,
+            "meanMs": 0.478,
+            "p50Ms": 0.5,
+            "p95Ms": 0.6,
+            "maxMs": 0.8
+          },
+          "cityUpdate": {
+            "n": 601,
+            "meanMs": 1.307,
+            "p50Ms": 1.3,
+            "p95Ms": 1.5,
+            "maxMs": 2
+          },
+          "renderSubmit": {
+            "n": 601,
+            "meanMs": 3.036,
+            "p50Ms": 3,
+            "p95Ms": 3.5,
+            "maxMs": 4.5
+          },
+          "frameCpu": {
+            "n": 601,
+            "meanMs": 4.451,
+            "p50Ms": 4.5,
+            "p95Ms": 5.1,
+            "maxMs": 6.1
+          },
+          "rafDelta": {
+            "n": 600,
+            "meanMs": 16.666,
+            "p50Ms": 16.7,
+            "p95Ms": 16.7,
+            "maxMs": 16.8
+          }
+        },
+        "scene": {
+          "drawCalls": 766,
+          "triangles": 1041614,
+          "programs": 53,
+          "geometries": 888,
+          "textures": 85,
+          "visibleMeshes": 1169,
+          "sceneMaterials": 158,
+          "crowdBatches": 17,
+          "crowdBatchMaterials": 17,
+          "crowdInstances": 6044,
+          "peopleDrawCalls": 11,
+          "peopleTriangles": 173410,
+          "jsHeapUsedMB": 195,
+          "jsHeapTotalMB": 269.2,
+          "pixelRatio": 1,
+          "started": true
+        },
+        "inkQuad": {
+          "medianMs": 0.54,
+          "note": "one full-screen ink quad, mean of 20 draws timed between one-pixel reads, median over 30 frames"
+        }
+      },
+      "marketSquare": {
+        "camera": [
+          0,
+          -12.5,
+          0,
+          null,
+          0.07
+        ],
+        "timing": {
+          "presentationUpdate": {
+            "n": 600,
+            "meanMs": 0.497,
+            "p50Ms": 0.5,
+            "p95Ms": 0.7,
+            "maxMs": 0.8
+          },
+          "crowdBatchUpdate": {
+            "n": 600,
+            "meanMs": 0.484,
+            "p50Ms": 0.5,
+            "p95Ms": 0.7,
+            "maxMs": 0.9
+          },
+          "cityUpdate": {
+            "n": 600,
+            "meanMs": 1.342,
+            "p50Ms": 1.3,
+            "p95Ms": 1.7,
+            "maxMs": 2
+          },
+          "renderSubmit": {
+            "n": 600,
+            "meanMs": 2.299,
+            "p50Ms": 2.3,
+            "p95Ms": 3,
+            "maxMs": 5.3
+          },
+          "frameCpu": {
+            "n": 600,
+            "meanMs": 3.761,
+            "p50Ms": 3.8,
+            "p95Ms": 4.8,
+            "maxMs": 7
+          },
+          "rafDelta": {
+            "n": 599,
+            "meanMs": 16.666,
+            "p50Ms": 16.7,
+            "p95Ms": 16.7,
+            "maxMs": 16.8
+          }
+        },
+        "scene": {
+          "drawCalls": 381,
+          "triangles": 752258,
+          "programs": 54,
+          "geometries": 890,
+          "textures": 86,
+          "visibleMeshes": 1169,
+          "sceneMaterials": 158,
+          "crowdBatches": 17,
+          "crowdBatchMaterials": 17,
+          "crowdInstances": 6044,
+          "peopleDrawCalls": 8,
+          "peopleTriangles": 88978,
+          "jsHeapUsedMB": 195.1,
+          "jsHeapTotalMB": 269.4,
+          "pixelRatio": 1,
+          "started": true
+        },
+        "inkQuad": {
+          "medianMs": 0.595,
+          "note": "one full-screen ink quad, mean of 20 draws timed between one-pixel reads, median over 30 frames"
+        }
+      }
+    }
+  }
+}
