@@ -22,7 +22,7 @@ export interface Panel { tails: T.Object3D; hem?: T.Object3D; garments: Garment[
 /** A front panel's skin (People XXV): the panel's own copy of its vertices, kept as built (`rest`), and how far each height of it is pushed forward (`dz`, on a grid `ys` of the part's frame, with
  *  `front`, where the cloth's front is at rest at each). An apron hangs on the belly and thighs a centimetre off; in a stride the thigh that goes forward pushes the cloth ahead of it at its own
  *  heights and the rest hangs where it was, so the cloth is a soft fold over the leading thigh and not a board turned about the waist. */
-export interface Skin { parts: { pa: T.BufferAttribute; rest: Float32Array }[]; ys: number[]; front: number[]; dz: number[]; shown: number[]; /** (the pushed hinge) */ hinge: number }
+export interface Skin { parts: { pa: T.BufferAttribute; rest: Float32Array; /** (the part's y in the tails' frame less its own: 0, or the hinge's for the hem's meshes) */ off: number }[]; ys: number[]; front: number[]; dz: number[]; shown: number[]; /** (the pushed hinge) */ hinge: number }
 /** One side of a split coat skirt: its part above the knee, its hem, and its own lead and swing. */
 export interface Part { tails: T.Object3D; hem?: T.Object3D; st: DrapeState }
 /** How thick a seated lap may be (front to back of the cloth above the knee, when that lies along the thighs). */
@@ -84,6 +84,10 @@ function scaleFor(a: number) {
   return s;
 }
 let D: Drape, W = 0, HZ = 0; // (HZ: how far a shaped panel has pushed its hinge forward)
+/** The shaped panel's skin while its hem is solved (undefined for cloth that is not one): the hem's meshes carry the push of their own height less the hinge's (`skinApply`), which `miss` counts. */
+let PK: Skin | undefined;
+/** How far the panel's skin is pushed forward at height y of the part's frame (the hinge at -.5). */
+function pushAt(k: Skin, y: number) { const n = k.ys.length, u = Math.min(n - 1, Math.max(0, (k.ys[0] - y) / (k.ys[0] - k.ys[n - 1]) * (n - 1))), i = Math.min(n - 2, Math.floor(u)); return k.dz[i] + (k.dz[i + 1] - k.dz[i]) * (u - i); }
 /** How far the cloth's point at height y, depth z (front or back) leaves leg p uncovered, into `W`: its column, its knee (a ball), its ankle (a ball) and its foot (instep, toe and heel). */
 function meet(y: number, z: number, p: typeof L[0], front: boolean) {
   const sg = front ? 1 : -1, c = legAt(p, y, D); if (c) W = Math.max(W, sg * (c.z - z) + c.r);
@@ -101,7 +105,7 @@ const LAPPED = .03;
 function miss(a: number, s: number, th: number, hinge: number, k: number) {
   const su = -a, cu = Math.sqrt(1 - a * a), sh = Math.sin(th), ch = Math.cos(th); W = 0;
   for (let i = 0; i < nl; i++) { const n = loNeeds[i];
-    const p = L[n.zf], f = n.f * k, z1 = n.y * sh + f * ch, y1 = n.y * ch - f * sh, y3 = hinge + y1, z3 = s * z1 + HZ; if (SIDE >= 0 && y1 < -LAPPED) meet(y3 * cu - z3 * su, y3 * su + z3 * cu, p, true);
+    const p = L[n.zf], push = PK ? pushAt(PK, HINGE + n.y) - HZ : 0, f = n.f * k + push, z1 = n.y * sh + f * ch, y1 = n.y * ch - f * sh, y3 = hinge + y1, z3 = s * z1 + HZ; if (SIDE >= 0 && y1 < -LAPPED) meet(y3 * cu - z3 * su, y3 * su + z3 * cu, p, true);
     if (SIDE <= 0 && !n.panel) { const b = n.b * k, zb = n.y * sh - b * ch, yb = n.y * ch + b * sh, y3b = hinge + yb, z3b = s * zb + HZ; if (yb < -LAPPED) meet(y3b * cu - z3b * su, y3b * su + z3b * cu, p, false); }
   }
   return W;
@@ -153,7 +157,7 @@ export function drape(d: Drape, st: DrapeState, tails: T.Object3D, hem: T.Object
   s = scaleFor(a); sx = 1 - Math.min(.12, (s - 1) * .12);
   if (sx < 1) { needs(d, sx); s = scaleFor(a); } }
   tails.rotation.order = 'YXZ'; tails.rotation.set(-Math.asin(a), yaw, sway); tails.scale.set(sx, 1, s); // (the yaw outermost, about the waist)
-  HZ = 0; if (alone) { shapePanel(d.panel!, d, dt, lively); HZ = d.panel!.skin?.hinge ?? 0; }
+  HZ = 0; PK = undefined; if (alone) { shapePanel(d.panel!, d, dt, lively); HZ = d.panel!.skin?.hinge ?? 0; PK = d.panel!.skin; }
   if (!hem) return; // a coat skirt that ends above the knee is one part
   // the hem: the turn about the knee that clears the legs best; if even that misses, the hem flares (its own opening, so the waist stays put: its top is cut narrow inside the upper part)
   // It hangs plumb from the knee when it may (its turn undoes the upper part's) and trails a little; most of a walk that already clears the legs, and nothing more is solved.
@@ -197,17 +201,19 @@ export function bands(rings: { y: number; w: number; f: number; b: number; z?: n
 }
 
 /** How far past the legs' own allowance (drape's thigh, knee and calf radii hold a centimetre or two of clearance) a pushed apron stands. */
-const HUG = .008;
+const HUG = .009;
 const SKIN_STEP = .02;
 function skinOf(p: Panel): Skin | undefined {
   if (p.skin) return p.skin;
   const parts: Skin['parts'] = []; let hi = -9, lo = 9;
-  p.tails.traverse(o => { if (!(o instanceof T.Mesh) || !o.geometry.attributes.position) return; o.geometry = o.geometry.clone(); const pa = o.geometry.attributes.position as T.BufferAttribute; parts.push({ pa, rest: Float32Array.from(pa.array as Float32Array) });
-    for (let j = 0; j < pa.count; j++) { hi = Math.max(hi, pa.getY(j)); lo = Math.min(lo, pa.getY(j)); } });
+  // (the hem's meshes are in the hem's frame, whose origin is the hinge in the tails': People XXV-b, they were pushed by the belly's and thigh's rows at their own y, 50 cm too high)
+  const inHem = new Set<T.Object3D>(); p.hem?.traverse(o => inHem.add(o));
+  p.tails.traverse(o => { if (!(o instanceof T.Mesh) || !o.geometry.attributes.position) return; o.geometry = o.geometry.clone(); const pa = o.geometry.attributes.position as T.BufferAttribute, off = inHem.has(o) ? HINGE : 0; parts.push({ pa, rest: Float32Array.from(pa.array as Float32Array), off });
+    for (let j = 0; j < pa.count; j++) { hi = Math.max(hi, pa.getY(j) + off); lo = Math.min(lo, pa.getY(j) + off); } });
   if (!parts.length) return undefined;
   const n = Math.max(2, Math.ceil((hi - lo) / SKIN_STEP) + 1), ys = Array.from({ length: n }, (_, i) => hi - (hi - lo) * i / (n - 1)), front = ys.map(() => -9);
   // where the front is at each ring (the greatest z of the vertices at that height), and between rings along the line from one to the next
-  const lv = new Map<number, number>(); for (const { rest } of parts) for (let j = 0; j < rest.length; j += 3) { const k = Math.round(rest[j + 1] * 1000); lv.set(k, Math.max(lv.get(k) ?? -9, rest[j + 2])); }
+  const lv = new Map<number, number>(); for (const { rest, off } of parts) for (let j = 0; j < rest.length; j += 3) { const k = Math.round((rest[j + 1] + off) * 1000); lv.set(k, Math.max(lv.get(k) ?? -9, rest[j + 2])); }
   const rows = [...lv.entries()].sort((u, w) => w[0] - u[0]);
   for (let i = 0; i < n; i++) { const y = ys[i] * 1000; let r = 0; while (r < rows.length - 2 && y < rows[r + 1][0]) r++;
     const [y0, z0] = rows[r], [y1, z1] = rows[Math.min(rows.length - 1, r + 1)], t = y1 === y0 ? 0 : Math.min(1, Math.max(0, (y - y0) / (y1 - y0))); front[i] = z0 + (z1 - z0) * t; }
@@ -216,11 +222,17 @@ function skinOf(p: Panel): Skin | undefined {
 /** Writes the skin's pushes into the panel's vertices (only where a push has changed). */
 function skinApply(s: Skin) {
   let moved = false; for (let i = 0; i < s.dz.length; i++) if (Math.abs(s.dz[i] - s.shown[i]) > 2e-4) { moved = true; break; } if (!moved) return;
-  const hi = s.ys[0], lo = s.ys[s.ys.length - 1], n = s.ys.length;
-  for (const { pa, rest } of s.parts) { const a = pa.array as Float32Array;
-    for (let j = 0; j < rest.length; j += 3) { const u = (hi - rest[j + 1]) / (hi - lo) * (n - 1), i = Math.min(n - 2, Math.max(0, Math.floor(u))), f = Math.min(1, Math.max(0, u - i)); a[j + 2] = rest[j + 2] + s.dz[i] + (s.dz[i + 1] - s.dz[i]) * f; }
+  const hi = s.ys[0], lo = s.ys[s.ys.length - 1], n = s.ys.length, hinge = hingeOf(s);
+  for (const { pa, rest, off } of s.parts) { const a = pa.array as Float32Array;
+    // (the hem's meshes take the push at their own height in the tails' frame, less the hinge's, which `carryPanel` has already moved the hem's origin by)
+    for (let j = 0; j < rest.length; j += 3) { const u = (hi - rest[j + 1] - off) / (hi - lo) * (n - 1), i = Math.min(n - 2, Math.max(0, Math.floor(u))), f = Math.min(1, Math.max(0, u - i)); a[j + 2] = rest[j + 2] + s.dz[i] + (s.dz[i + 1] - s.dz[i]) * f - (off ? hinge : 0); }
     pa.needsUpdate = true; }
   for (let i = 0; i < n; i++) s.shown[i] = s.dz[i];
+}
+/** The push at the panel's hinge (the knee). */
+function hingeOf(s: Skin) {
+  const hy = HINGE, k = (s.ys[0] - hy) / (s.ys[0] - s.ys[s.ys.length - 1]) * (s.ys.length - 1), j = Math.min(s.ys.length - 2, Math.max(0, Math.floor(k)));
+  return hy < s.ys[s.ys.length - 1] ? s.dz[s.ys.length - 1] : s.dz[j] + (s.dz[j + 1] - s.dz[j]) * Math.min(1, Math.max(0, k - j));
 }
 /** A front panel alone on the figure (an apron, the foundry slab) is shaped on the legs this frame (called by `drape`, the legs read into the cloth's frame): at each height the thigh or shin that
  *  reaches it, in front, takes the cloth's front forward to a centimetre ahead of it; where nothing pushes, the cloth hangs as built. The push is a spring of its own when `lively`. */
@@ -229,9 +241,7 @@ function shapePanel(p: Panel, d: Drape, dt: number, lively: boolean) {
   const e = lively ? 1 - Math.exp(-dt * 28) : 1;
   for (let i = 0; i < s.ys.length; i++) { const y = s.ys[i]; let need = -9; for (const l of L) { const c = legAt(l, y, d); if (c) { const up = y <= l.h.y && y >= l.k.y, a = up ? l.h : l.k, b = up ? l.k : l.a, tilt = Math.hypot(a.z - b.z, a.y - b.y) / Math.max(.05, Math.abs(a.y - b.y)); need = Math.max(need, c.z + c.r * tilt); } const dk = y - l.k.y; if (dk < d.knee && dk > -d.knee) need = Math.max(need, l.k.z + Math.sqrt(d.knee * d.knee - dk * dk)); } // (the knee a ball; a leg turned forward is wider across a level cut by 1 / cos of its lean)
     const t = need > -9 ? Math.min(.6, Math.max(0, need + HUG - s.front[i])) : 0; s.dz[i] = t > s.dz[i] ? t : s.dz[i] + (t - s.dz[i]) * e; } // (a leg pushes at once; the cloth settles back on a spring)
-  skinApply(s);
-  const hy = HINGE, k = (s.ys[0] - hy) / (s.ys[0] - s.ys[s.ys.length - 1]) * (s.ys.length - 1), j = Math.min(s.ys.length - 2, Math.max(0, Math.floor(k)));
-  s.hinge = hy < s.ys[s.ys.length - 1] ? s.dz[s.ys.length - 1] : s.dz[j] + (s.dz[j + 1] - s.dz[j]) * Math.min(1, Math.max(0, k - j));
+  skinApply(s); s.hinge = hingeOf(s);
 }
 /** Where the panel's hinge is in the part's frame (the knee: wardrobe.ts HEM_Y). */
 const HINGE = -.5;

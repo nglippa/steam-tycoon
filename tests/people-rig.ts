@@ -108,6 +108,24 @@ export function seatedThrough(combo: string, seed: number, activity: 'sit' | 'ea
   return { seen, calf, where };
 }
 
+/** How far a front panel's hem stands ahead of the legs below the knee, and how far it is turned (People XXV-b). Walking `combo` at `speed` for the cast sheet's stride window (30 Hz, after its
+ *  3 s warm-up), every 2nd frame, in the figure's own frame (z its forward): at each 5 cm height from 10 to 45 cm over the sole the front of the hem's cloth less the front of the legs (thigh,
+ *  shin, knee, the feet left out) cut at that height, the forward-most leg (`ahead`, m, the worst height and frame; 0 or less is on the leg), and the hem's turn from plumb about
+ *  its hinge (`turn`, rad, the worst frame). */
+export function hemAhead(combo: string, seed: number, speed: number) {
+  const n = make(combo, seed), player = new T.Vector3(0, 1.7, 25), dt = 1 / 30, inv = new T.Matrix4(), H: T.Mesh[] = [], Lg: T.Mesh[] = [], feet = new Set<T.Object3D>();
+  const panelHem = n.drape!.panel!.hem!; panelHem.traverse(m => { if (m instanceof T.Mesh) H.push(m); }); n.ankles.forEach(a => a.traverse(m => feet.add(m))); n.legs.forEach(l => l.traverse(m => { if (m instanceof T.Mesh && !feet.has(m)) Lg.push(m); }));
+  const a = new T.Vector3(), b = new T.Vector3(); // (the greatest z over the surface where it is cut by the level y: each triangle edge that crosses it)
+  const front = (ms: T.Mesh[], y: number) => { let z = -9; for (const m of ms) { const pa = m.geometry.attributes.position, ix = m.geometry.index, nt = ix ? ix.count : pa.count;
+    for (let t = 0; t < nt; t += 3) for (let e = 0; e < 3; e++) { const i0 = ix ? ix.getX(t + e) : t + e, i1 = ix ? ix.getX(t + (e + 1) % 3) : t + (e + 1) % 3;
+      a.fromBufferAttribute(pa, i0).applyMatrix4(m.matrixWorld).applyMatrix4(inv); b.fromBufferAttribute(pa, i1).applyMatrix4(m.matrixWorld).applyMatrix4(inv); if ((a.y - y) * (b.y - y) > 0 || a.y === b.y) continue; z = Math.max(z, a.z + (b.z - a.z) * (y - a.y) / (b.y - a.y)); } } return z; };
+  let ahead = -9, turn = 0, at = '';
+  for (let i = 0; i < 90 + 48; i++) { n.group.position.set(0, 0, i * dt * speed); animate(n, 'walk', dt, i * dt, player); if (i < 90 || (i - 90) % 2) continue; n.group.updateMatrixWorld(true); inv.copy(n.group.matrixWorld).invert();
+    turn = Math.max(turn, Math.abs(panelHem.rotation.x));
+    for (let y = .1; y < .46; y += .05) { const h = front(H, y), l = front(Lg, y); if (h > -9 && l > -9 && h - l > ahead) { ahead = h - l; at = `stride frame ${i - 90}, ${(y * 100).toFixed(0)} cm up`; } } }
+  return { ahead, turn, at };
+}
+
 /** How far a seated front panel (an apron, the foundry slab) stands off the legs it lies on (People XXIV). `activity` 'sit' or 'eat' for 4 s after a 1.5 s warm-up, every 12th frame, in the
  *  figure's own upright frame (y up, z its forward), seen from the side: the legs' side silhouette is their thigh and shin surfaces (the feet left out), sampled over every triangle onto a
  *  1 cm grid of height and depth, and every vertex of the panel is met by its distance in that plane to the nearest of it: cloth lying on a thigh, over a knee or down a shin is within a
