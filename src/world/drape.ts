@@ -316,7 +316,18 @@ export function seatLong(d: Drape, group: T.Object3D, pelvis: T.Object3D, tails:
   /** the lowest the lap's end comes over the front of a shin */
   const end = (s: number) => { let y = Infinity; lapAt(s, p => { if (before(p)) y = Math.min(y, p.y); return true; }); return y; };
   const seat = (s: number) => lapAt(s, p => !(p.z > back && p.z < front && p.y < top + .002));
-  const sl = deepest(seat, s0 * .35, s0), e0 = end(s0), e1 = end(sl);
+  // nor is it taken in past the thighs: with the seated knees parted (People XXVI), a thigh's outer side runs out toward the lap's side, where a lap taken in about its axis is
+  // narrower at the thigh's height, and the thigh came through it. So it is taken in no further than keeps the leg itself (from 15 cm past the hip to the knee) from passing out through
+  // its lining: no point round a thigh's top and outer side is outside the lap where the line from it in to the thigh's axis is inside
+  const TH: [T.Vector3, T.Vector3][] = []; for (let i = 0; i < 2; i++) { const H = legs[i].position, K = SK[i], sx = Math.sign(H.x) || (i ? -1 : 1);
+    for (const t of [.35, .5, .65, .8, .95]) { const r = (d.thigh - .014) * (1 - t) + (d.knee - .02) * t, A = new T.Vector3().lerpVectors(H, K, t);
+      for (const a of [0, .5, 1, Math.PI / 2, 2.1]) TH.push([A.clone().add(SV.set(sx * Math.cos(a) * r, Math.sin(a) * r, 0)), A]); } }
+  const inLap = (p: T.Vector3) => { SV.copy(p).applyMatrix4(MR); for (const g of gs) { const r = bandAt(g.up, SV.y); if (r && Math.abs(SV.x) < r.w && SV.z < at(r, SV.x, true) && SV.z > -at(r, SV.x, false)) return true; } return false; };
+  const covered = (s: number) => { squeeze(tails, s0, s, 0); MR.multiplyMatrices(pelvis.matrix, tails.matrix).invert();
+    for (const [P, A] of TH) if (!inLap(P) && [.25, .5, .75, 1].some(u => inLap(SD.copy(P).lerp(A, u)))) return false; return true; };
+  let sl = deepest(seat, s0 * .35, s0);
+  if (sl < s0 && !covered(sl)) { if (!covered(s0)) sl = s0; else { let a = sl, b = s0; for (let i = 0; i < 10; i++) { const m = (a + b) / 2; if (covered(m)) b = m; else a = m; } sl = b; } }
+  const e0 = end(s0), e1 = end(sl);
   // drawn up, the lap's end may stop over a shin's front above where it hung and under the hem's lowest (a short coat's: its lap's end is what came down over the shin under the knee):
   // there the hems are let down to it, or a strip of the shin would show under the lap
   const down = sl < s0 && e0 < low && e1 > e0 + .001 && e1 < low ? low - e1 + .01 : 0;
