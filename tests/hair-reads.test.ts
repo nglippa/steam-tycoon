@@ -75,3 +75,36 @@ test('no moustache is a toothbrush (People XXVI): it is wider than the mouth by 
   for (const [id, l] of ordinance) if (l.facial !== 'none') chevron(l, id);
   for (const cast of ['garrison', 'inspector'] as const) for (const [f] of CASTS[cast].facial) assert.ok(['none', 'moustache', 'beard', 'sideburns'].includes(f), `${cast}: ${f}`);
 });
+
+test('a ponytail is a thick tail that eases to its tip, rooted where it was (People XXVIII)', () => {
+  // (the tail's x and z extent in bands of its length, standard units; it was 5.7 cm wide and 7 cm deep at the root, 6 cm wide and 7 cm deep a quarter down, and its tip 2.3 cm wide)
+  const h = .285, g = hairOf(look({ hairStyle: 'ponytail', hat: 'none' }), h, false).swing, tail = g.reduce((a, b) => b.attributes.position.count > a.attributes.position.count ? b : a), P = pts([tail]);
+  const top = Math.max(...P.map(p => p.y)), bot = Math.min(...P.map(p => p.y)), ext = (t: number, k: 'x' | 'z') => { const Q = P.filter(p => Math.abs((top - p.y) / (top - bot) - t) < .12); assert.ok(Q.length, `no tail at ${t}`); return Math.max(...Q.map(p => p[k])) - Math.min(...Q.map(p => p[k])); };
+  const wide = Math.max(...[.1, .25, .4].map(t => ext(t, 'x')));
+  assert.ok(wide >= .075, `the tail is ${(wide * 100).toFixed(1)} cm wide at its fullest`);
+  assert.ok(ext(.25, 'z') >= .082, `the tail is ${(ext(.25, 'z') * 100).toFixed(1)} cm deep a quarter down`);
+  assert.ok(ext(.95, 'x') <= .4 * wide, `at its tip the tail is ${(ext(.95, 'x') * 100).toFixed(1)} cm wide against ${(wide * 100).toFixed(1)}`);
+  assert.ok(ext(.6, 'x') > ext(.95, 'x') * 1.8 && ext(.8, 'x') < ext(.4, 'x') * .75, 'the taper eases: still full at 60 % and narrow by 80 %');
+  assert.ok(ext(.1, 'x') >= .07, `the root is ${(ext(.1, 'x') * 100).toFixed(1)} cm wide`);
+});
+
+test('the stallholder\'s low bun is full: 1.5 cm wider across the temples and 8 mm higher over the crown than the old flat skin, and a headscarf keeps its width', () => {
+  // People XXVIII: the bun's hair lay as a thin skin (13.6 cm across in standard units, crown at .296); it has volume over the crown and temples, a deeper parting groove and a hairline that dips there
+  const h = .285, bare = pts(hairOf(look({ hairStyle: 'lowBun', hat: 'none' }), h, false).hair), scarf = pts(hairOf(look({ hairStyle: 'lowBun', hat: 'headscarf' }), h, true).hair);
+  const wide = (P: T.Vector3[]) => Math.max(...P.map(p => Math.abs(p.x))), high = (P: T.Vector3[]) => Math.max(...P.map(p => p.y));
+  assert.ok(wide(bare) >= .150, `the bare bun's hair is ${(wide(bare) * 100).toFixed(1)} cm either side`);
+  assert.ok(high(bare) >= .302, `its crown is at ${high(bare).toFixed(3)}`);
+  assert.ok(wide(scarf) >= .115, `under the scarf the hair is ${(wide(scarf) * 100).toFixed(1)} cm either side`);
+  assert.ok(bare.some(p => p.z > .1 && Math.abs(p.x) < .012 && p.y < .23), 'the hairline dips at the parting');
+});
+
+test('white hair under the elder\'s hat tucks under the brim: it stands no more than 2.2 cm off the scalp, and a bun is carried up under the brim', async () => {
+  const { skullRings } = await import('../src/world/people/head.ts'), { ringAt } = await import('../src/world/people/loft.ts'), { BUILT } = await import('../src/world/people/figure.ts');
+  const h = .285, v = new T.Vector3(); let n = 0;
+  for (const seed of [12, 13, 15, 16, 22]) { const l = resolveLook(seed, 'resident', { cast: 'elder', family: 'slim', frame: 'narrow', casts: BUILT }); if (l.hat !== 'elderHat') continue; n++;
+    const o = hairOf(l, h, true), rings = skullRings(l.headShape, h); let ex = 0;
+    for (const g of o.hair) { const p = g.attributes.position; for (let i = 0; i < p.count; i++) { v.fromBufferAttribute(p, i); const r = ringAt(rings, v.y); ex = Math.max(ex, Math.abs(v.x) - r.w, v.z > 0 ? v.z - r.f : -v.z - r.b); } }
+    assert.ok(ex <= .022, `${l.hairStyle} (seed ${seed}) stands ${(ex * 100).toFixed(1)} cm off the scalp under the brim`);
+    for (const g of o.swing) assert.ok(Math.min(...pts([g]).map(p => p.y)) >= .075, `the bun (seed ${seed}) hangs below the brim`); }
+  assert.ok(n >= 3, `${n} elder-hat seeds measured`);
+});

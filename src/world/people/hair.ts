@@ -126,7 +126,7 @@ interface Style {
   /** the fringe and the other locks that lie over the top of the head: hidden by any hat */ fringe?: LP[][];
   /** locks at the edge (sides, nape) that still show under a hat that sits above them */ edge?: LP[][];
   /** what is tied or hangs: built in the figure's head frame, standard units */ tied?: (hatted: Hat) => T.BufferGeometry[];
-  /** under a hat, the most the mass may stand off the scalp (standard units): what shows below a brim lies close instead of flaring out under it */ underHat?: number;
+  /** under a hat, the most the mass may stand off the scalp (standard units): what shows below a brim lies close instead of flaring out under it */ underHat?: number; /** (under a hat, how much of the style's offset is kept at the seat: .006 unless the style asks for more) */ seatOff?: number;
 }
 type Mk = (sg: number, c: Ctx) => Style;
 
@@ -179,10 +179,12 @@ const S: Record<HairStyle, Mk> = {
   }),
   /** Drawn back from a centre parting, smooth and close over the top, swept over the upper ear into soft wings at the sides and gathered into a bun low at the back. */
   lowBun: () => ({
-    low: sym([[0, .234], [.5, .236], [.9, .238], [1.12, .205], [1.26, .165], [1.42, .132], [1.65, .118], [1.95, .112], [2.3, .096], [2.7, .082], [A, .078]]),
-    off: d => .008 + lobe(1, .12, -.15, .028, .34)(d) + lobe(-1, .12, -.15, .028, .34)(d) + lobe(0, .9, .35, .006, .5)(d) - .005 * parting(d, 0, .035),
+    // People XXVIII: fuller over the crown and the temples (the hair lay a flat skin on the head), a centre parting that is a groove and a hairline that breaks at it and at the temples
+    low: sym([[0, .21], [.1, .226], [.28, .238], [.5, .24], [.9, .24], [1.1, .2], [1.2, .18], [1.26, .16], [1.42, .132], [1.65, .118], [1.95, .112], [2.3, .096], [2.7, .082], [A, .078]]),
+    underHat: .02, seatOff: .012,
+    off: d => .014 + lobe(1, .12, -.15, .034, .36)(d) + lobe(-1, .12, -.15, .034, .36)(d) + lobe(1, .62, .3, .014, .4)(d) + lobe(-1, .62, .3, .014, .4)(d) + lobe(0, .9, .35, .01, .5)(d) - .01 * parting(d, 0, .05),
     roots: a => 1 - sm(Math.abs(a), 1.15, 1.35),
-    tied: hat => hat === 'bonnet' || hat === 'headscarf' ? [] : [bun(.045, [0, .088, -.158], [.5, 0, 0])], // under cloth the bun is gathered in it, and the cloth swells over it
+    tied: hat => hat === 'bonnet' || hat === 'headscarf' ? [] : hat === 'elderHat' ? [bun(.04, [0, .125, -.142], [.5, 0, 0])] : [bun(.045, [0, .088, -.158], [.5, 0, 0])], // (under an elder's brim the bun is tucked up under it, not hung below) // under cloth the bun is gathered in it, and the cloth swells over it
   }),
   /** Everything drawn up from a bare forehead and nape into a knot high on the back of the crown; one loose piece falls in front of the ear on one side. */
   highKnot: sg => ({
@@ -199,7 +201,8 @@ const S: Record<HairStyle, Mk> = {
       [0, .228], [-.3, .214], [-.55, .194, 1], [-.68, .216, 1], [-.85, .222], [-1.1, .212], [-1.28, .17], [-1.4, .15, 1], [-1.52, .166], [-1.85, .164], [-2.2, .132], [-2.6, .102], [-2.9, .096]], sg)),
     off: d => .007 + lobe(-.4 * sg, .6, .7, .036, .34)(d) + lobe(.2 * sg, .85, .3, .006, .5)(d) + lobe(0, .55, -.8, .016, .45)(d) + front(d, .006),
     roots: a => Math.max(sm(a * sg, -.15, .1), sm(Math.abs(a), .9, 1.1)) * (1 - sm(Math.abs(a), 1.25, 1.45)),
-    tied: hat => { const y = hat === 'none' ? .2 : .16; return [tieBand([0, y, -.128]), tail([[0, y + .006, -.138, .022, .02], [0, y - .016, -.172, .03, .028], [0, y - .06, -.198, .032, .028], [0, y - .13, -.206, .028, .024], [sg * .008, y - .2, -.196, .021, .018], [sg * .016, y - .26, -.18, .012, .011], [sg * .012, y - .3, -.17, .003, .004]])]; },
+    tied: hat => { const y = hat === 'none' ? .2 : .16; // (People XXVIII: a thick tail that eases to its tip: full through the first third, then narrowing, with a curl at the end; the root is as it was or wider)
+      return [tieBand([0, y, -.128], .027), tail([[0, y + .006, -.138, .03, .026], [0, y - .016, -.172, .042, .036], [0, y - .06, -.2, .044, .038], [0, y - .13, -.212, .04, .034], [sg * .008, y - .2, -.2, .028, .024], [sg * .018, y - .26, -.184, .014, .012], [sg * .026, y - .3, -.172, .004, .005]])]; },
   }),
   /** Long hair, loosely tied low at the nape: full at the sides over the ears, points framing the face in front of the ears, a broad tail down the back. */
   longTied: sg => ({
@@ -230,6 +233,8 @@ const tieBand = (p: [number, number, number], r = .02) => place(loft([{ y: -.008
 const tail = (pts: number[][]) => sweep(pts.map(([x, y, z, a, b]) => ({ p: [x, y, z] as [number, number, number], a, b, n: [0, 0, -1] as [number, number, number] })), { seg: 7, capStart: true, capEnd: true });
 
 export interface HairOut { hair: T.BufferGeometry[]; under: T.BufferGeometry[]; swing: T.BufferGeometry[] }
+/** The hats with a brim: the hair under them is held to a close layer (hairOf), so it tucks under the brim and does not push out past it. */
+const BRIMMED = new Set<Hat>(['elderHat', 'bowler', 'flatCap', 'softCap', 'topHat']);
 const built = new Map<string, HairOut>();
 /** The hair for a look on a head of height h. `hatted`: the style is cut at the hat's seat, so it shows only below the band. Shared per style, side, head shape, size and hat. */
 export function hairOf(look: Look, h: number, hatted: boolean): HairOut {
@@ -248,7 +253,8 @@ export function hairOf(look: Look, h: number, hatted: boolean): HairOut {
     // what shows under the hat is soft: the sawtooth of the style's temples is blurred away into one rounded edge that follows the head
     const raw = low, blur = (a: number) => { let t = 0; for (let i = -4; i <= 4; i++) t += raw(a + i * .07); return t / 9; };
     low = Object.assign((a: number) => Math.min(raw(a), blur(a) + .008, cut(a) - .004), { keys: [] as number[] });
-    const o1 = off, cap = st.underHat ?? Infinity; off = (d, s, a, y) => { const f = sm(y, seat(a) - .03, seat(a) - .004), v = Math.min(cap, o1(d, s, a, y)); return v * (1 - f) + Math.min(v, .006) * f; };
+    // (a brim sits wider than the hair: People XXVIII, white hair stood 3.8 cm off the scalp below the elder's brim and a bun hung 12 cm out)
+    const o1 = off, cap = BRIMMED.has(hat) ? Math.min(st.underHat ?? Infinity, .012) : st.underHat ?? Infinity; off = (d, s, a, y) => { const f = sm(y, seat(a) - .03, seat(a) - .004), v = Math.min(cap, o1(d, s, a, y)); return v * (1 - f) + Math.min(v, BRIMMED.has(hat) ? .006 : st.seatOff ?? .006) * f; };
   }
   const sh = shell(c, { low, top, off, hang: st.hang, cols: seat ? 16 : st.cols, rows: seat ? 3 : st.rows, a0: st.a0, a1: st.a1, wallTop: st.wallTop || !!seat });
   out.hair.push(sh.outer); out.under.push(sh.wall);
