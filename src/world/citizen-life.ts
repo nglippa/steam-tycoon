@@ -2,7 +2,7 @@ import * as T from 'three';
 import type { Citizen, Expression } from './citizens';
 import type { Archetype } from './palette';
 import { walk, advance, MIN, pose, legZ, STANCE, REST, SOLE, HEEL_X, TOE_X, type Params } from '../simulation/gait';
-import { drape, readLegs, rest, drapeSplit, restSplit, holdSplit, seatPanel, carryPanel, seatLong, unseatLong, LAP_SEATED } from './drape';
+import { drape, readLegs, rest, restPanel, drapeSplit, restSplit, holdSplit, seatPanel, carryPanel, seatLong, unseatLong, LAP_SEATED } from './drape';
 import { FOOD } from './people/parts';
 import { isOccupier, conduct, bodyFor, faceAllowed, moodOfTone, stepMood, nearBand, type Trait, type MoodIn } from '../simulation/occupation';
 export type Activity='talk'|'browse'|'guard'|'carry'|'walk'|'read'|'hammer'|'sweep'|'warm'|'gauge'|'valve'|'argue'|'sit'|'eat'|'lean'|'watch'|'clipboard'|'repair';
@@ -249,7 +249,7 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
   if(seated){seatLegs(n,activity==='eat'?.018*Math.max(0,Math.sin(phase)):0);seatCloth(n);if(n.drape)seatLong(n.drape,n.group,n.pelvis,n.tails,n.hem,n.legs,n.knees,n.ankles);/* (People XXV: and kept out of the seat) */}
   // Long cloth follows the legs, now they are where they will be drawn: a lifted knee never pierces it, the upper part leads with the knees and the hem trails it with weight
   // (beyond 40 m it is solved every third frame, and standing still it eases back to plumb).
-  if(follows){if(w>.02){if(lively||(m.cloth.tick=(m.cloth.tick+1)%3)===0){readLegs(n.pelvis,n.tails,n.legs,n.knees,n.ankles);drape(n.drape!,m.cloth,n.tails,n.hem,dt,g,n.tails.rotation.z,lively?m.tail*.6:-g*.06,lively);drapeSplit(n.drape!,n.tails,dt,g,lively);}}else{rest(m.cloth,n.tails,n.hem,dt,n.tails.rotation.z);restSplit(n.drape!,dt);}}
+  if(follows){if(w>.02){if(lively||(m.cloth.tick=(m.cloth.tick+1)%3)===0){readLegs(n.pelvis,n.tails,n.legs,n.knees,n.ankles);drape(n.drape!,m.cloth,n.tails,n.hem,dt,g,n.tails.rotation.z,lively?m.tail*.6:-g*.06,lively);drapeSplit(n.drape!,n.tails,dt,g,lively);}}else{rest(m.cloth,n.tails,n.hem,dt,n.tails.rotation.z);restSplit(n.drape!,dt);restPanel(n.drape!,n.pelvis,n.tails,n.legs,n.knees,n.ankles,dt);}}
   // A front panel (an apron, the foundry slab: People XXIV) is its own part: seated it rests on the thighs and falls from the knees; otherwise it is carried as the long cloth is.
   if(n.drape?.panel){if(seated)seatPanel(n.drape,n.pelvis,n.tails,n.hem,n.legs,n.knees,n.ankles);else carryPanel(n.drape.panel,n.hem);}
   // Head stabilization: the head cancels torso lean and twist.
