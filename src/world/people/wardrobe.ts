@@ -53,6 +53,23 @@ export function dress(x: X) {
   let into: { tails: T.Group; hem: T.Group; cloth: Garment[] } = { tails, hem, cloth: x.cloth };
   /** builds a front panel (an apron, the foundry slab) into its own part (`panel`), so seated it can lie on the thighs and fall from the knees apart from a skirt under it (People XXIV) */
   const asPanel = (f: () => void) => { const was = into; into = { tails: x.panel.tails, hem: x.panel.hem, cloth: x.cloth }; f(); into = was; };
+  // ---- what a belt lies on (People XXV): every torso shell and every long cloth round the waist is recorded as it is built (in sole heights), and a belt, a band or a strap is laid on
+  // the outermost of them at its height, a few millimetres off, so it wraps what is under it however the torso is cut (it was a fixed offset off the ribcage, 2-4 cm proud of a shirt)
+  type Layer = { rings: Ring[]; a0: number; a1: number };
+  const layers: Layer[] = [], layer = (rings: Ring[], dy = 0, a0 = 0, arc = Math.PI * 2) => { layers.push({ rings: dy ? rings.map(r => ({ ...r, y: r.y + dy })) : rings, a0, a1: a0 + arc }); };
+  /** whether a layer's cloth is at angle a (0 the front, pi the back) */
+  const covers = (L: Layer, a: number) => { const t = ((a - L.a0) % (Math.PI * 2) + Math.PI * 4) % (Math.PI * 2); return L.a1 - L.a0 > Math.PI * 2 - 1e-6 || t <= L.a1 - L.a0; };
+  /** the outermost of what is built at height y, `gap` out from it: its front from what covers the front, its back from what covers the back and its sides from what covers them, about
+   *  the centre of the largest of them. (A band is lofted with the same ten segments as the shells it lies on, so its corners fall on theirs: at twelve its corners stood over their flat
+   *  faces, 7 mm further off.) */
+  const under = (y: number, gap: number): Ring => { let ref: Ring | undefined, size = 0, F = -9, B = -9, W = 0, n = 9;
+    for (const L of layers) { const g = L.rings, lo = Math.min(g[0].y, g[g.length - 1].y), hi = Math.max(g[0].y, g[g.length - 1].y); if (y < lo - .005 || y > hi + .005) continue;
+      const r = ringAt(g, y), z = r.z ?? 0, k = r.w + (r.f + r.b) / 2; if (k > size) { size = k; ref = r; }
+      if (covers(L, 0)) F = Math.max(F, z + r.f); if (covers(L, Math.PI)) B = Math.max(B, r.b - z); if (covers(L, Math.PI / 2) || covers(L, -Math.PI / 2)) W = Math.max(W, r.w); n = Math.min(n, r.n ?? 2); }
+    if (!ref) { const r = ringAt(rib, y); return { ...r, y, w: r.w + gap, f: r.f + gap, b: r.b + gap }; }
+    const z = ref.z ?? 0; return { ...ref, y, n, w: (W || ref.w) + gap, f: (F > -9 ? F - z : ref.f) + gap, b: (B > -9 ? B + z : ref.b) + gap }; };
+  /** a band laid round what is under it from y0 to y1 (People XXV; what is under it is the outfit's, so a band's cached geometry is keyed by the outfit) */
+  const wrap = (y0: number, y1: number, gap = .003) => [under(y0, gap), under(y1, gap)];
   // ---- long cloth is hinged at the knee (HEM_Y): rings from the belt to a hem below the knee are cut in two, the upper half in `tails` (it overlaps the hinge by 3 cm), the lower in `hem`
   const down = (rings: Ring[]) => rings.map(r => ({ ...r, y: r.y - HEM_Y }));
   const hinged = (rings: Ring[]) => rings[rings.length - 1].y < HEM_Y - .06;
@@ -63,6 +80,7 @@ export function dress(x: X) {
     return { up: [...rings.filter(r => r.y > HEM_Y).map(slimmer), { ...knee, y: HEM_Y - .03 }], lo: down([tuck({ ...knee, y: HEM_Y + .03 }, .7), tuck({ ...knee, y: HEM_Y - .015 }, .9), { ...knee, y: HEM_Y - .03 }, ...rings.filter(r => r.y < HEM_Y - .03)]) }; };
   /** a shell of rings that may be long: whole in `tails` when it ends above the knee, otherwise hinged, with the hem's turned lip on the lower half */
   const longShell = (rings: Ring[], o: Parameters<typeof loft>[1], m: T.Material, k2: string, lip = .008) => {
+    if ((o?.arc ?? Math.PI * 2) > Math.PI * 2 - 1e-6 || ((o?.arc ?? 0) > Math.PI && into.tails !== tails)) layer(rings, 1.07, o?.start ?? 0, o?.arc ?? Math.PI * 2); // (a skirt or a closed coat's skirts round the waist, whole or in its two sides: a belt goes over them; not an open coat's, nor an apron's front)
     if (!hinged(rings)) { shellBoth(into.tails, rings, o, m, k2, lip); if (rings[rings.length - 1].y < -.15) into.cloth.push({ up: bands(rings, lip), lo: [], panel: (o?.arc ?? Math.PI * 2) < Math.PI }); return; } // one part, ending above the knee: it follows the thighs
     const s = splitAt(rings, (o?.arc ?? Math.PI * 2) < Math.PI); shellBoth(into.tails, s.up, o, m, k2 + '/up', lip, false, .07); shellBoth(into.hem, s.lo, o, m, k2 + '/lo', lip);
     // the cloth as the legs see it (to its lining): an apron or slab, less than half way round, has no back to clear
@@ -99,14 +117,14 @@ export function dress(x: X) {
     if (o.placket !== false) { put0(lifted, strip(sh, steps(1.4, 1.1, 5), () => .006, false, .0075, .016, .0035), m); for (const y of [1.34, 1.24, 1.14]) button(lifted, surface(sh, y, .05, .0095), brass, .006); }
     if (o.yoke !== false) { put0(lifted, around(sh, 1.405, Math.PI - .9, Math.PI + .9, .002, .008, .0035, 5), m); put0(lifted, seam(sh, steps(1.4, 1.1, 5), () => Math.PI, .002, .007, .0035), m); }
     if (o.collar !== false) { const cr = ringAt(neckR, 1.52), cl = [1.51, 1.535, 1.565].map((y, i) => ({ y, w: cr.w + [.01, .016, .018][i], f: cr.f + [.01, .016, .018][i], b: cr.b + [.009, .015, .017][i], z: (cr.z ?? 0) + .003, n: 2.1 })); put0(lifted, loft(cl, { seg: 12, lipEnd: .003, key: key('collar0') }), m); }
-    return sh;
+    layer(sh, 0, o.front ? -o.front : 0, o.front ? 2 * o.front : Math.PI * 2); return sh;
   };
   /** a jacket or coat shell hung from the chest, open or overlapped, with a collar, lapels, a yoke seam and a back seam; `hem` (a sole height) adds the skirts on the pelvis */
   const jacket = (m: T.Material, o: { off?: number; closed?: boolean; aL?: number; aR?: number; lapel?: boolean; stand?: boolean; buttons?: number; hem?: number; hemW?: number; hemD?: number; curve?: number; trimM?: T.Material; belt?: boolean; vent?: number; collar?: boolean; pocketFlaps?: boolean; /** the skirt is cut at its side seams into a front and a back that open apart (drape.ts: the front over the knee, the back trailing) */ split?: boolean }) => {
     const off = o.off ?? .022, aL = o.aL ?? .3, aR = o.aR ?? .3, cR = offset(rib, off, (_, i) => ({ w: i < 2 ? .004 : 0, f: i < 3 ? .006 : 0 })), arc = o.closed ? { start: 0, arc: Math.PI * 2 } : open(aL, aR);
-    put0(lifted, loft(cR, { seg: 10, ...arc, lipEnd: .003, key: key(`coat/${off}/${arc.start}/${arc.arc}`) }), m);
+    put0(lifted, loft(cR, { seg: 10, ...arc, lipEnd: .003, key: key(`coat/${off}/${arc.start}/${arc.arc}`) }), m); if (o.closed) layer(cR); // (a belt goes over a closed coat, and under an open one: on what its opening shows)
     if (!o.closed) for (const a of [aL, -aR]) put0(lifted, seam(cR, steps(1.5, 1.045, 5), () => a, .002, .018, .005), o.trimM ?? m);
-    else { put0(lifted, plate(cR, steps(1.47, 1.05, 8).map(y => [y, -.6, .17]), .0, .006, 8), m); for (const y of steps(1.42, 1.12, o.buttons ?? 3)) button(lifted, surface(cR, y, .1, .0075), brass, .0085); }
+    else { put0(lifted, plate(cR, steps(1.47, 1.05, 8).map(y => [y, -.6, .17]), .0, .006, 8), m); layer(offset(cR, .006), 0, -.6, .77); for (const y of steps(1.42, 1.12, o.buttons ?? 3)) button(lifted, surface(cR, y, .1, .0075), brass, .0085); }
     const nc = ringAt(neckR, 1.52), cc = [1.508, 1.536, 1.572].map((y, i) => ({ y, w: nc.w + [.021, .03, .038][i], f: nc.f + [.021, .03, .036][i], b: nc.b + [.02, .03, .038][i], z: (nc.z ?? 0) + .004, n: 2.1 }));
     if (o.collar !== false) put0(lifted, loft(cc, { seg: 14, ...(o.closed || o.stand ? { start: 0, arc: Math.PI * 2 } : { start: .7, arc: Math.PI * 2 - 1.4 }), lipEnd: .007, lipStart: .004, key: key(`collar/${o.closed || o.stand}`) }), m);
     if (!o.closed && o.lapel !== false) for (const [s, e] of [[1, aL], [-1, -aR]] as const) put0(lifted, plate(cR, [[1.488, .25], [1.43, .5], [1.36, .55], [1.28, .45], [1.2, .18]].map(([y, w]) => [y, e, e + s * w]), .0, .007, 3), o.trimM ?? m);
@@ -134,7 +152,7 @@ export function dress(x: X) {
     return { cR, rings: undefined, on: (_a: number, f: () => void) => f(), at: (_a: number) => tails };
   };
   const waistcoat = (m: T.Material, o: { top?: number; buttons?: number; edge?: T.Material } = {}) => {
-    const vb = offset(rib, .015), vr = [1.125, 1.2, 1.3, 1.36, 1.43].map(y => ringAt(vb, y)), shirtM = white;
+    const vb = offset(rib, .015), vr = [1.125, 1.2, 1.3, 1.36, 1.43].map(y => ringAt(vb, y)), shirtM = white; layer(vr);
     put0(lifted, loft(vr, { seg: 10, lipEnd: .004, key: key('vest') }), m);
     for (const y of steps(1.13, 1.28, o.buttons ?? 3)) button(lifted, surface(vb, y, 0, .004), brass, .0065);
     put0(lifted, plate(vb, [[1.43, -.34, .34], [1.38, -.27, .27], [1.33, -.16, .16], [1.28, -.04, .04]], .0, .003, 6), shirtM);
@@ -156,8 +174,7 @@ export function dress(x: X) {
       bandAt(rings, y1 - .004, -aw, aw, .002, .008, .004, bind); });
     skirt.drop = Math.max(skirt.drop, Math.min(.5, 1.07 - o.hemY)); /* an apron is a front panel the legs push, not a bell: it opens less than its length says */ skirt.depth = Math.max(skirt.depth, (rings[rings.length - 1].f + rings[rings.length - 1].b) * .5 + .02);
     // the waist band, round to the back, tied in a bow with two tails (the asymmetry: the tails hang from one side)
-    const wr = offset(rib, .016).filter(r => r.y < 1.15), band = [1.1, 1.14].map(y => ringAt(offset(rib, .028), y));
-    put0(lifted, loft(band, { seg: 10, lipStart: .003, lipEnd: .003, key: key('apronband') }), o.leather ? leatherDM : m); void wr;
+    const band = wrap(1.1, 1.14); put0(lifted, loft(band, { seg: 10, lipStart: .003, lipEnd: .003, key: key(`apronband/${look.outfit}`) }), o.leather ? leatherDM : m).userData.belt = .003;
     const side = asym.has('apronTie') ? 1 : -1;
     for (const [dx, len] of [[.0, .2], [.035, .15]]) { const a = Math.PI + side * (.5 + dx * 4), seat = offset(pel, .03), pts: SweepPt[] = [0, .33, .66, 1].map(t => { const y = 1.12 - t * len, q = y > 1.1 ? surface(offset(rib, .028), y, a, .004) : surface(seat, y, a, .004), r = surface(offset(rib, .028), Math.max(1.04, y), a, .004); const p = q.p.length() > r.p.length() ? q : r; return { p: [p.p.x + side * t * .02, p.p.y, p.p.z] as Pt, a: .018 * (1 - t * .3), b: .004, n: p.n.toArray() as Pt }; }); put0(lifted, sweep(pts, { seg: 4, capStart: true, capEnd: true }), m); } // the tails lie on the seat, not off it (no sliver in profile)
     if (o.bib) {
@@ -231,7 +248,11 @@ export function dress(x: X) {
   /** marks what `f` adds to `g` as a carried prop (userData.prop), so a test can keep the hands and forearms out of it */
   const prop = (g: T.Object3D, f: () => void) => { const n0 = g.children.length; f(); for (const o of g.children.slice(n0)) o.userData.prop = true; };
   const pouch = (g: T.Group, rings: Ring[], y: number, a0: number, a1: number, m: T.Material) => prop(g, () => { put0(g, plate(rings, [[y, a0, a1], [y - .1, a0, a1]], .0, .014, 4), m); put0(g, plate(rings, [[y + .004, a0 - .02, a1 + .02], [y - .04, a0 - .02, a1 + .02]], .0, .02, 4), edgeM); });
-  const belt = (m: T.Material, y: number, off = .03, hw = .02) => { const b = [y - hw + .002, y + hw - .002].map(yy => ringAt(offset(rib, off), Math.max(1.04, Math.min(1.1, yy)))); put0(lifted, loft([{ ...b[0], y: y - hw }, { ...b[1], y: y + hw }], { seg: 10, lipStart: .003, lipEnd: .003, key: key(`belt/${y}/${off}/${hw}`) }), m); const q = surface(offset(rib, off), y, 0, .004); put0(lifted, new T.Mesh(new T.BoxGeometry(hw > .025 ? .056 : .036, hw > .025 ? .05 : .03, .008), brass).geometry, brass, q.p.toArray() as Pt); };
+  /** a belt at height y, half its width hw, laid on what is under it (`gap` off its outermost layer), with its buckle on the front (under an open coat, `front`: only the front a shirt cut
+   *  to the front shows, its ends under the coat); marked (userData.belt,
+   *  its thickness) so a test can hold it to what it wraps */
+  const belt = (m: T.Material, y: number, hw = .02, gap = .003, front?: number) => { const b = wrap(y - hw, y + hw, gap), mesh = put0(lifted, loft(b, { seg: front ? Math.max(3, Math.round(10 * front / Math.PI) + 1) : 10, ...(front ? { start: -front, arc: 2 * front } : {}), lipStart: .003, lipEnd: .003, key: key(`belt/${y}/${hw}/${gap}/${front}/${look.outfit}`) }), m); mesh.userData.belt = .003;
+    const q = surface(b, y, 0, .004); put0(lifted, new T.Mesh(new T.BoxGeometry(hw > .025 ? .056 : .036, hw > .025 ? .05 : .03, .008), brass).geometry, brass, q.p.toArray() as Pt); };
 
   // ---------------------------------------------------------------- the casts
   const I = (n: string) => pal[n], bare = (side: number) => side < 0;
@@ -269,12 +290,13 @@ export function dress(x: X) {
     // a half-belt across the back, buttoned at both ends
     put0(lifted, around(r.cR, 1.17, Math.PI - .95, Math.PI + .95, .004, .024, .007, 6), coat); for (const a of [Math.PI - .95, Math.PI + .95]) button(lifted, surface(r.cR, 1.17, a, .012), brass, .009);
     // the wide belt with a plate buckle, over the coat at the waist
-    belt(strap, 1.09, .05, .03); // People XX: the belt and crossbelt in pipeclayed bone, the rank and file's light X and waistline at a distance
-    // the crossbelt wraps the torso: over one shoulder, across the chest, round the side to a pouch on the opposite hip, crossing on the back
-    const sd = side, W = (pts: number[][]) => pts.map(([y, a]) => { const q = surface(r.cR, y, a, .009); return { p: q.p.toArray() as Pt, a: .027, b: .006, n: q.n.toArray() as Pt }; });
+    belt(strap, 1.09, .03); // People XX: the belt and crossbelt in pipeclayed bone, the rank and file's light X and waistline at a distance
+    // the crossbelt wraps the torso: over one shoulder, across the chest, round the side to a pouch on the opposite hip, crossing on the back. People XXV: one strap, unbroken from the hip
+    // up across the chest, over the shoulder and down the back to the other hip, lying on the coat (its inner face 5.5 mm off, over the buttoned front's overlap) and tucked under the
+    // waist belt at both ends; it was two straps capped where they met on the shoulder and below the belt, which read in 3/4 as a broken Z and from the side as two slabs
+    const sd = side, W = (pts: number[][]) => pts.map(([y, a]) => { const q = surface(r.cR, y, a, .0085); return { p: q.p.toArray() as Pt, a: .027, b: .003, n: q.n.toArray() as Pt }; });
     if (asym.has('crossbelt')) {
-    put0(lifted, sweep(W([[1.5, sd * 1.3], [1.44, sd * .9], [1.36, sd * .46], [1.27, -sd * .05], [1.18, -sd * .6], [1.11, -sd * 1.1], [1.07, -sd * 1.5]]), { seg: 4, capStart: true, capEnd: true }), strap);
-    put0(lifted, sweep(W([[1.5, sd * 1.3], [1.44, sd * 1.9], [1.34, sd * 2.45], [1.22, sd * 2.95], [1.12, -sd * 2.75], [1.07, -sd * 2.3]]), { seg: 4, capStart: true, capEnd: true }), strap);
+    put0(lifted, sweep(W([[1.118, -sd * 1.12], [1.18, -sd * .6], [1.27, -sd * .05], [1.36, sd * .46], [1.44, sd * .9], [1.5, sd * 1.3], [1.44, sd * 1.9], [1.34, sd * 2.45], [1.22, sd * 2.95], [1.118, sd * (2 * Math.PI - 2.75)]]), { seg: 4, capStart: true, capEnd: true }), strap).userData.belt = .006;
     { const q = surface(r.cR, 1.27, -sd * .05, .013); put0(lifted, new T.Mesh(new T.BoxGeometry(.04, .034, .008), brass).geometry, brass, q.p.toArray() as Pt); }
     pouch(r.at(-sd * .8), r.rings!, -.02, -sd * .62, -sd * 1.02, black); } // (props sit in front of the hip, clear of the hanging and swinging arm: Book 12)
     arms({ upM: coat, off: .027, cuffM: coat, glove: black, board: board(coat, black, .066, .04, .034, false) });
@@ -290,7 +312,7 @@ export function dress(x: X) {
       put0(lifted, loft([cc[2], { ...cc[2], y: cc[2].y - .012, w: cc[2].w + .005, f: cc[2].f + .005, b: cc[2].b + .005 }], { seg: 16, lipStart: .002, lipEnd: .002, key: key('inspcollaredge') }), c(P.cloth.bone)); // People XX: bone piping on the collar, a light line under the jaw
       button(lifted, { p: new T.Vector3(0, top - .014, cc[2].f + (cc[2].z ?? 0) + .003), n: new T.Vector3(0, 0, 1) }, brass, .0065); }
     // fitted at the waist, a narrow black belt
-    belt(black, 1.085, .036, .016);
+    belt(black, 1.085, .016);
     // the back is hard-lined: a centre seam and a plain vent
     r.on(.17, () => stripe(r.rings!, r.rings![0].y, HEM_Y + .02, .17, .003, .012, .005, coat, 6));
     for (const y of steps(-.04, -.46, 4)) button(r.at(.12), surface(r.rings!, y, .12, .008), brass, .0085);
@@ -316,7 +338,7 @@ export function dress(x: X) {
   if (id === 'rowSkirt') {
     const blouse = c(I('bodice')), shawlM = wool(I('shawl')), skirtM = wool(I('skirt')), fringe = c(mix(I('shawl'), P.cloth.bone, .5));
     shirt(blouse, { off: .01, placket: false, collar: true });
-    put0(lifted, loft([1.05, 1.1].map(y => ringAt(offset(rib, .02), y)), { seg: 10, lipStart: .003, lipEnd: .003, key: key('bodiceband') }), skirtM);
+    put0(lifted, loft(wrap(1.05, 1.1), { seg: 10, lipStart: .003, lipEnd: .003, key: key(`bodiceband/${look.outfit}`) }), skirtM).userData.belt = .003;
     shawl(shawlM, fringe);
     const rings = skirtRings(.2, .56, .66, 1.25, 7);
     longShell(rings, { start: 0, arc: Math.PI * 2 }, skirtM, 'longskirt', .014);
@@ -349,7 +371,7 @@ export function dress(x: X) {
       if (asym.has('watchChain')) { const pts = [[.0, 1.255], [.02, 1.215], [-.02, 1.19], [-.065, 1.185], [-.085, 1.2]].map(([xx, y], i) => { const q = onFace(vb, y, xx, false, .006); return { p: q.p.toArray() as Pt, a: .0035, b: .0035, n: q.n.toArray() as Pt }; }); put0(x.finery, sweep(pts, { seg: 4, capStart: true, capEnd: true }), brass); const q = onFace(vb, 1.198, -.08, false, .008); put0(x.finery, new T.Mesh(new T.SphereGeometry(.012, 6, 5), brass).geometry, brass, q.p.toArray() as Pt); }
     } else {
       const jk = shirt(frock, { off: .014, placket: false, collar: true, yoke: true }); void jk;
-      put0(lifted, loft([1.04, 1.1].map(y => ringAt(offset(rib, .026), y)), { seg: 10, lipStart: .003, lipEnd: .004, key: key('ladyband') }), trim);
+      put0(lifted, loft(wrap(1.04, 1.1), { seg: 10, lipStart: .003, lipEnd: .004, key: key(`ladyband/${look.outfit}`) }), trim).userData.belt = .003;
       for (const y of steps(1.4, 1.14, 5)) button(lifted, surface(offset(rib, .014), y, 0, .004), brass, .006);
       const rings = skirtRings(.14, .66, .74, 1.3, 7), sk = c(shade(I('frock'), .9));
       longShell(rings, { start: 0, arc: Math.PI * 2 }, sk, 'ladyskirt', .014);
@@ -391,7 +413,7 @@ export function dress(x: X) {
       bandAt(rings, rings[rings.length - 1].y, -.85, .85, .002, .008, .004, edgeM); }); skirt.drop = .38; skirt.depth = .31;
     const bibR = offset(rib, .02); put0(lifted, plate(bibR, [[1.42, -.32, .32], [1.34, -.5, .5], [1.2, -.62, .62], [1.1, -.66, .66]], .0, .006, 6), apM);
     bibStraps(s => surface(bibR, 1.42, s * .28, .008).p, .012, edgeM); void strap; // in the binding's lighter leather, so they read across a dark shirt
-    put0(lifted, loft([1.08, 1.13].map(y => ringAt(offset(rib, .028), Math.min(y, 1.1))), { seg: 10, lipStart: .003, lipEnd: .003, key: key('slabbelt') }), strap); for (const s of [-1, 1]) button(lifted, surface(offset(rib, .03), 1.11, s * .14, .004), steel, .008);
+    const sb = wrap(1.08, 1.13); put0(lifted, loft(sb, { seg: 10, lipStart: .003, lipEnd: .003, key: key(`slabbelt/${look.outfit}`) }), strap).userData.belt = .003; for (const s of [-1, 1]) button(lifted, surface(sb, 1.11, s * .14, .004), steel, .008);
     if (asym.has('pouchHip')) pouch(lifted, offset(rib, .04), 1.07, .62, 1.02, leatherM);
     arms({ upM: sh, off: .015, rolled: () => true, gauntlet: gaunt, glove: gaunt });
     legs({ thighM: trou, boot: leatherDM, sole: lea(shade(LEATHERD, .6)), heavy: true, top: -.3, turnup: false, bootCuff: leatherM });
@@ -400,7 +422,7 @@ export function dress(x: X) {
     const jk = wool(I('jacket')), sh = c(I('shirt')), trou = wool(I('trousers')), glove = lea(I('roll'));
     shirt(sh, { placket: true, collar: true, yoke: false, front: 1.1 });
     const r = jacket(jk, { off: .02, aL: .45, aR: .45, hem: .86, hemW: .46, hemD: .34, buttons: 2, lapel: false, stand: false });
-    belt(leatherM, 1.07, .05);
+    belt(leatherM, 1.07, .02, .003, 1.05); // (under the open jacket, on the shirt's front)
     const hipR = offset(rib, .05), side = asym.has('toolRoll') ? 1 : -1;
     pouch(lifted, hipR, 1.05, side * .6, side * 1.0, leatherM);
     if (asym.has('toolRoll')) prop(lifted, () => { const q = surface(hipR, .99, -.78, .028), roll = loft([{ y: -.075, w: .026, f: .026, b: .026 }, { y: 0, w: .031, f: .031, b: .031 }, { y: .075, w: .026, f: .026, b: .026 }], { seg: 7, capStart: 'flat', capEnd: 'flat', key: key('toolroll2') }); put0(lifted, roll, c(I('roll')), q.p.toArray() as Pt, [0, 0, -.12]); put0(lifted, around(hipR, 1.05, -.95, -.6, .02, .008, .004, 5), leatherDM); }); // a roll of tools hung upright from the belt in front of the hip, where the forearm never passes const m = put0(lifted, roll, c(I('roll')), q.p.toArray() as Pt, [0, 0, 1.4]); m.rotation.set(0, 0, Math.PI / 2); put0(lifted, around(hipR, 1.05, -1.42, -1.08, .02, .008, .004, 5), leatherDM); });
@@ -424,7 +446,7 @@ export function dress(x: X) {
   }
   if (id === 'olderMechanic' && look.outfit === 'olderMechanic.apron') { // People XX: shirt sleeves rolled and a light canvas work apron to the shin, a rule in the bib pocket
     const apM = c(I('shopCoat')), sh = c(I('shirt')), trou = wool(I('trousers'));
-    shirt(sh, { placket: true, collar: true }); belt(leatherDM, 1.07, .036, .018);
+    shirt(sh, { placket: true, collar: true }); belt(leatherDM, 1.07, .018);
     apron(apM, { hemY: .34, hemW: .5, hemD: .52, aw: .9, bib: true, strapM: leatherDM });
     { const q = surface(offset(rib, .024), 1.36, .3, .004); put0(lifted, new T.Mesh(new T.BoxGeometry(.012, .09, .006)).geometry, steel, q.p.toArray() as Pt); }
     if (asym.has('ragBelt')) put0(lifted, sweep([0, .3, .6, 1].map(t => { const q = surface(offset(rib, .04), 1.06, -1.0, .004); return { p: [q.p.x - t * .012, q.p.y - t * .2, q.p.z + .004 + t * .02] as Pt, a: .024, b: .004, n: [0, 0, 1] as Pt }; }), { seg: 4, capStart: true, capEnd: true }), c(P.cloth.bone));
@@ -436,7 +458,7 @@ export function dress(x: X) {
     const cut = look.outfit === 'courier.coat' ? 'coat' : look.outfit === 'courier.vest' ? 'vest' : 'jacket'; // People XX: a short jacket, a buttoned coat to mid-thigh, or shirt sleeves and a waistcoat
     shirt(sh, { placket: true, collar: true, yoke: false, front: cut === 'vest' ? undefined : .8 });
     const r = cut === 'vest' ? { cR: waistcoat(jk, { buttons: 4 }), rings: undefined } : jacket(jk, cut === 'coat' ? { off: .02, closed: true, hem: .64, hemW: .46, hemD: .36, buttons: 4, stand: true } : { off: .02, aL: .2, aR: .2, hem: .88, hemW: .4, hemD: .32, buttons: 3, lapel: false });
-    belt(leatherDM, 1.06, .045);
+    belt(leatherDM, 1.06, .02, .003, cut === 'jacket' ? .75 : undefined); // (under an open jacket, on the shirt's front)
     // the satchel strap wraps the jacket's own surface: over the shoulder, across the chest, round the side to the bag on the opposite hip
     const sd = strapSide, pts: SweepPt[] = [[1.52, sd * 1.35], [1.46, sd * .85], [1.38, sd * .42], [1.28, -sd * .05], [1.18, -sd * .6], [1.1, -sd * 1.05], [1.06, -sd * 1.55], [1.05, -sd * 2.1]].map(([y, a]) => { const q = surface(r.cR, y, a, .008); return { p: q.p.toArray() as Pt, a: .02, b: .005, n: q.n.toArray() as Pt }; });
     const back: SweepPt[] = [[1.52, sd * 1.35], [1.46, sd * 1.95], [1.34, sd * 2.5], [1.2, sd * 2.95], [1.06, -sd * 3.25]].map(([y, a]) => { const q = surface(r.cR, y, a, .008); return { p: q.p.toArray() as Pt, a: .02, b: .005, n: q.n.toArray() as Pt }; });

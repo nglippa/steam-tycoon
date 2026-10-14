@@ -33,3 +33,17 @@ test('seated cloth stays out of the seat: no cloth of any seated cast, sitting o
     assert.ok(worst === 0, `${combo} s${seed} ${a}: cloth ${(worst * 100).toFixed(1)} cm under the seat's top over it, ${plank} vertex samples inside the plank (deepest ${where})`);
   }
 });
+
+/** How far each belt, band and strap (meshes marked userData.belt with their thickness) stands off what it wraps: from each vertex of its outer face a ray goes in along the face's normal to
+ *  the first other surface of the figure; the gap is that distance less the belt's own thickness. Returns the largest gap (m), how many outer vertices found nothing within 4 cm, and where. */
+export function beltGap(combo: string, seed: number) {
+  const n = make(combo, seed), ray = new T.Raycaster(), v = new T.Vector3(), nr = new T.Vector3(), all: T.Mesh[] = [], belts: T.Mesh[] = [];
+  n.group.updateMatrixWorld(true); n.group.traverse(o => { if (!(o instanceof T.Mesh)) return; (o.material as T.Material).side = T.DoubleSide; (o.userData.belt ? belts : all).push(o); });
+  let worst = 0, lost = 0, where = ''; const per: number[] = [];
+  for (const b of belts) { let bw = 0; const pa = b.geometry.attributes.position, na = b.geometry.attributes.normal, nm = new T.Matrix3().getNormalMatrix(b.matrixWorld);
+    for (let j = 0; j < pa.count; j++) { v.fromBufferAttribute(pa, j).applyMatrix4(b.matrixWorld); nr.fromBufferAttribute(na, j).applyMatrix3(nm).normalize();
+      if (nr.x * v.x + nr.z * v.z <= .6 * Math.hypot(v.x, v.z)) continue; // (its outer face, turned out from the body: the lips at its edges, a strap's edges and its ends are left out)
+      ray.set(v, nr.clone().negate()); ray.far = .04; const h = ray.intersectObjects(all, false)[0];
+      if (!h) { lost++; continue; } const gap = h.distance - (b.userData.belt as number); bw = Math.max(bw, gap); if (gap > worst) { worst = gap; where = `(${v.x.toFixed(3)}, ${v.y.toFixed(3)}, ${v.z.toFixed(3)})`; } } per.push(bw); }
+  return { worst, lost, where, belts: belts.length, per };
+}
