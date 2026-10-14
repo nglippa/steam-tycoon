@@ -81,10 +81,19 @@ export class InkRenderer {
         float ic = 1. / c0;
         float e = max(max(abs(1. / l + 1. / r - 2. * ic), abs(1. / u + 1. / d - 2. * ic)),
                       max(abs(1. / a1 + 1. / a3 - 2. * ic), abs(1. / a2 + 1. / a4 - 2. * ic))) * c0;
-        float silhouette = smoothstep(.07, .18, e) * mix(1., outer, max(tFar, leafy * tCut));
+        // A thin member (a rail, a lintel, a girder) is nearer than both of its opposite taps in some direction; a cornice
+        // or a wall step is nearer on one side only. Ridges keep the plain crease step so a one-pixel rail is not cut away.
+        float ridge = max(max(2. * ic - 1. / l - 1. / r, 2. * ic - 1. / u - 1. / d), max(2. * ic - 1. / a1 - 1. / a3, 2. * ic - 1. / a2 - 1. / a4)) * c0;
+        // Past ~220-320 m an edge is a pixel wide: the depth ratio no longer decides whether it is drawn.
+        float farReach = 1. - smoothstep(220., 320., nearest);
+        // A tree crown's own edge (foliage on one side of the tap cross, anything else on the other, the haze included) is
+        // drawn whatever stands behind it: the depth ratio to a hazy facade a few per cent farther does not make it inner.
+        float crownEdge = smoothstep(.6, .7, cls) * (1. - smoothstep(.8, .9, cls)) * (1. - leafy);
+        float silhouette = smoothstep(.07, .18, e) * mix(1., max(outer, crownEdge), max(tFar * farReach, leafy * tCut));
+        silhouette = max(silhouette, crownEdge * smoothstep(.015, .04, e));
         // (The raised step is for inner creases only: along an outer edge the crease term fills the gaps of an aliased
         // silhouette, and taking it away there leaves a dotted outline.)
-        float cut = mix(1., 2., tCut * (1. - outer));
+        float cut = mix(1., 2., tCut * (1. - outer) * 1.);
         float crease = smoothstep(mix(.02, .035, tMid) * cut, mix(.05, .09, tMid) * cut, e) * (1. - tFar) * (1. - leafy * tCut);
         // Interior lines where color blocks meet (frames, trims, clothing panels) — not on sky.
         float lc = luma(texture2D(picture, uv).rgb);
@@ -95,10 +104,24 @@ export class InkRenderer {
         // Texture contrast on grazing surfaces (distant ground) is aliasing, not a drawn line.
         float slope = (abs(l - r) + abs(u - d)) / (c0 * 2. * length(o / texel));
         float colorEdge = smoothstep(.16, .3, gl / max(lc, .18)) * solid * (1. - smoothstep(14., 42., nearest)) * (1. - smoothstep(.0012, .0025, slope)) * (1. - leafy * tCut);
+        // A straight wire or rail drawn after the world (wireMat: it writes no depth, so only its colour is in the picture)
+        // thins to a faint line past ~40 m, so a long span or a lintel reads as a pale streak. It is a thin dark ridge in
+        // value, darker than both sides ~4 px off across it and level with them along it: those pixels keep a dark line out
+        // to ~130 m. A diagonal (a ridge on both axes, the cables that must stay thin and unbeaded), a step (a wall edge)
+        // and a mullion or joint (not level along it) do not qualify, so the interior noise stays as it was.
+        float wireEdge = 0.;
+        float wireRange = solid * smoothstep(25., 40., nearest) * (1. - smoothstep(90., 130., nearest)) * (1. - smoothstep(.003, .006, slope)) * (1. - leafy * tCut);
+        if (wireRange > 0.) {
+          vec2 w = texel * 4.;
+          float wl = luma(texture2D(picture, uv - vec2(w.x, 0.)).rgb), wr = luma(texture2D(picture, uv + vec2(w.x, 0.)).rgb);
+          float wu = luma(texture2D(picture, uv + vec2(0., w.y)).rgb), wd = luma(texture2D(picture, uv - vec2(0., w.y)).rgb);
+          float rH = (min(wl, wr) - lc) / max(min(wl, wr), .18), rV = (min(wu, wd) - lc) / max(min(wu, wd), .18);
+          wireEdge = wireRange * smoothstep(.42, .55, max(rH, rV)) * (1. - smoothstep(.05, .15, abs(min(rH, rV))));
+        }
         // Strength and tone, only where there is a line to draw (most of the screen has none and skips the work).
         float ink = 0.;
         vec3 inkColor = color;
-        if (max(max(silhouette, crease), colorEdge) > 0.) {
+        if (max(max(max(silhouette, crease), colorEdge), wireEdge) > 0.) {
           // Dark on dark (a chimney on its own smoke, a tree on the iron gantry behind): value cannot separate them, and a
           // fog-toned line is lighter than both (ink only darkens, so it vanishes). Where the two sides differ by under ~.1
           // (in a perceptual, square-root scale) and both are dark, up to ~120 m, the silhouette keeps its full strength and
@@ -108,16 +131,20 @@ export class InkRenderer {
           // Far lines would break into flickering dashes: take them down to a light steady line. The scene's own FogExp2 at
           // the line's nearer side does the rest, so lines thin out in the haze with the geometry under them.
           float fade = 1. - smoothstep(40., 140., nearest) * .6;
-          float fogF = 1. - exp(-fogDensity * fogDensity * nearest * nearest);
+          float skyEdge = step(far * .9, farthest);
+          float fogF = (1. - exp(-fogDensity * fogDensity * nearest * nearest)) * (1. - skyEdge * smoothstep(160., 260., nearest));
           fade *= 1. - .75 * fogF;
           // Far shapes against the sky (the skyline planes and isles are tinted, not fogged) keep a faint outline.
-          fade = max(fade, .3 * step(far * .9, farthest) * tFar);
-          ink = max(silhouette * mix(fade, 1., low), max(crease * .85, colorEdge * .6) * (1. - text) * fade);
+          fade = max(fade, .3 * skyEdge * tFar);
+          // A thin member or a crown's edge keeps a steady, dark line in the mid and far band (the fade is for noise).
+          float held = max(0., crownEdge * .7);
+          fade = max(fade, .8 * held);
+          ink = max(silhouette * mix(fade, 1., low), max(max(crease * .85, colorEdge * .6) * fade, wireEdge * .9) * (1. - text));
           // Ink is a deep, color-aware navy-grey rather than black.
           vec3 dark = mix(vec3(.06, .05, .05), color * .25, .2);
           // In haze the pen takes a darker tone of the fog, not black (fog colour is linear, like the target). Far away
           // (80-120 m on) the line itself is 40% the haze, so far shapes part by value as well as by line.
-          inkColor = mix(mix(mix(dark, fogColor * .45, fogF), fogColor, .4 * smoothstep(80., 120., nearest)), dark, low);
+          inkColor = mix(mix(mix(dark, fogColor * .45, fogF), fogColor, .4 * smoothstep(80., 120., nearest)), dark, max(max(low, held), wireEdge));
         }
         // Ink only ever darkens: a fog-toned line must not show up light across smoke or a dark wall.
         color = min(color, mix(color, inkColor, clamp(ink, 0., 1.) * .95));
