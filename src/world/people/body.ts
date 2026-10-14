@@ -85,6 +85,11 @@ export function upperArm(d: Dims): Ring[] { const a = d.armW / 2; return [
   { y: -.205, w: (a * .7 + d.elbowR * .3), f: (a * .66 + d.elbowR * .34), b: (a * .7 + d.elbowR * .3) + .003, n: 2.05 },
   { y: -.25, w: d.elbowR, f: d.elbowR * .96, b: d.elbowR + .011, z: -.003, n: 2 },
 ]; }
+/** How much of the shoulder's radius a set-in sleeve's cap rises (People XXVIII): a period man's coat is cut with the sleeve set into the armhole, its cap low and the shoulder line running
+ *  from the neck out to the arm; the women's blouses keep the gathered dome (cap 'puff', the whole radius). */
+export const SET_CAP = .42;
+/** The sleeve's top rings for a set-in cap: the first two squared (a superellipse of exponent 3), so the arm leaves the shoulder as a square-set sleeve and not a ball. */
+export function sleeveCap(rings: Ring[], puff: boolean): Ring[] { return puff ? rings : rings.map((r, i) => i < 2 ? { ...r, n: 3 } : r); }
 /** The elbow's landmark on a sleeve: the cloth draws in over the joint (this much under the sleeve's offset), so the sleeve breaks there and does not run on as one tube. */
 export const ELBOW_GATHER = .009;
 /** Forearm: local to the elbow. Widest a third below the elbow, tapering to a wrist twice as wide as it is deep: the wide axis turns from sideways to front-to-back, because the palm faces the thigh. */

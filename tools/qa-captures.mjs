@@ -307,7 +307,9 @@ if (part === 'xxviii') {
   for (const v of ['front', 'quarter', 'side', 'back']) await sheetShot(page, `elder-hat-${v}`, `${eq}&view=${v}&pose=stand&fov=12&zoom=3.2&fy=.9`, `People XXVIII · elder.slim.narrow in a hat · seeds ${eld.join(' ')} · ${v} · the white hair at the brim`);
   for (const v of ['side', 'back', 'quarter']) await sheetShot(page, `ponytail-${v}`, `build=new&roles=courier&seeds=2,5,6,13&view=${v}&pose=stand&fov=12&zoom=2&fy=.75`, `People XXVIII · courier ponytails · seeds 2 5 6 13 · ${v}`);
   for (const v of ['front', 'quarter', 'side', 'back']) await sheetShot(page, `stallholder-hair-${v}`, `build=new&combos=stallholder.standard.narrow,stallholder.sturdy.broad&seeds=8,3&view=${v}&pose=stand&fov=12&zoom=3.2&fy=.9`, `People XXVIII · the stallholders' hair · seeds 8 3 · ${v}`);
-  for (const v of ['front', 'quarter', 'side']) await sheetShot(page, `shoulders-${v}`, `${repQuery}&view=${v}&pose=stand&fov=12&zoom=2&fy=.78&sx=.9`, `People XXVIII · shoulders and sleeve caps · ${v} · ${REPS.map(r => r[0]).join(', ')}`, { width: 2560 });
+  for (const v of ['front', 'quarter', 'side']) await sheetShot(page, `shoulders-${v}`, `${repQuery}&view=${v}&pose=stand&fov=12&zoom=1.5&fy=.72&sx=.9`, `People XXVIII · shoulders and sleeve caps · ${v} · ${REPS.map(r => r[0]).join(', ')}`, { width: 2560 });
+  const ord = [REPS[9], REPS[10], REPS[0], REPS[3]];
+  for (const [pose, v] of [['halt', 'quarter'], ['halt', 'front'], ['bite', 'quarter'], ['stand', 'side']]) await sheetShot(page, `ordinance-${pose}-${v}`, `build=new&combos=${ord.map(r => r[1]).join(',')}&seeds=${ord.map(r => r[2]).join(',')}&view=${v}&pose=${pose}&fov=12&zoom=1.2&fy=.6`, `People XXVIII · garrison, inspector, slim civilian, young mechanic · ${pose} · ${v} (arm raised: the armhole stays closed)`, { width: 1600, relabel: ord.map(r => `<b>${r[0]}</b>`) });
   merge('console.json', 'xxviii', log);
 }
 await browser.close();

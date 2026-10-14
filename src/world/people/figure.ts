@@ -1,6 +1,6 @@
 import * as T from 'three';
 import { loft, sweep, place, plate, offset, ringAt, surface, onFace, shared, inward, type Ring, type SweepPt } from './loft';
-import { dimsOf, CHILD_SCALE, ribcage, pelvis as pelvisRings, neck as neckRings, upperArm, forearm, thigh as thighRings, shin as shinRings, ring, RIG, ELBOW_GATHER, type Dims } from './body';
+import { dimsOf, CHILD_SCALE, ribcage, pelvis as pelvisRings, neck as neckRings, upperArm, forearm, thigh as thighRings, shin as shinRings, ring, RIG, ELBOW_GATHER, SET_CAP, sleeveCap, type Dims } from './body';
 import { paletteOf, type CastId, type Look } from './look';
 import { skull, ear, facialOf, skullRings, CHIN_TO_PIVOT } from './head';
 import { hairOf } from './hair';
@@ -129,7 +129,7 @@ export function buildFigure(look: Look, opts: FigureOpts, kit: Kit) {
     const sh = new T.Group(); sh.position.set(side * d.shX, RIG.shoulder + LIFT, 0); body.add(sh); arms.push(sh);
     const up = upperArm(d), off = lab ? .006 : coatOff - .003, fore = forearm(d);
     const eg = off - ELBOW_GATHER; // the sleeve draws in over the elbow (People XXVI); the forearm's sleeve leaves it at the same radius and swells again below it
-    put0(sh, loft(offset(up, off, (_, i) => i === 3 ? { w: -ELBOW_GATHER * .5, f: -ELBOW_GATHER * .5, b: -ELBOW_GATHER * .5 } : i === 4 ? { w: -ELBOW_GATHER, f: -ELBOW_GATHER, b: -ELBOW_GATHER } : {}), { seg: 7, capStart: { round: d.rSh + off }, capEnd: { round: d.elbowR + eg }, key: `sleeve/${off}/${dk}` }), coatM);
+    put0(sh, loft(sleeveCap(offset(up, off, (_, i) => i === 3 ? { w: -ELBOW_GATHER * .5, f: -ELBOW_GATHER * .5, b: -ELBOW_GATHER * .5 } : i === 4 ? { w: -ELBOW_GATHER, f: -ELBOW_GATHER, b: -ELBOW_GATHER } : {}), false), { seg: 7, capStart: { round: (d.rSh + off) * SET_CAP }, capEnd: { round: d.elbowR + eg }, key: `sleeve/${off}/${dk}/set` }), coatM);
     kit.bake(sh);
     const el = new T.Group(); el.position.set(0, -RIG.upperArm, 0); sh.add(el); elbows.push(el);
     const rolled = lab || (asym.has('sleeveRolled') && side < 0), at = (y: number, e: number) => { const r = ringAt(fore, y); return { ...r, w: r.w + e, f: r.f + e, b: r.b + e }; };
