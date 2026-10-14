@@ -1,0 +1,1964 @@
+{
+  "seeds0to19": {
+    "resident": [
+      {
+        "seed": 0,
+        "cast": "rowSkirt",
+        "family": "standard",
+        "frame": "narrow",
+        "stature": 0.977,
+        "skin": 0,
+        "headShape": "square",
+        "faceType": 4,
+        "hairStyle": "bob",
+        "hairColour": "soot",
+        "hat": "headscarf",
+        "facial": "none",
+        "outfit": "rowSkirt.shawl",
+        "palette": "ash",
+        "asymmetries": [
+          "apronTie"
+        ]
+      },
+      {
+        "seed": 1,
+        "cast": "rowSkirt",
+        "family": "standard",
+        "frame": "narrow",
+        "stature": 0.972,
+        "skin": 2,
+        "headShape": "square",
+        "faceType": 0,
+        "hairStyle": "bob",
+        "hairColour": "chestnut",
+        "hat": "headscarf",
+        "facial": "none",
+        "outfit": "rowSkirt.shawl",
+        "palette": "plum",
+        "asymmetries": [
+          "pouchHip",
+          "apronTie"
+        ]
+      },
+      {
+        "seed": 2,
+        "cast": "rowCoat",
+        "family": "standard",
+        "frame": "narrow",
+        "stature": 1.021,
+        "skin": 1,
+        "headShape": "long",
+        "faceType": 2,
+        "hairStyle": "tousled",
+        "hairColour": "umber",
+        "hat": "softCap",
+        "facial": "none",
+        "outfit": "rowCoat.closed",
+        "palette": "oxblood",
+        "asymmetries": [
+          "scarfTail",
+          "unevenFront"
+        ]
+      },
+      {
+        "seed": 3,
+        "cast": "rowCoat",
+        "family": "slim",
+        "frame": "narrow",
+        "stature": 1.024,
+        "skin": 1,
+        "headShape": "long",
+        "faceType": 7,
+        "hairStyle": "sidePart",
+        "hairColour": "chestnut",
+        "hat": "softCap",
+        "facial": "none",
+        "outfit": "rowCoat.open",
+        "palette": "umber",
+        "asymmetries": [
+          "scarfTail",
+          "unevenFront"
+        ]
+      },
+      {
+        "seed": 4,
+        "cast": "rowCoat",
+        "family": "standard",
+        "frame": "broad",
+        "stature": 0.961,
+        "skin": 0,
+        "headShape": "square",
+        "faceType": 0,
+        "hairStyle": "lowBun",
+        "hairColour": "soot",
+        "hat": "softCap",
+        "facial": "none",
+        "outfit": "rowCoat.open",
+        "palette": "ash",
+        "asymmetries": [
+          "unevenFront",
+          "scarfTail"
+        ]
+      },
+      {
+        "seed": 5,
+        "cast": "rowSkirt",
+        "family": "slim",
+        "frame": "narrow",
+        "stature": 0.966,
+        "skin": 1,
+        "headShape": "long",
+        "faceType": 6,
+        "hairStyle": "highKnot",
+        "hairColour": "auburn",
+        "hat": "none",
+        "facial": "none",
+        "outfit": "rowSkirt.plain",
+        "palette": "slate",
+        "asymmetries": [
+          "pouchHip"
+        ]
+      },
+      {
+        "seed": 6,
+        "cast": "rowSkirt",
+        "family": "standard",
+        "frame": "narrow",
+        "stature": 0.967,
+        "skin": 0,
+        "headShape": "long",
+        "faceType": 1,
+        "hairStyle": "longTied",
+        "hairColour": "auburn",
+        "hat": "none",
+        "facial": "none",
+        "outfit": "rowSkirt.shawl",
+        "palette": "ochre",
+        "asymmetries": [
+          "scarfTail",
+          "pouchHip"
+        ]
+      },
+      {
+        "seed": 7,
+        "cast": "rowSkirt",
+        "family": "standard",
+        "frame": "narrow",
+        "stature": 1.033,
+        "skin": 0,
+        "headShape": "oval",
+        "faceType": 3,
+        "hairStyle": "lowBun",
+        "hairColour": "soot",
+        "hat": "headscarf",
+        "facial": "none",
+        "outfit": "rowSkirt.plain",
+        "palette": "slate",
+        "asymmetries": [
+          "apronTie"
+        ]
+      },
+      {
+        "seed": 8,
+        "cast": "rowCoat",
+        "family": "slim",
+        "frame": "narrow",
+        "stature": 1.006,
+        "skin": 2,
+        "headShape": "square",
+        "faceType": 6,
+        "hairStyle": "shortCrop",
+        "hairColour": "auburn",
+        "hat": "flatCap",
+        "facial": "none",
+        "outfit": "rowCoat.open",
+        "palette": "ash",
+        "asymmetries": [
+          "pouchHip",
+          "unevenFront"
+        ]
+      },
+      {
+        "seed": 9,
+        "cast": "elder",
+        "family": "slim",
+        "frame": "narrow",
+        "stature": 0.977,
+        "skin": 1,
+        "headShape": "long",
+        "faceType": 7,
+        "hairStyle": "lowBun",
+        "hairColour": "iron",
+        "hat": "softCap",
+        "facial": "none",
+        "outfit": "elder.longCoat",
+        "palette": "umber",
+        "asymmetries": [
+          "basket"
+        ]
+      },
+      {
+        "seed": 10,
+        "cast": "rowCoat",
+        "family": "standard",
+        "frame": "narrow",
+        "stature": 0.997,
+        "skin": 2,
+        "headShape": "heart",
+        "faceType": 6,
+        "hairStyle": "sidePart",
+        "hairColour": "soot",
+        "hat": "flatCap",
+        "facial": "none",
+        "outfit": "rowCoat.open",
+        "palette": "moss",
+        "asymmetries": [
+          "unevenFront"
+        ]
+      },
+      {
+        "seed": 11,
+        "cast": "rowCoat",
+        "family": "standard",
+        "frame": "narrow",
+        "stature": 0.995,
+        "skin": 0,
+        "headShape": "heart",
+        "faceType": 0,
+        "hairStyle": "sidePart",
+        "hairColour": "chestnut",
+        "hat": "none",
+        "facial": "none",
+        "outfit": "rowCoat.closed",
+        "palette": "ash",
+        "asymmetries": [
+          "scarfTail",
+          "sleeveRolled"
+        ]
+      },
+      {
+        "seed": 12,
+        "cast": "rowCoat",
+        "family": "slim",
+        "frame": "broad",
+        "stature": 1.022,
+        "skin": 1,
+        "headShape": "heart",
+        "faceType": 6,
+        "hairStyle": "shortCrop",
+        "hairColour": "chestnut",
+        "hat": "softCap",
+        "facial": "none",
+        "outfit": "rowCoat.closed",
+        "palette": "oxblood",
+        "asymmetries": [
+          "pouchHip",
+          "scarfTail"
+        ]
+      },
+      {
+        "seed": 13,
+        "cast": "rowCoat",
+        "family": "slim",
+        "frame": "narrow",
+        "stature": 1.009,
+        "skin": 2,
+        "headShape": "square",
+        "faceType": 4,
+        "hairStyle": "ponytail",
+        "hairColour": "auburn",
+        "hat": "softCap",
+        "facial": "none",
+        "outfit": "rowCoat.open",
+        "palette": "umber",
+        "asymmetries": [
+          "unevenFront"
+        ]
+      },
+      {
+        "seed": 14,
+        "cast": "rowSkirt",
+        "family": "standard",
+        "frame": "narrow",
+        "stature": 1.017,
+        "skin": 0,
+        "headShape": "square",
+        "faceType": 7,
+        "hairStyle": "longTied",
+        "hairColour": "straw",
+        "hat": "none",
+        "facial": "none",
+        "outfit": "rowSkirt.shawl",
+        "palette": "ash",
+        "asymmetries": [
+          "scarfTail"
+        ]
+      },
+      {
+        "seed": 15,
+        "cast": "rowSkirt",
+        "family": "standard",
+        "frame": "narrow",
+        "stature": 1.025,
+        "skin": 0,
+        "headShape": "square",
+        "faceType": 3,
+        "hairStyle": "lowBun",
+        "hairColour": "straw",
+        "hat": "headscarf",
+        "facial": "none",
+        "outfit": "rowSkirt.plain",
+        "palette": "slate",
+        "asymmetries": [
+          "scarfTail"
+        ]
+      },
+      {
+        "seed": 16,
+        "cast": "elder",
+        "family": "slim",
+        "frame": "broad",
+        "stature": 1.039,
+        "skin": 2,
+        "headShape": "long",
+        "faceType": 6,
+        "hairStyle": "lowBun",
+        "hairColour": "white",
+        "hat": "softCap",
+        "facial": "moustache",
+        "outfit": "elder.longCoat",
+        "palette": "ash",
+        "asymmetries": [
+          "basket"
+        ]
+      },
+      {
+        "seed": 17,
+        "cast": "elder",
+        "family": "slim",
+        "frame": "narrow",
+        "stature": 0.968,
+        "skin": 2,
+        "headShape": "oval",
+        "faceType": 7,
+        "hairStyle": "shortCrop",
+        "hairColour": "iron",
+        "hat": "softCap",
+        "facial": "none",
+        "outfit": "elder.longCoat",
+        "palette": "umber",
+        "asymmetries": [
+          "basket"
+        ]
+      },
+      {
+        "seed": 18,
+        "cast": "rowSkirt",
+        "family": "standard",
+        "frame": "narrow",
+        "stature": 1.025,
+        "skin": 0,
+        "headShape": "long",
+        "faceType": 5,
+        "hairStyle": "lowBun",
+        "hairColour": "chestnut",
+        "hat": "none",
+        "facial": "none",
+        "outfit": "rowSkirt.shawl",
+        "palette": "ash",
+        "asymmetries": [
+          "pouchHip",
+          "scarfTail"
+        ]
+      },
+      {
+        "seed": 19,
+        "cast": "rowCoat",
+        "family": "slim",
+        "frame": "broad",
+        "stature": 1.026,
+        "skin": 1,
+        "headShape": "oval",
+        "faceType": 3,
+        "hairStyle": "ponytail",
+        "hairColour": "soot",
+        "hat": "softCap",
+        "facial": "none",
+        "outfit": "rowCoat.open",
+        "palette": "umber",
+        "asymmetries": [
+          "scarfTail",
+          "unevenFront"
+        ]
+      }
+    ],
+    "worker": [
+      {
+        "seed": 0,
+        "cast": "foundry",
+        "family": "sturdy",
+        "frame": "narrow",
+        "stature": 0.977,
+        "skin": 0,
+        "headShape": "square",
+        "faceType": 3,
+        "hairStyle": "balding",
+        "hairColour": "soot",
+        "hat": "none",
+        "facial": "none",
+        "outfit": "foundry.apron",
+        "palette": "soot",
+        "asymmetries": [
+          "pouchHip"
+        ]
+      },
+      {
+        "seed": 1,
+        "cast": "labourer",
+        "family": "standard",
+        "frame": "broad",
+        "stature": 0.972,
+        "skin": 1,
+        "headShape": "square",
+        "faceType": 0,
+        "hairStyle": "sidePart",
+        "hairColour": "chestnut",
+        "hat": "softCap",
+        "facial": "none",
+        "outfit": "labourer.braced",
+        "palette": "soot",
+        "asymmetries": [
+          "ragBelt",
+          "braceDown"
+        ]
+      },
+      {
+        "seed": 2,
+        "cast": "labourer",
+        "family": "standard",
+        "frame": "broad",
+        "stature": 1.021,
+        "skin": 0,
+        "headShape": "square",
+        "faceType": 7,
+        "hairStyle": "tousled",
+        "hairColour": "umber",
+        "hat": "softCap",
+        "facial": "none",
+        "outfit": "labourer.vested",
+        "palette": "grey",
+        "asymmetries": [
+          "ragBelt",
+          "pouchHip"
+        ]
+      },
+      {
+        "seed": 3,
+        "cast": "labourer",
+        "family": "sturdy",
+        "frame": "broad",
+        "stature": 1.024,
+        "skin": 0,
+        "headShape": "long",
+        "faceType": 4,
+        "hairStyle": "tousled",
+        "hairColour": "chestnut",
+        "hat": "softCap",
+        "facial": "none",
+        "outfit": "labourer.braced",
+        "palette": "soot",
+        "asymmetries": [
+          "pouchHip",
+          "ragBelt"
+        ]
+      },
+      {
+        "seed": 4,
+        "cast": "labourer",
+        "family": "standard",
+        "frame": "broad",
+        "stature": 0.961,
+        "skin": 0,
+        "headShape": "heart",
+        "faceType": 5,
+        "hairStyle": "sidePart",
+        "hairColour": "soot",
+        "hat": "softCap",
+        "facial": "none",
+        "outfit": "labourer.braced",
+        "palette": "dust",
+        "asymmetries": [
+          "pouchHip",
+          "ragBelt"
+        ]
+      },
+      {
+        "seed": 5,
+        "cast": "labourer",
+        "family": "sturdy",
+        "frame": "broad",
+        "stature": 0.966,
+        "skin": 0,
+        "headShape": "long",
+        "faceType": 7,
+        "hairStyle": "tousled",
+        "hairColour": "auburn",
+        "hat": "flatCap",
+        "facial": "none",
+        "outfit": "labourer.vested",
+        "palette": "ochre",
+        "asymmetries": [
+          "ragBelt"
+        ]
+      },
+      {
+        "seed": 6,
+        "cast": "foundry",
+        "family": "sturdy",
+        "frame": "broad",
+        "stature": 0.967,
+        "skin": 2,
+        "headShape": "long",
+        "faceType": 7,
+        "hairStyle": "balding",
+        "hairColour": "auburn",
+        "hat": "kerchief",
+        "facial": "none",
+        "outfit": "foundry.apron",
+        "palette": "soot",
+        "asymmetries": [
+          "gogglesUp",
+          "pouchHip"
+        ]
+      },
+      {
+        "seed": 7,
+        "cast": "foundry",
+        "family": "sturdy",
+        "frame": "broad",
+        "stature": 1.033,
+        "skin": 0,
+        "headShape": "oval",
+        "faceType": 5,
+        "hairStyle": "shortCrop",
+        "hairColour": "soot",
+        "hat": "none",
+        "facial": "none",
+        "outfit": "foundry.apron",
+        "palette": "umber",
+        "asymmetries": [
+          "pouchHip"
+        ]
+      },
+      {
+        "seed": 8,
+        "cast": "labourer",
+        "family": "sturdy",
+        "frame": "broad",
+        "stature": 1.006,
+        "skin": 0,
+        "headShape": "long",
+        "faceType": 7,
+        "hairStyle": "shortCrop",
+        "hairColour": "auburn",
+        "hat": "none",
+        "facial": "none",
+        "outfit": "labourer.braced",
+        "palette": "dust",
+        "asymmetries": [
+          "ragBelt",
+          "pouchHip"
+        ]
+      },
+      {
+        "seed": 9,
+        "cast": "foundry",
+        "family": "sturdy",
+        "frame": "narrow",
+        "stature": 0.977,
+        "skin": 2,
+        "headShape": "square",
+        "faceType": 2,
+        "hairStyle": "tousled",
+        "hairColour": "umber",
+        "hat": "kerchief",
+        "facial": "none",
+        "outfit": "foundry.apron",
+        "palette": "umber",
+        "asymmetries": [
+          "pouchHip"
+        ]
+      },
+      {
+        "seed": 10,
+        "cast": "labourer",
+        "family": "standard",
+        "frame": "broad",
+        "stature": 0.997,
+        "skin": 0,
+        "headShape": "oval",
+        "faceType": 3,
+        "hairStyle": "tousled",
+        "hairColour": "soot",
+        "hat": "none",
+        "facial": "none",
+        "outfit": "labourer.braced",
+        "palette": "moss",
+        "asymmetries": [
+          "pouchHip"
+        ]
+      },
+      {
+        "seed": 11,
+        "cast": "labourer",
+        "family": "standard",
+        "frame": "broad",
+        "stature": 0.995,
+        "skin": 1,
+        "headShape": "long",
+        "faceType": 4,
+        "hairStyle": "shortCrop",
+        "hairColour": "chestnut",
+        "hat": "flatCap",
+        "facial": "none",
+        "outfit": "labourer.vested",
+        "palette": "umber",
+        "asymmetries": [
+          "ragBelt",
+          "braceDown"
+        ]
+      },
+      {
+        "seed": 12,
+        "cast": "labourer",
+        "family": "sturdy",
+        "frame": "broad",
+        "stature": 1.022,
+        "skin": 0,
+        "headShape": "oval",
+        "faceType": 2,
+        "hairStyle": "shortCrop",
+        "hairColour": "chestnut",
+        "hat": "softCap",
+        "facial": "none",
+        "outfit": "labourer.vested",
+        "palette": "grey",
+        "asymmetries": [
+          "ragBelt",
+          "braceDown"
+        ]
+      },
+      {
+        "seed": 13,
+        "cast": "labourer",
+        "family": "sturdy",
+        "frame": "broad",
+        "stature": 1.009,
+        "skin": 2,
+        "headShape": "long",
+        "faceType": 4,
+        "hairStyle": "sidePart",
+        "hairColour": "auburn",
+        "hat": "softCap",
+        "facial": "none",
+        "outfit": "labourer.braced",
+        "palette": "soot",
+        "asymmetries": [
+          "pouchHip"
+        ]
+      },
+      {
+        "seed": 14,
+        "cast": "foundry",
+        "family": "sturdy",
+        "frame": "narrow",
+        "stature": 1.017,
+        "skin": 1,
+        "headShape": "square",
+        "faceType": 0,
+        "hairStyle": "balding",
+        "hairColour": "straw",
+        "hat": "kerchief",
+        "facial": "none",
+        "outfit": "foundry.apron",
+        "palette": "soot",
+        "asymmetries": [
+          "gogglesUp"
+        ]
+      },
+      {
+        "seed": 15,
+        "cast": "labourer",
+        "family": "standard",
+        "frame": "broad",
+        "stature": 1.025,
+        "skin": 1,
+        "headShape": "oval",
+        "faceType": 3,
+        "hairStyle": "tousled",
+        "hairColour": "straw",
+        "hat": "softCap",
+        "facial": "none",
+        "outfit": "labourer.vested",
+        "palette": "ochre",
+        "asymmetries": [
+          "pouchHip"
+        ]
+      },
+      {
+        "seed": 16,
+        "cast": "foundry",
+        "family": "sturdy",
+        "frame": "broad",
+        "stature": 1.039,
+        "skin": 0,
+        "headShape": "oval",
+        "faceType": 0,
+        "hairStyle": "tousled",
+        "hairColour": "auburn",
+        "hat": "kerchief",
+        "facial": "none",
+        "outfit": "foundry.apron",
+        "palette": "soot",
+        "asymmetries": [
+          "pouchHip"
+        ]
+      },
+      {
+        "seed": 17,
+        "cast": "foundry",
+        "family": "sturdy",
+        "frame": "narrow",
+        "stature": 0.968,
+        "skin": 1,
+        "headShape": "oval",
+        "faceType": 7,
+        "hairStyle": "shortCrop",
+        "hairColour": "umber",
+        "hat": "none",
+        "facial": "none",
+        "outfit": "foundry.apron",
+        "palette": "umber",
+        "asymmetries": [
+          "pouchHip"
+        ]
+      },
+      {
+        "seed": 18,
+        "cast": "labourer",
+        "family": "standard",
+        "frame": "broad",
+        "stature": 1.025,
+        "skin": 0,
+        "headShape": "long",
+        "faceType": 6,
+        "hairStyle": "shortCrop",
+        "hairColour": "chestnut",
+        "hat": "flatCap",
+        "facial": "none",
+        "outfit": "labourer.braced",
+        "palette": "dust",
+        "asymmetries": [
+          "ragBelt",
+          "pouchHip"
+        ]
+      },
+      {
+        "seed": 19,
+        "cast": "labourer",
+        "family": "sturdy",
+        "frame": "broad",
+        "stature": 1.026,
+        "skin": 0,
+        "headShape": "heart",
+        "faceType": 5,
+        "hairStyle": "sidePart",
+        "hairColour": "soot",
+        "hat": "softCap",
+        "facial": "none",
+        "outfit": "labourer.braced",
+        "palette": "soot",
+        "asymmetries": [
+          "pouchHip",
+          "ragBelt"
+        ]
+      }
+    ],
+    "merchant": [
+      {
+        "seed": 0,
+        "cast": "shopMerchant",
+        "family": "sturdy",
+        "frame": "narrow",
+        "stature": 0.977,
+        "skin": 1,
+        "headShape": "square",
+        "faceType": 0,
+        "hairStyle": "balding",
+        "hairColour": "soot",
+        "hat": "none",
+        "facial": "none",
+        "outfit": "shopMerchant.waistcoat",
+        "palette": "wine",
+        "asymmetries": [
+          "sleeveGarters"
+        ]
+      },
+      {
+        "seed": 1,
+        "cast": "shopMerchant",
+        "family": "sturdy",
+        "frame": "broad",
+        "stature": 0.972,
+        "skin": 1,
+        "headShape": "heart",
+        "faceType": 0,
+        "hairStyle": "balding",
+        "hairColour": "chestnut",
+        "hat": "none",
+        "facial": "none",
+        "outfit": "shopMerchant.waistcoat",
+        "palette": "ochre",
+        "asymmetries": [
+          "pencilEar",
+          "sleeveGarters"
+        ]
+      },
+      {
+        "seed": 2,
+        "cast": "stallholder",
+        "family": "sturdy",
+        "frame": "narrow",
+        "stature": 1.021,
+        "skin": 0,
+        "headShape": "square",
+        "faceType": 0,
+        "hairStyle": "bob",
+        "hairColour": "umber",
+        "hat": "none",
+        "facial": "none",
+        "outfit": "stallholder.shawl",
+        "palette": "rust",
+        "asymmetries": [
+          "pouchHip",
+          "apronTie"
+        ]
+      },
+      {
+        "seed": 3,
+        "cast": "stallholder",
+        "family": "standard",
+        "frame": "narrow",
+        "stature": 1.024,
+        "skin": 1,
+        "headShape": "oval",
+        "faceType": 1,
+        "hairStyle": "bob",
+        "hairColour": "chestnut",
+        "hat": "none",
+        "facial": "none",
+        "outfit": "stallholder.apron",
+        "palette": "wine",
+        "asymmetries": [
+          "apronTie",
+          "pouchHip"
+        ]
+      },
+      {
+        "seed": 4,
+        "cast": "stallholder",
+        "family": "sturdy",
+        "frame": "broad",
+        "stature": 0.961,
+        "skin": 2,
+        "headShape": "long",
+        "faceType": 6,
+        "hairStyle": "tousled",
+        "hairColour": "soot",
+        "hat": "none",
+        "facial": "none",
+        "outfit": "stallholder.apron",
+        "palette": "ochre",
+        "asymmetries": [
+          "apronTie",
+          "pouchHip"
+        ]
+      },
+      {
+        "seed": 5,
+        "cast": "stallholder",
+        "family": "standard",
+        "frame": "narrow",
+        "stature": 0.966,
+        "skin": 0,
+        "headShape": "oval",
+        "faceType": 7,
+        "hairStyle": "bob",
+        "hairColour": "auburn",
+        "hat": "headscarf",
+        "facial": "none",
+        "outfit": "stallholder.shawl",
+        "palette": "navy",
+        "asymmetries": [
+          "pouchHip"
+        ]
+      },
+      {
+        "seed": 6,
+        "cast": "shopMerchant",
+        "family": "sturdy",
+        "frame": "broad",
+        "stature": 0.967,
+        "skin": 1,
+        "headShape": "oval",
+        "faceType": 0,
+        "hairStyle": "balding",
+        "hairColour": "iron",
+        "hat": "bowler",
+        "facial": "none",
+        "outfit": "shopMerchant.waistcoat",
+        "palette": "wine",
+        "asymmetries": [
+          "watchChain",
+          "pencilEar"
+        ]
+      },
+      {
+        "seed": 7,
+        "cast": "shopMerchant",
+        "family": "sturdy",
+        "frame": "broad",
+        "stature": 1.033,
+        "skin": 1,
+        "headShape": "heart",
+        "faceType": 6,
+        "hairStyle": "sidePart",
+        "hairColour": "soot",
+        "hat": "none",
+        "facial": "none",
+        "outfit": "shopMerchant.waistcoat",
+        "palette": "ochre",
+        "asymmetries": [
+          "sleeveGarters"
+        ]
+      },
+      {
+        "seed": 8,
+        "cast": "stallholder",
+        "family": "standard",
+        "frame": "narrow",
+        "stature": 1.006,
+        "skin": 1,
+        "headShape": "oval",
+        "faceType": 3,
+        "hairStyle": "lowBun",
+        "hairColour": "auburn",
+        "hat": "headscarf",
+        "facial": "none",
+        "outfit": "stallholder.apron",
+        "palette": "ochre",
+        "asymmetries": [
+          "pouchHip",
+          "apronTie"
+        ]
+      },
+      {
+        "seed": 9,
+        "cast": "shopMerchant",
+        "family": "standard",
+        "frame": "narrow",
+        "stature": 0.977,
+        "skin": 0,
+        "headShape": "long",
+        "faceType": 4,
+        "hairStyle": "shortCrop",
+        "hairColour": "umber",
+        "hat": "bowler",
+        "facial": "none",
+        "outfit": "shopMerchant.waistcoat",
+        "palette": "ochre",
+        "asymmetries": [
+          "pencilEar"
+        ]
+      },
+      {
+        "seed": 10,
+        "cast": "stallholder",
+        "family": "sturdy",
+        "frame": "narrow",
+        "stature": 0.997,
+        "skin": 2,
+        "headShape": "heart",
+        "faceType": 3,
+        "hairStyle": "bob",
+        "hairColour": "soot",
+        "hat": "none",
+        "facial": "none",
+        "outfit": "stallholder.apron",
+        "palette": "slate",
+        "asymmetries": [
+          "apronTie"
+        ]
+      },
+      {
+        "seed": 11,
+        "cast": "stallholder",
+        "family": "sturdy",
+        "frame": "narrow",
+        "stature": 0.995,
+        "skin": 1,
+        "headShape": "oval",
+        "faceType": 5,
+        "hairStyle": "lowBun",
+        "hairColour": "chestnut",
+        "hat": "headscarf",
+        "facial": "none",
+        "outfit": "stallholder.shawl",
+        "palette": "moss",
+        "asymmetries": [
+          "pouchHip",
+          "scarfTail"
+        ]
+      },
+      {
+        "seed": 12,
+        "cast": "stallholder",
+        "family": "standard",
+        "frame": "broad",
+        "stature": 1.022,
+        "skin": 0,
+        "headShape": "square",
+        "faceType": 0,
+        "hairStyle": "lowBun",
+        "hairColour": "chestnut",
+        "hat": "none",
+        "facial": "none",
+        "outfit": "stallholder.shawl",
+        "palette": "rust",
+        "asymmetries": [
+          "pouchHip",
+          "scarfTail"
+        ]
+      },
+      {
+        "seed": 13,
+        "cast": "stallholder",
+        "family": "standard",
+        "frame": "narrow",
+        "stature": 1.009,
+        "skin": 0,
+        "headShape": "square",
+        "faceType": 2,
+        "hairStyle": "tousled",
+        "hairColour": "auburn",
+        "hat": "none",
+        "facial": "none",
+        "outfit": "stallholder.apron",
+        "palette": "wine",
+        "asymmetries": [
+          "apronTie"
+        ]
+      },
+      {
+        "seed": 14,
+        "cast": "shopMerchant",
+        "family": "sturdy",
+        "frame": "narrow",
+        "stature": 1.017,
+        "skin": 0,
+        "headShape": "long",
+        "faceType": 7,
+        "hairStyle": "balding",
+        "hairColour": "iron",
+        "hat": "bowler",
+        "facial": "none",
+        "outfit": "shopMerchant.waistcoat",
+        "palette": "wine",
+        "asymmetries": [
+          "watchChain"
+        ]
+      },
+      {
+        "seed": 15,
+        "cast": "stallholder",
+        "family": "sturdy",
+        "frame": "narrow",
+        "stature": 1.025,
+        "skin": 0,
+        "headShape": "heart",
+        "faceType": 7,
+        "hairStyle": "bob",
+        "hairColour": "straw",
+        "hat": "none",
+        "facial": "none",
+        "outfit": "stallholder.shawl",
+        "palette": "navy",
+        "asymmetries": [
+          "apronTie"
+        ]
+      },
+      {
+        "seed": 16,
+        "cast": "shopMerchant",
+        "family": "sturdy",
+        "frame": "broad",
+        "stature": 1.039,
+        "skin": 2,
+        "headShape": "square",
+        "faceType": 6,
+        "hairStyle": "shortCrop",
+        "hairColour": "chestnut",
+        "hat": "bowler",
+        "facial": "none",
+        "outfit": "shopMerchant.waistcoat",
+        "palette": "wine",
+        "asymmetries": [
+          "pencilEar"
+        ]
+      },
+      {
+        "seed": 17,
+        "cast": "shopMerchant",
+        "family": "sturdy",
+        "frame": "narrow",
+        "stature": 0.968,
+        "skin": 0,
+        "headShape": "long",
+        "faceType": 2,
+        "hairStyle": "sidePart",
+        "hairColour": "soot",
+        "hat": "none",
+        "facial": "none",
+        "outfit": "shopMerchant.waistcoat",
+        "palette": "ochre",
+        "asymmetries": [
+          "pencilEar"
+        ]
+      },
+      {
+        "seed": 18,
+        "cast": "shopMerchant",
+        "family": "sturdy",
+        "frame": "broad",
+        "stature": 1.025,
+        "skin": 0,
+        "headShape": "oval",
+        "faceType": 7,
+        "hairStyle": "sidePart",
+        "hairColour": "umber",
+        "hat": "bowler",
+        "facial": "none",
+        "outfit": "shopMerchant.waistcoat",
+        "palette": "wine",
+        "asymmetries": [
+          "pencilEar",
+          "watchChain"
+        ]
+      },
+      {
+        "seed": 19,
+        "cast": "stallholder",
+        "family": "standard",
+        "frame": "broad",
+        "stature": 1.026,
+        "skin": 1,
+        "headShape": "heart",
+        "faceType": 1,
+        "hairStyle": "tousled",
+        "hairColour": "soot",
+        "hat": "none",
+        "facial": "none",
+        "outfit": "stallholder.apron",
+        "palette": "wine",
+        "asymmetries": [
+          "apronTie",
+          "pouchHip"
+        ]
+      }
+    ],
+    "courier": [
+      {
+        "seed": 0,
+        "cast": "courier",
+        "family": "slim",
+        "frame": "narrow",
+        "stature": 0.977,
+        "skin": 2,
+        "headShape": "heart",
+        "faceType": 5,
+        "hairStyle": "ponytail",
+        "hairColour": "soot",
+        "hat": "softCap",
+        "facial": "none",
+        "outfit": "courier.jacket",
+        "palette": "oxblood",
+        "asymmetries": [
+          "scarfTail"
+        ]
+      },
+      {
+        "seed": 1,
+        "cast": "courier",
+        "family": "slim",
+        "frame": "broad",
+        "stature": 0.972,
+        "skin": 2,
+        "headShape": "square",
+        "faceType": 0,
+        "hairStyle": "ponytail",
+        "hairColour": "chestnut",
+        "hat": "softCap",
+        "facial": "none",
+        "outfit": "courier.coat",
+        "palette": "umber",
+        "asymmetries": [
+          "scarfTail",
+          "satchelStrap"
+        ]
+      },
+      {
+        "seed": 2,
+        "cast": "courier",
+        "family": "slim",
+        "frame": "narrow",
+        "stature": 1.021,
+        "skin": 0,
+        "headShape": "square",
+        "faceType": 6,
+        "hairStyle": "tousled",
+        "hairColour": "umber",
+        "hat": "softCap",
+        "facial": "none",
+        "outfit": "courier.vest",
+        "palette": "mustard",
+        "asymmetries": [
+          "satchelStrap",
+          "scarfTail"
+        ]
+      },
+      {
+        "seed": 3,
+        "cast": "courier",
+        "family": "slim",
+        "frame": "narrow",
+        "stature": 1.024,
+        "skin": 2,
+        "headShape": "square",
+        "faceType": 7,
+        "hairStyle": "tousled",
+        "hairColour": "chestnut",
+        "hat": "softCap",
+        "facial": "none",
+        "outfit": "courier.jacket",
+        "palette": "slate",
+        "asymmetries": [
+          "satchelStrap",
+          "scarfTail"
+        ]
+      },
+      {
+        "seed": 4,
+        "cast": "courier",
+        "family": "slim",
+        "frame": "broad",
+        "stature": 0.961,
+        "skin": 1,
+        "headShape": "long",
+        "faceType": 5,
+        "hairStyle": "ponytail",
+        "hairColour": "soot",
+        "hat": "softCap",
+        "facial": "none",
+        "outfit": "courier.jacket",
+        "palette": "moss",
+        "asymmetries": [
+          "satchelStrap",
+          "scarfTail"
+        ]
+      },
+      {
+        "seed": 5,
+        "cast": "courier",
+        "family": "slim",
+        "frame": "narrow",
+        "stature": 0.966,
+        "skin": 0,
+        "headShape": "long",
+        "faceType": 1,
+        "hairStyle": "tousled",
+        "hairColour": "auburn",
+        "hat": "softCap",
+        "facial": "none",
+        "outfit": "courier.vest",
+        "palette": "stone",
+        "asymmetries": [
+          "scarfTail"
+        ]
+      },
+      {
+        "seed": 6,
+        "cast": "courier",
+        "family": "slim",
+        "frame": "broad",
+        "stature": 0.967,
+        "skin": 1,
+        "headShape": "long",
+        "faceType": 4,
+        "hairStyle": "ponytail",
+        "hairColour": "auburn",
+        "hat": "softCap",
+        "facial": "none",
+        "outfit": "courier.jacket",
+        "palette": "moss",
+        "asymmetries": [
+          "satchelStrap",
+          "scarfTail"
+        ]
+      },
+      {
+        "seed": 7,
+        "cast": "courier",
+        "family": "slim",
+        "frame": "broad",
+        "stature": 1.033,
+        "skin": 0,
+        "headShape": "long",
+        "faceType": 4,
+        "hairStyle": "shortCrop",
+        "hairColour": "soot",
+        "hat": "softCap",
+        "facial": "none",
+        "outfit": "courier.vest",
+        "palette": "stone",
+        "asymmetries": [
+          "scarfTail"
+        ]
+      },
+      {
+        "seed": 8,
+        "cast": "courier",
+        "family": "slim",
+        "frame": "narrow",
+        "stature": 1.006,
+        "skin": 2,
+        "headShape": "oval",
+        "faceType": 2,
+        "hairStyle": "shortCrop",
+        "hairColour": "auburn",
+        "hat": "softCap",
+        "facial": "none",
+        "outfit": "courier.jacket",
+        "palette": "oxblood",
+        "asymmetries": [
+          "scarfTail",
+          "satchelStrap"
+        ]
+      },
+      {
+        "seed": 9,
+        "cast": "courier",
+        "family": "slim",
+        "frame": "narrow",
+        "stature": 0.977,
+        "skin": 0,
+        "headShape": "long",
+        "faceType": 2,
+        "hairStyle": "tousled",
+        "hairColour": "umber",
+        "hat": "softCap",
+        "facial": "none",
+        "outfit": "courier.coat",
+        "palette": "umber",
+        "asymmetries": [
+          "scarfTail"
+        ]
+      },
+      {
+        "seed": 10,
+        "cast": "courier",
+        "family": "slim",
+        "frame": "narrow",
+        "stature": 0.997,
+        "skin": 2,
+        "headShape": "heart",
+        "faceType": 1,
+        "hairStyle": "tousled",
+        "hairColour": "soot",
+        "hat": "softCap",
+        "facial": "none",
+        "outfit": "courier.jacket",
+        "palette": "moss",
+        "asymmetries": [
+          "satchelStrap"
+        ]
+      },
+      {
+        "seed": 11,
+        "cast": "courier",
+        "family": "slim",
+        "frame": "narrow",
+        "stature": 0.995,
+        "skin": 2,
+        "headShape": "square",
+        "faceType": 3,
+        "hairStyle": "shortCrop",
+        "hairColour": "chestnut",
+        "hat": "softCap",
+        "facial": "none",
+        "outfit": "courier.coat",
+        "palette": "umber",
+        "asymmetries": [
+          "satchelStrap",
+          "scarfTail"
+        ]
+      },
+      {
+        "seed": 12,
+        "cast": "courier",
+        "family": "slim",
+        "frame": "broad",
+        "stature": 1.022,
+        "skin": 2,
+        "headShape": "oval",
+        "faceType": 5,
+        "hairStyle": "shortCrop",
+        "hairColour": "chestnut",
+        "hat": "softCap",
+        "facial": "none",
+        "outfit": "courier.vest",
+        "palette": "mustard",
+        "asymmetries": [
+          "scarfTail",
+          "satchelStrap"
+        ]
+      },
+      {
+        "seed": 13,
+        "cast": "courier",
+        "family": "slim",
+        "frame": "narrow",
+        "stature": 1.009,
+        "skin": 1,
+        "headShape": "heart",
+        "faceType": 5,
+        "hairStyle": "ponytail",
+        "hairColour": "auburn",
+        "hat": "softCap",
+        "facial": "none",
+        "outfit": "courier.jacket",
+        "palette": "slate",
+        "asymmetries": [
+          "satchelStrap"
+        ]
+      },
+      {
+        "seed": 14,
+        "cast": "courier",
+        "family": "slim",
+        "frame": "narrow",
+        "stature": 1.017,
+        "skin": 0,
+        "headShape": "heart",
+        "faceType": 5,
+        "hairStyle": "ponytail",
+        "hairColour": "straw",
+        "hat": "softCap",
+        "facial": "none",
+        "outfit": "courier.jacket",
+        "palette": "oxblood",
+        "asymmetries": [
+          "satchelStrap"
+        ]
+      },
+      {
+        "seed": 15,
+        "cast": "courier",
+        "family": "slim",
+        "frame": "narrow",
+        "stature": 1.025,
+        "skin": 2,
+        "headShape": "square",
+        "faceType": 7,
+        "hairStyle": "tousled",
+        "hairColour": "straw",
+        "hat": "softCap",
+        "facial": "none",
+        "outfit": "courier.vest",
+        "palette": "stone",
+        "asymmetries": [
+          "satchelStrap"
+        ]
+      },
+      {
+        "seed": 16,
+        "cast": "courier",
+        "family": "slim",
+        "frame": "broad",
+        "stature": 1.039,
+        "skin": 2,
+        "headShape": "long",
+        "faceType": 7,
+        "hairStyle": "tousled",
+        "hairColour": "auburn",
+        "hat": "softCap",
+        "facial": "none",
+        "outfit": "courier.jacket",
+        "palette": "oxblood",
+        "asymmetries": [
+          "scarfTail"
+        ]
+      },
+      {
+        "seed": 17,
+        "cast": "courier",
+        "family": "slim",
+        "frame": "narrow",
+        "stature": 0.968,
+        "skin": 1,
+        "headShape": "heart",
+        "faceType": 5,
+        "hairStyle": "shortCrop",
+        "hairColour": "umber",
+        "hat": "softCap",
+        "facial": "none",
+        "outfit": "courier.coat",
+        "palette": "umber",
+        "asymmetries": [
+          "scarfTail"
+        ]
+      },
+      {
+        "seed": 18,
+        "cast": "courier",
+        "family": "slim",
+        "frame": "broad",
+        "stature": 1.025,
+        "skin": 1,
+        "headShape": "long",
+        "faceType": 6,
+        "hairStyle": "shortCrop",
+        "hairColour": "chestnut",
+        "hat": "softCap",
+        "facial": "none",
+        "outfit": "courier.jacket",
+        "palette": "oxblood",
+        "asymmetries": [
+          "satchelStrap",
+          "scarfTail"
+        ]
+      },
+      {
+        "seed": 19,
+        "cast": "courier",
+        "family": "slim",
+        "frame": "broad",
+        "stature": 1.026,
+        "skin": 0,
+        "headShape": "long",
+        "faceType": 1,
+        "hairStyle": "ponytail",
+        "hairColour": "soot",
+        "hat": "softCap",
+        "facial": "none",
+        "outfit": "courier.jacket",
+        "palette": "slate",
+        "asymmetries": [
+          "satchelStrap",
+          "scarfTail"
+        ]
+      }
+    ],
+    "engineer": [
+      {
+        "seed": 0,
+        "cast": "olderMechanic",
+        "family": "sturdy",
+        "frame": "narrow",
+        "stature": 0.977,
+        "skin": 1,
+        "headShape": "oval",
+        "faceType": 2,
+        "hairStyle": "sidePart",
+        "hairColour": "iron",
+        "hat": "none",
+        "facial": "beard",
+        "outfit": "olderMechanic.shopCoat",
+        "palette": "canvas",
+        "asymmetries": [
+          "ragBelt"
+        ]
+      },
+      {
+        "seed": 1,
+        "cast": "olderMechanic",
+        "family": "sturdy",
+        "frame": "broad",
+        "stature": 0.972,
+        "skin": 1,
+        "headShape": "heart",
+        "faceType": 6,
+        "hairStyle": "sidePart",
+        "hairColour": "iron",
+        "hat": "none",
+        "facial": "moustache",
+        "outfit": "olderMechanic.shopCoat",
+        "palette": "stone",
+        "asymmetries": [
+          "pencilEar",
+          "ragBelt"
+        ]
+      },
+      {
+        "seed": 2,
+        "cast": "youngMechanic",
+        "family": "standard",
+        "frame": "narrow",
+        "stature": 1.021,
+        "skin": 2,
+        "headShape": "long",
+        "faceType": 4,
+        "hairStyle": "shortCrop",
+        "hairColour": "umber",
+        "hat": "none",
+        "facial": "none",
+        "outfit": "youngMechanic.jacket",
+        "palette": "umber",
+        "asymmetries": [
+          "gogglesUp",
+          "toolRoll"
+        ]
+      },
+      {
+        "seed": 3,
+        "cast": "youngMechanic",
+        "family": "slim",
+        "frame": "narrow",
+        "stature": 1.024,
+        "skin": 1,
+        "headShape": "oval",
+        "faceType": 3,
+        "hairStyle": "sweptBack",
+        "hairColour": "chestnut",
+        "hat": "none",
+        "facial": "none",
+        "outfit": "youngMechanic.jacket",
+        "palette": "moss",
+        "asymmetries": [
+          "toolRoll",
+          "gogglesUp"
+        ]
+      },
+      {
+        "seed": 4,
+        "cast": "youngMechanic",
+        "family": "standard",
+        "frame": "broad",
+        "stature": 0.961,
+        "skin": 0,
+        "headShape": "long",
+        "faceType": 1,
+        "hairStyle": "shortCrop",
+        "hairColour": "soot",
+        "hat": "none",
+        "facial": "none",
+        "outfit": "youngMechanic.jacket",
+        "palette": "slate",
+        "asymmetries": [
+          "toolRoll",
+          "gogglesUp"
+        ]
+      },
+      {
+        "seed": 5,
+        "cast": "youngMechanic",
+        "family": "slim",
+        "frame": "narrow",
+        "stature": 0.966,
+        "skin": 2,
+        "headShape": "oval",
+        "faceType": 3,
+        "hairStyle": "shortCrop",
+        "hairColour": "auburn",
+        "hat": "softCap",
+        "facial": "none",
+        "outfit": "youngMechanic.jacket",
+        "palette": "moss",
+        "asymmetries": [
+          "gogglesUp"
+        ]
+      },
+      {
+        "seed": 6,
+        "cast": "olderMechanic",
+        "family": "sturdy",
+        "frame": "broad",
+        "stature": 0.967,
+        "skin": 0,
+        "headShape": "oval",
+        "faceType": 2,
+        "hairStyle": "sidePart",
+        "hairColour": "iron",
+        "hat": "flatCap",
+        "facial": "moustache",
+        "outfit": "olderMechanic.shopCoat",
+        "palette": "bone",
+        "asymmetries": [
+          "spectacles",
+          "pencilEar"
+        ]
+      },
+      {
+        "seed": 7,
+        "cast": "olderMechanic",
+        "family": "sturdy",
+        "frame": "broad",
+        "stature": 1.033,
+        "skin": 2,
+        "headShape": "square",
+        "faceType": 6,
+        "hairStyle": "balding",
+        "hairColour": "iron",
+        "hat": "none",
+        "facial": "moustache",
+        "outfit": "olderMechanic.apron",
+        "palette": "stone",
+        "asymmetries": [
+          "ragBelt"
+        ]
+      },
+      {
+        "seed": 8,
+        "cast": "youngMechanic",
+        "family": "slim",
+        "frame": "narrow",
+        "stature": 1.006,
+        "skin": 2,
+        "headShape": "square",
+        "faceType": 3,
+        "hairStyle": "tousled",
+        "hairColour": "auburn",
+        "hat": "softCap",
+        "facial": "none",
+        "outfit": "youngMechanic.jacket",
+        "palette": "slate",
+        "asymmetries": [
+          "gogglesUp",
+          "toolRoll"
+        ]
+      },
+      {
+        "seed": 9,
+        "cast": "olderMechanic",
+        "family": "standard",
+        "frame": "narrow",
+        "stature": 0.977,
+        "skin": 0,
+        "headShape": "heart",
+        "faceType": 6,
+        "hairStyle": "shortCrop",
+        "hairColour": "iron",
+        "hat": "flatCap",
+        "facial": "moustache",
+        "outfit": "olderMechanic.shopCoat",
+        "palette": "stone",
+        "asymmetries": [
+          "pencilEar"
+        ]
+      },
+      {
+        "seed": 10,
+        "cast": "youngMechanic",
+        "family": "standard",
+        "frame": "narrow",
+        "stature": 0.997,
+        "skin": 1,
+        "headShape": "square",
+        "faceType": 2,
+        "hairStyle": "shortCrop",
+        "hairColour": "soot",
+        "hat": "none",
+        "facial": "none",
+        "outfit": "youngMechanic.jacket",
+        "palette": "slate",
+        "asymmetries": [
+          "toolRoll"
+        ]
+      },
+      {
+        "seed": 11,
+        "cast": "youngMechanic",
+        "family": "standard",
+        "frame": "narrow",
+        "stature": 0.995,
+        "skin": 1,
+        "headShape": "long",
+        "faceType": 2,
+        "hairStyle": "tousled",
+        "hairColour": "chestnut",
+        "hat": "softCap",
+        "facial": "none",
+        "outfit": "youngMechanic.jacket",
+        "palette": "moss",
+        "asymmetries": [
+          "gogglesUp",
+          "ragBelt"
+        ]
+      },
+      {
+        "seed": 12,
+        "cast": "youngMechanic",
+        "family": "slim",
+        "frame": "broad",
+        "stature": 1.022,
+        "skin": 1,
+        "headShape": "long",
+        "faceType": 4,
+        "hairStyle": "tousled",
+        "hairColour": "chestnut",
+        "hat": "none",
+        "facial": "none",
+        "outfit": "youngMechanic.jacket",
+        "palette": "umber",
+        "asymmetries": [
+          "gogglesUp",
+          "ragBelt"
+        ]
+      },
+      {
+        "seed": 13,
+        "cast": "youngMechanic",
+        "family": "slim",
+        "frame": "narrow",
+        "stature": 1.009,
+        "skin": 2,
+        "headShape": "long",
+        "faceType": 2,
+        "hairStyle": "ponytail",
+        "hairColour": "auburn",
+        "hat": "none",
+        "facial": "none",
+        "outfit": "youngMechanic.jacket",
+        "palette": "moss",
+        "asymmetries": [
+          "toolRoll"
+        ]
+      },
+      {
+        "seed": 14,
+        "cast": "olderMechanic",
+        "family": "sturdy",
+        "frame": "narrow",
+        "stature": 1.017,
+        "skin": 0,
+        "headShape": "heart",
+        "faceType": 6,
+        "hairStyle": "sidePart",
+        "hairColour": "iron",
+        "hat": "flatCap",
+        "facial": "moustache",
+        "outfit": "olderMechanic.shopCoat",
+        "palette": "canvas",
+        "asymmetries": [
+          "spectacles"
+        ]
+      },
+      {
+        "seed": 15,
+        "cast": "youngMechanic",
+        "family": "standard",
+        "frame": "narrow",
+        "stature": 1.025,
+        "skin": 2,
+        "headShape": "square",
+        "faceType": 0,
+        "hairStyle": "sweptBack",
+        "hairColour": "straw",
+        "hat": "none",
+        "facial": "none",
+        "outfit": "youngMechanic.jacket",
+        "palette": "moss",
+        "asymmetries": [
+          "toolRoll"
+        ]
+      },
+      {
+        "seed": 16,
+        "cast": "olderMechanic",
+        "family": "sturdy",
+        "frame": "broad",
+        "stature": 1.039,
+        "skin": 0,
+        "headShape": "long",
+        "faceType": 4,
+        "hairStyle": "shortCrop",
+        "hairColour": "iron",
+        "hat": "flatCap",
+        "facial": "beard",
+        "outfit": "olderMechanic.shopCoat",
+        "palette": "canvas",
+        "asymmetries": [
+          "pencilEar"
+        ]
+      },
+      {
+        "seed": 17,
+        "cast": "olderMechanic",
+        "family": "sturdy",
+        "frame": "narrow",
+        "stature": 0.968,
+        "skin": 0,
+        "headShape": "square",
+        "faceType": 4,
+        "hairStyle": "balding",
+        "hairColour": "iron",
+        "hat": "none",
+        "facial": "moustache",
+        "outfit": "olderMechanic.apron",
+        "palette": "canvas",
+        "asymmetries": [
+          "pencilEar"
+        ]
+      },
+      {
+        "seed": 18,
+        "cast": "olderMechanic",
+        "family": "sturdy",
+        "frame": "broad",
+        "stature": 1.025,
+        "skin": 0,
+        "headShape": "square",
+        "faceType": 2,
+        "hairStyle": "balding",
+        "hairColour": "iron",
+        "hat": "flatCap",
+        "facial": "moustache",
+        "outfit": "olderMechanic.shopCoat",
+        "palette": "canvas",
+        "asymmetries": [
+          "pencilEar",
+          "spectacles"
+        ]
+      },
+      {
+        "seed": 19,
+        "cast": "youngMechanic",
+        "family": "slim",
+        "frame": "broad",
+        "stature": 1.026,
+        "skin": 2,
+        "headShape": "oval",
+        "faceType": 3,
+        "hairStyle": "ponytail",
+        "hairColour": "soot",
+        "hat": "none",
+        "facial": "none",
+        "outfit": "youngMechanic.jacket",
+        "palette": "moss",
+        "asymmetries": [
+          "toolRoll",
+          "gogglesUp"
+        ]
+      }
+    ]
+  }
+}

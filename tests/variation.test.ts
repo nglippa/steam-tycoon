@@ -4,6 +4,7 @@ import * as T from 'three';
 import { ARCHETYPE_CASTS, CASTS, resolveLook, type Look } from '../src/world/people/look.ts';
 import { buildFigure, BUILT } from '../src/world/people/figure.ts';
 import { kit } from './people-rig.ts';
+import { variety } from '../tools/variety-measure.ts';
 import type { Archetype } from '../src/world/palette.ts';
 
 /** Book 11, "Variation minimums" (People XX): curated options, measured the way QA II measured them (looks.json: seeds 0..19 of each street archetype under the street's cast weights). */
@@ -48,4 +49,17 @@ test('a new outfit is a different garment, not a recolour', () => {
     const base = resolveLook(7, CASTS[cast].archetype, { cast, family: CASTS[cast].families[0], frame: CASTS[cast].frames[0] }), counts = CASTS[cast].outfits.map(o => tris({ ...base, outfit: o.id, palette: Object.keys(o.palettes)[0] }));
     assert.equal(new Set(counts).size, counts.length, `${cast}: outfits ${CASTS[cast].outfits.map(o => o.id).join(', ')} build ${counts.join(', ')} triangles`);
   }
+});
+
+/** People XXVII (the blind review's Q10/Q11: 17 groups in the hundred shared outfit, palette, hat and hair; all twenty couriers slim in one soft cap). Outfit, palette and hat are dealt,
+ *  not drawn (Book 11, "Dealt, not drawn"): measured on the QA rows (seeds 0..19) and on other runs of twenty, aligned to twenty and not. */
+const RUNS = [0, 7, 20, 33, 100, 250, 500, 1000];
+test('in a run of twenty, no two of an archetype share build, outfit, palette, hat and hair', () => {
+  for (const from of RUNS) for (const a of STREET) { const v = variety(a, 20, from); assert.equal(v.repeats.length, 0, `seeds ${from}..${from + 19} ${a}: ${v.repeats.map(([k, n]) => `${k} x${n}`).join('; ')}`); }
+});
+test('no outfit in one palette dresses more than 15 % of an archetype in a run of twenty', () => {
+  for (const from of RUNS) for (const a of STREET) { const v = variety(a, 20, from); assert.ok(v.top.share <= .15, `seeds ${from}..${from + 19} ${a}: ${v.top.combo} is ${(100 * v.top.share).toFixed(0)} %`); }
+});
+test('every street archetype shows two builds and three headwear, bare heads among them, in the QA row', () => {
+  for (const a of STREET) { const v = variety(a); assert.ok(v.builds.length >= 2, `${a}: builds ${v.builds.join(', ')}`); assert.ok(v.hats.length >= 3 && v.hats.includes('none'), `${a}: headwear ${v.hats.join(', ')}`); }
 });
