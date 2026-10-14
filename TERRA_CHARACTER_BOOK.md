@@ -243,6 +243,8 @@ Two masses with their own transforms, joined at the waist.
   every stride, so the two overlap by at least 6 cm and the outer garment covers the overlap.
 - From the side the torso is an S: chest forward, small of the back in, seat back.
 
+**Rule: the torso is an S in profile (People XXVI).** The body reference carries the S, so every shirt, waistcoat, coat and belt cut from it carries it too: the shoulder blades stand 2 to 2.5 cm behind the small of the back, the small of the back and the waist's front draw in 1 to 1.8 cm, the seat stands 2.2 to 3.8 cm out behind, and the chest .6 to 1.9 cm forward (`blade`, `lumbar`, `seat`, `chestF` in `body.ts`, by family and frame: the narrow frame has the fuller chest and seat, the sturdy family the least waist to draw in, since its belly carries forward). Widths, ring heights and triangle counts are unchanged. A back line straight from the collar to the hip is the fail (`tests/body-form.test.ts`).
+
 ### Neck and shoulders
 
 - The neck is an oval column that **leans forward** 10 to 20 degrees from the shoulders into the
@@ -268,6 +270,8 @@ replaces the butt joint and the visible elbow ball. Then, on top:
   trouser breaks here: the shin shell starts as a slightly wider cuff over the cap. No ring, no
   band, no stitched hem.
 - **Elbow:** a point at the back, carried on the upper arm. The sleeve creases on the inside.
+
+**Rule: the elbow is a landmark (People XXVI).** The upper arm tapers from its fullest, a third of the way down, into an elbow narrower than it (under .9 of its width) and than the forearm's swell just below (the forearm's widest ring is 1.05 of its width); the elbow's point stands about a centimetre out behind. A sleeve draws in over the joint (`ELBOW_GATHER`, 9 mm under its offset, with the upper and forearm sleeves sharing that radius at the cap) and swells again below it, so a sleeve breaks at the elbow, bent or straight, and is never one tube from shoulder to cuff (`tests/body-form.test.ts`).
 - **Hip:** the thigh ends in a cap inside the pelvis shell. The pelvis has a leg opening, not a
   closed point the thigh passes through. Seated, the seat of the trousers or the skirt covers it.
 - **Shoulder:** the cap is the deltoid. The garment's yoke or armhole overlaps it from the torso
@@ -296,6 +300,8 @@ A hand is as long as the face, chin to hairline. It is built from:
 
 The relaxed hand is a loose C. The grip socket stays in the palm with the handle along local z, as
 now. No spheres, no boxes, no thumbless mittens.
+
+**Rule: a hand reads as a hand at the game's sizes (People XXVI).** The fingers run on from the knuckles to about the hand's length in a loose C, never hooked back up past the knuckle line (that was a block or a hook about 12 cm long); the index is its own mass beside the other three, so the tips show a notch; the thumb stands off the front of the palm. Four sweeps and a palm loft, about 50 triangles more a hand.
 
 ### Feet
 
@@ -385,6 +391,8 @@ the skin, the deeper the band and the lighter the planes, so the step from cheek
 least 1.35 on the mid and dark skins. No shape is drawn narrower than about a pixel, and once the
 face is too small for its painted features to be told apart each shape doubles its depth, so the
 eye row lands on every tone at ~50 px. `tests/face-value.test.ts` holds the ordering and the limits.
+
+**Rule: features keep their contrast on every skin (People XXVI).** One atlas serves every skin, so its absolute-colour lashes, brows and irises lost about half their contrast against the darkest skin at seed-row scale (a dark-feature luma delta of 28-33 against 73-83 on the lightest; courier seeds 0 and 8 lost their eyes). Once a pixel covers 3 to 14 tile units, the face shader inks up the features of the mid and dark skins (`FACE_INK`, 0 / .5 / 1: up to 3x as opaque and their averaged colour raised to up to the 2.6th power); close up nothing changes. Measured on the cast sheet with PIL, the darkest skin's delta is now 46-53 and every face's darkest feature is at most luma ~62. A shut or happy eye is drawn with the open eye's weight of line (11 units and a lash at the outer corner, not 6, which went to nothing at a few metres), and `smiling` keeps the eyes open with the lower lid lifted (eye 14), so a smiling face does not read blank (the stallholder's darkest feature was luma 92, now 52).
 
 ---
 
@@ -481,6 +489,10 @@ hat 1,940 to 2,360. People VI's were 1,370 to 1,960 and 2,000 to 2,500.
 A separate small set, attached to the lip and jaw and never painted: a moustache in two tapered
 halves parted at the philtrum, on the upper lip and well clear of the painted mouth; a short beard;
 sideburns.
+
+**Rule: no moustache is a toothbrush (People XXVI).** The moustache is a parted chevron: thin where its halves part at the philtrum, fullest over each half of the lip, and sweeping down past the mouth's corners to tapered points, about 7 cm across. A level block about the nose's width, as deep at the middle as anywhere, is the fail: on the introGuard, a dark-haired soldier of an occupying authority, it read as a toothbrush moustache. There is one moustache shape, also joined to the short beard, so no Ordinance face (the introGuard, the overseer, a garrison or inspector dealt one) can wear the toothbrush (`tests/hair-reads.test.ts`).
+
+**Rule: a beard is a cut mass, not a strap (People XXVI).** The short beard is one mass with the moustache over the lip, round the chin and up the cheeks into the sideburns by the ear, fullest at the chin and thinning toward the ear; the mouth stays clear. A band of even depth along the jaw from ear to ear, with no moustache, read as a chin-strap mask (`tests/hair-reads.test.ts`).
 
 ### Colour
 
@@ -876,6 +888,10 @@ eating stroke (`activity === 'eat'`) stops 0.55 rad short at the shoulder, folds
 the elbow and comes in with the shoulder width (`citizen-life.ts`, marked by `group.userData.next`).
 Solved with the sheet's `probe()`: the grip lands within 2 cm of the mouth's height and about 9 cm
 off its front, as the old pose does.
+
+**Rule: the bite reaches the mouth (People XXVI).** The food (parts.ts `FOOD`) is cupped in the curl of the fingers, and the stroke's top is solved once per figure from its own rig (citizen-life.ts `biteReach`): the food's centre just ahead of the lips (`head.userData.mouth`), every point of the hand under the lips, near the old stroke. The head comes round to face the food as it reaches the lips. At the top of the bite the food is within 4 cm of the lips and no part of the forearm or hand rises past the nose, for every representative, the child and the elder (`tests/body-form.test.ts`). The mug keeps the stroke solved with the sheet's `probe()`.
+
+**Rule: seated knees part (People XXVI).** Seated, the thighs splay out from the hips (citizen-life.ts `SPLAY`, .13 rad in trousers, .075 under a coat's skirt or an apron, .035 under a long skirt or coat), each figure unevenly by up to .04 rad, so from the front there are two knees and two shins with daylight between them, about hip width apart in trousers. A long coat cut narrower than .45 of its drop keeps the knees together as it is cut, since its hem closes round the calves. The soles are solved onto the pavement after the splay, as before (`tests/body-form.test.ts`, `tests/walk.test.ts`, `tests/drape.test.ts`).
 
 ### Poses that must hold
 

@@ -28,3 +28,19 @@ test('the paint is distance-aware and lands at least a pixel wide', () => {
   assert.match(FACE_PAINT_HEAD, /uniform vec3 uPaint/);
   assert.match(FACE_PAINT_HEAD, /max\(sx,w\*/); assert.match(FACE_PAINT, /fwidth/);
 });
+
+test('features keep their contrast on every skin at small sizes (People XXVI): the darker the skin, the more its painted features are inked up once they are too small to draw crisply', async () => {
+  // The atlas is painted on a canvas (no canvas in node), so the shader's ink step is checked as a model: an eye averaged into a pixel at seed-row scale (a mid grey, a third opaque, from
+  // a 6-11 unit lash and a white over a 512-unit tile), laid on each skin by FACE_PAINT's rule with its FACE_INK. On every darker skin its L* step below the skin is at least the lightest skin's and at least
+  // half again what it is without the ink (measured on the cast sheet with PIL: courier seeds 0, 8, 16 went from a dark-feature luma delta of 28-33 to 46-53; screenshots/presentation/qa/people-xxvi).
+  const { FACE_INK } = await import('../src/world/people/head.ts'), T = await import('three');
+  assert.equal(FACE_INK.length, palette.skin.length); assert.equal(FACE_INK[0], 0);
+  for (let t = 1; t < FACE_INK.length; t++) assert.ok(FACE_INK[t] > FACE_INK[t - 1], `tone ${t}: inked no more than the lighter skin`);
+  assert.match(FACE_PAINT_HEAD, /uniform float uInk/); assert.match(FACE_PAINT, /uInk/);
+  const Lstar = (c: number[]) => { const Y = c.map(v => v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4).reduce((a, v, i) => a + v * [.2126, .7152, .0722][i], 0); return Y > 216 / 24389 ? 116 * Math.cbrt(Y) - 16 : Y * 24389 / 27; };
+  const step = (t: number, ink = FACE_INK[t]) => { const s = new T.Color(palette.skin[t]), skin = [s.r, s.g, s.b], f = .42 ** (1 + 1.6 * ink), a = Math.min(1, .33 * (1 + 2 * ink)); return Lstar(skin) - Lstar(skin.map(v => v + (f - v) * a)); };
+  const light = step(0);
+  for (let t = 1; t < FACE_INK.length; t++) {
+    assert.ok(step(t) >= light, `tone ${t}: an averaged eye stands ${step(t).toFixed(1)} L* under the skin against ${light.toFixed(1)} on the lightest`);
+    assert.ok(step(t) >= 1.5 * step(t, 0), `tone ${t}: the ink lifts an averaged eye's step only from ${step(t, 0).toFixed(1)} to ${step(t).toFixed(1)} L*`); }
+});

@@ -9,7 +9,7 @@ useLife((n, a, dt, t, p) => animateLife(n, a, dt, t, false, p));
 test('a lifted knee never pierces long cloth: no leg is seen through a skirt, an apron or a coat at any phase of the walk', () => {
   // the QA representatives in long cloth, and the casts with the longest or narrowest: a lady's skirt to the ankle, an elder's coat
   const casts: [string, number][] = REPS.filter(([, c]) => /rowSkirt|stallholder|olderMechanic|foundry|shopMerchant|garrison|inspector|rowCoat/.test(c)).map(([, c, s]) => [c, s]);
-  casts.push(['affluent.standard.broad', 2], ['elder.slim.narrow', 5]);
+  casts.push(['affluent.standard.broad', 4], ['elder.slim.narrow', 5]);
   // every outfit of the casts with more than one (People XX), whichever the representatives' seeds happen to draw
   casts.push(...NEW_OUTFITS);
   for (const [combo, seed] of casts) for (const speed of [.6, 1.3]) {
@@ -37,7 +37,7 @@ test('the Ordinance\'s coats hold the intro\'s 2.9 m/s exit', () => {
 });
 
 test('long cloth moves like cloth: the hem bends at the knee and trails the upper part, rather than turning with it as one board', () => {
-  for (const combo of ['olderMechanic.sturdy.broad', 'shopMerchant.standard.broad', 'foundry.sturdy.broad', 'rowSkirt.slim.narrow']) {
+  for (const combo of ['olderMechanic.sturdy.broad:olderMechanic.apron', 'shopMerchant.standard.broad', 'foundry.sturdy.broad', 'rowSkirt.slim.narrow']) {
     const n = make(combo, 5), player = new T.Vector3(0, 1.7, 3), dt = 1 / 60, up: number[] = [], hem: number[] = [];
     for (let i = 0; i < 360; i++) { const t = i * dt; n.group.position.set(0, 0, t * 1.2); animateLife(n, 'walk', dt, t, false, player); if (i >= 120) { up.push(n.tails.rotation.x); hem.push(n.hem!.rotation.x); } }
     // the hem's own turn about the knee is not a fixed share of the upper part's: it bends (its range is real) and it lags (its best match to the upper part comes some frames later)
@@ -50,7 +50,7 @@ test('long cloth moves like cloth: the hem bends at the knee and trails the uppe
 test('a skirt in stride wraps the forward leg and trails: it is opened only as far as the knee needs, never into a bell or a tent', () => {
   // People XXI: the hem's top is cut narrow inside the upper part, and asking it to hold the knee as well opened the whole hem by ~45 %: every skirt kicked into a stiff bell, its hem tilted
   // 27-49 cm front to back. Measured at the hem's lowest band, in the pelvis frame: its depth front to back against its cut, and how far its front and back part in height.
-  for (const [combo, seed] of [['stallholder.sturdy.broad', 3], ['stallholder.standard.narrow', 8], ['stallholder.sturdy.broad:stallholder.shawl', 3], ['rowSkirt.slim.narrow', 1], ['affluent.standard.broad', 2]] as const) for (const speed of [.6, 1, 1.3]) {
+  for (const [combo, seed] of [['stallholder.sturdy.broad', 3], ['stallholder.standard.narrow', 8], ['stallholder.sturdy.broad:stallholder.shawl', 3], ['rowSkirt.slim.narrow', 1], ['affluent.standard.broad', 4]] as const) for (const speed of [.6, 1, 1.3]) {
     const n = make(combo, seed), player = new T.Vector3(0, 1.7, 25), dt = 1 / 60, inv = new T.Matrix4(), g = n.drape!.garments[0], bot = g.lo[g.lo.length - 1];
     const P = (z: number) => new T.Vector3(0, bot.y, z).applyMatrix4(n.hem!.matrixWorld).applyMatrix4(inv); let depth = 0, tilt = 0;
     for (let f = 0; f < 300; f++) { n.group.position.set(0, 0, f * dt * speed); animateLife(n, 'walk', dt, f * dt, false, player); if (f < 120) continue; n.group.updateMatrixWorld(true); inv.copy(n.pelvis.matrixWorld).invert();
@@ -102,7 +102,7 @@ test('a seated knee never pierces the lap: no knee or leg shows through long clo
   // depth it showed up to 5.6 cm): it is held under 3 cm.
   const { seatedThrough } = await import('./people-rig.ts');
   const casts: [string, number][] = REPS.filter(([, c]) => /rowSkirt|stallholder|olderMechanic|foundry|shopMerchant|garrison|inspector|rowCoat|youngMechanic/.test(c)).map(([, c, s]) => [c, s]);
-  casts.push(['affluent.standard.broad', 2], ['elder.slim.narrow', 5], ['elder.slim.broad', 2], ['child.child.narrow', 3], ['inspector.slim.broad', 1], ['garrison.standard.broad', 2], ...NEW_OUTFITS);
+  casts.push(['affluent.standard.broad', 4], ['elder.slim.narrow', 5], ['elder.slim.broad', 2], ['child.child.narrow', 3], ['inspector.slim.broad', 1], ['garrison.standard.broad', 2], ...NEW_OUTFITS);
   for (const [combo, seed] of casts) for (const [a, mug] of [['sit', false], ['eat', false], ['eat', true]] as const) {
     if (mug && !/stallholder|olderMechanic|rowSkirt/.test(combo)) continue; // (the mug changes only the arm: a few casts are enough)
     const r = seatedThrough(combo, seed, a, mug);
@@ -115,7 +115,7 @@ test('a seated apron lies on the lap and falls from the knee: within 3 cm of the
   // People XXIV: an apron or the foundry slab was carried seated as the lap and the hem of the long cloth are, flattened by `tails`' scale and its hem sheared in it: a board over the thighs
   // that ran on past the knees, its far edge more than 12 cm off the legs (the older mechanic's read as a hollow frame). Now it is its own part, laid along the thighs' tops and hung from a fold over the knee down the shins
   // (drape.ts `seatPanel`). Measured from the side against the legs' silhouette (people-rig.ts `seatedPanel`, on a 1 cm grid).
-  const bare: [string, number][] = [['olderMechanic.sturdy.broad', 5], ['foundry.sturdy.broad', 7], ['shopMerchant.standard.broad', 9],
+  const bare: [string, number][] = [['olderMechanic.sturdy.broad:olderMechanic.apron', 5], ['foundry.sturdy.broad', 7], ['shopMerchant.standard.broad', 9],
     ['olderMechanic.sturdy.broad:olderMechanic.apron', 5], ['olderMechanic.standard.narrow:olderMechanic.apron', 2]];
   for (const [combo, seed] of bare) for (const a of ['sit', 'eat'] as const) {
     const r = seatedPanel(combo, seed, a);

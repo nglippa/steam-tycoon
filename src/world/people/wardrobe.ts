@@ -1,6 +1,6 @@
 import * as T from 'three';
 import { loft, sweep, place, plate, offset, ringAt, surface, onFace, shared, inward, type Ring, type SweepPt } from './loft';
-import { upperArm, forearm, thigh as thighRings, shin as shinRings, ring, RIG, type Dims } from './body';
+import { upperArm, forearm, thigh as thighRings, shin as shinRings, ring, RIG, ELBOW_GATHER, type Dims } from './body';
 import type { Look } from './look';
 import type { Kit } from './figure';
 import { hand, foot, put0, strip, seam, around, steps, button, kerchiefBand, kerchiefTails, type Pt } from './parts';
@@ -200,7 +200,8 @@ export function dress(x: X) {
     for (const side of [-1, 1]) {
       const sh = new T.Group(); sh.position.set(side * d.shX, RIG.shoulder + LIFT, 0); x.body.add(sh); x.out.arms.push(sh);
       const up = upperArm(d), off = o.off ?? .019, fore = forearm(d), rolled = o.rolled?.(side) ?? false, at = (y: number, e: number) => { const r = ringAt(fore, y); return { ...r, w: r.w + e, f: r.f + e, b: r.b + e }; };
-      put0(sh, loft(offset(up, off).filter((_, i) => i !== 2), { seg: 7, capStart: { round: d.rSh + off }, capEnd: { round: d.elbowR + off }, key: key(`sleeve/${off}`) }), o.upM);
+      const eg = off - ELBOW_GATHER; // the sleeve draws in over the elbow, and the forearm's sleeve leaves it at the same radius (one shared cap) and swells again below it
+      put0(sh, loft(offset(up, off, (_, i) => i === 3 ? { w: -ELBOW_GATHER * .5, f: -ELBOW_GATHER * .5, b: -ELBOW_GATHER * .5 } : i === 4 ? { w: -ELBOW_GATHER, f: -ELBOW_GATHER, b: -ELBOW_GATHER } : {}), { seg: 7, capStart: { round: d.rSh + off }, capEnd: { round: d.elbowR + eg }, key: key(`sleeve/${off}`) }), o.upM);
       if (o.garter) put0(sh, loft([-.12, -.15].map(y => { const r = ringAt(offset(up, off + .004), y); return r; }), { seg: 7, lipStart: .003, lipEnd: .003, key: key('garter') }), o.garter);
       if (o.armband && o.armband.side === side) { const bandR = [-.075, -.145].map(y => ringAt(offset(up, off + .004), y)); put0(sh, loft(bandR, { seg: 8, lipStart: .004, lipEnd: .004, key: key('armband') }), o.armband.m); }
       o.board?.(sh, side);
@@ -210,7 +211,7 @@ export function dress(x: X) {
       const fm = o.foreM ?? o.upM;
       if (rolled) put0(el, loft([at(0, off + .003), at(-.012, off + .011), at(-.05, off + .014)], { seg: 6, capStart: { round: d.elbowR + off + .003 }, lipEnd: .011, key: key('roll') }), fm);
       else {
-        put0(el, loft([at(0, off), at(-.1, off - .001), at(-.205, off - .004)], { seg: 8, capStart: { round: d.elbowR + off }, lipEnd: .007, key: key('forearm') }), fm);
+        put0(el, loft([at(0, eg), at(-.07, off + .002), at(-.13, off - .001), at(-.205, off - .004)], { seg: 8, capStart: { round: d.elbowR + eg }, lipEnd: .007, key: key('forearm') }), fm);
         put0(el, loft([at(-.15, off + .006), at(-.205, off + .004)], { seg: 8, lipEnd: .008, lipStart: .004, key: key('cuff') }), o.cuffM ?? fm);
         if (o.shirtCuff) put0(el, loft([at(-.2, off + .002), at(-.243, off + .002)], { seg: 8, lipEnd: .004, key: key('shirtcuff') }), o.shirtCuff);
       }

@@ -4,6 +4,7 @@ import { box,holed,cyl,sphere,torus,beam,gear,barrel,crate,sign,arch,bake,mats,s
 import { V,pipe,cable,crest,gauge,lampHead,railing,canopy,artMats,roof,pressureRing,wingedValve,bench,pressureStation,mailPost,fabricOf,poster,meterBox,labeledCrate,stencilBarrel,stove,workbench,cafeTable,anvil,pipeStack } from './art-kit';
 import { person as makePerson, PEOPLE, type Citizen } from './citizens';
 import { siteScale } from './people/figure';
+import { FOOD } from './people/parts';
 import type { Archetype } from './palette';
 import { animateLife, turnTaking, eased, type Activity } from './citizen-life';
 import { reducedMotion } from '../motion';
@@ -506,7 +507,7 @@ export class Presentation {
     if(t==='read'){const sheet=box(tool,inward+.13,-.03,.02,.26,.2,.012,artMats.paper);sheet.rotation.x=.9;}
     if(t==='clipboard'){box(tool,inward+.11,.03,.03,.24,.32,.02,mats.wood);box(tool,inward+.11,.03,.042,.2,.26,.006,artMats.paper);box(tool,inward+.11,.17,.045,.07,.03,.02,mats.brass);}
     if(t==='repair'){box(tool,0,0,.09,.028,.028,.28,mats.iron);torus(tool,0,0,.25,.045,.016,mats.iron);}
-    if(t==='eat'){const bun=sphere(tool,inward*.3,0,.05,1,artMats.ochre);bun.scale.set(.05,.045,.07);}
+    if(t==='eat'){const bun=sphere(tool,...FOOD.at,1,artMats.ochre);bun.scale.set(...FOOD.size);}
     if(t==='mug'){cyl(tool,inward+.035,.01,.01,.042,.11,mats.copper);torus(tool,inward*.3,.01,.01,.028,.009,mats.copper).rotation.x=Math.PI/2;}
     if(t==='basket'){torus(tool,0,-.02,0,.1,.011,mats.wood).rotation.y=Math.PI/2;cyl(tool,0,-.2,0,.13,.16,mats.wood);sphere(tool,0,-.12,0,.07,mats.red);}
     if(t==='carry'){const cargo=new T.Group();cargo.position.set(0,1.05,.31);person.body.add(cargo);box(cargo,0,0,0,.43,.32,.33,mats.wood);for(const y of [-.11,.11])box(cargo,0,y,.175,.45,.035,.02,mats.cream);asProp(cargo);bake(cargo);}

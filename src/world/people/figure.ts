@@ -1,6 +1,6 @@
 import * as T from 'three';
 import { loft, sweep, place, plate, offset, ringAt, surface, onFace, shared, inward, type Ring, type SweepPt } from './loft';
-import { dimsOf, CHILD_SCALE, ribcage, pelvis as pelvisRings, neck as neckRings, upperArm, forearm, thigh as thighRings, shin as shinRings, ring, RIG, type Dims } from './body';
+import { dimsOf, CHILD_SCALE, ribcage, pelvis as pelvisRings, neck as neckRings, upperArm, forearm, thigh as thighRings, shin as shinRings, ring, RIG, ELBOW_GATHER, type Dims } from './body';
 import { paletteOf, type CastId, type Look } from './look';
 import { skull, ear, facialOf, skullRings, CHIN_TO_PIVOT } from './head';
 import { hairOf } from './hair';
@@ -128,7 +128,8 @@ export function buildFigure(look: Look, opts: FigureOpts, kit: Kit) {
   for (const side of [-1, 1]) {
     const sh = new T.Group(); sh.position.set(side * d.shX, RIG.shoulder + LIFT, 0); body.add(sh); arms.push(sh);
     const up = upperArm(d), off = lab ? .006 : coatOff - .003, fore = forearm(d);
-    put0(sh, loft(offset(up, off).filter((_, i) => i !== 2), { seg: 7, capStart: { round: d.rSh + off }, capEnd: { round: d.elbowR + off }, key: `sleeve/${off}/${dk}` }), coatM);
+    const eg = off - ELBOW_GATHER; // the sleeve draws in over the elbow (People XXVI); the forearm's sleeve leaves it at the same radius and swells again below it
+    put0(sh, loft(offset(up, off, (_, i) => i === 3 ? { w: -ELBOW_GATHER * .5, f: -ELBOW_GATHER * .5, b: -ELBOW_GATHER * .5 } : i === 4 ? { w: -ELBOW_GATHER, f: -ELBOW_GATHER, b: -ELBOW_GATHER } : {}), { seg: 7, capStart: { round: d.rSh + off }, capEnd: { round: d.elbowR + eg }, key: `sleeve/${off}/${dk}` }), coatM);
     kit.bake(sh);
     const el = new T.Group(); el.position.set(0, -RIG.upperArm, 0); sh.add(el); elbows.push(el);
     const rolled = lab || (asym.has('sleeveRolled') && side < 0), at = (y: number, e: number) => { const r = ringAt(fore, y); return { ...r, w: r.w + e, f: r.f + e, b: r.b + e }; };
@@ -139,7 +140,7 @@ export function buildFigure(look: Look, opts: FigureOpts, kit: Kit) {
     } else {
       // the coat's forearm to a turned cuff, the shirt's cuff showing a centimetre below it
       put0(el, loft([at(-.2, .009), at(-.243, .009)], { seg: 8, lipEnd: .004, key: `shirtcuff/${dk}` }), shirtM);
-      put0(el, loft([at(0, off), at(-.1, off - .001), at(-.205, off - .004)], { seg: 8, capStart: { round: d.elbowR + off }, lipEnd: .007, key: `coatfore/${dk}` }), coatM);
+      put0(el, loft([at(0, eg), at(-.07, off + .002), at(-.13, off - .001), at(-.205, off - .004)], { seg: 8, capStart: { round: d.elbowR + eg }, lipEnd: .007, key: `coatfore/${dk}` }), coatM);
       put0(el, loft([at(-.15, off + .006), at(-.205, off + .004)], { seg: 8, lipEnd: .008, lipStart: .004, key: `cuff/${dk}` }), coatM);
     }
     put0(el, hand(d, side), skin, [0, -RIG.forearm, 0]);
@@ -173,6 +174,8 @@ export function buildFigure(look: Look, opts: FigureOpts, kit: Kit) {
   const head = new T.Group(), hg = new T.Group(), swing = new T.Group(), faceMat = kit.face(look.skin);
   const neckTop = neckR[neckR.length - 1], pivotZ = (neckTop.z ?? 0);
   head.position.set(0, d.chin - CHIN_TO_PIVOT + LIFT, pivotZ); hg.position.set(0, CHIN_TO_PIVOT, headZ - pivotZ); head.add(hg); body.add(head);
+  // the lips in the head's frame (the bite is aimed at them: citizen-life.ts `biteReach`): the lip line at .13 H on the front of the face
+  { const r = ringAt(skullRings(look.headShape, h), .13 * h); head.userData.mouth = [0, CHIN_TO_PIVOT + .13 * h, headZ - pivotZ + (r.z ?? 0) + r.f]; }
   put0(hg, skull(look, h), faceMat);
   for (const s of [-1, 1]) put0(hg, ear(s, h, look.headShape), skin);
   const hatted = look.hat !== 'none' && !opts.bare, hairs = hairOf(look, h, hatted); if (opts.bare) { hairs.hair.length = 0; hairs.under.length = 0; hairs.swing.length = 0; }

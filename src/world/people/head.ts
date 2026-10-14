@@ -37,12 +37,18 @@ export const FACE_VALUE: readonly (readonly [number, number, number])[] = [[.93,
  *  They are drawn for the distance they are seen at: no shape is narrower than about a pixel (`w` is the tile units one pixel covers), so a face a few pixels wide still lands its eye band
  *  on a row of pixels, and as the face shrinks below the size where its painted features can be told apart, each shape doubles its depth. `FACE_PAINT_HEAD` goes at the top of the
  *  fragment shader; `FACE_PAINT` after the atlas sample (`ft` and `vMask` are in scope), before the features are laid over the skin. */
-export const FACE_PAINT_HEAD = 'uniform vec3 uPaint;float fpG(float dx,float dy,float sx,float sy,float w){sx=max(sx,w*.45);sy=max(sy,w*.4);return exp(-(dx*dx/(2.*sx*sx)+dy*dy/(2.*sy*sy)));}\n';
+/** How much the painted features are inked up per skin tone once they are too small to be drawn crisply (People XXVI). One atlas serves every skin, so its lash, brow and iris
+ *  lines (absolute colours) lose about half their contrast against the darkest skin at seed-row scale (a dark feature delta of 11-13 L* against 28-32 on the lightest): averaged
+ *  into a pixel with the skin around them they come out near its value. As a pixel comes to cover 3 to 14 tile units, the features of the mid and dark skins are laid on more
+ *  opaquely (up to x3) and their averaged colour darkened (raised to up to the 2.6th power), so the eye row, brows and mouth keep a comparable step from the skin whatever its tone; close up nothing changes. */
+export const FACE_INK: readonly number[] = [0, .5, 1];
+export const FACE_PAINT_HEAD = 'uniform vec3 uPaint;uniform float uInk;float fpG(float dx,float dy,float sx,float sy,float w){sx=max(sx,w*.45);sy=max(sy,w*.4);return exp(-(dx*dx/(2.*sx*sx)+dy*dy/(2.*sy*sy)));}\n';
 export const FACE_PAINT = `{float fu=fract(vMapUv.x*16.)*512.,fv=(1.-ft)*512.,ex=abs(fu-256.),w=fwidth(fv)+fwidth(fu),far=smoothstep(16.,70.,w);
 float g_eye=fpG(ex-66.,fv-284.,40.,25.,w);
 float g_lit=max(max(fpG(ex,fv-176.,67.,16.,w),fpG(ex-80.,fv-354.-50.*far,25.,12.,w)),max(fpG(fu-262.,fv-326.,7.,21.,w),fpG(ex,fv-400.,16.,5.,w)));
 float g_nose=fpG(ex,fv-367.,14.,5.5,w);vec3 k=1.+(uPaint-1.)*(1.+1.4*far);
-diffuseColor.rgb*=mix(1.,k.x,g_eye*vMask)*mix(1.,k.y,g_lit*vMask)*mix(1.,k.z,g_nose*vMask);}
+diffuseColor.rgb*=mix(1.,k.x,g_eye*vMask)*mix(1.,k.y,g_lit*vMask)*mix(1.,k.z,g_nose*vMask);
+float ink=smoothstep(3.,14.,w)*uInk;fs.a=min(1.,fs.a*(1.+2.*ink));fs.rgb=pow(fs.rgb,vec3(1.+1.6*ink));}
 `;
 
 /** Normals from a proxy ellipsoid, blended to the true normals toward the jaw and neck. */
@@ -137,11 +143,16 @@ const sm = (a: number, lo: number, hi: number) => T.MathUtils.smoothstep(a, lo, 
 /** Facial hair: attached to the lip and jaw, never painted. */
 export function facialOf(look: Look, h: number): T.BufferGeometry[] {
   const k = h / .285, rings = skullRings(look.headShape, h), out: T.BufferGeometry[] = [];
-  // a moustache: a full shape over the whole upper lip, wider than the nose and following the lip down to the mouth's corners, in two halves that meet at the philtrum and taper
-  // to their ends; it sits on the lip, clear above the painted mouth
-  if (look.facial === 'moustache') for (const s of [-1, 1]) out.push(strand(rings, [[s * .0, .0545, .0072, .0095], [s * .1, .0535, .0082, .0088], [s * .2, .0485, .0068, .0062], [s * .3, .0425, .0038, .002]].map(([a, y, o, w]) => [a, y * k, o * k, w * k]), .0052 * k, 4));
+  // a moustache (People XXVI): a parted chevron, never a toothbrush. Two halves over the whole upper lip, thin where they part at the philtrum, fullest over each half of the lip and
+  // sweeping down past the mouth's corners to tapered points, so it is wider than the mouth and has no square lower edge; it sits on the lip, clear above the painted mouth. (The
+  // old shape stopped at the mouth's corners, thick and level: at seated scale on a dark-haired Ordinance guard it read as a square block under the nose, a toothbrush.)
+  const moustache = () => { for (const s of [-1, 1]) out.push(strand(rings, [[s * .0, .0545, .0068, .0055], [s * .09, .055, .0086, .0092], [s * .2, .0505, .0078, .0086], [s * .32, .04, .0055, .0056], [s * .43, .03, .0032, .0022]].map(([a, y, o, w]) => [a, y * k, o * k, w * k]), .0055 * k, 4)); };
+  if (look.facial === 'moustache') moustache();
   if (look.facial === 'sideburns') for (const s of [-1, 1]) out.push(strand(rings, [[s * 1.42, .15, .006, .016], [s * 1.38, .115, .008, .017], [s * 1.34, .075, .006, .014]].map(([a, y, o, w]) => [a, y * k, o * k, w * k]), .007 * k));
-  if (look.facial === 'beard') out.push(patch(rings, { a0: -1.55, a1: 1.55, cols: 16, rows: 3, low: () => .0, top: a => (.024 + .066 * sm(Math.abs(a), .3, 1.35)) * k, off: (s, a) => (.006 + .003 * Math.cos(a)) * k }));
+  // a short full beard (People XXVI): one mass from the moustache down round the chin and up the cheeks into the sideburns, fullest at the chin and thinning to the ear, so it reads as a
+  // cut beard joined to the hair and not as a strap along the jaw (a band of even depth from ear to ear, top at .09 H, read as a chin-strap mask)
+  if (look.facial === 'beard') { out.push(patch(rings, { a0: -1.5, a1: 1.5, cols: 18, rows: 4, low: () => .0, top: a => (.022 + .115 * sm(Math.abs(a), .42, 1.45)) * k, off: (s, a) => (.005 + .009 * Math.cos(a) ** 2 * (1 - s * .55) + .002 * (1 - s)) * k }));
+    moustache(); }
   // a short beard keeps to the chin and the jaw and leaves the mouth clear under the lip (one that covered the mouth read as a mask);
   // facial hair is a shade darker than the hair on the head (a baked `tint`, consumed by the bake): a grey or fair moustache over the lip otherwise came out lighter than the lip line
   // under it, and in rain light an iron-grey one read as a pale blue mouth
