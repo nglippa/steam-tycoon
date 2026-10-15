@@ -6,7 +6,7 @@ import { box, cyl, sphere, torus, bake, mats, thinLine, seeded, type Material } 
 import { painted } from './tone';
 import { resolveLook, type Look, type CastId, type LookFamily, type Frame } from './people/look';
 import { buildFigure, peopleNext, type Kit } from './people/figure';
-import { FACE_PAINT, FACE_PAINT_HEAD, FACE_VALUE, FACE_INK } from './people/head';
+import { FACE_PAINT, FACE_PAINT_HEAD, FACE_VALUE, FACE_INK, FACE_MOUTH, FACE_LIFT } from './people/head';
 import { drapeState, type Drape } from './drape';
 
 const ramp = new T.DataTexture(new Uint8Array([128, 202, 255]), 3, 1, T.RedFormat);
@@ -57,7 +57,7 @@ export function setCitizenProsperity(stage:number){wardrobePhase.value=Math.min(
 const wardrobeMaterials=new Map<string,T.MeshToonMaterial>();
 function outfitMaterial(early:string,late=early){const key=early+late;let m=wardrobeMaterials.get(key);if(!m){m=toon(early);m.userData.restoredColor=late;wardrobeMaterials.set(key,m);}return m;}
 /** A face is a choice of eye, brow and mouth (see the atlas below). The first seven names are the originals and keep working. */
-const LOOK = {
+export const LOOK = {
   neutral: [0, 0, 0], happy: [4, 6, 2], tired: [5, 7, 0], focused: [1, 0, 0], annoyed: [1, 3, 3], blink: [3, 0, 0], surprised: [2, 1, 7],
   relaxed: [0, 0, 1], smiling: [14, 6, 2], hopeful: [14, 6, 1], curious: [9, 5, 0], worried: [15, 2, 11], guarded: [6, 0, 4], irritated: [1, 4, 3], suspicious: [6, 5, 4], startled: [2, 1, 7], stern: [0, 4, 4], angry: [8, 3, 4], talking: [0, 0, 5],
   cold: [10, 4, 4], scrutiny: [11, 4, 4], sideeye: [12, 5, 4], impatient: [12, 4, 3], contempt: [11, 5, 8], challenge: [10, 3, 4], scan: [10, 4, 4], barking: [11, 3, 9], bored: [5, 0, 4], weary: [5, 7, 3],
@@ -244,10 +244,10 @@ vec4 fs=textureGrad(map,vMapUv+vec2(fcol/${FACE_COLS}.,0.),dFdx(vMapUv),dFdy(vMa
 const faceMaterial = (tone: number, next = false) => {
   const look = { value: new T.Vector3() }, m = new T.MeshToonMaterial({ map: next ? faceAtlasNext() : faceAtlas(), color: skinColors[tone], gradientMap: ramp, emissive: P.neutral.paper, emissiveIntensity: .12 });
   m.userData.faceAtlas = true; m.userData.look = look.value;
-  m.onBeforeCompile = shader => { shader.uniforms.uFace = look; shader.uniforms.uPaint = { value: new T.Vector3(...FACE_VALUE[tone]) }; shader.uniforms.uInk = { value: FACE_INK[tone] };
+  m.onBeforeCompile = shader => { shader.uniforms.uFace = look; shader.uniforms.uPaint = { value: new T.Vector3(...FACE_VALUE[tone]) }; shader.uniforms.uInk = { value: FACE_INK[tone] }; shader.uniforms.uMouth = { value: FACE_MOUTH[tone] }; shader.uniforms.uLift = { value: new T.Vector3(...FACE_LIFT[tone]) };
     if (next) shader.vertexShader = 'attribute float faceMask;varying float vMask;\n' + shader.vertexShader.replace('void main() {', 'void main() {\nvMask = faceMask;');
     shader.vertexShader = 'uniform vec3 uFace;flat varying vec3 vFace;\n' + shader.vertexShader.replace('#include <color_vertex>', '#include <color_vertex>\n#ifdef USE_BATCHING_COLOR\nvColor=vec3(1.);vFace=batchingColor;\n#else\nvFace=uFace;\n#endif');
-    shader.fragmentShader = (next ? FACE_PAINT_HEAD + 'varying float vMask;\n' : '') + 'flat varying vec3 vFace;\n' + shader.fragmentShader.replace('#include <map_fragment>', next ? FACE_MAP.replace('fs.a)', 'fs.a*vMask)').replace('diffuseColor.rgb=mix', FACE_PAINT + `if(ft>=${tV(BAND[4])}&&ft<${tV(BAND[3])}&&dot(fs.rgb,vec3(.333))<.4)fs.rgb=diffuseColor.rgb*mix(vec3(.64,.43,.44),vec3(.42,.27,.3),smoothstep(.24,.29,dot(fs.rgb,vec3(.333))));diffuseColor.rgb=mix`) : FACE_MAP).replace('#include <emissivemap_fragment>', 'totalEmissiveRadiance*=diffuseColor.rgb;'); };
+    shader.fragmentShader = (next ? FACE_PAINT_HEAD + 'varying float vMask;\n' : '') + 'flat varying vec3 vFace;\n' + shader.fragmentShader.replace('#include <map_fragment>', next ? FACE_MAP.replace('fs.a)', 'fs.a*vMask)').replace('diffuseColor.rgb=mix', FACE_PAINT + `if(ft>=${tV(BAND[4])}&&ft<${tV(BAND[3])}&&dot(fs.rgb,vec3(.333))<.4)fs.rgb=diffuseColor.rgb*uMouth*mix(vec3(.64,.43,.44),vec3(.42,.27,.3),smoothstep(.24,.29,dot(fs.rgb,vec3(.333))));diffuseColor.rgb=mix`) : FACE_MAP).replace('#include <emissivemap_fragment>', 'totalEmissiveRadiance*=diffuseColor.rgb;'); };
   m.customProgramCacheKey = () => next ? 'terra-face-bands-next' : 'terra-face-bands'; return thinLine(painted(m));
 };
 /** The three shared face materials of each builder, made (with their atlas) on first use. */

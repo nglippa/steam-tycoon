@@ -270,10 +270,21 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
   if(n.group.userData.upright)n.grips[0].rotation.x=-(n.arms[0].rotation.x+n.elbows[0].rotation.x)-.44*sip;
   // An umbrella's shaft runs through the closed right hand; the wrist keeps it upright over the head.
   if(umbrella&&raining)n.grips[uh].rotation.set(-(n.arms[uh].rotation.x+n.elbows[uh].rotation.x+n.body.rotation.x),0,-n.arms[uh].rotation.z-n.body.rotation.z);
+  if(expression==='neutral')expression=spreadExpression(Math.round(n.phase/1.7),n.archetype); // a calm face is one of seven, by who it is, not one pursed line on everyone (People XXIX-b)
   // Last word on the face: nobody smiles under the Ordinance's eye, and the Ordinance does not smile at all.
   if(!faceAllowed(n.archetype,expression))expression='cold';else if(!cd.smile&&(expression==='happy'||expression==='smiling'||expression==='hopeful'))expression='neutral';
   // Only the blink and, near the camera, a speaking mouth move between decisions; the Ordinance blinks less.
   n.setExpression(expression,(phase%(occupier?6.3:4.7))<.13,(speaking||spoken)&&near<400?Math.floor(time*7+n.phase*3)%3:-1,eye);
+}
+/** The resting face of a figure whose mood is neutral (People XXIX-b): one of seven calm looks drawn from its seed (a pursed flat mouth on every face read as one expression across the crowd),
+ *  pure in its seed and archetype. The Ordinance keeps its cold face (`faceAllowed`), and a figure that may not smile is taken from smiling to neutral by the last word on the face. */
+export const CALM_FACES = ['neutral', 'relaxed', 'focused', 'curious', 'smiling', 'tired', 'guarded'] as const satisfies readonly Expression[];
+export function spreadExpression(seed: number, archetype: string): Expression {
+  if(isOccupier(archetype))return 'cold';
+  let h=Math.imul(Math.floor(seed)^0x9e3779b9,0x85ebca6b);h^=h>>>13;h=Math.imul(h,0xc2b2ae35);h^=h>>>16;
+  const u=(h>>>0)/4294967296,w=[.2,.2,.14,.14,.12,.1,.1];let a=0;
+  for(let i=0;i<w.length;i++){a+=w[i];if(u<a)return CALM_FACES[i];}
+  return 'neutral';
 }
 /** The bite (People XXVI), solved once per figure from its own rig: the shoulder, upper arm and elbow turns that put the food (parts.ts `FOOD`, in the grip) just ahead of the lips
  *  (`head.userData.mouth`, the head unturned) while every point of the hand stays under the lips, so the hand reaches the mouth with the food and never crosses the nose. A pattern search

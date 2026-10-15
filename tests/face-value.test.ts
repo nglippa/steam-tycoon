@@ -19,7 +19,7 @@ test('one value row per skin tone, deeper as the skin darkens', () => {
 test('the mid and dark skins carry a readable step between the lighter planes and the eye band, without caricature', () => {
   for (let t = 0; t < FACE_VALUE.length; t++) {
     const [eye, lit, nose] = FACE_VALUE[t], step = lit / eye; // close up; the shader doubles the depth of each shape (x2.4) once the face is a few pixels wide
-    assert.ok(eye > .7 && lit < 1.35 && nose > .75, `tone ${t}: close up the shapes stay modelling, not paint`);
+    assert.ok(eye > .7 && lit < 1.5 && nose > .75, `tone ${t}: close up the shapes stay modelling, not paint`);
     if (t > 0) assert.ok(step >= 1.35, `tone ${t}: forehead and cheek vs eye band ${step.toFixed(2)} >= 1.35`);
   }
 });
@@ -38,9 +38,37 @@ test('features keep their contrast on every skin at small sizes (People XXVI): t
   for (let t = 1; t < FACE_INK.length; t++) assert.ok(FACE_INK[t] > FACE_INK[t - 1], `tone ${t}: inked no more than the lighter skin`);
   assert.match(FACE_PAINT_HEAD, /uniform float uInk/); assert.match(FACE_PAINT, /uInk/);
   const Lstar = (c: number[]) => { const Y = c.map(v => v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4).reduce((a, v, i) => a + v * [.2126, .7152, .0722][i], 0); return Y > 216 / 24389 ? 116 * Math.cbrt(Y) - 16 : Y * 24389 / 27; };
-  const step = (t: number, ink = FACE_INK[t]) => { const s = new T.Color(palette.skin[t]), skin = [s.r, s.g, s.b], f = .42 ** (1 + 1.6 * ink), a = Math.min(1, .33 * (1 + 2 * ink)); return Lstar(skin) - Lstar(skin.map(v => v + (f - v) * a)); };
+  const step = (t: number, ink = FACE_INK[t]) => { const s = new T.Color(palette.skin[t]), skin = [s.r, s.g, s.b], f = .42 ** (1 + 1.6 * ink), a = Math.min(1, .33 * (1 + 2 * Math.min(ink, 1))); return Lstar(skin) - Lstar(skin.map(v => v + (f - v) * a)); };
   const light = step(0);
   for (let t = 1; t < FACE_INK.length; t++) {
     assert.ok(step(t) >= light, `tone ${t}: an averaged eye stands ${step(t).toFixed(1)} L* under the skin against ${light.toFixed(1)} on the lightest`);
     assert.ok(step(t) >= 1.5 * step(t, 0), `tone ${t}: the ink lifts an averaged eye's step only from ${step(t, 0).toFixed(1)} to ${step(t).toFixed(1)} L*`); }
+});
+
+test('the face is deeper on the light skin and the dark skin keeps a darker lip and a nose-side shade (People XXIX-b)', async () => {
+  const { FACE_INK, FACE_MOUTH, FACE_LIFT } = await import('../src/world/people/head.ts');
+  assert.ok(FACE_VALUE[0][0] <= .88, 'the lightest skin carries an eye band deep enough to read');
+  assert.equal(FACE_INK.length, 3); for (let t = 1; t < 3; t++) assert.ok(FACE_INK[t] > FACE_INK[t - 1]);
+  assert.equal(FACE_MOUTH.length, palette.skin.length); assert.equal(FACE_MOUTH[0], 1);
+  for (let t = 1; t < FACE_MOUTH.length; t++) assert.ok(FACE_MOUTH[t] < FACE_MOUTH[t - 1], `tone ${t}: the lips are deeper than on the lighter skin`);
+  assert.equal(FACE_LIFT.length, palette.skin.length); assert.deepEqual([...FACE_LIFT[0]], [1, 1, 1]);
+  for (let t = 1; t < FACE_LIFT.length; t++) for (let c = 0; c < 3; c++) assert.ok(FACE_LIFT[t][c] >= FACE_LIFT[t - 1][c], `tone ${t}: the face is lifted no less than on the lighter skin`);
+  assert.ok(FACE_LIFT[2][0] > FACE_LIFT[2][1] && FACE_LIFT[2][1] > FACE_LIFT[2][2], 'the lift is warm, not grey');
+  assert.match(FACE_PAINT, /g_ns/); assert.match(FACE_PAINT_HEAD, /uniform float uInk,uMouth/);
+  // the darkest skin's averaged eye stands well under it: at least 12 L* (was 6 at ink 1; the model of the test above, with the dark skin's own ink)
+  const T = await import('three'), Lstar = (c: number[]) => { const Y = c.map(v => v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4).reduce((a, v, i) => a + v * [.2126, .7152, .0722][i], 0); return Y > 216 / 24389 ? 116 * Math.cbrt(Y) - 16 : Y * 24389 / 27; };
+  const s = new T.Color(palette.skin[2]), skin = [s.r, s.g, s.b], f = .42 ** (1 + 1.6 * FACE_INK[2]), a = Math.min(1, .33 * (1 + 2 * Math.min(FACE_INK[2], 1)));
+  assert.ok(Lstar(skin) - Lstar(skin.map(v => v + (f - v) * a)) >= 12, 'the darkest skin\'s averaged eye stands at least 12 L* under it (6 at ink 1)');
+});
+
+test('calm faces are spread over the crowd by seed, and the Ordinance stays cold (People XXIX-b)', async () => {
+  const { spreadExpression, CALM_FACES } = await import('../src/world/citizen-life.ts');
+  // (the seven calm faces are seven different eye/brow/mouth triples of citizens.ts LOOK: neutral 0,0,0 relaxed 0,0,1 focused 1,0,0 curious 9,5,0 smiling 14,6,2 tired 5,7,0 guarded 6,0,4; citizens.ts needs a DOM, so the names stand for them)
+  assert.equal(spreadExpression(5, 'courier'), spreadExpression(5, 'courier'), 'pure');
+  for (let s = 0; s < 60; s++) { assert.equal(spreadExpression(s, 'guard'), 'cold'); assert.equal(spreadExpression(s, 'ordinal'), 'cold'); }
+  const dark = [0, 8, 16, 23, 26, 33, 1, 3, 10, 11, 12, 15, 21, 22, 25, 27, 29, 2, 4, 5, 6, 7, 9, 13, 14, 17, 18, 19]; // 28 seeds
+  const looks = new Set(dark.map(s => spreadExpression(s, 'courier')));
+  assert.ok(looks.size >= 4, `${looks.size} distinct faces over 28 dark-skin seeds`);
+  const kinds = new Set(Array.from({ length: 200 }, (_, s) => spreadExpression(s, 'resident'))); for (const k of CALM_FACES) assert.ok(kinds.has(k), `${k} is drawn`);
+  let neutral = 0; for (let s = 0; s < 400; s++) if (spreadExpression(s, 'resident') === 'neutral') neutral++; assert.ok(neutral / 400 < .3, 'no single face takes more than 30%');
 });

@@ -32,7 +32,7 @@ export function faceUV(x: number, y: number, z: number, faceType: number, h: num
  *  shapes, scaled to its tone: a shadowed band over the brows and eyes, a lighter plane on the forehead, the cheekbones, the bridge of the nose and the lower lip, a shade under the nose.
  *  Multipliers on the lit skin, per tone [eye band, lighter planes, under the nose], as they are seen close: barely there on the light skin, which already reads by its dark features,
  *  and strongest on the dark skin, where the features are lighter than the skin and need a dark band to sit in and a lighter rim round it. */
-export const FACE_VALUE: readonly (readonly [number, number, number])[] = [[.93, 1.02, .95], [.8, 1.12, .86], [.76, 1.3, .8]];
+export const FACE_VALUE: readonly (readonly [number, number, number])[] = [[.86, 1.04, .9], [.8, 1.12, .86], [.74, 1.4, .78]];
 /** The same shapes in GLSL, in the tile's own 512-unit coordinates (the layout `faceUV` maps: eye line row 300, mouth 389, eyes 68 either side of the midline), faded with the face mask.
  *  They are drawn for the distance they are seen at: no shape is narrower than about a pixel (`w` is the tile units one pixel covers), so a face a few pixels wide still lands its eye band
  *  on a row of pixels, and as the face shrinks below the size where its painted features can be told apart, each shape doubles its depth. `FACE_PAINT_HEAD` goes at the top of the
@@ -41,14 +41,18 @@ export const FACE_VALUE: readonly (readonly [number, number, number])[] = [[.93,
  *  lines (absolute colours) lose about half their contrast against the darkest skin at seed-row scale (a dark feature delta of 11-13 L* against 28-32 on the lightest): averaged
  *  into a pixel with the skin around them they come out near its value. As a pixel comes to cover 3 to 14 tile units, the features of the mid and dark skins are laid on more
  *  opaquely (up to x3) and their averaged colour darkened (raised to up to the 2.6th power), so the eye row, brows and mouth keep a comparable step from the skin whatever its tone; close up nothing changes. */
-export const FACE_INK: readonly number[] = [0, .5, 1];
-export const FACE_PAINT_HEAD = 'uniform vec3 uPaint;uniform float uInk;float fpG(float dx,float dy,float sx,float sy,float w){sx=max(sx,w*.45);sy=max(sy,w*.4);return exp(-(dx*dx/(2.*sx*sx)+dy*dy/(2.*sy*sy)));}\n';
+export const FACE_INK: readonly number[] = [0, .7, 1.8];
+/** The lip colour's multiplier per skin tone (People XXIX-b): the painted mouth is skin times a fixed red-brown, which on the darkest skin came out only 40-60 luma under it; the darker the skin the
+ *  deeper its lips are taken, so the mouth keeps a step from the skin on every tone. */
+export const FACE_LIFT: readonly (readonly [number, number, number])[] = [[1, 1, 1], [1.06, 1.05, 1.02], [1.62, 1.46, 1.26]];
+export const FACE_MOUTH: readonly number[] = [1, .86, .6];
+export const FACE_PAINT_HEAD = 'uniform vec3 uPaint;uniform float uInk,uMouth;uniform vec3 uLift;float fpG(float dx,float dy,float sx,float sy,float w){sx=max(sx,w*.45);sy=max(sy,w*.4);return exp(-(dx*dx/(2.*sx*sx)+dy*dy/(2.*sy*sy)));}\n';
 export const FACE_PAINT = `{float fu=fract(vMapUv.x*16.)*512.,fv=(1.-ft)*512.,ex=abs(fu-256.),w=fwidth(fv)+fwidth(fu),far=smoothstep(16.,70.,w);
 float g_eye=fpG(ex-66.,fv-284.,40.,25.,w);
 float g_lit=max(max(fpG(ex,fv-176.,67.,16.,w),fpG(ex-80.,fv-354.-50.*far,25.,12.,w)),max(fpG(fu-262.,fv-326.,7.,21.,w),fpG(ex,fv-400.,16.,5.,w)));
-float g_nose=fpG(ex,fv-367.,14.,5.5,w);vec3 k=1.+(uPaint-1.)*(1.+1.4*far);
-diffuseColor.rgb*=mix(1.,k.x,g_eye*vMask)*mix(1.,k.y,g_lit*vMask)*mix(1.,k.z,g_nose*vMask);
-float ink=smoothstep(3.,14.,w)*uInk;fs.a=min(1.,fs.a*(1.+2.*ink));fs.rgb=pow(fs.rgb,vec3(1.+1.6*ink));}
+float g_nose=fpG(ex,fv-367.,14.,5.5,w),g_ns=fpG(fu-250.,fv-340.,6.,18.,w);vec3 k=1.+(uPaint-1.)*(1.+1.4*far);
+diffuseColor.rgb*=mix(1.,k.x,g_eye*vMask)*mix(1.,k.y,g_lit*vMask)*mix(1.,k.z,g_nose*vMask)*mix(1.,k.z,.7*g_ns*vMask)*mix(vec3(1.),uLift,vMask);
+float ink=smoothstep(3.,14.,w)*uInk;fs.a=min(1.,fs.a*(1.+2.*min(ink,1.)));fs.rgb=mix(pow(fs.rgb,vec3(1.+1.6*ink)),fs.rgb,smoothstep(.45,.8,dot(fs.rgb,vec3(.333))));}
 `;
 
 /** Normals from a proxy ellipsoid, blended to the true normals toward the jaw and neck. */
