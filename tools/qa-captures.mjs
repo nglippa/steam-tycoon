@@ -7,6 +7,7 @@
 // line-up sheets 2560x720 (a wide canvas so eleven or twenty figures stand at a readable height). Results merge into
 // <outDir>/perf.json, console.json, foot-slide.json, looks.json and captures.json.
 import { chromium } from '@playwright/test';
+import { captureStubs } from './capture-stubs.mjs';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -123,6 +124,7 @@ if (part === 'sheet' || part === 'slide') { // (--part=slide: the foot-slide mea
 // ---- the game ---------------------------------------------------------------------------------------------------------
 async function openGame(label, query) {
   const page = await browser.newPage({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1 });
+  await page.addInitScript(captureStubs);
   const entry = watch(page, label), url = `${base}/?dev=1&intro=0&view=street&people=${people}&weather=clear&level=2${query ? '&' + query : ''}`, t0 = Date.now(); entry.url = url;
   await page.goto(url);
   await page.waitForFunction(() => window.__TERRA__ && window.__TERRA__.status().draws > 0, null, { timeout: 90000 });
@@ -257,25 +259,26 @@ if (part === 'perf') {
 // ---- the intro, played ------------------------------------------------------------------------------------------------
 if (part === 'intro') {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1 }), page = await ctx.newPage(), entry = watch(page, `intro people=${people}`);
+  await page.addInitScript(captureStubs);
   entry.url = `${base}/?dev=1&people=${people}&weather=clear`; const t0 = Date.now();
   await page.goto(entry.url); await page.waitForFunction(() => window.__TERRA__ && window.__TERRA__.status().draws > 0, null, { timeout: 90000 }); entry.loadMs = Date.now() - t0;
   const beat = () => page.evaluate(() => window.__TERRA__.intro.beat);
   await page.evaluate(() => window.__TERRA__.ui.start()); await page.mouse.click(640, 360); await page.evaluate(() => window.__TERRA__.player.lock()); await settle(page, 300);
   const steps = [{ at: 'start', beat: await beat(), locked: await page.evaluate(() => window.__TERRA__.player.locked) }];
-  for (let i = 0; i < 40 && (await beat()) === 'black'; i++) await settle(page, 250);
+  for (let i = 0; i < 160 && (await beat()) === 'black'; i++) await settle(page, 250);
   steps.push({ at: 'after the knocks', beat: await beat() });
   await page.evaluate(() => window.__TERRA__.ui.onDoor()); await settle(page, 2000); steps.push({ at: 'door answered', beat: await beat() });
   await shot(page, 'intro-1-door-guards', 'the intro: the door answered, the two Ordinance men at it (their first line on the card)');
   // through the guards' lines: Enter on a line, 1 on a choice
-  for (let i = 0; i < 60 && ['guards', 'open'].includes(await beat()); i++) { await page.keyboard.press('Digit1'); await settle(page, 350); await page.keyboard.press('Enter'); await settle(page, 350); }
-  for (let i = 0; i < 40 && (await beat()) === 'leave'; i++) await settle(page, 250);
+  for (let i = 0; i < 150 && ['guards', 'open'].includes(await beat()); i++) { await page.keyboard.press('Digit1'); await settle(page, 350); await page.keyboard.press('Enter'); await settle(page, 350); }
+  for (let i = 0; i < 160 && (await beat()) === 'leave'; i++) await settle(page, 250);
   steps.push({ at: 'guards gone', beat: await beat() });
   // The stranger sits on the stoop; walk the Steward down to them (teleport to the porch, the scene's own trigger).
   await page.evaluate(() => { const a = window.__TERRA__; a.player.teleport(-18.8, -3.1, -Math.PI / 2); a.player.pitch = -.05; }); await settle(page, 1800);
   steps.push({ at: 'at the porch', beat: await beat() });
   await shot(page, 'intro-2-stranger-porch', 'the intro: the masked stranger seated on the stoop, the porch line on the card');
   await page.evaluate(() => document.querySelector('#dialogue')?.setAttribute('style', 'visibility:hidden')); await shot(page, 'intro-2b-stranger-porch-nocard', 'the same moment with the dialogue card hidden for the figure'); await page.evaluate(() => document.querySelector('#dialogue')?.removeAttribute('style'));
-  for (let i = 0; i < 60 && (await beat()) === 'porch'; i++) { await page.keyboard.press('Digit1'); await settle(page, 350); await page.keyboard.press('Enter'); await settle(page, 350); }
+  for (let i = 0; i < 150 && (await beat()) === 'porch'; i++) { await page.keyboard.press('Digit1'); await settle(page, 350); await page.keyboard.press('Enter'); await settle(page, 350); }
   steps.push({ at: 'farewell', beat: await beat() }); await settle(page, 300);
   await shot(page, 'intro-3-stranger-leaves', 'the intro: the stranger up from the stoop, going to chalk the doorpost');
   merge('captures.json', `intro-${people}`, { steps, shots: records });

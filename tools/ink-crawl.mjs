@@ -9,6 +9,7 @@
 // L is luma 0-1. Means over the named regions (the review's crops, CSS px) and the central third. Writes <outDir>/crawl.json,
 // and per view the first frame (crawl-<view>.png) and a map of d2 (crawl-<view>-d2.png, white = 0.1 or more).
 import { chromium } from '@playwright/test';
+import { captureStubs } from './capture-stubs.mjs';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -29,6 +30,7 @@ let browser; try { browser = await chromium.launch({ headless: true }); } catch 
 const problems = [], result = { viewport: [1280, 720], deviceScaleFactor: 1, people, frames, stepPx: step, views: {} };
 for (const [name, cam, weather, regions] of VIEWS) {
   const page = await browser.newPage({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1 });
+  await page.addInitScript(captureStubs);
   page.on('pageerror', e => problems.push(e.message)); page.on('console', m => { if (m.type() === 'error') problems.push(m.text()); });
   await page.goto(`${base}/?dev=1&intro=0&view=street&people=${people}&weather=clear&level=2`);
   await page.waitForFunction(() => window.__TERRA__ && window.__TERRA__.status().draws > 0, null, { timeout: 90000 });

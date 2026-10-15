@@ -10,6 +10,7 @@
 // per view, 30 ms burnt in every frame for 15 s, the shot taken at the end of the load (the whole view at CSS scale, and the
 // centre 640x360 CSS px at device scale), with the pixel ratio sampled every half second.
 import { chromium } from '@playwright/test';
+import { captureStubs } from './capture-stubs.mjs';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -44,6 +45,7 @@ const problems = [], records = [];
 let page;
 async function open(query, deviceScaleFactor = 1, viewport = { width: 1280, height: 720 }, touch = false) {
   page = await browser.newPage({ viewport, deviceScaleFactor, ...(touch ? { hasTouch: true, isMobile: true } : {}) });
+  await page.addInitScript(captureStubs);
   page.on('console', m => { if (['error', 'warning'].includes(m.type())) problems.push(`${m.type()}: ${m.text()}`); });
   page.on('pageerror', e => problems.push(`pageerror: ${e.message}`));
   page.on('requestfailed', r => problems.push(`requestfailed: ${r.url()} ${r.failure()?.errorText ?? ''}`));

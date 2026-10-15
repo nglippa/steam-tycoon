@@ -9,6 +9,7 @@
 // `strain` loads 1920x1080 at device scale 2, burns 30 ms of every frame for 15 s, then lets the game run for 15 s, and
 // samples the renderer's pixel ratio every half second. Results are merged into <out.json> under the mode (and label).
 import { chromium } from '@playwright/test';
+import { captureStubs } from './capture-stubs.mjs';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 
 const args = process.argv.slice(2), pos = args.filter(a => !a.startsWith('--')), flag = (n, d = '') => (args.find(a => a.startsWith(`--${n}=`)) ?? `--${n}=${d}`).slice(n.length + 3);
@@ -37,6 +38,7 @@ const CRAWL = ['mid-street', 'veryfar-skyline-edge', 'far-clock-tower-rain'];
 let browser; try { browser = await chromium.launch({ headless: true }); } catch { browser = await chromium.launch({ headless: true, channel: 'chrome' }); }
 const big = mode === 'strain';
 const page = await browser.newPage({ viewport: big ? { width: 1920, height: 1080 } : { width: 1280, height: 720 }, deviceScaleFactor: big ? 2 : 1 });
+await page.addInitScript(captureStubs);
 const problems = []; page.on('pageerror', e => problems.push(e.message)); page.on('console', m => { if (m.type() === 'error') problems.push(m.text()); });
 await page.goto(`${base}/?dev=1&intro=0&view=street&people=${people}&weather=clear&level=2`);
 await page.waitForFunction(() => window.__TERRA__ && window.__TERRA__.status().draws > 0, null, { timeout: 90000 });
