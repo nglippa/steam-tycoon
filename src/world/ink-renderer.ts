@@ -90,7 +90,7 @@ export class InkRenderer {
         // drawn whatever stands behind it: the depth ratio to a hazy facade a few per cent farther does not make it inner.
         float crownEdge = smoothstep(.6, .7, cls) * (1. - smoothstep(.8, .9, cls)) * (1. - leafy);
         float silhouette = smoothstep(.07, .18, e) * mix(1., max(outer, crownEdge), max(tFar * farReach, leafy * tCut));
-        silhouette = max(silhouette, crownEdge * smoothstep(.015, .04, e));
+        silhouette = max(silhouette, crownEdge * smoothstep(.01, .03, e));
         // (The raised step is for inner creases only: along an outer edge the crease term fills the gaps of an aliased
         // silhouette, and taking it away there leaves a dotted outline.)
         float cut = mix(1., 2., tCut * (1. - outer) * 1.);
@@ -137,8 +137,8 @@ export class InkRenderer {
           // Far shapes against the sky (the skyline planes and isles are tinted, not fogged) keep a faint outline.
           fade = max(fade, .3 * skyEdge * tFar);
           // A thin member or a crown's edge keeps a steady, dark line in the mid and far band (the fade is for noise).
-          float held = max(0., crownEdge * .7);
-          fade = max(fade, .8 * held);
+          float held = crownEdge;
+          fade = max(fade, .85 * held);
           ink = max(silhouette * mix(fade, 1., low), max(max(crease * .85, colorEdge * .6) * fade, wireEdge * .9) * (1. - text));
           // Ink is a deep, color-aware navy-grey rather than black.
           vec3 dark = mix(vec3(.06, .05, .05), color * .25, .2);
