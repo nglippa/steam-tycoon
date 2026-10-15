@@ -1,0 +1,156 @@
+{
+  "viewport": [
+    1280,
+    720
+  ],
+  "deviceScaleFactor": 1,
+  "people": "new",
+  "frames": 17,
+  "stepPx": 0.25,
+  "views": {
+    "mid-street": {
+      "camera": [
+        0,
+        40,
+        0,
+        null,
+        0.03
+      ],
+      "weather": "clear",
+      "buffer": [
+        1280,
+        720
+      ],
+      "pixelRatio": 1,
+      "regions": {
+        "tree": {
+          "d1": 0.0114,
+          "d2": 0.0189,
+          "shimmerPct": 7.97
+        },
+        "checkpoint": {
+          "d1": 0.0111,
+          "d2": 0.0188,
+          "shimmerPct": 10.77
+        },
+        "centralThird": {
+          "d1": 0.0038,
+          "d2": 0.0056,
+          "shimmerPct": 2.13
+        }
+      }
+    },
+    "far-clock-tower": {
+      "camera": [
+        0,
+        6,
+        0,
+        null,
+        0.2
+      ],
+      "weather": "clear",
+      "buffer": [
+        1280,
+        720
+      ],
+      "pixelRatio": 1,
+      "regions": {
+        "foliage": {
+          "d1": 0.0109,
+          "d2": 0.0171,
+          "shimmerPct": 6.45
+        },
+        "cablesAbove": {
+          "d1": 0.006,
+          "d2": 0.0097,
+          "shimmerPct": 2.65
+        },
+        "cablesBanner": {
+          "d1": 0.0064,
+          "d2": 0.0101,
+          "shimmerPct": 4.17
+        },
+        "centralThird": {
+          "d1": 0.0042,
+          "d2": 0.0066,
+          "shimmerPct": 2.53
+        }
+      }
+    },
+    "far-clock-tower-rain": {
+      "camera": [
+        0,
+        6,
+        0,
+        null,
+        0.2
+      ],
+      "weather": "rain",
+      "buffer": [
+        1280,
+        720
+      ],
+      "pixelRatio": 1,
+      "regions": {
+        "foliage": {
+          "d1": 0.0073,
+          "d2": 0.0106,
+          "shimmerPct": 3.02
+        },
+        "cablesAbove": {
+          "d1": 0.0045,
+          "d2": 0.0073,
+          "shimmerPct": 1.3
+        },
+        "cablesBanner": {
+          "d1": 0.0069,
+          "d2": 0.0085,
+          "shimmerPct": 1.13
+        },
+        "centralThird": {
+          "d1": 0.0037,
+          "d2": 0.0056,
+          "shimmerPct": 1.61
+        }
+      }
+    },
+    "far-clock-tower-fog": {
+      "camera": [
+        0,
+        6,
+        0,
+        null,
+        0.2
+      ],
+      "weather": "fog",
+      "buffer": [
+        1280,
+        720
+      ],
+      "pixelRatio": 1,
+      "regions": {
+        "foliage": {
+          "d1": 0.0076,
+          "d2": 0.0114,
+          "shimmerPct": 3.06
+        },
+        "cablesAbove": {
+          "d1": 0.0055,
+          "d2": 0.0086,
+          "shimmerPct": 2.45
+        },
+        "cablesBanner": {
+          "d1": 0.007,
+          "d2": 0.0087,
+          "shimmerPct": 1.13
+        },
+        "centralThird": {
+          "d1": 0.004,
+          "d2": 0.0062,
+          "shimmerPct": 2.25
+        }
+      }
+    }
+  },
+  "problems": []
+}

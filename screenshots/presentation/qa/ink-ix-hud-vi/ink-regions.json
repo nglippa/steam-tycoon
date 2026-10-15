@@ -1,0 +1,2460 @@
+{
+ "mid-street": {
+  "live": {
+   "street_crown": {
+    "n": 45000,
+    "inkPct": 39.34,
+    "meanR": 0.744,
+    "inkLuma": 90.221,
+    "meanLuma": 100.98,
+    "edgeShare": 0.718,
+    "farPct": 6.707,
+    "farMeanLuma": 171.088,
+    "farNoSkyPct": 5.376,
+    "farNoSkyLuma": 164.168,
+    "skyPct": 1.331
+   },
+   "tower_crown": {
+    "n": 26000,
+    "inkPct": 27.838,
+    "meanR": 0.777,
+    "inkLuma": 74.474,
+    "meanLuma": 75.643,
+    "edgeShare": 0.043,
+    "farPct": 0.008,
+    "farMeanLuma": 158.04,
+    "farNoSkyPct": 0.008,
+    "farNoSkyLuma": 158.04,
+    "skyPct": 0
+   },
+   "isle": {
+    "n": 72800,
+    "inkPct": 15.578,
+    "meanR": 0.602,
+    "inkLuma": 71.35,
+    "meanLuma": 75.49,
+    "edgeShare": 0.054,
+    "farPct": 0,
+    "farMeanLuma": 0,
+    "farNoSkyPct": 0,
+    "farNoSkyLuma": 0,
+    "skyPct": 0
+   },
+   "world": {
+    "n": 640000,
+    "inkPct": 16.255,
+    "meanR": 0.706,
+    "inkLuma": 77.577,
+    "meanLuma": 84.649,
+    "edgeShare": 0.327,
+    "farPct": 6.39,
+    "farMeanLuma": 167.966,
+    "farNoSkyPct": 0.672,
+    "farNoSkyLuma": 165.176,
+    "skyPct": 5.718
+   },
+   "face_region": {
+    "n": 164000,
+    "inkPct": 18.196,
+    "meanR": 0.763,
+    "inkLuma": 93.499,
+    "meanLuma": 105.835,
+    "edgeShare": 0.567,
+    "farPct": 7.841,
+    "farMeanLuma": 167.546,
+    "farNoSkyPct": 2.524,
+    "farNoSkyLuma": 165.543,
+    "skyPct": 5.316
+   },
+   "people": {
+    "boxes": [
+     [
+      452,
+      -300,
+      489,
+      -208
+     ],
+     [
+      421,
+      375,
+      442,
+      428
+     ],
+     [
+      374,
+      373,
+      412,
+      470
+     ],
+     [
+      790,
+      375,
+      811,
+      428
+     ]
+    ],
+    "figInkPct": null,
+    "figEdgeShare": 0.036,
+    "worldInkPct": 16.933,
+    "worldEdgeShare": 0.265,
+    "inkRatio": null,
+    "edgeRatio": 0.134
+   }
+  },
+  "baseline": {
+   "street_crown": {
+    "n": 45000,
+    "inkPct": 43.198,
+    "meanR": 0.779,
+    "inkLuma": 84.597,
+    "meanLuma": 96.816,
+    "edgeShare": 1.291,
+    "farPct": 6.411,
+    "farMeanLuma": 168.894,
+    "farNoSkyPct": 5.151,
+    "farNoSkyLuma": 161.729,
+    "skyPct": 1.26
+   },
+   "tower_crown": {
+    "n": 26000,
+    "inkPct": 29.165,
+    "meanR": 0.798,
+    "inkLuma": 71.995,
+    "meanLuma": 74.773,
+    "edgeShare": 0.093,
+    "farPct": 0.008,
+    "farMeanLuma": 157.097,
+    "farNoSkyPct": 0.008,
+    "farNoSkyLuma": 157.097,
+    "skyPct": 0
+   },
+   "isle": {
+    "n": 72800,
+    "inkPct": 15.618,
+    "meanR": 0.605,
+    "inkLuma": 71.492,
+    "meanLuma": 75.524,
+    "edgeShare": 0.055,
+    "farPct": 0,
+    "farMeanLuma": 0,
+    "farNoSkyPct": 0,
+    "farNoSkyLuma": 0,
+    "skyPct": 0
+   },
+   "world": {
+    "n": 640000,
+    "inkPct": 16.615,
+    "meanR": 0.728,
+    "inkLuma": 75.003,
+    "meanLuma": 83.94,
+    "edgeShare": 0.461,
+    "farPct": 6.336,
+    "farMeanLuma": 167.8,
+    "farNoSkyPct": 0.642,
+    "farNoSkyLuma": 164.385,
+    "skyPct": 5.695
+   },
+   "face_region": {
+    "n": 164000,
+    "inkPct": 19.334,
+    "meanR": 0.812,
+    "inkLuma": 85.328,
+    "meanLuma": 103.366,
+    "edgeShare": 1.041,
+    "farPct": 7.624,
+    "farMeanLuma": 166.753,
+    "farNoSkyPct": 2.409,
+    "farNoSkyLuma": 164.587,
+    "skyPct": 5.216
+   },
+   "people": {
+    "boxes": [
+     [
+      452,
+      -300,
+      489,
+      -208
+     ],
+     [
+      421,
+      375,
+      442,
+      428
+     ],
+     [
+      374,
+      373,
+      412,
+      470
+     ],
+     [
+      790,
+      375,
+      811,
+      428
+     ]
+    ],
+    "figInkPct": null,
+    "figEdgeShare": 0.071,
+    "worldInkPct": 17.28,
+    "worldEdgeShare": 0.394,
+    "inkRatio": null,
+    "edgeRatio": 0.18
+   }
+  },
+  "start": {
+   "street_crown": {
+    "n": 45000,
+    "inkPct": 40.367,
+    "meanR": 0.733,
+    "inkLuma": 91.021,
+    "meanLuma": 101.543,
+    "edgeShare": 0.618,
+    "farPct": 6.707,
+    "farMeanLuma": 175.605,
+    "farNoSkyPct": 5.376,
+    "farNoSkyLuma": 169.619,
+    "skyPct": 1.331
+   },
+   "tower_crown": {
+    "n": 26000,
+    "inkPct": 29.104,
+    "meanR": 0.778,
+    "inkLuma": 74.224,
+    "meanLuma": 75.532,
+    "edgeShare": 0.035,
+    "farPct": 0.008,
+    "farMeanLuma": 158.04,
+    "farNoSkyPct": 0.008,
+    "farNoSkyLuma": 158.04,
+    "skyPct": 0
+   },
+   "isle": {
+    "n": 72800,
+    "inkPct": 15.576,
+    "meanR": 0.603,
+    "inkLuma": 71.323,
+    "meanLuma": 75.491,
+    "edgeShare": 0.055,
+    "farPct": 0,
+    "farMeanLuma": 0,
+    "farNoSkyPct": 0,
+    "farNoSkyLuma": 0,
+    "skyPct": 0
+   },
+   "world": {
+    "n": 640000,
+    "inkPct": 16.364,
+    "meanR": 0.704,
+    "inkLuma": 78.008,
+    "meanLuma": 84.719,
+    "edgeShare": 0.31,
+    "farPct": 6.39,
+    "farMeanLuma": 168.597,
+    "farNoSkyPct": 0.672,
+    "farNoSkyLuma": 169.952,
+    "skyPct": 5.718
+   },
+   "face_region": {
+    "n": 164000,
+    "inkPct": 18.384,
+    "meanR": 0.758,
+    "inkLuma": 94.489,
+    "meanLuma": 106.079,
+    "edgeShare": 0.531,
+    "farPct": 7.841,
+    "farMeanLuma": 169.27,
+    "farNoSkyPct": 2.524,
+    "farNoSkyLuma": 170.211,
+    "skyPct": 5.316
+   },
+   "people": {
+    "boxes": [
+     [
+      452,
+      -300,
+      489,
+      -208
+     ],
+     [
+      421,
+      375,
+      442,
+      428
+     ],
+     [
+      374,
+      373,
+      412,
+      470
+     ],
+     [
+      790,
+      375,
+      811,
+      428
+     ]
+    ],
+    "figInkPct": null,
+    "figEdgeShare": 0,
+    "worldInkPct": 17.015,
+    "worldEdgeShare": 0.248,
+    "inkRatio": null,
+    "edgeRatio": 0
+   }
+  },
+  "crown": {
+   "live": {
+    "n": 4821,
+    "meanLuma": 84.34,
+    "meanR": 0.711,
+    "meanDist": 34
+   },
+   "baseline": {
+    "n": 4821,
+    "meanLuma": 84.47,
+    "meanR": 0.675,
+    "meanDist": 34
+   },
+   "start": {
+    "n": 4821,
+    "meanLuma": 87.99,
+    "meanR": 0.671,
+    "meanDist": 34
+   }
+  },
+  "nBoxes": 4
+ },
+ "mid-market-square": {
+  "live": {
+   "street_crown": {
+    "n": 45000,
+    "inkPct": 48.876,
+    "meanR": 0.817,
+    "inkLuma": 76.226,
+    "meanLuma": 91.718,
+    "edgeShare": 1.108,
+    "farPct": 8.138,
+    "farMeanLuma": 174.788,
+    "farNoSkyPct": 5.984,
+    "farNoSkyLuma": 172.895,
+    "skyPct": 2.153
+   },
+   "tower_crown": {
+    "n": 26000,
+    "inkPct": 45.488,
+    "meanR": 0.81,
+    "inkLuma": 74.949,
+    "meanLuma": 85.575,
+    "edgeShare": 0.468,
+    "farPct": 1.4,
+    "farMeanLuma": 172.914,
+    "farNoSkyPct": 1.396,
+    "farNoSkyLuma": 172.846,
+    "skyPct": 0.004
+   },
+   "isle": {
+    "n": 72800,
+    "inkPct": 36.538,
+    "meanR": 0.826,
+    "inkLuma": 66.988,
+    "meanLuma": 80.874,
+    "edgeShare": 0.263,
+    "farPct": 0.341,
+    "farMeanLuma": 172.827,
+    "farNoSkyPct": 0.341,
+    "farNoSkyLuma": 172.827,
+    "skyPct": 0
+   },
+   "world": {
+    "n": 640000,
+    "inkPct": 23.896,
+    "meanR": 0.782,
+    "inkLuma": 74.706,
+    "meanLuma": 98.183,
+    "edgeShare": 0.539,
+    "farPct": 14.83,
+    "farMeanLuma": 163.695,
+    "farNoSkyPct": 1.666,
+    "farNoSkyLuma": 169.585,
+    "skyPct": 13.163
+   },
+   "face_region": {
+    "n": 164000,
+    "inkPct": 24.554,
+    "meanR": 0.751,
+    "inkLuma": 80.639,
+    "meanLuma": 100.317,
+    "edgeShare": 0.987,
+    "farPct": 14.325,
+    "farMeanLuma": 169.074,
+    "farNoSkyPct": 5.179,
+    "farNoSkyLuma": 169.143,
+    "skyPct": 9.146
+   },
+   "people": {
+    "boxes": [
+     [
+      106,
+      395,
+      147,
+      498
+     ],
+     [
+      727,
+      396,
+      744,
+      437
+     ],
+     [
+      73,
+      393,
+      133,
+      545
+     ],
+     [
+      394,
+      395,
+      432,
+      490
+     ],
+     [
+      771,
+      396,
+      789,
+      440
+     ],
+     [
+      369,
+      395,
+      402,
+      477
+     ],
+     [
+      942,
+      395,
+      983,
+      498
+     ],
+     [
+      960,
+      396,
+      985,
+      458
+     ],
+     [
+      366,
+      396,
+      386,
+      446
+     ]
+    ],
+    "figInkPct": 32.32,
+    "figEdgeShare": 0.253,
+    "worldInkPct": 27.324,
+    "worldEdgeShare": 0.495,
+    "inkRatio": 1.183,
+    "edgeRatio": 0.51
+   }
+  },
+  "baseline": {
+   "street_crown": {
+    "n": 45000,
+    "inkPct": 52.582,
+    "meanR": 0.803,
+    "inkLuma": 75.749,
+    "meanLuma": 90.103,
+    "edgeShare": 1.28,
+    "farPct": 8.044,
+    "farMeanLuma": 174.124,
+    "farNoSkyPct": 6.027,
+    "farNoSkyLuma": 172.319,
+    "skyPct": 2.018
+   },
+   "tower_crown": {
+    "n": 26000,
+    "inkPct": 46.215,
+    "meanR": 0.823,
+    "inkLuma": 72.955,
+    "meanLuma": 84.414,
+    "edgeShare": 0.483,
+    "farPct": 1.365,
+    "farMeanLuma": 173.091,
+    "farNoSkyPct": 1.365,
+    "farNoSkyLuma": 173.091,
+    "skyPct": 0
+   },
+   "isle": {
+    "n": 72800,
+    "inkPct": 36.902,
+    "meanR": 0.834,
+    "inkLuma": 67.351,
+    "meanLuma": 80.818,
+    "edgeShare": 0.407,
+    "farPct": 0.335,
+    "farMeanLuma": 172.819,
+    "farNoSkyPct": 0.335,
+    "farNoSkyLuma": 172.819,
+    "skyPct": 0
+   },
+   "world": {
+    "n": 640000,
+    "inkPct": 24.466,
+    "meanR": 0.787,
+    "inkLuma": 73.956,
+    "meanLuma": 97.738,
+    "edgeShare": 0.617,
+    "farPct": 14.796,
+    "farMeanLuma": 163.798,
+    "farNoSkyPct": 1.668,
+    "farNoSkyLuma": 170.825,
+    "skyPct": 13.128
+   },
+   "face_region": {
+    "n": 164000,
+    "inkPct": 25.849,
+    "meanR": 0.749,
+    "inkLuma": 79.34,
+    "meanLuma": 99.479,
+    "edgeShare": 1.086,
+    "farPct": 14.243,
+    "farMeanLuma": 169.401,
+    "farNoSkyPct": 5.192,
+    "farNoSkyLuma": 170.152,
+    "skyPct": 9.051
+   },
+   "people": {
+    "boxes": [
+     [
+      106,
+      395,
+      147,
+      498
+     ],
+     [
+      727,
+      396,
+      744,
+      437
+     ],
+     [
+      73,
+      393,
+      133,
+      545
+     ],
+     [
+      394,
+      395,
+      432,
+      490
+     ],
+     [
+      771,
+      396,
+      789,
+      440
+     ],
+     [
+      369,
+      395,
+      402,
+      477
+     ],
+     [
+      942,
+      395,
+      983,
+      498
+     ],
+     [
+      960,
+      396,
+      985,
+      458
+     ],
+     [
+      366,
+      396,
+      386,
+      446
+     ]
+    ],
+    "figInkPct": 33.125,
+    "figEdgeShare": 0.245,
+    "worldInkPct": 27.955,
+    "worldEdgeShare": 0.58,
+    "inkRatio": 1.185,
+    "edgeRatio": 0.422
+   }
+  },
+  "start": {
+   "street_crown": {
+    "n": 45000,
+    "inkPct": 50.131,
+    "meanR": 0.808,
+    "inkLuma": 76.883,
+    "meanLuma": 91.881,
+    "edgeShare": 1.251,
+    "farPct": 8.138,
+    "farMeanLuma": 177.588,
+    "farNoSkyPct": 5.984,
+    "farNoSkyLuma": 176.703,
+    "skyPct": 2.153
+   },
+   "tower_crown": {
+    "n": 26000,
+    "inkPct": 45.865,
+    "meanR": 0.81,
+    "inkLuma": 75.096,
+    "meanLuma": 85.574,
+    "edgeShare": 0.506,
+    "farPct": 1.4,
+    "farMeanLuma": 175.146,
+    "farNoSkyPct": 1.396,
+    "farNoSkyLuma": 175.084,
+    "skyPct": 0.004
+   },
+   "isle": {
+    "n": 72800,
+    "inkPct": 36.533,
+    "meanR": 0.826,
+    "inkLuma": 66.991,
+    "meanLuma": 80.877,
+    "edgeShare": 0.259,
+    "farPct": 0.341,
+    "farMeanLuma": 172.827,
+    "farNoSkyPct": 0.341,
+    "farNoSkyLuma": 172.827,
+    "skyPct": 0
+   },
+   "world": {
+    "n": 640000,
+    "inkPct": 23.99,
+    "meanR": 0.779,
+    "inkLuma": 75.015,
+    "meanLuma": 98.271,
+    "edgeShare": 0.554,
+    "farPct": 14.83,
+    "farMeanLuma": 164.279,
+    "farNoSkyPct": 1.666,
+    "farNoSkyLuma": 174.785,
+    "skyPct": 13.163
+   },
+   "face_region": {
+    "n": 164000,
+    "inkPct": 25.05,
+    "meanR": 0.742,
+    "inkLuma": 81.843,
+    "meanLuma": 100.577,
+    "edgeShare": 1.072,
+    "farPct": 14.325,
+    "farMeanLuma": 171.048,
+    "farNoSkyPct": 5.179,
+    "farNoSkyLuma": 174.602,
+    "skyPct": 9.146
+   },
+   "people": {
+    "boxes": [
+     [
+      106,
+      395,
+      147,
+      498
+     ],
+     [
+      727,
+      396,
+      744,
+      437
+     ],
+     [
+      73,
+      393,
+      133,
+      545
+     ],
+     [
+      394,
+      395,
+      432,
+      490
+     ],
+     [
+      771,
+      396,
+      789,
+      440
+     ],
+     [
+      369,
+      395,
+      402,
+      477
+     ],
+     [
+      942,
+      395,
+      983,
+      498
+     ],
+     [
+      960,
+      396,
+      985,
+      458
+     ],
+     [
+      366,
+      396,
+      386,
+      446
+     ]
+    ],
+    "figInkPct": 33.054,
+    "figEdgeShare": 0.257,
+    "worldInkPct": 27.398,
+    "worldEdgeShare": 0.513,
+    "inkRatio": 1.206,
+    "edgeRatio": 0.5
+   }
+  },
+  "crown": {
+   "live": {
+    "n": 9163,
+    "meanLuma": 69.51,
+    "meanR": 0.818,
+    "meanDist": 20
+   },
+   "baseline": {
+    "n": 9163,
+    "meanLuma": 70.09,
+    "meanR": 0.801,
+    "meanDist": 20
+   },
+   "start": {
+    "n": 9163,
+    "meanLuma": 70.44,
+    "meanR": 0.806,
+    "meanDist": 20
+   }
+  },
+  "nBoxes": 9
+ },
+ "far-clock-tower": {
+  "live": {
+   "street_crown": {
+    "n": 45000,
+    "inkPct": 25.891,
+    "meanR": 0.812,
+    "inkLuma": 93.029,
+    "meanLuma": 125.963,
+    "edgeShare": 1.22,
+    "farPct": 16.687,
+    "farMeanLuma": 186.345,
+    "farNoSkyPct": 5.684,
+    "farNoSkyLuma": 180.097,
+    "skyPct": 11.002
+   },
+   "tower_crown": {
+    "n": 26000,
+    "inkPct": 50.785,
+    "meanR": 0.825,
+    "inkLuma": 77.317,
+    "meanLuma": 88.391,
+    "edgeShare": 0.719,
+    "farPct": 2.896,
+    "farMeanLuma": 174.422,
+    "farNoSkyPct": 1.508,
+    "farNoSkyLuma": 169.362,
+    "skyPct": 1.388
+   },
+   "isle": {
+    "n": 72800,
+    "inkPct": 31.637,
+    "meanR": 0.611,
+    "inkLuma": 81.189,
+    "meanLuma": 87.659,
+    "edgeShare": 0.38,
+    "farPct": 0,
+    "farMeanLuma": 0,
+    "farNoSkyPct": 0,
+    "farNoSkyLuma": 0,
+    "skyPct": 0
+   },
+   "world": {
+    "n": 640000,
+    "inkPct": 21.741,
+    "meanR": 0.677,
+    "inkLuma": 82.277,
+    "meanLuma": 102.536,
+    "edgeShare": 0.683,
+    "farPct": 16.279,
+    "farMeanLuma": 173.917,
+    "farNoSkyPct": 1.2,
+    "farNoSkyLuma": 168.94,
+    "skyPct": 15.079
+   },
+   "face_region": {
+    "n": 164000,
+    "inkPct": 21.238,
+    "meanR": 0.774,
+    "inkLuma": 93.238,
+    "meanLuma": 134.776,
+    "edgeShare": 1.237,
+    "farPct": 37.477,
+    "farMeanLuma": 179.979,
+    "farNoSkyPct": 4.683,
+    "farNoSkyLuma": 168.94,
+    "skyPct": 32.794
+   },
+   "people": {
+    "boxes": [
+     [
+      777,
+      467,
+      795,
+      510
+     ],
+     [
+      598,
+      467,
+      617,
+      515
+     ]
+    ],
+    "figInkPct": 43.832,
+    "figEdgeShare": 1.004,
+    "worldInkPct": 25.497,
+    "worldEdgeShare": 0.596,
+    "inkRatio": 1.719,
+    "edgeRatio": 1.685
+   }
+  },
+  "baseline": {
+   "street_crown": {
+    "n": 45000,
+    "inkPct": 26.524,
+    "meanR": 0.86,
+    "inkLuma": 83.085,
+    "meanLuma": 122.521,
+    "edgeShare": 2.415,
+    "farPct": 16.442,
+    "farMeanLuma": 186.567,
+    "farNoSkyPct": 5.562,
+    "farNoSkyLuma": 180.775,
+    "skyPct": 10.88
+   },
+   "tower_crown": {
+    "n": 26000,
+    "inkPct": 53.127,
+    "meanR": 0.844,
+    "inkLuma": 73.103,
+    "meanLuma": 85.077,
+    "edgeShare": 1.144,
+    "farPct": 2.742,
+    "farMeanLuma": 173.701,
+    "farNoSkyPct": 1.385,
+    "farNoSkyLuma": 166.993,
+    "skyPct": 1.358
+   },
+   "isle": {
+    "n": 72800,
+    "inkPct": 31.72,
+    "meanR": 0.616,
+    "inkLuma": 80.868,
+    "meanLuma": 87.532,
+    "edgeShare": 0.397,
+    "farPct": 0,
+    "farMeanLuma": 0,
+    "farNoSkyPct": 0,
+    "farNoSkyLuma": 0,
+    "skyPct": 0
+   },
+   "world": {
+    "n": 640000,
+    "inkPct": 22.155,
+    "meanR": 0.695,
+    "inkLuma": 79.552,
+    "meanLuma": 101.704,
+    "edgeShare": 0.93,
+    "farPct": 16.244,
+    "farMeanLuma": 174.048,
+    "farNoSkyPct": 1.189,
+    "farNoSkyLuma": 170.609,
+    "skyPct": 15.055
+   },
+   "face_region": {
+    "n": 164000,
+    "inkPct": 22.436,
+    "meanR": 0.807,
+    "inkLuma": 85.343,
+    "meanLuma": 132.417,
+    "edgeShare": 2.037,
+    "farPct": 37.351,
+    "farMeanLuma": 180.229,
+    "farNoSkyPct": 4.639,
+    "farNoSkyLuma": 170.609,
+    "skyPct": 32.712
+   },
+   "people": {
+    "boxes": [
+     [
+      777,
+      467,
+      795,
+      510
+     ],
+     [
+      598,
+      467,
+      617,
+      515
+     ]
+    ],
+    "figInkPct": 53.5,
+    "figEdgeShare": 0.879,
+    "worldInkPct": 25.95,
+    "worldEdgeShare": 0.849,
+    "inkRatio": 2.062,
+    "edgeRatio": 1.035
+   }
+  },
+  "start": {
+   "street_crown": {
+    "n": 45000,
+    "inkPct": 25.86,
+    "meanR": 0.805,
+    "inkLuma": 94.43,
+    "meanLuma": 126.327,
+    "edgeShare": 1.235,
+    "farPct": 16.687,
+    "farMeanLuma": 187.572,
+    "farNoSkyPct": 5.684,
+    "farNoSkyLuma": 183.457,
+    "skyPct": 11.002
+   },
+   "tower_crown": {
+    "n": 26000,
+    "inkPct": 51.919,
+    "meanR": 0.817,
+    "inkLuma": 77.647,
+    "meanLuma": 88.413,
+    "edgeShare": 0.684,
+    "farPct": 2.896,
+    "farMeanLuma": 176.041,
+    "farNoSkyPct": 1.508,
+    "farNoSkyLuma": 172.471,
+    "skyPct": 1.388
+   },
+   "isle": {
+    "n": 72800,
+    "inkPct": 31.685,
+    "meanR": 0.611,
+    "inkLuma": 81.177,
+    "meanLuma": 87.647,
+    "edgeShare": 0.378,
+    "farPct": 0,
+    "farMeanLuma": 0,
+    "farNoSkyPct": 0,
+    "farNoSkyLuma": 0,
+    "skyPct": 0
+   },
+   "world": {
+    "n": 640000,
+    "inkPct": 21.88,
+    "meanR": 0.676,
+    "inkLuma": 82.736,
+    "meanLuma": 102.621,
+    "edgeShare": 0.664,
+    "farPct": 16.279,
+    "farMeanLuma": 174.386,
+    "farNoSkyPct": 1.2,
+    "farNoSkyLuma": 174.751,
+    "skyPct": 15.079
+   },
+   "face_region": {
+    "n": 164000,
+    "inkPct": 21.537,
+    "meanR": 0.764,
+    "inkLuma": 94.892,
+    "meanLuma": 135.127,
+    "edgeShare": 1.207,
+    "farPct": 37.477,
+    "farMeanLuma": 180.774,
+    "farNoSkyPct": 4.683,
+    "farNoSkyLuma": 174.751,
+    "skyPct": 32.794
+   },
+   "people": {
+    "boxes": [
+     [
+      777,
+      467,
+      795,
+      510
+     ],
+     [
+      598,
+      467,
+      617,
+      515
+     ]
+    ],
+    "figInkPct": 53.914,
+    "figEdgeShare": 0.628,
+    "worldInkPct": 25.63,
+    "worldEdgeShare": 0.582,
+    "inkRatio": 2.104,
+    "edgeRatio": 1.079
+   }
+  },
+  "crown": {
+   "live": {
+    "n": 6950,
+    "meanLuma": 76.39,
+    "meanR": 0.731,
+    "meanDist": 24
+   },
+   "baseline": {
+    "n": 6950,
+    "meanLuma": 77.61,
+    "meanR": 0.683,
+    "meanDist": 24
+   },
+   "start": {
+    "n": 6950,
+    "meanLuma": 78.39,
+    "meanR": 0.705,
+    "meanDist": 24
+   }
+  },
+  "nBoxes": 2
+ },
+ "far-rooftops-overview": {
+  "live": {
+   "street_crown": {
+    "n": 45000,
+    "inkPct": 14.358,
+    "meanR": 0.765,
+    "inkLuma": 80.137,
+    "meanLuma": 83.623,
+    "edgeShare": 0.361,
+    "farPct": 0.869,
+    "farMeanLuma": 158.997,
+    "farNoSkyPct": 0.869,
+    "farNoSkyLuma": 158.997,
+    "skyPct": 0
+   },
+   "tower_crown": {
+    "n": 26000,
+    "inkPct": 7.631,
+    "meanR": 0.538,
+    "inkLuma": 75.176,
+    "meanLuma": 68.765,
+    "edgeShare": 0,
+    "farPct": 0,
+    "farMeanLuma": 0,
+    "farNoSkyPct": 0,
+    "farNoSkyLuma": 0,
+    "skyPct": 0
+   },
+   "isle": {
+    "n": 72800,
+    "inkPct": 14.813,
+    "meanR": 0.625,
+    "inkLuma": 103.596,
+    "meanLuma": 130.822,
+    "edgeShare": 0.149,
+    "farPct": 36.111,
+    "farMeanLuma": 158.462,
+    "farNoSkyPct": 33.062,
+    "farNoSkyLuma": 155.666,
+    "skyPct": 3.049
+   },
+   "world": {
+    "n": 640000,
+    "inkPct": 12.955,
+    "meanR": 0.671,
+    "inkLuma": 83.875,
+    "meanLuma": 106.986,
+    "edgeShare": 0.219,
+    "farPct": 31.485,
+    "farMeanLuma": 157.711,
+    "farNoSkyPct": 10.636,
+    "farNoSkyLuma": 142.066,
+    "skyPct": 20.849
+   },
+   "face_region": {
+    "n": 164000,
+    "inkPct": 11.701,
+    "meanR": 0.768,
+    "inkLuma": 81.844,
+    "meanLuma": 96.931,
+    "edgeShare": 0.344,
+    "farPct": 18.316,
+    "farMeanLuma": 156.641,
+    "farNoSkyPct": 6.529,
+    "farNoSkyLuma": 152.988,
+    "skyPct": 11.787
+   }
+  },
+  "baseline": {
+   "street_crown": {
+    "n": 45000,
+    "inkPct": 18.338,
+    "meanR": 0.771,
+    "inkLuma": 78.48,
+    "meanLuma": 81.441,
+    "edgeShare": 0.504,
+    "farPct": 0.853,
+    "farMeanLuma": 156.526,
+    "farNoSkyPct": 0.853,
+    "farNoSkyLuma": 156.526,
+    "skyPct": 0
+   },
+   "tower_crown": {
+    "n": 26000,
+    "inkPct": 7.631,
+    "meanR": 0.541,
+    "inkLuma": 75.078,
+    "meanLuma": 68.758,
+    "edgeShare": 0,
+    "farPct": 0,
+    "farMeanLuma": 0,
+    "farNoSkyPct": 0,
+    "farNoSkyLuma": 0,
+    "skyPct": 0
+   },
+   "isle": {
+    "n": 72800,
+    "inkPct": 19.176,
+    "meanR": 0.686,
+    "inkLuma": 93.491,
+    "meanLuma": 127.598,
+    "edgeShare": 0.448,
+    "farPct": 36.058,
+    "farMeanLuma": 157.014,
+    "farNoSkyPct": 33.146,
+    "farNoSkyLuma": 154.225,
+    "skyPct": 2.912
+   },
+   "world": {
+    "n": 640000,
+    "inkPct": 14.461,
+    "meanR": 0.676,
+    "inkLuma": 81.9,
+    "meanLuma": 106.018,
+    "edgeShare": 0.417,
+    "farPct": 31.459,
+    "farMeanLuma": 157.535,
+    "farNoSkyPct": 10.701,
+    "farNoSkyLuma": 141.64,
+    "skyPct": 20.758
+   },
+   "face_region": {
+    "n": 164000,
+    "inkPct": 13.462,
+    "meanR": 0.761,
+    "inkLuma": 80.537,
+    "meanLuma": 95.885,
+    "edgeShare": 0.606,
+    "farPct": 18.298,
+    "farMeanLuma": 156.21,
+    "farNoSkyPct": 6.568,
+    "farNoSkyLuma": 151.968,
+    "skyPct": 11.729
+   }
+  },
+  "start": {
+   "street_crown": {
+    "n": 45000,
+    "inkPct": 14.336,
+    "meanR": 0.765,
+    "inkLuma": 80.193,
+    "meanLuma": 83.641,
+    "edgeShare": 0.361,
+    "farPct": 0.869,
+    "farMeanLuma": 158.997,
+    "farNoSkyPct": 0.869,
+    "farNoSkyLuma": 158.997,
+    "skyPct": 0
+   },
+   "tower_crown": {
+    "n": 26000,
+    "inkPct": 7.631,
+    "meanR": 0.538,
+    "inkLuma": 75.176,
+    "meanLuma": 68.765,
+    "edgeShare": 0,
+    "farPct": 0,
+    "farMeanLuma": 0,
+    "farNoSkyPct": 0,
+    "farNoSkyLuma": 0,
+    "skyPct": 0
+   },
+   "isle": {
+    "n": 72800,
+    "inkPct": 14.872,
+    "meanR": 0.601,
+    "inkLuma": 106.95,
+    "meanLuma": 131.326,
+    "edgeShare": 0.146,
+    "farPct": 36.111,
+    "farMeanLuma": 159.789,
+    "farNoSkyPct": 33.062,
+    "farNoSkyLuma": 157.116,
+    "skyPct": 3.049
+   },
+   "world": {
+    "n": 640000,
+    "inkPct": 12.889,
+    "meanR": 0.66,
+    "inkLuma": 85.398,
+    "meanLuma": 107.236,
+    "edgeShare": 0.216,
+    "farPct": 31.485,
+    "farMeanLuma": 158.424,
+    "farNoSkyPct": 10.636,
+    "farNoSkyLuma": 144.176,
+    "skyPct": 20.849
+   },
+   "face_region": {
+    "n": 164000,
+    "inkPct": 11.455,
+    "meanR": 0.77,
+    "inkLuma": 81.133,
+    "meanLuma": 97.085,
+    "edgeShare": 0.344,
+    "farPct": 18.316,
+    "farMeanLuma": 157.32,
+    "farNoSkyPct": 6.529,
+    "farNoSkyLuma": 154.894,
+    "skyPct": 11.787
+   }
+  },
+  "crown": {
+   "live": {
+    "n": 1475,
+    "meanLuma": 89.25,
+    "meanR": 0.481,
+    "meanDist": 43
+   },
+   "baseline": {
+    "n": 1475,
+    "meanLuma": 95.02,
+    "meanR": 0.374,
+    "meanDist": 43
+   },
+   "start": {
+    "n": 1475,
+    "meanLuma": 92.99,
+    "meanR": 0.437,
+    "meanDist": 43
+   }
+  },
+  "nBoxes": 0
+ },
+ "veryfar-skyline-edge": {
+  "live": {
+   "street_crown": {
+    "n": 45000,
+    "inkPct": 0,
+    "meanR": 0,
+    "inkLuma": 0,
+    "meanLuma": 197.192,
+    "edgeShare": 0,
+    "farPct": 100,
+    "farMeanLuma": 197.192,
+    "farNoSkyPct": 0,
+    "farNoSkyLuma": 0,
+    "skyPct": 100
+   },
+   "tower_crown": {
+    "n": 26000,
+    "inkPct": 9.296,
+    "meanR": 0.804,
+    "inkLuma": 89.718,
+    "meanLuma": 178.615,
+    "edgeShare": 0.371,
+    "farPct": 76.777,
+    "farMeanLuma": 198.676,
+    "farNoSkyPct": 0,
+    "farNoSkyLuma": 0,
+    "skyPct": 76.777
+   },
+   "isle": {
+    "n": 72800,
+    "inkPct": 7.202,
+    "meanR": 0.641,
+    "inkLuma": 111.68,
+    "meanLuma": 173.34,
+    "edgeShare": 0.17,
+    "farPct": 83.801,
+    "farMeanLuma": 184.131,
+    "farNoSkyPct": 0,
+    "farNoSkyLuma": 0,
+    "skyPct": 83.801
+   },
+   "world": {
+    "n": 640000,
+    "inkPct": 6.957,
+    "meanR": 0.744,
+    "inkLuma": 92.991,
+    "meanLuma": 174.366,
+    "edgeShare": 0.614,
+    "farPct": 80.074,
+    "farMeanLuma": 189.155,
+    "farNoSkyPct": 0.385,
+    "farNoSkyLuma": 203.449,
+    "skyPct": 79.689
+   },
+   "face_region": {
+    "n": 164000,
+    "inkPct": 5.468,
+    "meanR": 0.814,
+    "inkLuma": 87.423,
+    "meanLuma": 183.694,
+    "edgeShare": 0.52,
+    "farPct": 86.149,
+    "farMeanLuma": 195.697,
+    "farNoSkyPct": 0.566,
+    "farNoSkyLuma": 200.19,
+    "skyPct": 85.584
+   }
+  },
+  "baseline": {
+   "street_crown": {
+    "n": 45000,
+    "inkPct": 0,
+    "meanR": 0,
+    "inkLuma": 0,
+    "meanLuma": 197.192,
+    "edgeShare": 0,
+    "farPct": 100,
+    "farMeanLuma": 197.192,
+    "farNoSkyPct": 0,
+    "farNoSkyLuma": 0,
+    "skyPct": 100
+   },
+   "tower_crown": {
+    "n": 26000,
+    "inkPct": 9.296,
+    "meanR": 0.804,
+    "inkLuma": 89.492,
+    "meanLuma": 178.594,
+    "edgeShare": 0.371,
+    "farPct": 76.777,
+    "farMeanLuma": 198.676,
+    "farNoSkyPct": 0,
+    "farNoSkyLuma": 0,
+    "skyPct": 76.777
+   },
+   "isle": {
+    "n": 72800,
+    "inkPct": 7.71,
+    "meanR": 0.566,
+    "inkLuma": 118.99,
+    "meanLuma": 173.521,
+    "edgeShare": 0.17,
+    "farPct": 83.806,
+    "farMeanLuma": 184.358,
+    "farNoSkyPct": 0,
+    "farNoSkyLuma": 0,
+    "skyPct": 83.806
+   },
+   "world": {
+    "n": 640000,
+    "inkPct": 7.027,
+    "meanR": 0.732,
+    "inkLuma": 94.13,
+    "meanLuma": 174.378,
+    "edgeShare": 0.615,
+    "farPct": 80.075,
+    "farMeanLuma": 189.189,
+    "farNoSkyPct": 0.39,
+    "farNoSkyLuma": 203.981,
+    "skyPct": 79.685
+   },
+   "face_region": {
+    "n": 164000,
+    "inkPct": 5.509,
+    "meanR": 0.808,
+    "inkLuma": 87.981,
+    "meanLuma": 183.675,
+    "edgeShare": 0.521,
+    "farPct": 86.146,
+    "farMeanLuma": 195.705,
+    "farNoSkyPct": 0.582,
+    "farNoSkyLuma": 201.46,
+    "skyPct": 85.563
+   }
+  },
+  "start": {
+   "street_crown": {
+    "n": 45000,
+    "inkPct": 0,
+    "meanR": 0,
+    "inkLuma": 0,
+    "meanLuma": 197.192,
+    "edgeShare": 0,
+    "farPct": 100,
+    "farMeanLuma": 197.192,
+    "farNoSkyPct": 0,
+    "farNoSkyLuma": 0,
+    "skyPct": 100
+   },
+   "tower_crown": {
+    "n": 26000,
+    "inkPct": 9.296,
+    "meanR": 0.804,
+    "inkLuma": 89.718,
+    "meanLuma": 178.615,
+    "edgeShare": 0.371,
+    "farPct": 76.777,
+    "farMeanLuma": 198.676,
+    "farNoSkyPct": 0,
+    "farNoSkyLuma": 0,
+    "skyPct": 76.777
+   },
+   "isle": {
+    "n": 72800,
+    "inkPct": 7.202,
+    "meanR": 0.64,
+    "inkLuma": 116.209,
+    "meanLuma": 173.666,
+    "edgeShare": 0.17,
+    "farPct": 83.801,
+    "farMeanLuma": 184.52,
+    "farNoSkyPct": 0,
+    "farNoSkyLuma": 0,
+    "skyPct": 83.801
+   },
+   "world": {
+    "n": 640000,
+    "inkPct": 6.957,
+    "meanR": 0.743,
+    "inkLuma": 93.698,
+    "meanLuma": 174.415,
+    "edgeShare": 0.614,
+    "farPct": 80.074,
+    "farMeanLuma": 189.216,
+    "farNoSkyPct": 0.385,
+    "farNoSkyLuma": 205.211,
+    "skyPct": 79.689
+   },
+   "face_region": {
+    "n": 164000,
+    "inkPct": 5.468,
+    "meanR": 0.811,
+    "inkLuma": 87.883,
+    "meanLuma": 183.72,
+    "edgeShare": 0.52,
+    "farPct": 86.149,
+    "farMeanLuma": 195.725,
+    "farNoSkyPct": 0.566,
+    "farNoSkyLuma": 204.472,
+    "skyPct": 85.584
+   }
+  },
+  "crown": {
+   "live": {
+    "n": 0,
+    "meanLuma": null,
+    "meanR": null,
+    "meanDist": null
+   },
+   "baseline": {
+    "n": 0,
+    "meanLuma": null,
+    "meanR": null,
+    "meanDist": null
+   },
+   "start": {
+    "n": 0,
+    "meanLuma": null,
+    "meanR": null,
+    "meanDist": null
+   }
+  },
+  "nBoxes": 0
+ },
+ "far-clock-tower-fog": {
+  "live": {
+   "street_crown": {
+    "n": 45000,
+    "inkPct": 26.324,
+    "meanR": 0.728,
+    "inkLuma": 93.444,
+    "meanLuma": 117.706,
+    "edgeShare": 0.254,
+    "farPct": 16.687,
+    "farMeanLuma": 152.075,
+    "farNoSkyPct": 5.684,
+    "farNoSkyLuma": 148.236,
+    "skyPct": 11.002
+   },
+   "tower_crown": {
+    "n": 26000,
+    "inkPct": 50.708,
+    "meanR": 0.773,
+    "inkLuma": 82.16,
+    "meanLuma": 93.539,
+    "edgeShare": 0.437,
+    "farPct": 2.896,
+    "farMeanLuma": 149.78,
+    "farNoSkyPct": 1.508,
+    "farNoSkyLuma": 150.398,
+    "skyPct": 1.388
+   },
+   "isle": {
+    "n": 72800,
+    "inkPct": 32.13,
+    "meanR": 0.6,
+    "inkLuma": 84.223,
+    "meanLuma": 97.203,
+    "edgeShare": 0.392,
+    "farPct": 0,
+    "farMeanLuma": 0,
+    "farNoSkyPct": 0,
+    "farNoSkyLuma": 0,
+    "skyPct": 0
+   },
+   "world": {
+    "n": 640000,
+    "inkPct": 22.205,
+    "meanR": 0.644,
+    "inkLuma": 84.917,
+    "meanLuma": 105.655,
+    "edgeShare": 0.365,
+    "farPct": 16.285,
+    "farMeanLuma": 158.537,
+    "farNoSkyPct": 1.203,
+    "farNoSkyLuma": 144.434,
+    "skyPct": 15.082
+   },
+   "face_region": {
+    "n": 164000,
+    "inkPct": 20.936,
+    "meanR": 0.711,
+    "inkLuma": 92.363,
+    "meanLuma": 125.231,
+    "edgeShare": 0.543,
+    "farPct": 37.506,
+    "farMeanLuma": 158.496,
+    "farNoSkyPct": 4.693,
+    "farNoSkyLuma": 144.434,
+    "skyPct": 32.813
+   },
+   "people": {
+    "boxes": [
+     [
+      777,
+      467,
+      795,
+      510
+     ],
+     [
+      600,
+      467,
+      618,
+      512
+     ]
+    ],
+    "figInkPct": 41.414,
+    "figEdgeShare": 1.137,
+    "worldInkPct": 26.056,
+    "worldEdgeShare": 0.285,
+    "inkRatio": 1.589,
+    "edgeRatio": 3.988
+   }
+  },
+  "baseline": {
+   "street_crown": {
+    "n": 45000,
+    "inkPct": 26.62,
+    "meanR": 0.858,
+    "inkLuma": 79.718,
+    "meanLuma": 113.412,
+    "edgeShare": 1.864,
+    "farPct": 16.442,
+    "farMeanLuma": 152.22,
+    "farNoSkyPct": 5.562,
+    "farNoSkyLuma": 148.883,
+    "skyPct": 10.88
+   },
+   "tower_crown": {
+    "n": 26000,
+    "inkPct": 53.504,
+    "meanR": 0.842,
+    "inkLuma": 74.64,
+    "meanLuma": 88.496,
+    "edgeShare": 1.585,
+    "farPct": 2.742,
+    "farMeanLuma": 148.255,
+    "farNoSkyPct": 1.385,
+    "farNoSkyLuma": 148.041,
+    "skyPct": 1.358
+   },
+   "isle": {
+    "n": 72800,
+    "inkPct": 32.353,
+    "meanR": 0.614,
+    "inkLuma": 83.419,
+    "meanLuma": 96.89,
+    "edgeShare": 0.418,
+    "farPct": 0,
+    "farMeanLuma": 0,
+    "farNoSkyPct": 0,
+    "farNoSkyLuma": 0,
+    "skyPct": 0
+   },
+   "world": {
+    "n": 640000,
+    "inkPct": 22.698,
+    "meanR": 0.687,
+    "inkLuma": 80.778,
+    "meanLuma": 104.505,
+    "edgeShare": 0.748,
+    "farPct": 16.247,
+    "farMeanLuma": 158.657,
+    "farNoSkyPct": 1.19,
+    "farNoSkyLuma": 145.689,
+    "skyPct": 15.057
+   },
+   "face_region": {
+    "n": 164000,
+    "inkPct": 22.032,
+    "meanR": 0.808,
+    "inkLuma": 81.555,
+    "meanLuma": 122.353,
+    "edgeShare": 1.676,
+    "farPct": 37.376,
+    "farMeanLuma": 158.701,
+    "farNoSkyPct": 4.645,
+    "farNoSkyLuma": 145.689,
+    "skyPct": 32.731
+   },
+   "people": {
+    "boxes": [
+     [
+      777,
+      467,
+      795,
+      510
+     ],
+     [
+      600,
+      467,
+      618,
+      512
+     ]
+    ],
+    "figInkPct": 51.704,
+    "figEdgeShare": 1.003,
+    "worldInkPct": 26.602,
+    "worldEdgeShare": 0.631,
+    "inkRatio": 1.944,
+    "edgeRatio": 1.589
+   }
+  },
+  "start": {
+   "street_crown": {
+    "n": 45000,
+    "inkPct": 26.3,
+    "meanR": 0.716,
+    "inkLuma": 94.797,
+    "meanLuma": 118.065,
+    "edgeShare": 0.234,
+    "farPct": 16.687,
+    "farMeanLuma": 152.936,
+    "farNoSkyPct": 5.684,
+    "farNoSkyLuma": 150.631,
+    "skyPct": 11.002
+   },
+   "tower_crown": {
+    "n": 26000,
+    "inkPct": 51.931,
+    "meanR": 0.764,
+    "inkLuma": 82.487,
+    "meanLuma": 93.585,
+    "edgeShare": 0.402,
+    "farPct": 2.896,
+    "farMeanLuma": 150.938,
+    "farNoSkyPct": 1.508,
+    "farNoSkyLuma": 152.623,
+    "skyPct": 1.388
+   },
+   "isle": {
+    "n": 72800,
+    "inkPct": 32.183,
+    "meanR": 0.601,
+    "inkLuma": 84.215,
+    "meanLuma": 97.191,
+    "edgeShare": 0.386,
+    "farPct": 0,
+    "farMeanLuma": 0,
+    "farNoSkyPct": 0,
+    "farNoSkyLuma": 0,
+    "skyPct": 0
+   },
+   "world": {
+    "n": 640000,
+    "inkPct": 22.347,
+    "meanR": 0.641,
+    "inkLuma": 85.302,
+    "meanLuma": 105.731,
+    "edgeShare": 0.357,
+    "farPct": 16.285,
+    "farMeanLuma": 158.879,
+    "farNoSkyPct": 1.203,
+    "farNoSkyLuma": 148.753,
+    "skyPct": 15.082
+   },
+   "face_region": {
+    "n": 164000,
+    "inkPct": 21.27,
+    "meanR": 0.695,
+    "inkLuma": 93.842,
+    "meanLuma": 125.55,
+    "edgeShare": 0.522,
+    "farPct": 37.506,
+    "farMeanLuma": 159.075,
+    "farNoSkyPct": 4.693,
+    "farNoSkyLuma": 148.753,
+    "skyPct": 32.813
+   },
+   "people": {
+    "boxes": [
+     [
+      777,
+      467,
+      795,
+      510
+     ],
+     [
+      600,
+      467,
+      618,
+      512
+     ]
+    ],
+    "figInkPct": 52.02,
+    "figEdgeShare": 0.869,
+    "worldInkPct": 26.193,
+    "worldEdgeShare": 0.278,
+    "inkRatio": 1.986,
+    "edgeRatio": 3.125
+   }
+  },
+  "crown": {
+   "live": {
+    "n": 7466,
+    "meanLuma": 77.52,
+    "meanR": 0.731,
+    "meanDist": 25
+   },
+   "baseline": {
+    "n": 7466,
+    "meanLuma": 77.31,
+    "meanR": 0.711,
+    "meanDist": 25
+   },
+   "start": {
+    "n": 7466,
+    "meanLuma": 80.25,
+    "meanR": 0.695,
+    "meanDist": 25
+   }
+  },
+  "nBoxes": 2
+ },
+ "mid-market-square-fog": {
+  "live": {
+   "street_crown": {
+    "n": 45000,
+    "inkPct": 48.633,
+    "meanR": 0.786,
+    "inkLuma": 81.232,
+    "meanLuma": 98.561,
+    "edgeShare": 0.531,
+    "farPct": 8.138,
+    "farMeanLuma": 156.743,
+    "farNoSkyPct": 5.984,
+    "farNoSkyLuma": 153.434,
+    "skyPct": 2.153
+   },
+   "tower_crown": {
+    "n": 26000,
+    "inkPct": 45.581,
+    "meanR": 0.78,
+    "inkLuma": 81.057,
+    "meanLuma": 94.347,
+    "edgeShare": 0.367,
+    "farPct": 1.4,
+    "farMeanLuma": 157.112,
+    "farNoSkyPct": 1.396,
+    "farNoSkyLuma": 157.124,
+    "skyPct": 0.004
+   },
+   "isle": {
+    "n": 72800,
+    "inkPct": 36.155,
+    "meanR": 0.818,
+    "inkLuma": 69.976,
+    "meanLuma": 85.212,
+    "edgeShare": 0.138,
+    "farPct": 0.341,
+    "farMeanLuma": 153.622,
+    "farNoSkyPct": 0.341,
+    "farNoSkyLuma": 153.622,
+    "skyPct": 0
+   },
+   "world": {
+    "n": 640000,
+    "inkPct": 24.084,
+    "meanR": 0.757,
+    "inkLuma": 78.129,
+    "meanLuma": 100.342,
+    "edgeShare": 0.332,
+    "farPct": 14.828,
+    "farMeanLuma": 150.281,
+    "farNoSkyPct": 1.666,
+    "farNoSkyLuma": 149.648,
+    "skyPct": 13.162
+   },
+   "face_region": {
+    "n": 164000,
+    "inkPct": 24.529,
+    "meanR": 0.719,
+    "inkLuma": 84.388,
+    "meanLuma": 104.747,
+    "edgeShare": 0.566,
+    "farPct": 14.318,
+    "farMeanLuma": 155.131,
+    "farNoSkyPct": 5.179,
+    "farNoSkyLuma": 150.158,
+    "skyPct": 9.138
+   },
+   "people": {
+    "boxes": [
+     [
+      108,
+      395,
+      148,
+      494
+     ],
+     [
+      716,
+      396,
+      732,
+      437
+     ],
+     [
+      73,
+      393,
+      133,
+      545
+     ],
+     [
+      358,
+      394,
+      402,
+      503
+     ],
+     [
+      771,
+      396,
+      789,
+      440
+     ],
+     [
+      343,
+      395,
+      376,
+      477
+     ],
+     [
+      942,
+      395,
+      983,
+      498
+     ],
+     [
+      960,
+      396,
+      985,
+      458
+     ],
+     [
+      366,
+      396,
+      386,
+      446
+     ]
+    ],
+    "figInkPct": 32.778,
+    "figEdgeShare": 0.263,
+    "worldInkPct": 27.6,
+    "worldEdgeShare": 0.308,
+    "inkRatio": 1.188,
+    "edgeRatio": 0.853
+   }
+  },
+  "baseline": {
+   "street_crown": {
+    "n": 45000,
+    "inkPct": 53.056,
+    "meanR": 0.799,
+    "inkLuma": 78.43,
+    "meanLuma": 95.477,
+    "edgeShare": 1.387,
+    "farPct": 8.044,
+    "farMeanLuma": 156.065,
+    "farNoSkyPct": 6.027,
+    "farNoSkyLuma": 152.906,
+    "skyPct": 2.018
+   },
+   "tower_crown": {
+    "n": 26000,
+    "inkPct": 46.327,
+    "meanR": 0.822,
+    "inkLuma": 76.665,
+    "meanLuma": 92.058,
+    "edgeShare": 0.854,
+    "farPct": 1.365,
+    "farMeanLuma": 157.058,
+    "farNoSkyPct": 1.365,
+    "farNoSkyLuma": 157.058,
+    "skyPct": 0
+   },
+   "isle": {
+    "n": 72800,
+    "inkPct": 36.578,
+    "meanR": 0.837,
+    "inkLuma": 69.208,
+    "meanLuma": 84.729,
+    "edgeShare": 0.261,
+    "farPct": 0.335,
+    "farMeanLuma": 153.617,
+    "farNoSkyPct": 0.335,
+    "farNoSkyLuma": 153.617,
+    "skyPct": 0
+   },
+   "world": {
+    "n": 640000,
+    "inkPct": 24.748,
+    "meanR": 0.783,
+    "inkLuma": 75.631,
+    "meanLuma": 99.425,
+    "edgeShare": 0.64,
+    "farPct": 14.794,
+    "farMeanLuma": 150.363,
+    "farNoSkyPct": 1.668,
+    "farNoSkyLuma": 150.623,
+    "skyPct": 13.126
+   },
+   "face_region": {
+    "n": 164000,
+    "inkPct": 26.145,
+    "meanR": 0.745,
+    "inkLuma": 80.751,
+    "meanLuma": 103.202,
+    "edgeShare": 1.154,
+    "farPct": 14.236,
+    "farMeanLuma": 155.39,
+    "farNoSkyPct": 5.192,
+    "farNoSkyLuma": 150.941,
+    "skyPct": 9.044
+   },
+   "people": {
+    "boxes": [
+     [
+      108,
+      395,
+      148,
+      494
+     ],
+     [
+      716,
+      396,
+      732,
+      437
+     ],
+     [
+      73,
+      393,
+      133,
+      545
+     ],
+     [
+      358,
+      394,
+      402,
+      503
+     ],
+     [
+      771,
+      396,
+      789,
+      440
+     ],
+     [
+      343,
+      395,
+      376,
+      477
+     ],
+     [
+      942,
+      395,
+      983,
+      498
+     ],
+     [
+      960,
+      396,
+      985,
+      458
+     ],
+     [
+      366,
+      396,
+      386,
+      446
+     ]
+    ],
+    "figInkPct": 33.504,
+    "figEdgeShare": 0.384,
+    "worldInkPct": 28.347,
+    "worldEdgeShare": 0.604,
+    "inkRatio": 1.182,
+    "edgeRatio": 0.635
+   }
+  },
+  "start": {
+   "street_crown": {
+    "n": 45000,
+    "inkPct": 49.784,
+    "meanR": 0.778,
+    "inkLuma": 81.672,
+    "meanLuma": 98.646,
+    "edgeShare": 0.522,
+    "farPct": 8.138,
+    "farMeanLuma": 158.89,
+    "farNoSkyPct": 5.984,
+    "farNoSkyLuma": 156.354,
+    "skyPct": 2.153
+   },
+   "tower_crown": {
+    "n": 26000,
+    "inkPct": 45.85,
+    "meanR": 0.78,
+    "inkLuma": 81.047,
+    "meanLuma": 94.335,
+    "edgeShare": 0.359,
+    "farPct": 1.4,
+    "farMeanLuma": 158.989,
+    "farNoSkyPct": 1.396,
+    "farNoSkyLuma": 159.006,
+    "skyPct": 0.004
+   },
+   "isle": {
+    "n": 72800,
+    "inkPct": 36.151,
+    "meanR": 0.818,
+    "inkLuma": 69.979,
+    "meanLuma": 85.215,
+    "edgeShare": 0.138,
+    "farPct": 0.341,
+    "farMeanLuma": 153.622,
+    "farNoSkyPct": 0.341,
+    "farNoSkyLuma": 153.622,
+    "skyPct": 0
+   },
+   "world": {
+    "n": 640000,
+    "inkPct": 24.167,
+    "meanR": 0.755,
+    "inkLuma": 78.342,
+    "meanLuma": 100.406,
+    "edgeShare": 0.331,
+    "farPct": 14.828,
+    "farMeanLuma": 150.716,
+    "farNoSkyPct": 1.666,
+    "farNoSkyLuma": 153.523,
+    "skyPct": 13.162
+   },
+   "face_region": {
+    "n": 164000,
+    "inkPct": 24.985,
+    "meanR": 0.71,
+    "inkLuma": 85.163,
+    "meanLuma": 104.924,
+    "edgeShare": 0.564,
+    "farPct": 14.318,
+    "farMeanLuma": 156.58,
+    "farNoSkyPct": 5.179,
+    "farNoSkyLuma": 154.163,
+    "skyPct": 9.138
+   },
+   "people": {
+    "boxes": [
+     [
+      108,
+      395,
+      148,
+      494
+     ],
+     [
+      716,
+      396,
+      732,
+      437
+     ],
+     [
+      73,
+      393,
+      133,
+      545
+     ],
+     [
+      358,
+      394,
+      402,
+      503
+     ],
+     [
+      771,
+      396,
+      789,
+      440
+     ],
+     [
+      343,
+      395,
+      376,
+      477
+     ],
+     [
+      942,
+      395,
+      983,
+      498
+     ],
+     [
+      960,
+      396,
+      985,
+      458
+     ],
+     [
+      366,
+      396,
+      386,
+      446
+     ]
+    ],
+    "figInkPct": 33.393,
+    "figEdgeShare": 0.27,
+    "worldInkPct": 27.666,
+    "worldEdgeShare": 0.306,
+    "inkRatio": 1.207,
+    "edgeRatio": 0.883
+   }
+  },
+  "crown": {
+   "live": {
+    "n": 9149,
+    "meanLuma": 72.35,
+    "meanR": 0.797,
+    "meanDist": 20
+   },
+   "baseline": {
+    "n": 9149,
+    "meanLuma": 71.68,
+    "meanR": 0.802,
+    "meanDist": 20
+   },
+   "start": {
+    "n": 9149,
+    "meanLuma": 73.58,
+    "meanR": 0.782,
+    "meanDist": 20
+   }
+  },
+  "nBoxes": 9
+ },
+ "close-character-storefront": {
+  "live": {
+   "street_crown": {
+    "n": 45000,
+    "inkPct": 22.487,
+    "meanR": 0.769,
+    "inkLuma": 74.985,
+    "meanLuma": 95.047,
+    "edgeShare": 0.406,
+    "farPct": 0,
+    "farMeanLuma": 0,
+    "farNoSkyPct": 0,
+    "farNoSkyLuma": 0,
+    "skyPct": 0
+   },
+   "tower_crown": {
+    "n": 26000,
+    "inkPct": 17.185,
+    "meanR": 0.679,
+    "inkLuma": 77.522,
+    "meanLuma": 86.813,
+    "edgeShare": 0.158,
+    "farPct": 0,
+    "farMeanLuma": 0,
+    "farNoSkyPct": 0,
+    "farNoSkyLuma": 0,
+    "skyPct": 0
+   },
+   "isle": {
+    "n": 72800,
+    "inkPct": 12.533,
+    "meanR": 0.66,
+    "inkLuma": 64.11,
+    "meanLuma": 74.895,
+    "edgeShare": 0,
+    "farPct": 0,
+    "farMeanLuma": 0,
+    "farNoSkyPct": 0,
+    "farNoSkyLuma": 0,
+    "skyPct": 0
+   },
+   "world": {
+    "n": 640000,
+    "inkPct": 17.64,
+    "meanR": 0.719,
+    "inkLuma": 68.202,
+    "meanLuma": 77.391,
+    "edgeShare": 0.145,
+    "farPct": 0.674,
+    "farMeanLuma": 187.447,
+    "farNoSkyPct": 0,
+    "farNoSkyLuma": 0,
+    "skyPct": 0.674
+   },
+   "face_region": {
+    "n": 164000,
+    "inkPct": 22.238,
+    "meanR": 0.754,
+    "inkLuma": 72.207,
+    "meanLuma": 86.71,
+    "edgeShare": 0.251,
+    "farPct": 1.246,
+    "farMeanLuma": 183.926,
+    "farNoSkyPct": 0,
+    "farNoSkyLuma": 0,
+    "skyPct": 1.246
+   },
+   "people": {
+    "boxes": [
+     [
+      592,
+      364,
+      688,
+      606
+     ]
+    ],
+    "figInkPct": 25.525,
+    "figEdgeShare": 0,
+    "worldInkPct": 17.46,
+    "worldEdgeShare": 0.129,
+    "inkRatio": 1.462,
+    "edgeRatio": 0
+   }
+  },
+  "baseline": {
+   "street_crown": {
+    "n": 45000,
+    "inkPct": 24.329,
+    "meanR": 0.77,
+    "inkLuma": 74.973,
+    "meanLuma": 94.078,
+    "edgeShare": 0.767,
+    "farPct": 0,
+    "farMeanLuma": 0,
+    "farNoSkyPct": 0,
+    "farNoSkyLuma": 0,
+    "skyPct": 0
+   },
+   "tower_crown": {
+    "n": 26000,
+    "inkPct": 18.785,
+    "meanR": 0.691,
+    "inkLuma": 76.894,
+    "meanLuma": 85.99,
+    "edgeShare": 0.475,
+    "farPct": 0,
+    "farMeanLuma": 0,
+    "farNoSkyPct": 0,
+    "farNoSkyLuma": 0,
+    "skyPct": 0
+   },
+   "isle": {
+    "n": 72800,
+    "inkPct": 12.537,
+    "meanR": 0.661,
+    "inkLuma": 65.522,
+    "meanLuma": 75.072,
+    "edgeShare": 0,
+    "farPct": 0,
+    "farMeanLuma": 0,
+    "farNoSkyPct": 0,
+    "farNoSkyLuma": 0,
+    "skyPct": 0
+   },
+   "world": {
+    "n": 640000,
+    "inkPct": 17.77,
+    "meanR": 0.724,
+    "inkLuma": 69.113,
+    "meanLuma": 77.46,
+    "edgeShare": 0.222,
+    "farPct": 0.666,
+    "farMeanLuma": 187.48,
+    "farNoSkyPct": 0,
+    "farNoSkyLuma": 0,
+    "skyPct": 0.666
+   },
+   "face_region": {
+    "n": 164000,
+    "inkPct": 22.651,
+    "meanR": 0.758,
+    "inkLuma": 72.317,
+    "meanLuma": 86.491,
+    "edgeShare": 0.312,
+    "farPct": 1.223,
+    "farMeanLuma": 183.749,
+    "farNoSkyPct": 0,
+    "farNoSkyLuma": 0,
+    "skyPct": 1.223
+   },
+   "people": {
+    "boxes": [
+     [
+      592,
+      364,
+      688,
+      606
+     ]
+    ],
+    "figInkPct": 25.796,
+    "figEdgeShare": 0,
+    "worldInkPct": 17.584,
+    "worldEdgeShare": 0.209,
+    "inkRatio": 1.467,
+    "edgeRatio": 0
+   }
+  },
+  "start": {
+   "street_crown": {
+    "n": 45000,
+    "inkPct": 22.722,
+    "meanR": 0.77,
+    "inkLuma": 75.007,
+    "meanLuma": 95.007,
+    "edgeShare": 0.404,
+    "farPct": 0,
+    "farMeanLuma": 0,
+    "farNoSkyPct": 0,
+    "farNoSkyLuma": 0,
+    "skyPct": 0
+   },
+   "tower_crown": {
+    "n": 26000,
+    "inkPct": 17.565,
+    "meanR": 0.682,
+    "inkLuma": 77.51,
+    "meanLuma": 86.748,
+    "edgeShare": 0.155,
+    "farPct": 0,
+    "farMeanLuma": 0,
+    "farNoSkyPct": 0,
+    "farNoSkyLuma": 0,
+    "skyPct": 0
+   },
+   "isle": {
+    "n": 72800,
+    "inkPct": 12.532,
+    "meanR": 0.66,
+    "inkLuma": 64.118,
+    "meanLuma": 74.896,
+    "edgeShare": 0,
+    "farPct": 0,
+    "farMeanLuma": 0,
+    "farNoSkyPct": 0,
+    "farNoSkyLuma": 0,
+    "skyPct": 0
+   },
+   "world": {
+    "n": 640000,
+    "inkPct": 17.64,
+    "meanR": 0.72,
+    "inkLuma": 68.221,
+    "meanLuma": 77.389,
+    "edgeShare": 0.144,
+    "farPct": 0.674,
+    "farMeanLuma": 187.447,
+    "farNoSkyPct": 0,
+    "farNoSkyLuma": 0,
+    "skyPct": 0.674
+   },
+   "face_region": {
+    "n": 164000,
+    "inkPct": 22.273,
+    "meanR": 0.754,
+    "inkLuma": 72.229,
+    "meanLuma": 86.705,
+    "edgeShare": 0.251,
+    "farPct": 1.246,
+    "farMeanLuma": 183.926,
+    "farNoSkyPct": 0,
+    "farNoSkyLuma": 0,
+    "skyPct": 1.246
+   },
+   "people": {
+    "boxes": [
+     [
+      592,
+      364,
+      688,
+      606
+     ]
+    ],
+    "figInkPct": 25.542,
+    "figEdgeShare": 0,
+    "worldInkPct": 17.459,
+    "worldEdgeShare": 0.128,
+    "inkRatio": 1.463,
+    "edgeRatio": 0
+   }
+  },
+  "crown": {
+   "live": {
+    "n": 4920,
+    "meanLuma": 63.38,
+    "meanR": 0.748,
+    "meanDist": 7
+   },
+   "baseline": {
+    "n": 4920,
+    "meanLuma": 66.5,
+    "meanR": 0.724,
+    "meanDist": 7
+   },
+   "start": {
+    "n": 4920,
+    "meanLuma": 63.63,
+    "meanR": 0.735,
+    "meanDist": 7
+   }
+  },
+  "nBoxes": 1
+ }
+}

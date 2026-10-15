@@ -1,0 +1,1155 @@
+{
+ "res": {
+  "1280x720": {
+   "normal": {
+    "identity": {
+     "x": 28,
+     "y": 12,
+     "w": 202,
+     "h": 44,
+     "fs": 16,
+     "disp": "flex"
+    },
+    "ribbon": {
+     "x": 464.2,
+     "y": 12,
+     "w": 351.5,
+     "h": 44,
+     "fs": 16,
+     "disp": "flex"
+    },
+    "meta": {
+     "x": 465.2,
+     "y": 31,
+     "w": 349.5,
+     "h": 24,
+     "fs": 12,
+     "disp": "flex"
+    },
+    "clock": {
+     "x": 475.2,
+     "y": 33,
+     "w": 46.3,
+     "h": 20,
+     "fs": 15,
+     "disp": "block"
+    },
+    "curfew": {
+     "x": 0,
+     "y": 0,
+     "w": 0,
+     "h": 0,
+     "fs": 12,
+     "disp": "none"
+    },
+    "weather": {
+     "x": 545.5,
+     "y": 35,
+     "w": 83.4,
+     "h": 16,
+     "fs": 12,
+     "disp": "block"
+    },
+    "noun": {
+     "x": 636.9,
+     "y": 35.5,
+     "w": 82.3,
+     "h": 15,
+     "fs": 11,
+     "disp": "block"
+    },
+    "tag": {
+     "x": 719.2,
+     "y": 35.5,
+     "w": 85.5,
+     "h": 15,
+     "fs": 12,
+     "disp": "block"
+    },
+    "overline": {
+     "x": 40,
+     "y": 635,
+     "w": 168.7,
+     "h": 15,
+     "fs": 11,
+     "disp": "block"
+    },
+    "objective": {
+     "x": 28,
+     "y": 631,
+     "w": 340,
+     "h": 61,
+     "fs": 16,
+     "disp": "block"
+    },
+    "controls": {
+     "x": 864.3,
+     "y": 662,
+     "w": 387.8,
+     "h": 30,
+     "fs": 11,
+     "disp": "flex"
+    },
+    "kbd": {
+     "x": 877.3,
+     "y": 668,
+     "w": 21.9,
+     "h": 18,
+     "fs": 11,
+     "disp": "flex"
+    },
+    "treasury": {
+     "x": 1103.9,
+     "y": 12,
+     "w": 148.1,
+     "h": 44,
+     "fs": 16,
+     "disp": "grid"
+    },
+    "metaRows": 4,
+    "overlapIdentity": false,
+    "overlapTreasury": false,
+    "metaClipped": false,
+    "weatherClipped": false,
+    "text": "12:00 | CLEAR SKIES | OCCUPATION | HEAVY 80%",
+    "area": 63244.6875,
+    "areaPct": 6.86
+   },
+   "night-fog": {
+    "identity": {
+     "x": 28,
+     "y": 12,
+     "w": 202,
+     "h": 44,
+     "fs": 16,
+     "disp": "flex"
+    },
+    "ribbon": {
+     "x": 411.7,
+     "y": 12,
+     "w": 456.7,
+     "h": 44,
+     "fs": 16,
+     "disp": "flex"
+    },
+    "meta": {
+     "x": 412.7,
+     "y": 31,
+     "w": 454.7,
+     "h": 24,
+     "fs": 12,
+     "disp": "flex"
+    },
+    "clock": {
+     "x": 422.7,
+     "y": 33,
+     "w": 47.5,
+     "h": 20,
+     "fs": 15,
+     "disp": "block"
+    },
+    "curfew": {
+     "x": 492.2,
+     "y": 35,
+     "w": 57.7,
+     "h": 16,
+     "fs": 12,
+     "disp": "block"
+    },
+    "weather": {
+     "x": 557.9,
+     "y": 35,
+     "w": 123.7,
+     "h": 16,
+     "fs": 12,
+     "disp": "block"
+    },
+    "noun": {
+     "x": 689.5,
+     "y": 35.5,
+     "w": 82.3,
+     "h": 15,
+     "fs": 11,
+     "disp": "block"
+    },
+    "tag": {
+     "x": 771.8,
+     "y": 35.5,
+     "w": 85.5,
+     "h": 15,
+     "fs": 12,
+     "disp": "block"
+    },
+    "overline": {
+     "x": 40,
+     "y": 635,
+     "w": 168.7,
+     "h": 15,
+     "fs": 11,
+     "disp": "block"
+    },
+    "objective": {
+     "x": 28,
+     "y": 631,
+     "w": 340,
+     "h": 61,
+     "fs": 16,
+     "disp": "block"
+    },
+    "controls": {
+     "x": 864.3,
+     "y": 662,
+     "w": 387.8,
+     "h": 30,
+     "fs": 11,
+     "disp": "flex"
+    },
+    "kbd": {
+     "x": 877.3,
+     "y": 668,
+     "w": 21.9,
+     "h": 18,
+     "fs": 11,
+     "disp": "flex"
+    },
+    "treasury": {
+     "x": 1103.9,
+     "y": 12,
+     "w": 148.1,
+     "h": 44,
+     "fs": 16,
+     "disp": "grid"
+    },
+    "metaRows": 4,
+    "overlapIdentity": false,
+    "overlapTreasury": false,
+    "metaClipped": false,
+    "weatherClipped": false,
+    "text": "23:40 | CURFEW | INDUSTRIAL FOG | OCCUPATION | HEAVY 80%",
+    "area": 67872.25,
+    "areaPct": 7.36
+   }
+  },
+  "1920x1080": {
+   "normal": {
+    "identity": {
+     "x": 28,
+     "y": 12,
+     "w": 202,
+     "h": 44,
+     "fs": 16,
+     "disp": "flex"
+    },
+    "ribbon": {
+     "x": 784.2,
+     "y": 12,
+     "w": 351.5,
+     "h": 44,
+     "fs": 16,
+     "disp": "flex"
+    },
+    "meta": {
+     "x": 785.2,
+     "y": 31,
+     "w": 349.5,
+     "h": 24,
+     "fs": 12,
+     "disp": "flex"
+    },
+    "clock": {
+     "x": 795.2,
+     "y": 33,
+     "w": 46.3,
+     "h": 20,
+     "fs": 15,
+     "disp": "block"
+    },
+    "curfew": {
+     "x": 0,
+     "y": 0,
+     "w": 0,
+     "h": 0,
+     "fs": 12,
+     "disp": "none"
+    },
+    "weather": {
+     "x": 865.5,
+     "y": 35,
+     "w": 83.4,
+     "h": 16,
+     "fs": 12,
+     "disp": "block"
+    },
+    "noun": {
+     "x": 956.9,
+     "y": 35.5,
+     "w": 82.3,
+     "h": 15,
+     "fs": 11,
+     "disp": "block"
+    },
+    "tag": {
+     "x": 1039.2,
+     "y": 35.5,
+     "w": 85.5,
+     "h": 15,
+     "fs": 12,
+     "disp": "block"
+    },
+    "overline": {
+     "x": 40,
+     "y": 995,
+     "w": 168.7,
+     "h": 15,
+     "fs": 11,
+     "disp": "block"
+    },
+    "objective": {
+     "x": 28,
+     "y": 991,
+     "w": 340,
+     "h": 61,
+     "fs": 16,
+     "disp": "block"
+    },
+    "controls": {
+     "x": 1504.3,
+     "y": 1022,
+     "w": 387.8,
+     "h": 30,
+     "fs": 11,
+     "disp": "flex"
+    },
+    "kbd": {
+     "x": 1517.3,
+     "y": 1028,
+     "w": 21.9,
+     "h": 18,
+     "fs": 11,
+     "disp": "flex"
+    },
+    "treasury": {
+     "x": 1744.5,
+     "y": 12,
+     "w": 147.5,
+     "h": 44,
+     "fs": 16,
+     "disp": "grid"
+    },
+    "metaRows": 4,
+    "overlapIdentity": false,
+    "overlapTreasury": false,
+    "metaClipped": false,
+    "weatherClipped": false,
+    "text": "12:00 | CLEAR SKIES | OCCUPATION | HEAVY 80%",
+    "area": 63217.1875,
+    "areaPct": 3.05
+   },
+   "night-fog": {
+    "identity": {
+     "x": 28,
+     "y": 12,
+     "w": 202,
+     "h": 44,
+     "fs": 16,
+     "disp": "flex"
+    },
+    "ribbon": {
+     "x": 731.7,
+     "y": 12,
+     "w": 456.7,
+     "h": 44,
+     "fs": 16,
+     "disp": "flex"
+    },
+    "meta": {
+     "x": 732.7,
+     "y": 31,
+     "w": 454.7,
+     "h": 24,
+     "fs": 12,
+     "disp": "flex"
+    },
+    "clock": {
+     "x": 742.7,
+     "y": 33,
+     "w": 47.5,
+     "h": 20,
+     "fs": 15,
+     "disp": "block"
+    },
+    "curfew": {
+     "x": 812.2,
+     "y": 35,
+     "w": 57.7,
+     "h": 16,
+     "fs": 12,
+     "disp": "block"
+    },
+    "weather": {
+     "x": 877.9,
+     "y": 35,
+     "w": 123.7,
+     "h": 16,
+     "fs": 12,
+     "disp": "block"
+    },
+    "noun": {
+     "x": 1009.5,
+     "y": 35.5,
+     "w": 82.3,
+     "h": 15,
+     "fs": 11,
+     "disp": "block"
+    },
+    "tag": {
+     "x": 1091.8,
+     "y": 35.5,
+     "w": 85.5,
+     "h": 15,
+     "fs": 12,
+     "disp": "block"
+    },
+    "overline": {
+     "x": 40,
+     "y": 995,
+     "w": 168.7,
+     "h": 15,
+     "fs": 11,
+     "disp": "block"
+    },
+    "objective": {
+     "x": 28,
+     "y": 991,
+     "w": 340,
+     "h": 61,
+     "fs": 16,
+     "disp": "block"
+    },
+    "controls": {
+     "x": 1504.3,
+     "y": 1022,
+     "w": 387.8,
+     "h": 30,
+     "fs": 11,
+     "disp": "flex"
+    },
+    "kbd": {
+     "x": 1517.3,
+     "y": 1028,
+     "w": 21.9,
+     "h": 18,
+     "fs": 11,
+     "disp": "flex"
+    },
+    "treasury": {
+     "x": 1744.5,
+     "y": 12,
+     "w": 147.5,
+     "h": 44,
+     "fs": 16,
+     "disp": "grid"
+    },
+    "metaRows": 4,
+    "overlapIdentity": false,
+    "overlapTreasury": false,
+    "metaClipped": false,
+    "weatherClipped": false,
+    "text": "23:40 | CURFEW | INDUSTRIAL FOG | OCCUPATION | HEAVY 80%",
+    "area": 67844.75,
+    "areaPct": 3.27
+   }
+  },
+  "800x600": {
+   "normal": {
+    "identity": {
+     "x": 22,
+     "y": 12,
+     "w": 202,
+     "h": 44,
+     "fs": 16,
+     "disp": "flex"
+    },
+    "ribbon": {
+     "x": 236,
+     "y": 12,
+     "w": 341.5,
+     "h": 44,
+     "fs": 16,
+     "disp": "flex"
+    },
+    "meta": {
+     "x": 237,
+     "y": 31,
+     "w": 339.5,
+     "h": 24,
+     "fs": 12,
+     "disp": "flex"
+    },
+    "clock": {
+     "x": 245,
+     "y": 33,
+     "w": 46.3,
+     "h": 20,
+     "fs": 15,
+     "disp": "block"
+    },
+    "curfew": {
+     "x": 0,
+     "y": 0,
+     "w": 0,
+     "h": 0,
+     "fs": 12,
+     "disp": "none"
+    },
+    "weather": {
+     "x": 311.3,
+     "y": 35,
+     "w": 83.4,
+     "h": 16,
+     "fs": 12,
+     "disp": "block"
+    },
+    "noun": {
+     "x": 400.7,
+     "y": 35.5,
+     "w": 82.3,
+     "h": 15,
+     "fs": 11,
+     "disp": "block"
+    },
+    "tag": {
+     "x": 483,
+     "y": 35.5,
+     "w": 85.5,
+     "h": 15,
+     "fs": 12,
+     "disp": "block"
+    },
+    "overline": {
+     "x": 34,
+     "y": 521,
+     "w": 168.7,
+     "h": 15,
+     "fs": 11,
+     "disp": "block"
+    },
+    "objective": {
+     "x": 22,
+     "y": 517,
+     "w": 340,
+     "h": 61,
+     "fs": 16,
+     "disp": "block"
+    },
+    "controls": {
+     "x": 464.8,
+     "y": 548,
+     "w": 313.2,
+     "h": 30,
+     "fs": 11,
+     "disp": "flex"
+    },
+    "kbd": {
+     "x": 477.8,
+     "y": 554,
+     "w": 21.9,
+     "h": 18,
+     "fs": 11,
+     "disp": "flex"
+    },
+    "treasury": {
+     "x": 629.9,
+     "y": 12,
+     "w": 148.1,
+     "h": 44,
+     "fs": 16,
+     "disp": "grid"
+    },
+    "metaRows": 4,
+    "overlapIdentity": false,
+    "overlapTreasury": false,
+    "metaClipped": false,
+    "weatherClipped": false,
+    "text": "12:00 | CLEAR SKIES | OCCUPATION | HEAVY 80%",
+    "area": 60569.21875,
+    "areaPct": 12.62
+   },
+   "night-fog": {
+    "identity": {
+     "x": 22,
+     "y": 12,
+     "w": 202,
+     "h": 44,
+     "fs": 16,
+     "disp": "flex"
+    },
+    "ribbon": {
+     "x": 236,
+     "y": 12,
+     "w": 368,
+     "h": 59,
+     "fs": 16,
+     "disp": "flex"
+    },
+    "meta": {
+     "x": 237,
+     "y": 31,
+     "w": 366,
+     "h": 39,
+     "fs": 12,
+     "disp": "flex"
+    },
+    "clock": {
+     "x": 245,
+     "y": 33,
+     "w": 47.5,
+     "h": 20,
+     "fs": 15,
+     "disp": "block"
+    },
+    "curfew": {
+     "x": 310.5,
+     "y": 35,
+     "w": 57.7,
+     "h": 16,
+     "fs": 12,
+     "disp": "block"
+    },
+    "weather": {
+     "x": 374.2,
+     "y": 35,
+     "w": 111.3,
+     "h": 16,
+     "fs": 12,
+     "disp": "block"
+    },
+    "noun": {
+     "x": 427.2,
+     "y": 53,
+     "w": 82.3,
+     "h": 15,
+     "fs": 11,
+     "disp": "block"
+    },
+    "tag": {
+     "x": 509.5,
+     "y": 53,
+     "w": 85.5,
+     "h": 15,
+     "fs": 12,
+     "disp": "block"
+    },
+    "overline": {
+     "x": 34,
+     "y": 521,
+     "w": 168.7,
+     "h": 15,
+     "fs": 11,
+     "disp": "block"
+    },
+    "objective": {
+     "x": 22,
+     "y": 517,
+     "w": 340,
+     "h": 61,
+     "fs": 16,
+     "disp": "block"
+    },
+    "controls": {
+     "x": 464.8,
+     "y": 548,
+     "w": 313.2,
+     "h": 30,
+     "fs": 11,
+     "disp": "flex"
+    },
+    "kbd": {
+     "x": 477.8,
+     "y": 554,
+     "w": 21.9,
+     "h": 18,
+     "fs": 11,
+     "disp": "flex"
+    },
+    "treasury": {
+     "x": 629.9,
+     "y": 12,
+     "w": 148.1,
+     "h": 44,
+     "fs": 16,
+     "disp": "grid"
+    },
+    "metaRows": 4,
+    "overlapIdentity": false,
+    "overlapTreasury": false,
+    "metaClipped": false,
+    "weatherClipped": false,
+    "text": "23:40 | CURFEW | INDUSTRIAL FOG | OCCUPATION | HEAVY 80%",
+    "area": 67254.53125,
+    "areaPct": 14.01
+   }
+  },
+  "900x600": {
+   "normal": {
+    "identity": {
+     "x": 22,
+     "y": 12,
+     "w": 202,
+     "h": 44,
+     "fs": 16,
+     "disp": "flex"
+    },
+    "ribbon": {
+     "x": 279.2,
+     "y": 12,
+     "w": 341.5,
+     "h": 44,
+     "fs": 16,
+     "disp": "flex"
+    },
+    "meta": {
+     "x": 280.2,
+     "y": 31,
+     "w": 339.5,
+     "h": 24,
+     "fs": 12,
+     "disp": "flex"
+    },
+    "clock": {
+     "x": 288.2,
+     "y": 33,
+     "w": 46.3,
+     "h": 20,
+     "fs": 15,
+     "disp": "block"
+    },
+    "curfew": {
+     "x": 0,
+     "y": 0,
+     "w": 0,
+     "h": 0,
+     "fs": 12,
+     "disp": "none"
+    },
+    "weather": {
+     "x": 354.5,
+     "y": 35,
+     "w": 83.4,
+     "h": 16,
+     "fs": 12,
+     "disp": "block"
+    },
+    "noun": {
+     "x": 443.9,
+     "y": 35.5,
+     "w": 82.3,
+     "h": 15,
+     "fs": 11,
+     "disp": "block"
+    },
+    "tag": {
+     "x": 526.2,
+     "y": 35.5,
+     "w": 85.5,
+     "h": 15,
+     "fs": 12,
+     "disp": "block"
+    },
+    "overline": {
+     "x": 34,
+     "y": 521,
+     "w": 168.7,
+     "h": 15,
+     "fs": 11,
+     "disp": "block"
+    },
+    "objective": {
+     "x": 22,
+     "y": 517,
+     "w": 340,
+     "h": 61,
+     "fs": 16,
+     "disp": "block"
+    },
+    "controls": {
+     "x": 564.8,
+     "y": 548,
+     "w": 313.2,
+     "h": 30,
+     "fs": 11,
+     "disp": "flex"
+    },
+    "kbd": {
+     "x": 577.8,
+     "y": 554,
+     "w": 21.9,
+     "h": 18,
+     "fs": 11,
+     "disp": "flex"
+    },
+    "treasury": {
+     "x": 729.9,
+     "y": 12,
+     "w": 148.1,
+     "h": 44,
+     "fs": 16,
+     "disp": "grid"
+    },
+    "metaRows": 4,
+    "overlapIdentity": false,
+    "overlapTreasury": false,
+    "metaClipped": false,
+    "weatherClipped": false,
+    "text": "12:00 | CLEAR SKIES | OCCUPATION | HEAVY 80%",
+    "area": 60569.21875,
+    "areaPct": 11.22
+   },
+   "night-fog": {
+    "identity": {
+     "x": 22,
+     "y": 12,
+     "w": 202,
+     "h": 44,
+     "fs": 16,
+     "disp": "flex"
+    },
+    "ribbon": {
+     "x": 243,
+     "y": 12,
+     "w": 414,
+     "h": 59,
+     "fs": 16,
+     "disp": "flex"
+    },
+    "meta": {
+     "x": 244,
+     "y": 31,
+     "w": 412,
+     "h": 39,
+     "fs": 12,
+     "disp": "flex"
+    },
+    "clock": {
+     "x": 252,
+     "y": 33,
+     "w": 47.5,
+     "h": 20,
+     "fs": 15,
+     "disp": "block"
+    },
+    "curfew": {
+     "x": 317.5,
+     "y": 35,
+     "w": 57.7,
+     "h": 16,
+     "fs": 12,
+     "disp": "block"
+    },
+    "weather": {
+     "x": 381.2,
+     "y": 35,
+     "w": 111.3,
+     "h": 16,
+     "fs": 12,
+     "disp": "block"
+    },
+    "noun": {
+     "x": 480.2,
+     "y": 53,
+     "w": 82.3,
+     "h": 15,
+     "fs": 11,
+     "disp": "block"
+    },
+    "tag": {
+     "x": 562.5,
+     "y": 53,
+     "w": 85.5,
+     "h": 15,
+     "fs": 12,
+     "disp": "block"
+    },
+    "overline": {
+     "x": 34,
+     "y": 521,
+     "w": 168.7,
+     "h": 15,
+     "fs": 11,
+     "disp": "block"
+    },
+    "objective": {
+     "x": 22,
+     "y": 517,
+     "w": 340,
+     "h": 61,
+     "fs": 16,
+     "disp": "block"
+    },
+    "controls": {
+     "x": 564.8,
+     "y": 548,
+     "w": 313.2,
+     "h": 30,
+     "fs": 11,
+     "disp": "flex"
+    },
+    "kbd": {
+     "x": 577.8,
+     "y": 554,
+     "w": 21.9,
+     "h": 18,
+     "fs": 11,
+     "disp": "flex"
+    },
+    "treasury": {
+     "x": 729.9,
+     "y": 12,
+     "w": 148.1,
+     "h": 44,
+     "fs": 16,
+     "disp": "grid"
+    },
+    "metaRows": 4,
+    "overlapIdentity": false,
+    "overlapTreasury": false,
+    "metaClipped": false,
+    "weatherClipped": false,
+    "text": "23:40 | CURFEW | INDUSTRIAL FOG | OCCUPATION | HEAVY 80%",
+    "area": 69968.53125,
+    "areaPct": 12.96
+   }
+  },
+  "phone-390x844": {
+   "normal": {
+    "identity": {
+     "x": 16,
+     "y": 12,
+     "w": 197.8,
+     "h": 40,
+     "fs": 16,
+     "disp": "flex"
+    },
+    "ribbon": {
+     "x": 16,
+     "y": 60,
+     "w": 358,
+     "h": 44,
+     "fs": 16,
+     "disp": "flex"
+    },
+    "meta": {
+     "x": 17,
+     "y": 79,
+     "w": 356,
+     "h": 24,
+     "fs": 12,
+     "disp": "flex"
+    },
+    "clock": {
+     "x": 25,
+     "y": 81,
+     "w": 46.3,
+     "h": 20,
+     "fs": 15,
+     "disp": "block"
+    },
+    "curfew": {
+     "x": 0,
+     "y": 0,
+     "w": 0,
+     "h": 0,
+     "fs": 12,
+     "disp": "none"
+    },
+    "weather": {
+     "x": 91.3,
+     "y": 83,
+     "w": 83.4,
+     "h": 16,
+     "fs": 12,
+     "disp": "block"
+    },
+    "noun": {
+     "x": 197.2,
+     "y": 83.5,
+     "w": 82.3,
+     "h": 15,
+     "fs": 11,
+     "disp": "block"
+    },
+    "tag": {
+     "x": 279.5,
+     "y": 83.5,
+     "w": 85.5,
+     "h": 15,
+     "fs": 12,
+     "disp": "block"
+    },
+    "overline": {
+     "x": 0,
+     "y": 0,
+     "w": 0,
+     "h": 0,
+     "fs": 11,
+     "disp": "inline"
+    },
+    "objective": {
+     "x": 16,
+     "y": 112,
+     "w": 358,
+     "h": 28,
+     "fs": 16,
+     "disp": "block"
+    },
+    "controls": {
+     "x": 0,
+     "y": 0,
+     "w": 0,
+     "h": 0,
+     "fs": 11,
+     "disp": "none"
+    },
+    "kbd": {
+     "x": 0,
+     "y": 0,
+     "w": 0,
+     "h": 0,
+     "fs": 11,
+     "disp": "flex"
+    },
+    "treasury": {
+     "x": 237.4,
+     "y": 12,
+     "w": 136.6,
+     "h": 40,
+     "fs": 16,
+     "disp": "grid"
+    },
+    "metaRows": 4,
+    "overlapIdentity": false,
+    "overlapTreasury": false,
+    "metaClipped": false,
+    "weatherClipped": false,
+    "text": "12:00 | CLEAR SKIES | OCCUPATION | HEAVY 80%",
+    "area": 39149.75,
+    "areaPct": 11.89
+   },
+   "night-fog": {
+    "identity": {
+     "x": 16,
+     "y": 12,
+     "w": 197.8,
+     "h": 40,
+     "fs": 16,
+     "disp": "flex"
+    },
+    "ribbon": {
+     "x": 16,
+     "y": 60,
+     "w": 358,
+     "h": 59,
+     "fs": 16,
+     "disp": "flex"
+    },
+    "meta": {
+     "x": 17,
+     "y": 79,
+     "w": 356,
+     "h": 39,
+     "fs": 12,
+     "disp": "flex"
+    },
+    "clock": {
+     "x": 25,
+     "y": 81,
+     "w": 47.5,
+     "h": 20,
+     "fs": 15,
+     "disp": "block"
+    },
+    "curfew": {
+     "x": 90.5,
+     "y": 83,
+     "w": 57.7,
+     "h": 16,
+     "fs": 12,
+     "disp": "block"
+    },
+    "weather": {
+     "x": 154.2,
+     "y": 83,
+     "w": 111.3,
+     "h": 16,
+     "fs": 12,
+     "disp": "block"
+    },
+    "noun": {
+     "x": 197.2,
+     "y": 101,
+     "w": 82.3,
+     "h": 15,
+     "fs": 11,
+     "disp": "block"
+    },
+    "tag": {
+     "x": 279.5,
+     "y": 101,
+     "w": 85.5,
+     "h": 15,
+     "fs": 12,
+     "disp": "block"
+    },
+    "overline": {
+     "x": 0,
+     "y": 0,
+     "w": 0,
+     "h": 0,
+     "fs": 11,
+     "disp": "inline"
+    },
+    "objective": {
+     "x": 16,
+     "y": 127,
+     "w": 358,
+     "h": 28,
+     "fs": 16,
+     "disp": "block"
+    },
+    "controls": {
+     "x": 0,
+     "y": 0,
+     "w": 0,
+     "h": 0,
+     "fs": 11,
+     "disp": "none"
+    },
+    "kbd": {
+     "x": 0,
+     "y": 0,
+     "w": 0,
+     "h": 0,
+     "fs": 11,
+     "disp": "flex"
+    },
+    "treasury": {
+     "x": 237.4,
+     "y": 12,
+     "w": 136.6,
+     "h": 40,
+     "fs": 16,
+     "disp": "grid"
+    },
+    "metaRows": 4,
+    "overlapIdentity": false,
+    "overlapTreasury": false,
+    "metaClipped": false,
+    "weatherClipped": false,
+    "text": "23:40 | CURFEW | INDUSTRIAL FOG | OCCUPATION | HEAVY 80%",
+    "area": 44519.75,
+    "areaPct": 13.53
+   }
+  }
+ },
+ "problems": []
+}
