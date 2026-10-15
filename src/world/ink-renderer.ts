@@ -57,6 +57,10 @@ export class InkRenderer {
         float cls = min(min(min(k1, k2), min(k3, k4)), sample0.a);
         // Narrow band: MSAA-resolved alpha at a world/thin edge must not read as thin.
         float thin = step(.35, cls) * (1. - step(.65, cls));
+        // People and props from 8 to 25 m: their own folds (creases, clothing panels) are thinned so a figure sits with the
+        // street behind it instead of being the heaviest-drawn thing in it. Silhouettes are a depth step and keep their line;
+        // a face at 4 m is under 8 m and keeps everything.
+        float thinFar = thin * smoothstep(8., 25., centerDist);
         // Inside a tree's crown (foliage, a=.75, on this pixel and every class tap): the clumps' own creases, colour edges and
         // the depth steps between them. The crown's edge, where any tap leaves the foliage, is not inside and keeps its line.
         // Ramps, not steps: a multisampled edge resolves between the classes, and a hard cut there dithered the outline.
@@ -93,8 +97,8 @@ export class InkRenderer {
         silhouette = max(silhouette, crownEdge * smoothstep(.01, .03, e));
         // (The raised step is for inner creases only: along an outer edge the crease term fills the gaps of an aliased
         // silhouette, and taking it away there leaves a dotted outline.)
-        float cut = mix(1., 2., tCut * (1. - outer) * 1.);
-        float crease = smoothstep(mix(.02, .035, tMid) * cut, mix(.05, .09, tMid) * cut, e) * (1. - tFar) * (1. - leafy * tCut);
+        float cut = mix(1., 2., max(tCut, thinFar) * (1. - outer));
+        float crease = smoothstep(mix(.02, .035, tMid) * cut, mix(.05, .09, tMid) * cut, e) * (1. - tFar) * (1. - leafy * tCut) * (1. - .75 * thinFar);
         // Interior lines where color blocks meet (frames, trims, clothing panels) — not on sky.
         float lc = luma(texture2D(picture, uv).rgb);
         float lL = luma(texture2D(picture, uv - vec2(o.x, 0.)).rgb), lR = luma(texture2D(picture, uv + vec2(o.x, 0.)).rgb);
@@ -103,7 +107,7 @@ export class InkRenderer {
         float solid = 1. - step(far * .9, nearest);
         // Texture contrast on grazing surfaces (distant ground) is aliasing, not a drawn line.
         float slope = (abs(l - r) + abs(u - d)) / (c0 * 2. * length(o / texel));
-        float colorEdge = smoothstep(.16, .3, gl / max(lc, .18)) * solid * (1. - smoothstep(14., 42., nearest)) * (1. - smoothstep(.0012, .0025, slope)) * (1. - leafy * tCut);
+        float colorEdge = smoothstep(.16, .3, gl / max(lc, .18)) * solid * (1. - smoothstep(14., 42., nearest)) * (1. - smoothstep(.0012, .0025, slope)) * (1. - leafy * tCut) * (1. - .9 * thinFar);
         // A straight wire or rail drawn after the world (wireMat: it writes no depth, so only its colour is in the picture)
         // thins to a faint line past ~40 m, so a long span or a lintel reads as a pale streak. It is a thin dark ridge in
         // value, darker than both sides ~4 px off across it and level with them along it: those pixels keep a dark line out
