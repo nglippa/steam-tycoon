@@ -46,14 +46,11 @@ test('features keep their contrast on every skin at small sizes (People XXVI): t
 });
 
 test('the face is deeper on the light skin and the dark skin keeps a darker lip and a nose-side shade (People XXIX-b)', async () => {
-  const { FACE_INK, FACE_MOUTH, FACE_LIFT } = await import('../src/world/people/head.ts');
+  const { FACE_INK, FACE_MOUTH } = await import('../src/world/people/head.ts');
   assert.ok(FACE_VALUE[0][0] <= .88, 'the lightest skin carries an eye band deep enough to read');
   assert.equal(FACE_INK.length, 3); for (let t = 1; t < 3; t++) assert.ok(FACE_INK[t] > FACE_INK[t - 1]);
   assert.equal(FACE_MOUTH.length, palette.skin.length); assert.equal(FACE_MOUTH[0], 1);
   for (let t = 1; t < FACE_MOUTH.length; t++) assert.ok(FACE_MOUTH[t] < FACE_MOUTH[t - 1], `tone ${t}: the lips are deeper than on the lighter skin`);
-  assert.equal(FACE_LIFT.length, palette.skin.length); assert.deepEqual([...FACE_LIFT[0]], [1, 1, 1]);
-  for (let t = 1; t < FACE_LIFT.length; t++) for (let c = 0; c < 3; c++) assert.ok(FACE_LIFT[t][c] >= FACE_LIFT[t - 1][c], `tone ${t}: the face is lifted no less than on the lighter skin`);
-  assert.ok(FACE_LIFT[2][0] > FACE_LIFT[2][1] && FACE_LIFT[2][1] > FACE_LIFT[2][2], 'the lift is warm, not grey');
   assert.match(FACE_PAINT, /g_ns/); assert.match(FACE_PAINT_HEAD, /uniform float uInk,uMouth/);
   // the darkest skin's averaged eye stands well under it: at least 12 L* (was 6 at ink 1; the model of the test above, with the dark skin's own ink)
   const T = await import('three'), Lstar = (c: number[]) => { const Y = c.map(v => v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4).reduce((a, v, i) => a + v * [.2126, .7152, .0722][i], 0); return Y > 216 / 24389 ? 116 * Math.cbrt(Y) - 16 : Y * 24389 / 27; };
@@ -87,4 +84,31 @@ test('every face type has a brow that reads, and no hat hides the brow band (Peo
     assert.ok(low - L.brow >= .015, `${id} in a ${hat}: the peak's lowest point in front of the eyes is ${(100 * (low - L.brow)).toFixed(1)} cm over the brow line`); n++;
   }
   assert.ok(n >= 6, 'a handful of hats were checked');
+});
+
+test('every skin tone keeps the value it had before People XXIX-b lifted it (People XXIX-c): no lift over the face, the lit planes within 2.5% of the old ones, the spacing between tones kept', async () => {
+  const head = await import('../src/world/people/head.ts') as Record<string, unknown>;
+  assert.equal(head.FACE_LIFT, undefined, 'the darkest skin\'s face is no longer lifted warm over its mask');
+  // the lit plane multiplier of each tone before 5bba104 (the cheek luma on the controlled sheet, PIL, courier seed 12 close: 179 / 148.3 / 121.6 against 180 / 151.5 / 147.6 after it)
+  const OLD_LIT = [1.02, 1.12, 1.3], OLD_CHEEK = [179, 148.3, 121.6];
+  for (let t = 0; t < 3; t++) assert.ok(Math.abs(FACE_VALUE[t][1] / OLD_LIT[t] - 1) <= .025, `tone ${t}: lit planes ${FACE_VALUE[t][1]} against ${OLD_LIT[t]} before: more than 2.5% (about 4 luma) from the skin it had`);
+  assert.deepEqual([...FACE_VALUE[1]], [.8, 1.12, .86]); assert.deepEqual([...FACE_VALUE[2]], [.76, 1.3, .8]);
+  // model of the cheek's value: the skin's own luma (sRGB) at the lit plane's gain; each tone within 4 luma of its old value and the old spacing (28 and 27) kept
+  const v = (t: number) => { const g = 255 * Math.pow(lum(palette.skin[t]), 1 / 2.2); return g * FACE_VALUE[t][1] / OLD_LIT[t]; }, old = (t: number) => 255 * Math.pow(lum(palette.skin[t]), 1 / 2.2);
+  for (let t = 0; t < 3; t++) assert.ok(Math.abs(v(t) - old(t)) <= 4, `tone ${t}: cheek ${v(t).toFixed(1)} against ${old(t).toFixed(1)}`);
+  for (let t = 1; t < 3; t++) assert.ok(OLD_CHEEK[t - 1] - OLD_CHEEK[t] >= 25 && v(t - 1) - v(t) >= .9 * (old(t - 1) - old(t)), `tone ${t}: the spacing from the lighter tone is kept`);
+});
+
+test('the darkest skin reads in both directions: dark lids, brows and lip line, and light eye whites and a lit lower lip, at least 35 luma over it (People XXIX-c)', async () => {
+  const { FACE_GLINT, FACE_GLINT_PAINT, FACE_MOUTH, FACE_INK } = await import('../src/world/people/head.ts'), T = await import('three');
+  assert.equal(FACE_GLINT.length, palette.skin.length);
+  assert.deepEqual([...FACE_GLINT[0]], [0, 0, 0]); assert.deepEqual([...FACE_GLINT[1]], [0, 0, 0]);
+  assert.match(FACE_GLINT_PAINT, /uGlint/); assert.match(FACE_GLINT_PAINT, /vMask/);
+  // PIL luma (Rec.601 on sRGB) of a colour; the light feature is the glint's colour (the skin is raised to it) against the lit skin it sits in, the dark step is an inked lash/brow against it
+  const luma = (c: number[]) => { const col = new T.Color(c[0], c[1], c[2]).convertLinearToSRGB(); return 255 * (.299 * col.r + .587 * col.g + .114 * col.b); };
+  const s = new T.Color(palette.skin[2]), skin = luma([s.r, s.g, s.b]);
+  assert.ok(luma([...FACE_GLINT[2]]) - skin >= 35, `eye white over the dark skin: ${(luma([...FACE_GLINT[2]]) - skin).toFixed(1)} luma >= 35`);
+  const ink = FACE_INK[2], f = .42 ** (1 + 1.6 * ink), al = Math.min(1, .33 * (1 + 2 * Math.min(ink, 1))), lash = luma([s.r + (f - s.r) * al, s.g + (f - s.g) * al, s.b + (f - s.b) * al]); // the averaged eye of the ink model above
+  assert.ok(skin - lash >= 45, `dark step ${(skin - lash).toFixed(1)} luma >= 45`); assert.ok(FACE_INK[2] > FACE_INK[1]);
+  assert.ok(FACE_MOUTH[2] < 1, 'the lip line is deeper than the skin around it');
 });
