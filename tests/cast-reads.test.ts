@@ -73,3 +73,16 @@ test('no garment shell stands up out of the sleeve at the point of the shoulder:
     ['inspector.slim.broad', 1], ['youngMechanic.standard.broad', 6], ['labourer.sturdy.broad', 4], ['foundry.standard.broad', 2], ['shopMerchant.sturdy.broad', 3], ['elder.slim.narrow', 5], ['courier.slim.broad', 2], ['affluent.standard.broad', 2], ['child.child.narrow', 3]];
   for (const [combo, seed] of casts) { const r = await shoulderHorn(combo, seed); assert.ok(r.worst <= (/^garrison|^look:/.test(combo) ? .025 : /^courier/.test(combo) ? .02 : .01), `${combo} s${seed}: a shell stands ${(r.worst * 100).toFixed(1)} cm over the cap at ${r.where}`); }
 });
+
+/** People XXIX-b (the blind review: at 50 px the older mechanic, stallholder and sturdy civilian were one pale-cream-and-tan blob, and the inspector a dark twin of the garrison): each representative's
+ *  main garment (the one that fills its torso at 50 px) has its own value or hue. L* by CIE from the linear luminance, hue from HSL. Any two casts but the Ordinance's pair differ by 10 L* or 25 degrees of hue. */
+test('at 50 px every representative has its own main-garment value or hue: 10 L* or 25 degrees apart, the Ordinance pair apart by a pale accent', async () => {
+  const { REPS } = await import('./people-rig.ts'), { BUILT } = await import('../src/world/people/figure.ts');
+  const MAIN: Record<string, string> = { rowSkirt: 'shawl', rowCoat: 'coat', stallholder: 'blouse', youngMechanic: 'jacket', olderMechanic: 'shopCoat', labourer: 'shirt', foundry: 'shirt', shopMerchant: 'waistcoat', garrison: 'greatcoat', inspector: 'coat' };
+  const L = (hex: string) => { const c = new T.Color(hex), Y = .2126 * c.r + .7152 * c.g + .0722 * c.b; return Y > 216 / 24389 ? 116 * Math.cbrt(Y) - 16 : Y * 24389 / 27; }, H = (hex: string) => { const h = { h: 0, s: 0, l: 0 }; new T.Color(hex).getHSL(h); return h.h * 360; };
+  const reps = REPS.map(([label, combo, seed]) => { const [cast, family, frame] = combo.split('.') as [CastId, never, never], l = resolveLook(seed, CASTS[cast].archetype, { cast, family, frame, casts: BUILT }), p = paletteOf(l) as Record<string, string>, hex = p[MAIN[cast]]; return { label, cast, hex, L: L(hex), H: H(hex), p }; });
+  for (let i = 0; i < reps.length; i++) for (let j = i + 1; j < reps.length; j++) { const a = reps[i], b = reps[j]; if (a.cast === 'garrison' || a.cast === 'inspector' || b.cast === 'garrison' || b.cast === 'inspector') continue;
+    const dh = Math.min(Math.abs(a.H - b.H), 360 - Math.abs(a.H - b.H));
+    assert.ok(Math.abs(a.L - b.L) >= 10 || dh >= 25, `${a.label} (${a.hex} L${a.L.toFixed(0)} h${a.H.toFixed(0)}) and ${b.label} (${b.hex} L${b.L.toFixed(0)} h${b.H.toFixed(0)}) read as one at 50 px`); }
+  const ins = reps.find(r => r.cast === 'inspector')!; assert.ok(lum(ins.p.collar) > 4 * lum(ins.p.coat), `the inspector's collar ${ins.p.collar} is a pale accent on its coat ${ins.p.coat}`);
+});
