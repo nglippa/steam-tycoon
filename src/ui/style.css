@@ -136,7 +136,7 @@ body:not(.started) .identity,body:not(.started) .ribbon,body:not(.started) .trea
 /* The status line: clock, day or night, curfew or heat (beside the hour it depends on), weather, and the ward's occupation
    (a noun, then the band). When it is crowded it wraps by design: the occupation keeps together at the right of the second
    row, and the top plates keep their own width (the ribbon gives way, never overlaps them). */
-.meta{flex:1;display:flex;flex-wrap:wrap;align-items:center;gap:0 var(--sp-2);padding:2px 10px;font-size:var(--ui-fs-meta);font-weight:700;letter-spacing:.06em;color:var(--ink);white-space:nowrap}
+.meta{flex:1;display:flex;flex-wrap:wrap;align-items:center;gap:0 var(--sp-2);padding:2px 10px;font-size:var(--ui-fs-body);font-weight:700;letter-spacing:.06em;color:var(--ink);white-space:nowrap}
 #clock{font:700 var(--ui-fs-lead)/20px var(--serif);font-variant-numeric:tabular-nums;letter-spacing:.04em;color:var(--ink)}
 /* Day is an inked sun (a brass disc in an ink ring, eight short rays), night an ink crescent: the phase the sky itself is in. */
 .phase{flex:none;width:12px;height:12px;margin-left:calc(-1 * var(--sp-1));background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cg stroke='%2322283c' stroke-width='1.1' stroke-linecap='round'%3E%3Cpath d='M6 .7v1.5M6 9.8v1.5M.7 6h1.5M9.8 6h1.5M2.3 2.3l1 1M8.7 8.7l1 1M2.3 9.7l1-1M8.7 3.3l1-1'/%3E%3Ccircle cx='6' cy='6' r='2.3' fill='%23efc66e'/%3E%3C/g%3E%3C/svg%3E") center/12px 12px no-repeat}
@@ -146,8 +146,8 @@ body:not(.started) .identity,body:not(.started) .ribbon,body:not(.started) .trea
 @media(min-width:1200px){#curfew:not(:empty)+#weather::before{content:'·';margin-right:var(--sp-2)}}
 .occupation{display:flex;align-items:center;margin-left:auto}
 /* What is measured, in ink on the paper, then the band and its percentage on the band's colour: only the value is boxed. */
-.ward-noun{padding-right:var(--sp-1);font-size:var(--ui-fs-small);line-height:15px;font-weight:600;letter-spacing:.05em}
-.tag{padding:0 var(--sp-1);background:var(--band,var(--band-heavy));color:var(--paper);font-size:var(--ui-fs-meta);line-height:15px;font-weight:800;letter-spacing:.03em;font-variant-numeric:tabular-nums}
+.ward-noun{padding-right:var(--sp-1);font-size:var(--ui-fs-meta);line-height:15px;font-weight:600;letter-spacing:.05em}
+.tag{padding:0 var(--sp-1);background:var(--band,var(--band-heavy));color:var(--paper);font-size:var(--ui-fs-body);line-height:15px;font-weight:800;letter-spacing:.03em;font-variant-numeric:tabular-nums}
 .tag[data-band=liberated]{--band:var(--band-liberated)}.tag[data-band=low]{--band:var(--band-low)}.tag[data-band=controlled]{--band:var(--band-controlled)}.tag[data-band=heavy]{--band:var(--band-heavy)}.tag[data-band=lockdown]{--band:var(--band-lockdown)}
 
 /* The objective marker: an ink-outlined brass diamond in the world, its distance beneath, and on the edge of the
@@ -165,13 +165,13 @@ body:not(.started) .identity,body:not(.started) .ribbon,body:not(.started) .trea
 #hud-bottom{position:absolute;z-index:2;left:max(var(--gutter),var(--sal));right:max(var(--gutter),var(--sar));bottom:max(var(--gutter),calc(var(--sab) + var(--sp-4)));display:flex;justify-content:space-between;align-items:flex-end;gap:var(--sp-4);pointer-events:none}
 .objective{width:340px;max-width:100%;padding:3px var(--sp-3) 3px 10px;border-left:2px solid var(--gold)}
 .objective .head,.steps{display:flex;justify-content:space-between;align-items:baseline;gap:var(--sp-3);font-size:var(--ui-fs-meta);line-height:15px;font-weight:700;letter-spacing:.12em;color:var(--hud-soft);font-variant-numeric:tabular-nums;white-space:nowrap}
-.objective .overline{font-size:var(--ui-fs-small);color:var(--burgundy)}
+.objective .overline{font-size:var(--ui-fs-meta);color:var(--burgundy)}
 .objective p{margin:0 0 2px;font:700 14px/18px var(--serif)}
 .steps{padding-top:2px;border-top:var(--hair)}
 /* The key hints: keycaps and plain ink labels, quiet. They fade once the Steward has found their feet. */
-.controls{display:flex;align-items:center;gap:var(--sp-3);margin-left:auto;padding:2px var(--sp-3);font-size:var(--ui-fs-small);font-weight:700;letter-spacing:.04em;color:var(--ink);transition:opacity 1.6s ease}
+.controls{display:flex;align-items:center;gap:var(--sp-3);margin-left:auto;padding:2px var(--sp-3);font-size:var(--ui-fs-meta);font-weight:700;letter-spacing:.04em;color:var(--ink);transition:opacity 1.6s ease}
 .controls span,.ledger-control{display:flex;align-items:center;gap:var(--sp-1)}
-.controls kbd{min-width:18px;height:18px;box-shadow:0 1px 0 var(--ink);font-size:var(--ui-fs-small)}
+.controls kbd{min-width:18px;height:18px;box-shadow:0 1px 0 var(--ink);font-size:var(--ui-fs-meta)}
 .controls kbd+kbd{margin-left:-1px}
 .ledger-control{min-height:24px;padding:0;border:0;background:none;color:inherit;font:inherit;letter-spacing:inherit}
 body.hint-off .controls:not(:focus-within){opacity:0;pointer-events:none}
@@ -191,11 +191,16 @@ body:has(#panel:not([hidden])) #toast{left:calc((100% - var(--panel-w) - var(--s
 
 /* Narrow windows and tablets. */
 @media(max-width:900px){:root{--gutter:22px}.ribbon{--rib-min:clamp(260px,34vw,320px);max-width:46vw}.meta{padding-inline:var(--sp-2);column-gap:6px}}
+/* A narrow window (not a phone) keeps the status on one row: the ward's noun goes first, then the weather's name clips; the clock,
+   the curfew and the heat tag keep their room. (The phone's own rows are below.) */
+@media(min-width:701px) and (max-width:900px){.ward-noun{display:none}.meta{flex-wrap:nowrap;overflow:hidden}#weather{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}.occupation{flex:none}}
 @media(max-width:700px){:root{--gutter:var(--sp-4);--hud-band:40px;--hud-h:92px}
   #hud{grid-template-columns:1fr auto;grid-template-areas:"id tre" "rib rib";row-gap:var(--sp-2)}
   .identity{grid-area:id}.treasury{grid-area:tre}.ribbon{--rib-min:100%;grid-area:rib;justify-self:center;width:min(100%,360px);min-width:0;max-width:none}
   .identity svg,.treasury small{display:none}
   .identity b{font-size:var(--ui-fs-body)}.treasury strong{font-size:18px}
+  /* the phone's status keeps its own sizes (its ribbon is one 360 px strip that wraps by design) */
+  .meta,.tag{font-size:var(--ui-fs-meta)}.ward-noun{font-size:var(--ui-fs-small)}
 }
 /* A phone on its side: the three clusters share one short row. */
 @media(max-height:520px) and (pointer:coarse){:root{--gutter:var(--sp-4);--hud-band:40px;--hud-h:44px}
