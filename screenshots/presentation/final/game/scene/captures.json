@@ -4,8 +4,8 @@
       "name": "product-test-clear.png",
       "note": "Final product test (default state clear, noon): Market Square, the placement with the most people 2.5-12 m away in view, facing north: the HUD, the stalls and the Clock Tower beyond",
       "people": "new",
-      "drawCalls": 351,
-      "triangles": 758372,
+      "drawCalls": 348,
+      "triangles": 786290,
       "pixelRatio": 1,
       "weather": "clear",
       "clockHour": 12,
@@ -52,8 +52,8 @@
       "name": "product-test-clear-world.png",
       "note": "the same frame with the HUD hidden",
       "people": "new",
-      "drawCalls": 995,
-      "triangles": 1426412,
+      "drawCalls": 348,
+      "triangles": 786290,
       "pixelRatio": 1,
       "weather": "clear",
       "clockHour": 12,
@@ -69,8 +69,8 @@
       "name": "product-test-rain.png",
       "note": "Final product test (default state rain, noon): Market Square, the placement with the most people 2.5-12 m away in view, facing north: the HUD, the stalls and the Clock Tower beyond",
       "people": "new",
-      "drawCalls": 354,
-      "triangles": 765236,
+      "drawCalls": 998,
+      "triangles": 1455054,
       "pixelRatio": 1,
       "weather": "rain",
       "clockHour": 12,
@@ -89,71 +89,6 @@
         ],
         "n": 4,
         "close": 2,
-        "blocked": false
-      },
-      "inView9m": {
-        "cam": [
-          -5,
-          -16,
-          0
-        ],
-        "n": 4,
-        "close": 2,
-        "blocked": false
-      },
-      "inFrame20m": {
-        "cam": [
-          -5,
-          -16,
-          0
-        ],
-        "n": 6,
-        "close": 5,
-        "blocked": false
-      },
-      "ward": "12:00 ·  · DRIZZLE · HEAVY 76%"
-    },
-    {
-      "name": "product-test-rain-world.png",
-      "note": "the same frame with the HUD hidden",
-      "people": "new",
-      "drawCalls": 353,
-      "triangles": 764404,
-      "pixelRatio": 1,
-      "weather": "rain",
-      "clockHour": 12,
-      "camera": [
-        -5,
-        1.93,
-        -16,
-        0,
-        0.06
-      ]
-    },
-    {
-      "name": "product-test-fog.png",
-      "note": "Final product test (default state fog, noon): Market Square, the placement with the most people 2.5-12 m away in view, facing north: the HUD, the stalls and the Clock Tower beyond",
-      "people": "new",
-      "drawCalls": 349,
-      "triangles": 758928,
-      "pixelRatio": 1,
-      "weather": "fog",
-      "clockHour": 12,
-      "camera": [
-        -5,
-        1.93,
-        -16,
-        0,
-        0.06
-      ],
-      "inView12m": {
-        "cam": [
-          -5,
-          -16,
-          0
-        ],
-        "n": 4,
-        "close": 1,
         "blocked": false
       },
       "inView9m": {
@@ -176,14 +111,79 @@
         "close": 4,
         "blocked": false
       },
+      "ward": "12:00 ·  · DRIZZLE · HEAVY 76%"
+    },
+    {
+      "name": "product-test-rain-world.png",
+      "note": "the same frame with the HUD hidden",
+      "people": "new",
+      "drawCalls": 352,
+      "triangles": 786246,
+      "pixelRatio": 1,
+      "weather": "rain",
+      "clockHour": 12,
+      "camera": [
+        -5,
+        1.93,
+        -16,
+        0,
+        0.06
+      ]
+    },
+    {
+      "name": "product-test-fog.png",
+      "note": "Final product test (default state fog, noon): Market Square, the placement with the most people 2.5-12 m away in view, facing north: the HUD, the stalls and the Clock Tower beyond",
+      "people": "new",
+      "drawCalls": 349,
+      "triangles": 792255,
+      "pixelRatio": 1,
+      "weather": "fog",
+      "clockHour": 12,
+      "camera": [
+        -5,
+        1.93,
+        -16,
+        0,
+        0.06
+      ],
+      "inView12m": {
+        "cam": [
+          -5,
+          -16,
+          0
+        ],
+        "n": 4,
+        "close": 2,
+        "blocked": false
+      },
+      "inView9m": {
+        "cam": [
+          -5,
+          -16,
+          0
+        ],
+        "n": 4,
+        "close": 2,
+        "blocked": false
+      },
+      "inFrame20m": {
+        "cam": [
+          -5,
+          -16,
+          0
+        ],
+        "n": 5,
+        "close": 4,
+        "blocked": false
+      },
       "ward": "12:00 ·  · INDUSTRIAL FOG · HEAVY 76%"
     },
     {
       "name": "product-test-fog-world.png",
       "note": "the same frame with the HUD hidden",
       "people": "new",
-      "drawCalls": 348,
-      "triangles": 758544,
+      "drawCalls": 349,
+      "triangles": 793734,
       "pixelRatio": 1,
       "weather": "fog",
       "clockHour": 12,
@@ -199,8 +199,8 @@
       "name": "product-test-night.png",
       "note": "Final product test (default state clear, 23:00): Market Square, the placement with the most people 2.5-12 m away in view, facing north: the HUD, the stalls and the Clock Tower beyond",
       "people": "new",
-      "drawCalls": 355,
-      "triangles": 717598,
+      "drawCalls": 357,
+      "triangles": 756950,
       "pixelRatio": 1,
       "weather": "clear",
       "clockHour": 23,
@@ -217,8 +217,8 @@
           -16,
           0
         ],
-        "n": 2,
-        "close": 1,
+        "n": 4,
+        "close": 2,
         "blocked": false
       },
       "inView9m": {
@@ -227,8 +227,8 @@
           -16,
           0
         ],
-        "n": 2,
-        "close": 1,
+        "n": 4,
+        "close": 2,
         "blocked": false
       },
       "inFrame20m": {
@@ -237,8 +237,8 @@
           -16,
           0
         ],
-        "n": 5,
-        "close": 3,
+        "n": 7,
+        "close": 5,
         "blocked": false
       },
       "ward": "23:00 · CURFEW · CLEAR SKIES · HEAVY 76%"
@@ -247,8 +247,8 @@
       "name": "product-test-night-world.png",
       "note": "the same frame with the HUD hidden",
       "people": "new",
-      "drawCalls": 354,
-      "triangles": 717214,
+      "drawCalls": 999,
+      "triangles": 1422602,
       "pixelRatio": 1,
       "weather": "clear",
       "clockHour": 23,
@@ -264,8 +264,8 @@
       "name": "market-square-close.png",
       "note": "Market Square: the placement with the most people 2-7 m away in view (any heading, no one within 2 m in front)",
       "people": "new",
-      "drawCalls": 248,
-      "triangles": 659026,
+      "drawCalls": 853,
+      "triangles": 1341890,
       "pixelRatio": 1,
       "weather": "clear",
       "clockHour": 12,
@@ -291,8 +291,8 @@
       "name": "street-crowd.png",
       "note": "The Great Main: the placement with the most people 3-30 m away in view",
       "people": "new",
-      "drawCalls": 864,
-      "triangles": 1140650,
+      "drawCalls": 862,
+      "triangles": 1251264,
       "pixelRatio": 1,
       "weather": "clear",
       "clockHour": 12,
@@ -310,7 +310,7 @@
           0
         ],
         "n": 7,
-        "close": 3,
+        "close": 5,
         "blocked": false
       }
     },
@@ -319,7 +319,7 @@
       "note": "a seated worker with a mug (worker 38, sip cycle frame 1)",
       "people": "new",
       "drawCalls": 145,
-      "triangles": 471567,
+      "triangles": 471852,
       "pixelRatio": 1,
       "weather": "clear",
       "clockHour": 12,
@@ -348,7 +348,7 @@
       "note": "a seated worker with a mug (worker 38, sip cycle frame 2)",
       "people": "new",
       "drawCalls": 145,
-      "triangles": 471567,
+      "triangles": 471852,
       "pixelRatio": 1,
       "weather": "clear",
       "clockHour": 12,
@@ -377,7 +377,7 @@
       "note": "a seated worker with a mug (worker 38, sip cycle frame 3)",
       "people": "new",
       "drawCalls": 145,
-      "triangles": 471567,
+      "triangles": 471852,
       "pixelRatio": 1,
       "weather": "clear",
       "clockHour": 12,
@@ -406,7 +406,7 @@
       "note": "the same seated worker from their right side (what they sit on)",
       "people": "new",
       "drawCalls": 200,
-      "triangles": 518903,
+      "triangles": 524527,
       "pixelRatio": 1,
       "weather": "clear",
       "clockHour": 12,
@@ -434,15 +434,15 @@
       "name": "umbrella-rain.png",
       "note": "rain: a walking street person with an open umbrella, from ahead",
       "people": "new",
-      "drawCalls": 370,
-      "triangles": 729169,
+      "drawCalls": 965,
+      "triangles": 1364178,
       "pixelRatio": 1,
       "weather": "rain",
       "clockHour": 12,
       "camera": [
         -5.1,
         1.88,
-        31.55,
+        40.26,
         3.142,
         0.12
       ],
@@ -451,11 +451,11 @@
         "total": 15,
         "nearest": {
           "i": 21,
-          "d": 7.103870255154968,
+          "d": 14.582683868603178,
           "p": [
             -5.1,
             0.18,
-            34.94519692247695
+            43.66179595849753
           ],
           "yaw": 3.141592653589793
         }
@@ -465,8 +465,8 @@
       "name": "product-test-site3-clear.png",
       "note": "Final product test (site3-clear, noon): Market Square, the placement with the most people 2.5-12 m away in view, facing north: the HUD, the stalls and the Clock Tower beyond",
       "people": "new",
-      "drawCalls": 364,
-      "triangles": 746677,
+      "drawCalls": 358,
+      "triangles": 771890,
       "pixelRatio": 1,
       "weather": "clear",
       "clockHour": 12,
@@ -474,36 +474,36 @@
         -5,
         1.93,
         -16,
-        0.3,
+        0,
         0.06
       ],
       "inView12m": {
         "cam": [
           -5,
           -16,
-          0.3
+          0
         ],
-        "n": 6,
-        "close": 1,
+        "n": 4,
+        "close": 0,
         "blocked": false
       },
       "inView9m": {
         "cam": [
           -5,
           -16,
-          0.3
+          0
         ],
-        "n": 3,
-        "close": 1,
+        "n": 2,
+        "close": 0,
         "blocked": false
       },
       "inFrame20m": {
         "cam": [
           -5,
           -16,
-          0.3
+          0
         ],
-        "n": 7,
+        "n": 8,
         "close": 6,
         "blocked": false
       },
@@ -513,8 +513,8 @@
       "name": "product-test-site3-clear-world.png",
       "note": "the same frame with the HUD hidden",
       "people": "new",
-      "drawCalls": 363,
-      "triangles": 746293,
+      "drawCalls": 358,
+      "triangles": 771890,
       "pixelRatio": 1,
       "weather": "clear",
       "clockHour": 12,
@@ -522,7 +522,7 @@
         -5,
         1.93,
         -16,
-        0.3,
+        0,
         0.06
       ]
     },
@@ -530,8 +530,8 @@
       "name": "product-test-site3-rain.png",
       "note": "Final product test (site3-rain, noon): Market Square, the placement with the most people 2.5-12 m away in view, facing north: the HUD, the stalls and the Clock Tower beyond",
       "people": "new",
-      "drawCalls": 370,
-      "triangles": 747177,
+      "drawCalls": 366,
+      "triangles": 772454,
       "pixelRatio": 1,
       "weather": "rain",
       "clockHour": 12,
@@ -539,37 +539,37 @@
         -5,
         1.93,
         -16,
-        0.3,
+        0,
         0.06
       ],
       "inView12m": {
         "cam": [
           -5,
           -16,
-          0.3
+          0
         ],
-        "n": 5,
-        "close": 1,
+        "n": 4,
+        "close": 0,
         "blocked": false
       },
       "inView9m": {
         "cam": [
           -5,
           -16,
-          0.3
+          0
         ],
-        "n": 3,
-        "close": 1,
+        "n": 2,
+        "close": 0,
         "blocked": false
       },
       "inFrame20m": {
         "cam": [
           -5,
           -16,
-          0.3
+          0
         ],
-        "n": 7,
-        "close": 5,
+        "n": 9,
+        "close": 6,
         "blocked": false
       },
       "ward": "12:00 ·  · DRIZZLE · LOW 38%"
@@ -578,8 +578,8 @@
       "name": "product-test-site3-rain-world.png",
       "note": "the same frame with the HUD hidden",
       "people": "new",
-      "drawCalls": 369,
-      "triangles": 753813,
+      "drawCalls": 365,
+      "triangles": 772070,
       "pixelRatio": 1,
       "weather": "rain",
       "clockHour": 12,
@@ -587,7 +587,7 @@
         -5,
         1.93,
         -16,
-        0.3,
+        0,
         0.06
       ]
     },
@@ -595,8 +595,8 @@
       "name": "product-test-site3-fog.png",
       "note": "Final product test (site3-fog, noon): Market Square, the placement with the most people 2.5-12 m away in view, facing north: the HUD, the stalls and the Clock Tower beyond",
       "people": "new",
-      "drawCalls": 364,
-      "triangles": 754057,
+      "drawCalls": 359,
+      "triangles": 777855,
       "pixelRatio": 1,
       "weather": "fog",
       "clockHour": 12,
@@ -604,37 +604,37 @@
         -5,
         1.93,
         -16,
-        0.3,
+        0,
         0.06
       ],
       "inView12m": {
         "cam": [
           -5,
           -16,
-          0.3
+          0
         ],
         "n": 4,
-        "close": 0,
+        "close": 1,
         "blocked": false
       },
       "inView9m": {
         "cam": [
           -5,
           -16,
-          0.3
+          0
         ],
-        "n": 2,
-        "close": 0,
+        "n": 3,
+        "close": 1,
         "blocked": false
       },
       "inFrame20m": {
         "cam": [
           -5,
           -16,
-          0.3
+          0
         ],
-        "n": 8,
-        "close": 6,
+        "n": 9,
+        "close": 5,
         "blocked": false
       },
       "ward": "12:00 ·  · INDUSTRIAL FOG · LOW 38%"
@@ -643,8 +643,8 @@
       "name": "product-test-site3-fog-world.png",
       "note": "the same frame with the HUD hidden",
       "people": "new",
-      "drawCalls": 363,
-      "triangles": 753415,
+      "drawCalls": 359,
+      "triangles": 779334,
       "pixelRatio": 1,
       "weather": "fog",
       "clockHour": 12,
@@ -652,7 +652,7 @@
         -5,
         1.93,
         -16,
-        0.3,
+        0,
         0.06
       ]
     },
@@ -660,8 +660,8 @@
       "name": "product-test-site3-night.png",
       "note": "Final product test (site3-clear, 23:00): Market Square, the placement with the most people 2.5-12 m away in view, facing north: the HUD, the stalls and the Clock Tower beyond",
       "people": "new",
-      "drawCalls": 367,
-      "triangles": 717829,
+      "drawCalls": 364,
+      "triangles": 755274,
       "pixelRatio": 1,
       "weather": "clear",
       "clockHour": 23,
@@ -669,37 +669,37 @@
         -5,
         1.93,
         -16,
-        0.3,
+        0,
         0.06
       ],
       "inView12m": {
         "cam": [
           -5,
           -16,
-          0.3
+          0
         ],
-        "n": 2,
-        "close": 0,
+        "n": 4,
+        "close": 1,
         "blocked": false
       },
       "inView9m": {
         "cam": [
           -5,
           -16,
-          0.3
+          0
         ],
-        "n": 2,
-        "close": 0,
+        "n": 3,
+        "close": 1,
         "blocked": false
       },
       "inFrame20m": {
         "cam": [
           -5,
           -16,
-          0.3
+          0
         ],
-        "n": 4,
-        "close": 2,
+        "n": 8,
+        "close": 4,
         "blocked": false
       },
       "ward": "23:00 · CURFEW · CLEAR SKIES · LOW 38%"
@@ -708,8 +708,8 @@
       "name": "product-test-site3-night-world.png",
       "note": "the same frame with the HUD hidden",
       "people": "new",
-      "drawCalls": 366,
-      "triangles": 717445,
+      "drawCalls": 363,
+      "triangles": 754632,
       "pixelRatio": 1,
       "weather": "clear",
       "clockHour": 23,
@@ -717,7 +717,7 @@
         -5,
         1.93,
         -16,
-        0.3,
+        0,
         0.06
       ]
     },
@@ -725,25 +725,25 @@
       "name": "market-square-site3-close.png",
       "note": "Market Square: the placement with the most people 2-7 m away in view (any heading, no one within 2 m in front)",
       "people": "new",
-      "drawCalls": 299,
-      "triangles": 683746,
+      "drawCalls": 671,
+      "triangles": 1061482,
       "pixelRatio": 1,
       "weather": "clear",
       "clockHour": 12,
       "camera": [
-        4,
+        -4,
         1.93,
-        -24,
-        -0.5,
+        -26,
+        2.642,
         0
       ],
       "inView": {
         "cam": [
-          4,
-          -24,
-          -0.5
+          -4,
+          -26,
+          2.641592653589793
         ],
-        "n": 2,
+        "n": 3,
         "close": 1,
         "blocked": false
       }
@@ -752,46 +752,46 @@
       "name": "product-test-site5-clear.png",
       "note": "Final product test (site5-clear, noon): Market Square, the placement with the most people 2.5-12 m away in view, facing north: the HUD, the stalls and the Clock Tower beyond",
       "people": "new",
-      "drawCalls": 294,
-      "triangles": 700720,
+      "drawCalls": 346,
+      "triangles": 751782,
       "pixelRatio": 1,
       "weather": "clear",
       "clockHour": 12,
       "camera": [
-        -4,
+        -5,
         1.93,
-        -22,
+        -16,
         0,
         0.06
       ],
       "inView12m": {
         "cam": [
-          -4,
-          -22,
+          -5,
+          -16,
           0
         ],
-        "n": 6,
-        "close": 3,
+        "n": 4,
+        "close": 0,
         "blocked": false
       },
       "inView9m": {
         "cam": [
-          -4,
-          -22,
+          -5,
+          -16,
           0
         ],
-        "n": 4,
-        "close": 2,
+        "n": 2,
+        "close": 0,
         "blocked": false
       },
       "inFrame20m": {
         "cam": [
-          -4,
-          -22,
+          -5,
+          -16,
           0
         ],
-        "n": 11,
-        "close": 6,
+        "n": 9,
+        "close": 4,
         "blocked": false
       },
       "ward": "12:00 ·  · CLEAR SKIES · FREE 0%"
@@ -800,15 +800,15 @@
       "name": "product-test-site5-clear-world.png",
       "note": "the same frame with the HUD hidden",
       "people": "new",
-      "drawCalls": 293,
-      "triangles": 700336,
+      "drawCalls": 346,
+      "triangles": 751782,
       "pixelRatio": 1,
       "weather": "clear",
       "clockHour": 12,
       "camera": [
-        -4,
+        -5,
         1.93,
-        -22,
+        -16,
         0,
         0.06
       ]
@@ -817,46 +817,46 @@
       "name": "product-test-site5-rain.png",
       "note": "Final product test (site5-rain, noon): Market Square, the placement with the most people 2.5-12 m away in view, facing north: the HUD, the stalls and the Clock Tower beyond",
       "people": "new",
-      "drawCalls": 301,
-      "triangles": 700900,
+      "drawCalls": 1008,
+      "triangles": 1401896,
       "pixelRatio": 1,
       "weather": "rain",
       "clockHour": 12,
       "camera": [
-        -4,
+        -5,
         1.93,
-        -22,
+        -16,
         0,
         0.06
       ],
       "inView12m": {
         "cam": [
-          -4,
-          -22,
+          -5,
+          -16,
           0
         ],
-        "n": 6,
-        "close": 3,
+        "n": 4,
+        "close": 0,
         "blocked": false
       },
       "inView9m": {
         "cam": [
-          -4,
-          -22,
+          -5,
+          -16,
           0
         ],
-        "n": 4,
-        "close": 2,
+        "n": 1,
+        "close": 0,
         "blocked": false
       },
       "inFrame20m": {
         "cam": [
-          -4,
-          -22,
+          -5,
+          -16,
           0
         ],
-        "n": 11,
-        "close": 6,
+        "n": 9,
+        "close": 4,
         "blocked": false
       },
       "ward": "12:00 ·  · DRIZZLE · FREE 0%"
@@ -865,15 +865,15 @@
       "name": "product-test-site5-rain-world.png",
       "note": "the same frame with the HUD hidden",
       "people": "new",
-      "drawCalls": 300,
-      "triangles": 700516,
+      "drawCalls": 353,
+      "triangles": 751962,
       "pixelRatio": 1,
       "weather": "rain",
       "clockHour": 12,
       "camera": [
-        -4,
+        -5,
         1.93,
-        -22,
+        -16,
         0,
         0.06
       ]
@@ -882,46 +882,46 @@
       "name": "product-test-site5-fog.png",
       "note": "Final product test (site5-fog, noon): Market Square, the placement with the most people 2.5-12 m away in view, facing north: the HUD, the stalls and the Clock Tower beyond",
       "people": "new",
-      "drawCalls": 293,
-      "triangles": 700636,
+      "drawCalls": 347,
+      "triangles": 751738,
       "pixelRatio": 1,
       "weather": "fog",
       "clockHour": 12,
       "camera": [
-        -4,
+        -5,
         1.93,
-        -22,
+        -16,
         0,
         0.06
       ],
       "inView12m": {
         "cam": [
-          -4,
-          -22,
+          -5,
+          -16,
           0
         ],
-        "n": 6,
-        "close": 2,
+        "n": 3,
+        "close": 0,
         "blocked": false
       },
       "inView9m": {
         "cam": [
-          -4,
-          -22,
+          -5,
+          -16,
           0
         ],
-        "n": 4,
-        "close": 2,
+        "n": 1,
+        "close": 0,
         "blocked": false
       },
       "inFrame20m": {
         "cam": [
-          -4,
-          -22,
+          -5,
+          -16,
           0
         ],
-        "n": 11,
-        "close": 6,
+        "n": 9,
+        "close": 3,
         "blocked": false
       },
       "ward": "12:00 ·  · INDUSTRIAL FOG · FREE 0%"
@@ -930,15 +930,15 @@
       "name": "product-test-site5-fog-world.png",
       "note": "the same frame with the HUD hidden",
       "people": "new",
-      "drawCalls": 292,
-      "triangles": 700252,
+      "drawCalls": 347,
+      "triangles": 751738,
       "pixelRatio": 1,
       "weather": "fog",
       "clockHour": 12,
       "camera": [
-        -4,
+        -5,
         1.93,
-        -22,
+        -16,
         0,
         0.06
       ]
@@ -947,46 +947,46 @@
       "name": "product-test-site5-night.png",
       "note": "Final product test (site5-clear, 23:00): Market Square, the placement with the most people 2.5-12 m away in view, facing north: the HUD, the stalls and the Clock Tower beyond",
       "people": "new",
-      "drawCalls": 297,
-      "triangles": 701372,
+      "drawCalls": 353,
+      "triangles": 759756,
       "pixelRatio": 1,
       "weather": "clear",
       "clockHour": 23,
       "camera": [
-        -4,
+        -5,
         1.93,
-        -22,
+        -16,
         0,
         0.06
       ],
       "inView12m": {
         "cam": [
-          -4,
-          -22,
+          -5,
+          -16,
           0
         ],
-        "n": 6,
-        "close": 2,
+        "n": 3,
+        "close": 0,
         "blocked": false
       },
       "inView9m": {
         "cam": [
-          -4,
-          -22,
+          -5,
+          -16,
           0
         ],
-        "n": 3,
-        "close": 2,
+        "n": 1,
+        "close": 0,
         "blocked": false
       },
       "inFrame20m": {
         "cam": [
-          -4,
-          -22,
+          -5,
+          -16,
           0
         ],
-        "n": 11,
-        "close": 6,
+        "n": 10,
+        "close": 3,
         "blocked": false
       },
       "ward": "23:00 ·  · CLEAR SKIES · FREE 0%"
@@ -995,15 +995,15 @@
       "name": "product-test-site5-night-world.png",
       "note": "the same frame with the HUD hidden",
       "people": "new",
-      "drawCalls": 296,
-      "triangles": 700988,
+      "drawCalls": 352,
+      "triangles": 759372,
       "pixelRatio": 1,
       "weather": "clear",
       "clockHour": 23,
       "camera": [
-        -4,
+        -5,
         1.93,
-        -22,
+        -16,
         0,
         0.06
       ]
@@ -1012,23 +1012,23 @@
       "name": "market-square-site5-close.png",
       "note": "Market Square: the placement with the most people 2-7 m away in view (any heading, no one within 2 m in front)",
       "people": "new",
-      "drawCalls": 720,
-      "triangles": 1038378,
+      "drawCalls": 1403,
+      "triangles": 1800122,
       "pixelRatio": 1,
       "weather": "clear",
       "clockHour": 12,
       "camera": [
-        -1,
+        -4,
         1.93,
         -36,
-        2.642,
+        3.642,
         0
       ],
       "inView": {
         "cam": [
-          -1,
+          -4,
           -36,
-          2.641592653589793
+          3.641592653589793
         ],
         "n": 4,
         "close": 2,

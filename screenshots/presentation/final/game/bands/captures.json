@@ -7,7 +7,12 @@
     720
   ],
   "deviceScaleFactor": 1,
-  "problems": [],
+  "problems": [
+    "warning: [.WebGL-0x13c00439600]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+    "warning: [.WebGL-0x13c00439600]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+    "warning: [.WebGL-0x13c00439600]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+    "warning: [.WebGL-0x13c00439600]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)"
+  ],
   "shots": [
     {
       "name": "shader-close-character-storefront.png",
@@ -23,8 +28,8 @@
         720
       ],
       "quality": "high",
-      "drawCalls": 436,
-      "triangles": 783284,
+      "drawCalls": 437,
+      "triangles": 807140,
       "clockHour": 12,
       "weather": "clear",
       "stage": 2,
@@ -51,7 +56,7 @@
         1.93,
         0.02
       ],
-      "loadMs": 2622,
+      "loadMs": 11906,
       "level": 2
     },
     {
@@ -68,8 +73,8 @@
         720
       ],
       "quality": "high",
-      "drawCalls": 771,
-      "triangles": 1084312,
+      "drawCalls": 770,
+      "triangles": 1161662,
       "clockHour": 12,
       "weather": "clear",
       "stage": 2,
@@ -98,7 +103,7 @@
         null,
         0.03
       ],
-      "loadMs": 2622,
+      "loadMs": 11906,
       "level": 2
     },
     {
@@ -115,8 +120,8 @@
         720
       ],
       "quality": "high",
-      "drawCalls": 366,
-      "triangles": 786264,
+      "drawCalls": 367,
+      "triangles": 820858,
       "clockHour": 12,
       "weather": "clear",
       "stage": 2,
@@ -145,7 +150,7 @@
         null,
         0.07
       ],
-      "loadMs": 2622,
+      "loadMs": 11906,
       "level": 2
     },
     {
@@ -162,8 +167,8 @@
         720
       ],
       "quality": "high",
-      "drawCalls": 475,
-      "triangles": 869341,
+      "drawCalls": 476,
+      "triangles": 903909,
       "clockHour": 12,
       "weather": "clear",
       "stage": 2,
@@ -192,7 +197,7 @@
         null,
         0.2
       ],
-      "loadMs": 2622,
+      "loadMs": 11906,
       "level": 2
     },
     {
@@ -209,8 +214,8 @@
         720
       ],
       "quality": "high",
-      "drawCalls": 929,
-      "triangles": 1216430,
+      "drawCalls": 923,
+      "triangles": 1318954,
       "clockHour": 12,
       "weather": "clear",
       "stage": 2,
@@ -239,7 +244,7 @@
         25,
         -0.22
       ],
-      "loadMs": 2622,
+      "loadMs": 11906,
       "level": 2
     },
     {
@@ -286,7 +291,7 @@
         null,
         0.02
       ],
-      "loadMs": 2622,
+      "loadMs": 11906,
       "level": 2
     },
     {
@@ -303,8 +308,8 @@
         720
       ],
       "quality": "high",
-      "drawCalls": 369,
-      "triangles": 785406,
+      "drawCalls": 368,
+      "triangles": 820390,
       "clockHour": 12,
       "weather": "rain",
       "stage": 2,
@@ -333,7 +338,7 @@
         null,
         0.07
       ],
-      "loadMs": 2622,
+      "loadMs": 11906,
       "level": 2
     },
     {
@@ -350,8 +355,8 @@
         720
       ],
       "quality": "high",
-      "drawCalls": 483,
-      "triangles": 869125,
+      "drawCalls": 477,
+      "triangles": 904185,
       "clockHour": 12,
       "weather": "rain",
       "stage": 2,
@@ -380,7 +385,7 @@
         null,
         0.2
       ],
-      "loadMs": 2622,
+      "loadMs": 11906,
       "level": 2
     },
     {
@@ -397,8 +402,8 @@
         720
       ],
       "quality": "high",
-      "drawCalls": 364,
-      "triangles": 779536,
+      "drawCalls": 366,
+      "triangles": 820774,
       "clockHour": 12,
       "weather": "fog",
       "stage": 2,
@@ -427,7 +432,7 @@
         null,
         0.07
       ],
-      "loadMs": 2622,
+      "loadMs": 11906,
       "level": 2
     },
     {
@@ -444,8 +449,8 @@
         720
       ],
       "quality": "high",
-      "drawCalls": 486,
-      "triangles": 869197,
+      "drawCalls": 473,
+      "triangles": 903801,
       "clockHour": 12,
       "weather": "fog",
       "stage": 2,
@@ -474,7 +479,7 @@
         null,
         0.2
       ],
-      "loadMs": 2622,
+      "loadMs": 11906,
       "level": 2
     }
   ]

@@ -288,7 +288,7 @@ if (part === 'intro') {
 if (part === 'seated') {
   const page = await browser.newPage({ viewport: { width: 2560, height: 720 }, deviceScaleFactor: 1 }), entry = watch(page, 'sheet.html (seated)'), pre = flag('prefix', 'after');
   entry.url = `${base}/sheet.html?…&pose=sit|bite&ground=1`;
-  const cast = [...REPS, ['child', 'child.child.narrow', 3], ['elder', 'elder.slim.narrow', 5]], q = `build=new&combos=${cast.map(r => r[1]).join(',')}&seeds=${cast.map(r => r[2]).join(',')}&ground=1`;
+  const cast = [...REPS, ['child', 'child.child.narrow', 3], ['elder', 'elder.slim.narrow', 13]], q = `build=new&combos=${cast.map(r => r[1]).join(',')}&seeds=${cast.map(r => r[2]).join(',')}&ground=1`;
   const labels = cast.map(([label, combo, seed]) => `<b>${label}</b><br>${combo.split('.')[0]} · s${seed}`);
   for (const [pose, what] of [['sit', 'sit'], ['bite', 'eat, top of the bite']]) for (const [v, name] of [['side', 'side'], ['front', 'front'], ['quarter', '3/4']])
     await sheetShot(page, `${pre}-seated-${pose}-${v}`, `${q}&view=${v}&pose=${pose}&fov=12`, `People XXIII · seated (${what}) · ${name} · the pavement is the red line, the bench is the sheet's, under the hips`, { relabel: labels });

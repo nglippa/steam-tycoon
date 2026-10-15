@@ -1,7 +1,7 @@
 {
   "new": {
     "people": "new",
-    "loadMs": 2681,
+    "loadMs": 11932,
     "views": {
       "street": {
         "camera": [
@@ -13,53 +13,53 @@
         ],
         "timing": {
           "presentationUpdate": {
-            "n": 600,
-            "meanMs": 0.537,
-            "p50Ms": 0.5,
-            "p95Ms": 0.7,
-            "maxMs": 1.1
+            "n": 23,
+            "meanMs": 0.774,
+            "p50Ms": 0.8,
+            "p95Ms": 1,
+            "maxMs": 1
           },
           "crowdBatchUpdate": {
-            "n": 600,
-            "meanMs": 0.525,
-            "p50Ms": 0.5,
-            "p95Ms": 0.7,
-            "maxMs": 0.9
+            "n": 23,
+            "meanMs": 0.422,
+            "p50Ms": 0.4,
+            "p95Ms": 0.5,
+            "maxMs": 0.5
           },
           "cityUpdate": {
-            "n": 600,
-            "meanMs": 1.445,
-            "p50Ms": 1.4,
-            "p95Ms": 1.7,
-            "maxMs": 2.2
+            "n": 23,
+            "meanMs": 1.683,
+            "p50Ms": 1.7,
+            "p95Ms": 1.9,
+            "maxMs": 2.1
           },
           "renderSubmit": {
-            "n": 600,
-            "meanMs": 2.964,
-            "p50Ms": 3,
-            "p95Ms": 3.5,
-            "maxMs": 4.5
+            "n": 23,
+            "meanMs": 2.383,
+            "p50Ms": 2.3,
+            "p95Ms": 2.9,
+            "maxMs": 3.2
           },
           "frameCpu": {
-            "n": 600,
-            "meanMs": 4.516,
-            "p50Ms": 4.5,
-            "p95Ms": 5.4,
-            "maxMs": 6.7
+            "n": 23,
+            "meanMs": 4.47,
+            "p50Ms": 4.4,
+            "p95Ms": 5,
+            "maxMs": 5.2
           },
           "rafDelta": {
-            "n": 599,
-            "meanMs": 16.666,
-            "p50Ms": 16.7,
-            "p95Ms": 16.8,
-            "maxMs": 16.8
+            "n": 22,
+            "meanMs": 462.859,
+            "p50Ms": 450,
+            "p95Ms": 533.3,
+            "maxMs": 533.3
           }
         },
         "scene": {
-          "drawCalls": 766,
-          "triangles": 1095688,
+          "drawCalls": 770,
+          "triangles": 1161662,
           "programs": 53,
-          "geometries": 888,
+          "geometries": 884,
           "textures": 85,
           "visibleMeshes": 1169,
           "sceneMaterials": 158,
@@ -67,14 +67,14 @@
           "crowdBatchMaterials": 17,
           "crowdInstances": 6214,
           "peopleDrawCalls": 11,
-          "peopleTriangles": 227484,
-          "jsHeapUsedMB": 239.7,
-          "jsHeapTotalMB": 317.7,
+          "peopleTriangles": 292874,
+          "jsHeapUsedMB": 252.1,
+          "jsHeapTotalMB": 327.4,
           "pixelRatio": 1,
           "started": true
         },
         "inkQuad": {
-          "medianMs": 0.645,
+          "medianMs": 12.92,
           "note": "one full-screen ink quad, mean of 20 draws timed between one-pixel reads, median over 30 frames"
         }
       },
@@ -88,53 +88,53 @@
         ],
         "timing": {
           "presentationUpdate": {
-            "n": 600,
-            "meanMs": 0.59,
-            "p50Ms": 0.6,
-            "p95Ms": 0.8,
-            "maxMs": 1.2
-          },
-          "crowdBatchUpdate": {
-            "n": 600,
-            "meanMs": 0.548,
-            "p50Ms": 0.5,
-            "p95Ms": 0.8,
+            "n": 34,
+            "meanMs": 0.812,
+            "p50Ms": 0.8,
+            "p95Ms": 1,
             "maxMs": 1
           },
+          "crowdBatchUpdate": {
+            "n": 34,
+            "meanMs": 0.444,
+            "p50Ms": 0.4,
+            "p95Ms": 0.5,
+            "maxMs": 0.5
+          },
           "cityUpdate": {
-            "n": 600,
-            "meanMs": 1.51,
-            "p50Ms": 1.5,
-            "p95Ms": 2,
-            "maxMs": 2.7
+            "n": 34,
+            "meanMs": 1.612,
+            "p50Ms": 1.6,
+            "p95Ms": 1.9,
+            "maxMs": 2.1
           },
           "renderSubmit": {
-            "n": 600,
-            "meanMs": 2.271,
-            "p50Ms": 2.3,
-            "p95Ms": 3,
-            "maxMs": 4.1
+            "n": 34,
+            "meanMs": 1.832,
+            "p50Ms": 1.8,
+            "p95Ms": 2.4,
+            "maxMs": 2.7
           },
           "frameCpu": {
-            "n": 600,
-            "meanMs": 3.913,
-            "p50Ms": 4,
-            "p95Ms": 5.1,
-            "maxMs": 6.1
+            "n": 34,
+            "meanMs": 3.853,
+            "p50Ms": 3.8,
+            "p95Ms": 4.4,
+            "maxMs": 4.7
           },
           "rafDelta": {
-            "n": 599,
-            "meanMs": 16.666,
-            "p50Ms": 16.7,
-            "p95Ms": 16.7,
-            "maxMs": 16.8
+            "n": 33,
+            "meanMs": 309.585,
+            "p50Ms": 300,
+            "p95Ms": 366.6,
+            "maxMs": 366.7
           }
         },
         "scene": {
-          "drawCalls": 381,
-          "triangles": 786612,
+          "drawCalls": 367,
+          "triangles": 820858,
           "programs": 54,
-          "geometries": 890,
+          "geometries": 887,
           "textures": 86,
           "visibleMeshes": 1169,
           "sceneMaterials": 158,
@@ -142,14 +142,14 @@
           "crowdBatchMaterials": 17,
           "crowdInstances": 6214,
           "peopleDrawCalls": 8,
-          "peopleTriangles": 123332,
-          "jsHeapUsedMB": 239.9,
-          "jsHeapTotalMB": 317.7,
+          "peopleTriangles": 157542,
+          "jsHeapUsedMB": 252.7,
+          "jsHeapTotalMB": 329.9,
           "pixelRatio": 1,
           "started": true
         },
         "inkQuad": {
-          "medianMs": 0.595,
+          "medianMs": 12.61,
           "note": "one full-screen ink quad, mean of 20 draws timed between one-pixel reads, median over 30 frames"
         }
       }
@@ -157,7 +157,7 @@
   },
   "old": {
     "people": "old",
-    "loadMs": 2535,
+    "loadMs": 11108,
     "views": {
       "street": {
         "camera": [
@@ -169,68 +169,68 @@
         ],
         "timing": {
           "presentationUpdate": {
-            "n": 601,
-            "meanMs": 0.484,
-            "p50Ms": 0.5,
-            "p95Ms": 0.6,
-            "maxMs": 1.1
-          },
-          "crowdBatchUpdate": {
-            "n": 601,
-            "meanMs": 0.478,
-            "p50Ms": 0.5,
-            "p95Ms": 0.6,
+            "n": 26,
+            "meanMs": 0.573,
+            "p50Ms": 0.6,
+            "p95Ms": 0.7,
             "maxMs": 0.8
           },
+          "crowdBatchUpdate": {
+            "n": 26,
+            "meanMs": 0.404,
+            "p50Ms": 0.4,
+            "p95Ms": 0.5,
+            "maxMs": 0.5
+          },
           "cityUpdate": {
-            "n": 601,
-            "meanMs": 1.307,
-            "p50Ms": 1.3,
+            "n": 26,
+            "meanMs": 1.342,
+            "p50Ms": 1.4,
             "p95Ms": 1.5,
-            "maxMs": 2
+            "maxMs": 1.6
           },
           "renderSubmit": {
-            "n": 601,
-            "meanMs": 3.036,
-            "p50Ms": 3,
-            "p95Ms": 3.5,
-            "maxMs": 4.5
+            "n": 26,
+            "meanMs": 2.354,
+            "p50Ms": 2.3,
+            "p95Ms": 2.8,
+            "maxMs": 3
           },
           "frameCpu": {
-            "n": 601,
-            "meanMs": 4.451,
-            "p50Ms": 4.5,
-            "p95Ms": 5.1,
-            "maxMs": 6.1
+            "n": 26,
+            "meanMs": 4.115,
+            "p50Ms": 4.2,
+            "p95Ms": 4.7,
+            "maxMs": 4.7
           },
           "rafDelta": {
-            "n": 600,
-            "meanMs": 16.666,
-            "p50Ms": 16.7,
-            "p95Ms": 16.7,
-            "maxMs": 16.8
+            "n": 25,
+            "meanMs": 413.984,
+            "p50Ms": 416.6,
+            "p95Ms": 433.3,
+            "maxMs": 450
           }
         },
         "scene": {
-          "drawCalls": 766,
-          "triangles": 1041614,
+          "drawCalls": 770,
+          "triangles": 1034028,
           "programs": 53,
-          "geometries": 888,
+          "geometries": 884,
           "textures": 85,
           "visibleMeshes": 1169,
           "sceneMaterials": 158,
           "crowdBatches": 17,
           "crowdBatchMaterials": 17,
           "crowdInstances": 6044,
-          "peopleDrawCalls": 11,
-          "peopleTriangles": 173410,
-          "jsHeapUsedMB": 195,
-          "jsHeapTotalMB": 269.2,
+          "peopleDrawCalls": 10,
+          "peopleTriangles": 164856,
+          "jsHeapUsedMB": 194.2,
+          "jsHeapTotalMB": 267.4,
           "pixelRatio": 1,
           "started": true
         },
         "inkQuad": {
-          "medianMs": 0.54,
+          "medianMs": 12.395,
           "note": "one full-screen ink quad, mean of 20 draws timed between one-pixel reads, median over 30 frames"
         }
       },
@@ -244,68 +244,68 @@
         ],
         "timing": {
           "presentationUpdate": {
-            "n": 600,
-            "meanMs": 0.497,
+            "n": 37,
+            "meanMs": 0.532,
             "p50Ms": 0.5,
             "p95Ms": 0.7,
-            "maxMs": 0.8
+            "maxMs": 0.7
           },
           "crowdBatchUpdate": {
-            "n": 600,
-            "meanMs": 0.484,
-            "p50Ms": 0.5,
-            "p95Ms": 0.7,
-            "maxMs": 0.9
+            "n": 37,
+            "meanMs": 0.4,
+            "p50Ms": 0.4,
+            "p95Ms": 0.5,
+            "maxMs": 0.5
           },
           "cityUpdate": {
-            "n": 600,
-            "meanMs": 1.342,
-            "p50Ms": 1.3,
-            "p95Ms": 1.7,
-            "maxMs": 2
+            "n": 37,
+            "meanMs": 1.186,
+            "p50Ms": 1.2,
+            "p95Ms": 1.4,
+            "maxMs": 1.4
           },
           "renderSubmit": {
-            "n": 600,
-            "meanMs": 2.299,
-            "p50Ms": 2.3,
-            "p95Ms": 3,
-            "maxMs": 5.3
+            "n": 37,
+            "meanMs": 1.722,
+            "p50Ms": 1.7,
+            "p95Ms": 2.3,
+            "maxMs": 2.5
           },
           "frameCpu": {
-            "n": 600,
-            "meanMs": 3.761,
-            "p50Ms": 3.8,
-            "p95Ms": 4.8,
-            "maxMs": 7
+            "n": 37,
+            "meanMs": 3.284,
+            "p50Ms": 3.2,
+            "p95Ms": 3.7,
+            "maxMs": 4
           },
           "rafDelta": {
-            "n": 599,
-            "meanMs": 16.666,
-            "p50Ms": 16.7,
-            "p95Ms": 16.7,
-            "maxMs": 16.8
+            "n": 36,
+            "meanMs": 281.931,
+            "p50Ms": 283.3,
+            "p95Ms": 333.3,
+            "maxMs": 333.3
           }
         },
         "scene": {
-          "drawCalls": 381,
-          "triangles": 752258,
+          "drawCalls": 367,
+          "triangles": 752462,
           "programs": 54,
-          "geometries": 890,
+          "geometries": 887,
           "textures": 86,
           "visibleMeshes": 1169,
           "sceneMaterials": 158,
           "crowdBatches": 17,
           "crowdBatchMaterials": 17,
           "crowdInstances": 6044,
-          "peopleDrawCalls": 8,
-          "peopleTriangles": 88978,
-          "jsHeapUsedMB": 195.1,
-          "jsHeapTotalMB": 269.4,
+          "peopleDrawCalls": 9,
+          "peopleTriangles": 89362,
+          "jsHeapUsedMB": 194.7,
+          "jsHeapTotalMB": 267.9,
           "pixelRatio": 1,
           "started": true
         },
         "inkQuad": {
-          "medianMs": 0.595,
+          "medianMs": 12.005,
           "note": "one full-screen ink quad, mean of 20 draws timed between one-pixel reads, median over 30 frames"
         }
       }

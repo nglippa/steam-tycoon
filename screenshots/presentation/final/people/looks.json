@@ -10,9 +10,9 @@
         "skin": 0,
         "headShape": "square",
         "faceType": 4,
-        "hairStyle": "bob",
+        "hairStyle": "highKnot",
         "hairColour": "soot",
-        "hat": "headscarf",
+        "hat": "none",
         "facial": "none",
         "outfit": "rowSkirt.shawl",
         "palette": "ash",
@@ -49,12 +49,12 @@
         "skin": 1,
         "headShape": "long",
         "faceType": 2,
-        "hairStyle": "tousled",
+        "hairStyle": "bob",
         "hairColour": "umber",
-        "hat": "softCap",
+        "hat": "none",
         "facial": "none",
-        "outfit": "rowCoat.closed",
-        "palette": "oxblood",
+        "outfit": "rowCoat.open",
+        "palette": "moss",
         "asymmetries": [
           "scarfTail",
           "unevenFront"
@@ -69,12 +69,12 @@
         "skin": 1,
         "headShape": "long",
         "faceType": 7,
-        "hairStyle": "sidePart",
+        "hairStyle": "tousled",
         "hairColour": "chestnut",
-        "hat": "softCap",
+        "hat": "none",
         "facial": "none",
-        "outfit": "rowCoat.open",
-        "palette": "umber",
+        "outfit": "rowCoat.closed",
+        "palette": "ash",
         "asymmetries": [
           "scarfTail",
           "unevenFront"
@@ -89,12 +89,12 @@
         "skin": 0,
         "headShape": "square",
         "faceType": 0,
-        "hairStyle": "lowBun",
+        "hairStyle": "tousled",
         "hairColour": "soot",
-        "hat": "softCap",
+        "hat": "flatCap",
         "facial": "none",
-        "outfit": "rowCoat.open",
-        "palette": "ash",
+        "outfit": "rowCoat.closed",
+        "palette": "oxblood",
         "asymmetries": [
           "unevenFront",
           "scarfTail"
@@ -109,12 +109,12 @@
         "skin": 1,
         "headShape": "long",
         "faceType": 6,
-        "hairStyle": "highKnot",
+        "hairStyle": "bob",
         "hairColour": "auburn",
-        "hat": "none",
+        "hat": "headscarf",
         "facial": "none",
         "outfit": "rowSkirt.plain",
-        "palette": "slate",
+        "palette": "oxblood",
         "asymmetries": [
           "pouchHip"
         ]
@@ -128,12 +128,12 @@
         "skin": 0,
         "headShape": "long",
         "faceType": 1,
-        "hairStyle": "longTied",
+        "hairStyle": "bob",
         "hairColour": "auburn",
-        "hat": "none",
+        "hat": "headscarf",
         "facial": "none",
-        "outfit": "rowSkirt.shawl",
-        "palette": "ochre",
+        "outfit": "rowSkirt.plain",
+        "palette": "moss",
         "asymmetries": [
           "scarfTail",
           "pouchHip"
@@ -148,12 +148,12 @@
         "skin": 0,
         "headShape": "oval",
         "faceType": 3,
-        "hairStyle": "lowBun",
+        "hairStyle": "bob",
         "hairColour": "soot",
-        "hat": "headscarf",
+        "hat": "none",
         "facial": "none",
         "outfit": "rowSkirt.plain",
-        "palette": "slate",
+        "palette": "umber",
         "asymmetries": [
           "apronTie"
         ]
@@ -227,10 +227,10 @@
         "faceType": 0,
         "hairStyle": "sidePart",
         "hairColour": "chestnut",
-        "hat": "none",
+        "hat": "softCap",
         "facial": "none",
         "outfit": "rowCoat.closed",
-        "palette": "ash",
+        "palette": "stone",
         "asymmetries": [
           "scarfTail",
           "sleeveRolled"
@@ -247,10 +247,10 @@
         "faceType": 6,
         "hairStyle": "shortCrop",
         "hairColour": "chestnut",
-        "hat": "softCap",
+        "hat": "none",
         "facial": "none",
-        "outfit": "rowCoat.closed",
-        "palette": "oxblood",
+        "outfit": "rowCoat.open",
+        "palette": "ash",
         "asymmetries": [
           "pouchHip",
           "scarfTail"
@@ -265,9 +265,9 @@
         "skin": 2,
         "headShape": "square",
         "faceType": 4,
-        "hairStyle": "ponytail",
+        "hairStyle": "tousled",
         "hairColour": "auburn",
-        "hat": "softCap",
+        "hat": "flatCap",
         "facial": "none",
         "outfit": "rowCoat.open",
         "palette": "umber",
@@ -284,12 +284,12 @@
         "skin": 0,
         "headShape": "square",
         "faceType": 7,
-        "hairStyle": "longTied",
+        "hairStyle": "bob",
         "hairColour": "straw",
-        "hat": "none",
+        "hat": "headscarf",
         "facial": "none",
-        "outfit": "rowSkirt.shawl",
-        "palette": "ash",
+        "outfit": "rowSkirt.plain",
+        "palette": "slate",
         "asymmetries": [
           "scarfTail"
         ]
@@ -303,12 +303,12 @@
         "skin": 0,
         "headShape": "square",
         "faceType": 3,
-        "hairStyle": "lowBun",
+        "hairStyle": "bob",
         "hairColour": "straw",
-        "hat": "headscarf",
+        "hat": "none",
         "facial": "none",
-        "outfit": "rowSkirt.plain",
-        "palette": "slate",
+        "outfit": "rowSkirt.shawl",
+        "palette": "umber",
         "asymmetries": [
           "scarfTail"
         ]
@@ -327,7 +327,7 @@
         "hat": "softCap",
         "facial": "moustache",
         "outfit": "elder.longCoat",
-        "palette": "ash",
+        "palette": "oxblood",
         "asymmetries": [
           "basket"
         ]
@@ -346,7 +346,7 @@
         "hat": "softCap",
         "facial": "none",
         "outfit": "elder.longCoat",
-        "palette": "umber",
+        "palette": "navy",
         "asymmetries": [
           "basket"
         ]
@@ -365,7 +365,7 @@
         "hat": "none",
         "facial": "none",
         "outfit": "rowSkirt.shawl",
-        "palette": "ash",
+        "palette": "ochre",
         "asymmetries": [
           "pouchHip",
           "scarfTail"
@@ -380,12 +380,12 @@
         "skin": 1,
         "headShape": "oval",
         "faceType": 3,
-        "hairStyle": "ponytail",
+        "hairStyle": "tousled",
         "hairColour": "soot",
-        "hat": "softCap",
+        "hat": "flatCap",
         "facial": "none",
-        "outfit": "rowCoat.open",
-        "palette": "umber",
+        "outfit": "rowCoat.closed",
+        "palette": "ash",
         "asymmetries": [
           "scarfTail",
           "unevenFront"
@@ -407,7 +407,7 @@
         "hat": "none",
         "facial": "none",
         "outfit": "foundry.apron",
-        "palette": "soot",
+        "palette": "grey",
         "asymmetries": [
           "pouchHip"
         ]
@@ -423,10 +423,10 @@
         "faceType": 0,
         "hairStyle": "sidePart",
         "hairColour": "chestnut",
-        "hat": "softCap",
+        "hat": "none",
         "facial": "none",
-        "outfit": "labourer.braced",
-        "palette": "soot",
+        "outfit": "labourer.vested",
+        "palette": "grey",
         "asymmetries": [
           "ragBelt",
           "braceDown"
@@ -443,10 +443,10 @@
         "faceType": 7,
         "hairStyle": "tousled",
         "hairColour": "umber",
-        "hat": "softCap",
+        "hat": "none",
         "facial": "none",
         "outfit": "labourer.vested",
-        "palette": "grey",
+        "palette": "umber",
         "asymmetries": [
           "ragBelt",
           "pouchHip"
@@ -463,10 +463,10 @@
         "faceType": 4,
         "hairStyle": "tousled",
         "hairColour": "chestnut",
-        "hat": "softCap",
+        "hat": "none",
         "facial": "none",
-        "outfit": "labourer.braced",
-        "palette": "soot",
+        "outfit": "labourer.vested",
+        "palette": "oxblood",
         "asymmetries": [
           "pouchHip",
           "ragBelt"
@@ -483,10 +483,10 @@
         "faceType": 5,
         "hairStyle": "sidePart",
         "hairColour": "soot",
-        "hat": "softCap",
+        "hat": "flatCap",
         "facial": "none",
-        "outfit": "labourer.braced",
-        "palette": "dust",
+        "outfit": "labourer.vested",
+        "palette": "ochre",
         "asymmetries": [
           "pouchHip",
           "ragBelt"
@@ -505,8 +505,8 @@
         "hairColour": "auburn",
         "hat": "flatCap",
         "facial": "none",
-        "outfit": "labourer.vested",
-        "palette": "ochre",
+        "outfit": "labourer.braced",
+        "palette": "slate",
         "asymmetries": [
           "ragBelt"
         ]
@@ -522,7 +522,7 @@
         "faceType": 7,
         "hairStyle": "balding",
         "hairColour": "auburn",
-        "hat": "kerchief",
+        "hat": "flatCap",
         "facial": "none",
         "outfit": "foundry.apron",
         "palette": "soot",
@@ -545,7 +545,7 @@
         "hat": "none",
         "facial": "none",
         "outfit": "foundry.apron",
-        "palette": "umber",
+        "palette": "slate",
         "asymmetries": [
           "pouchHip"
         ]
@@ -561,10 +561,10 @@
         "faceType": 7,
         "hairStyle": "shortCrop",
         "hairColour": "auburn",
-        "hat": "none",
+        "hat": "flatCap",
         "facial": "none",
         "outfit": "labourer.braced",
-        "palette": "dust",
+        "palette": "moss",
         "asymmetries": [
           "ragBelt",
           "pouchHip"
@@ -584,7 +584,7 @@
         "hat": "kerchief",
         "facial": "none",
         "outfit": "foundry.apron",
-        "palette": "umber",
+        "palette": "bone",
         "asymmetries": [
           "pouchHip"
         ]
@@ -603,7 +603,7 @@
         "hat": "none",
         "facial": "none",
         "outfit": "labourer.braced",
-        "palette": "moss",
+        "palette": "dust",
         "asymmetries": [
           "pouchHip"
         ]
@@ -619,10 +619,10 @@
         "faceType": 4,
         "hairStyle": "shortCrop",
         "hairColour": "chestnut",
-        "hat": "flatCap",
+        "hat": "softCap",
         "facial": "none",
-        "outfit": "labourer.vested",
-        "palette": "umber",
+        "outfit": "labourer.braced",
+        "palette": "soot",
         "asymmetries": [
           "ragBelt",
           "braceDown"
@@ -642,7 +642,7 @@
         "hat": "softCap",
         "facial": "none",
         "outfit": "labourer.vested",
-        "palette": "grey",
+        "palette": "ochre",
         "asymmetries": [
           "ragBelt",
           "braceDown"
@@ -659,7 +659,7 @@
         "faceType": 4,
         "hairStyle": "sidePart",
         "hairColour": "auburn",
-        "hat": "softCap",
+        "hat": "none",
         "facial": "none",
         "outfit": "labourer.braced",
         "palette": "soot",
@@ -678,10 +678,10 @@
         "faceType": 0,
         "hairStyle": "balding",
         "hairColour": "straw",
-        "hat": "kerchief",
+        "hat": "flatCap",
         "facial": "none",
         "outfit": "foundry.apron",
-        "palette": "soot",
+        "palette": "rust",
         "asymmetries": [
           "gogglesUp"
         ]
@@ -699,8 +699,8 @@
         "hairColour": "straw",
         "hat": "softCap",
         "facial": "none",
-        "outfit": "labourer.vested",
-        "palette": "ochre",
+        "outfit": "labourer.braced",
+        "palette": "slate",
         "asymmetries": [
           "pouchHip"
         ]
@@ -719,7 +719,7 @@
         "hat": "kerchief",
         "facial": "none",
         "outfit": "foundry.apron",
-        "palette": "soot",
+        "palette": "rust",
         "asymmetries": [
           "pouchHip"
         ]
@@ -754,10 +754,10 @@
         "faceType": 6,
         "hairStyle": "shortCrop",
         "hairColour": "chestnut",
-        "hat": "flatCap",
+        "hat": "softCap",
         "facial": "none",
         "outfit": "labourer.braced",
-        "palette": "dust",
+        "palette": "moss",
         "asymmetries": [
           "ragBelt",
           "pouchHip"
@@ -776,8 +776,8 @@
         "hairColour": "soot",
         "hat": "softCap",
         "facial": "none",
-        "outfit": "labourer.braced",
-        "palette": "soot",
+        "outfit": "labourer.vested",
+        "palette": "oxblood",
         "asymmetries": [
           "pouchHip",
           "ragBelt"
@@ -796,10 +796,10 @@
         "faceType": 0,
         "hairStyle": "balding",
         "hairColour": "soot",
-        "hat": "none",
+        "hat": "bowler",
         "facial": "none",
         "outfit": "shopMerchant.waistcoat",
-        "palette": "wine",
+        "palette": "charcoal",
         "asymmetries": [
           "sleeveGarters"
         ]
@@ -835,10 +835,10 @@
         "faceType": 0,
         "hairStyle": "bob",
         "hairColour": "umber",
-        "hat": "none",
+        "hat": "headscarf",
         "facial": "none",
-        "outfit": "stallholder.shawl",
-        "palette": "rust",
+        "outfit": "stallholder.apron",
+        "palette": "slate",
         "asymmetries": [
           "pouchHip",
           "apronTie"
@@ -857,8 +857,8 @@
         "hairColour": "chestnut",
         "hat": "none",
         "facial": "none",
-        "outfit": "stallholder.apron",
-        "palette": "wine",
+        "outfit": "stallholder.shawl",
+        "palette": "rust",
         "asymmetries": [
           "apronTie",
           "pouchHip"
@@ -877,8 +877,8 @@
         "hairColour": "soot",
         "hat": "none",
         "facial": "none",
-        "outfit": "stallholder.apron",
-        "palette": "ochre",
+        "outfit": "stallholder.shawl",
+        "palette": "moss",
         "asymmetries": [
           "apronTie",
           "pouchHip"
@@ -897,8 +897,8 @@
         "hairColour": "auburn",
         "hat": "headscarf",
         "facial": "none",
-        "outfit": "stallholder.shawl",
-        "palette": "navy",
+        "outfit": "stallholder.apron",
+        "palette": "umber",
         "asymmetries": [
           "pouchHip"
         ]
@@ -914,10 +914,10 @@
         "faceType": 0,
         "hairStyle": "balding",
         "hairColour": "iron",
-        "hat": "bowler",
+        "hat": "flatCap",
         "facial": "none",
         "outfit": "shopMerchant.waistcoat",
-        "palette": "wine",
+        "palette": "moss",
         "asymmetries": [
           "watchChain",
           "pencilEar"
@@ -934,10 +934,10 @@
         "faceType": 6,
         "hairStyle": "sidePart",
         "hairColour": "soot",
-        "hat": "none",
+        "hat": "bowler",
         "facial": "none",
         "outfit": "shopMerchant.waistcoat",
-        "palette": "ochre",
+        "palette": "umber",
         "asymmetries": [
           "sleeveGarters"
         ]
@@ -953,7 +953,7 @@
         "faceType": 3,
         "hairStyle": "lowBun",
         "hairColour": "auburn",
-        "hat": "headscarf",
+        "hat": "none",
         "facial": "none",
         "outfit": "stallholder.apron",
         "palette": "ochre",
@@ -973,10 +973,10 @@
         "faceType": 4,
         "hairStyle": "shortCrop",
         "hairColour": "umber",
-        "hat": "bowler",
+        "hat": "none",
         "facial": "none",
         "outfit": "shopMerchant.waistcoat",
-        "palette": "ochre",
+        "palette": "rust",
         "asymmetries": [
           "pencilEar"
         ]
@@ -994,8 +994,8 @@
         "hairColour": "soot",
         "hat": "none",
         "facial": "none",
-        "outfit": "stallholder.apron",
-        "palette": "slate",
+        "outfit": "stallholder.shawl",
+        "palette": "navy",
         "asymmetries": [
           "apronTie"
         ]
@@ -1013,8 +1013,8 @@
         "hairColour": "chestnut",
         "hat": "headscarf",
         "facial": "none",
-        "outfit": "stallholder.shawl",
-        "palette": "moss",
+        "outfit": "stallholder.apron",
+        "palette": "wine",
         "asymmetries": [
           "pouchHip",
           "scarfTail"
@@ -1031,10 +1031,10 @@
         "faceType": 0,
         "hairStyle": "lowBun",
         "hairColour": "chestnut",
-        "hat": "none",
+        "hat": "headscarf",
         "facial": "none",
-        "outfit": "stallholder.shawl",
-        "palette": "rust",
+        "outfit": "stallholder.apron",
+        "palette": "ochre",
         "asymmetries": [
           "pouchHip",
           "scarfTail"
@@ -1053,8 +1053,8 @@
         "hairColour": "auburn",
         "hat": "none",
         "facial": "none",
-        "outfit": "stallholder.apron",
-        "palette": "wine",
+        "outfit": "stallholder.shawl",
+        "palette": "plum",
         "asymmetries": [
           "apronTie"
         ]
@@ -1070,7 +1070,7 @@
         "faceType": 7,
         "hairStyle": "balding",
         "hairColour": "iron",
-        "hat": "bowler",
+        "hat": "flatCap",
         "facial": "none",
         "outfit": "shopMerchant.waistcoat",
         "palette": "wine",
@@ -1089,10 +1089,10 @@
         "faceType": 7,
         "hairStyle": "bob",
         "hairColour": "straw",
-        "hat": "none",
+        "hat": "headscarf",
         "facial": "none",
         "outfit": "stallholder.shawl",
-        "palette": "navy",
+        "palette": "plum",
         "asymmetries": [
           "apronTie"
         ]
@@ -1111,7 +1111,7 @@
         "hat": "bowler",
         "facial": "none",
         "outfit": "shopMerchant.waistcoat",
-        "palette": "wine",
+        "palette": "slate",
         "asymmetries": [
           "pencilEar"
         ]
@@ -1127,10 +1127,10 @@
         "faceType": 2,
         "hairStyle": "sidePart",
         "hairColour": "soot",
-        "hat": "none",
+        "hat": "flatCap",
         "facial": "none",
         "outfit": "shopMerchant.waistcoat",
-        "palette": "ochre",
+        "palette": "navy",
         "asymmetries": [
           "pencilEar"
         ]
@@ -1166,10 +1166,10 @@
         "faceType": 1,
         "hairStyle": "tousled",
         "hairColour": "soot",
-        "hat": "none",
+        "hat": "kerchief",
         "facial": "none",
         "outfit": "stallholder.apron",
-        "palette": "wine",
+        "palette": "umber",
         "asymmetries": [
           "apronTie",
           "pouchHip"
@@ -1180,18 +1180,18 @@
       {
         "seed": 0,
         "cast": "courier",
-        "family": "slim",
+        "family": "standard",
         "frame": "narrow",
         "stature": 0.977,
         "skin": 2,
         "headShape": "heart",
         "faceType": 5,
-        "hairStyle": "ponytail",
+        "hairStyle": "bob",
         "hairColour": "soot",
-        "hat": "softCap",
+        "hat": "none",
         "facial": "none",
-        "outfit": "courier.jacket",
-        "palette": "oxblood",
+        "outfit": "courier.coat",
+        "palette": "moss",
         "asymmetries": [
           "scarfTail"
         ]
@@ -1199,18 +1199,18 @@
       {
         "seed": 1,
         "cast": "courier",
-        "family": "slim",
+        "family": "standard",
         "frame": "broad",
         "stature": 0.972,
         "skin": 2,
         "headShape": "square",
         "faceType": 0,
-        "hairStyle": "ponytail",
+        "hairStyle": "tousled",
         "hairColour": "chestnut",
-        "hat": "softCap",
+        "hat": "flatCap",
         "facial": "none",
-        "outfit": "courier.coat",
-        "palette": "umber",
+        "outfit": "courier.vest",
+        "palette": "moss",
         "asymmetries": [
           "scarfTail",
           "satchelStrap"
@@ -1219,18 +1219,18 @@
       {
         "seed": 2,
         "cast": "courier",
-        "family": "slim",
+        "family": "standard",
         "frame": "narrow",
         "stature": 1.021,
         "skin": 0,
         "headShape": "square",
         "faceType": 6,
-        "hairStyle": "tousled",
+        "hairStyle": "ponytail",
         "hairColour": "umber",
-        "hat": "softCap",
+        "hat": "none",
         "facial": "none",
-        "outfit": "courier.vest",
-        "palette": "mustard",
+        "outfit": "courier.coat",
+        "palette": "navy",
         "asymmetries": [
           "satchelStrap",
           "scarfTail"
@@ -1249,8 +1249,8 @@
         "hairColour": "chestnut",
         "hat": "softCap",
         "facial": "none",
-        "outfit": "courier.jacket",
-        "palette": "slate",
+        "outfit": "courier.vest",
+        "palette": "mustard",
         "asymmetries": [
           "satchelStrap",
           "scarfTail"
@@ -1259,18 +1259,18 @@
       {
         "seed": 4,
         "cast": "courier",
-        "family": "slim",
+        "family": "standard",
         "frame": "broad",
         "stature": 0.961,
         "skin": 1,
         "headShape": "long",
         "faceType": 5,
-        "hairStyle": "ponytail",
+        "hairStyle": "tousled",
         "hairColour": "soot",
-        "hat": "softCap",
+        "hat": "flatCap",
         "facial": "none",
-        "outfit": "courier.jacket",
-        "palette": "moss",
+        "outfit": "courier.vest",
+        "palette": "stone",
         "asymmetries": [
           "satchelStrap",
           "scarfTail"
@@ -1285,12 +1285,12 @@
         "skin": 0,
         "headShape": "long",
         "faceType": 1,
-        "hairStyle": "tousled",
+        "hairStyle": "ponytail",
         "hairColour": "auburn",
-        "hat": "softCap",
+        "hat": "none",
         "facial": "none",
-        "outfit": "courier.vest",
-        "palette": "stone",
+        "outfit": "courier.jacket",
+        "palette": "slate",
         "asymmetries": [
           "scarfTail"
         ]
@@ -1298,7 +1298,7 @@
       {
         "seed": 6,
         "cast": "courier",
-        "family": "slim",
+        "family": "standard",
         "frame": "broad",
         "stature": 0.967,
         "skin": 1,
@@ -1318,18 +1318,18 @@
       {
         "seed": 7,
         "cast": "courier",
-        "family": "slim",
+        "family": "standard",
         "frame": "broad",
         "stature": 1.033,
         "skin": 0,
         "headShape": "long",
         "faceType": 4,
-        "hairStyle": "shortCrop",
+        "hairStyle": "tousled",
         "hairColour": "soot",
-        "hat": "softCap",
+        "hat": "none",
         "facial": "none",
-        "outfit": "courier.vest",
-        "palette": "stone",
+        "outfit": "courier.coat",
+        "palette": "rust",
         "asymmetries": [
           "scarfTail"
         ]
@@ -1345,7 +1345,7 @@
         "faceType": 2,
         "hairStyle": "shortCrop",
         "hairColour": "auburn",
-        "hat": "softCap",
+        "hat": "none",
         "facial": "none",
         "outfit": "courier.jacket",
         "palette": "oxblood",
@@ -1365,7 +1365,7 @@
         "faceType": 2,
         "hairStyle": "tousled",
         "hairColour": "umber",
-        "hat": "softCap",
+        "hat": "none",
         "facial": "none",
         "outfit": "courier.coat",
         "palette": "umber",
@@ -1376,7 +1376,7 @@
       {
         "seed": 10,
         "cast": "courier",
-        "family": "slim",
+        "family": "standard",
         "frame": "narrow",
         "stature": 0.997,
         "skin": 2,
@@ -1384,7 +1384,7 @@
         "faceType": 1,
         "hairStyle": "tousled",
         "hairColour": "soot",
-        "hat": "softCap",
+        "hat": "flatCap",
         "facial": "none",
         "outfit": "courier.jacket",
         "palette": "moss",
@@ -1395,7 +1395,7 @@
       {
         "seed": 11,
         "cast": "courier",
-        "family": "slim",
+        "family": "standard",
         "frame": "narrow",
         "stature": 0.995,
         "skin": 2,
@@ -1405,8 +1405,8 @@
         "hairColour": "chestnut",
         "hat": "softCap",
         "facial": "none",
-        "outfit": "courier.coat",
-        "palette": "umber",
+        "outfit": "courier.jacket",
+        "palette": "slate",
         "asymmetries": [
           "satchelStrap",
           "scarfTail"
@@ -1426,7 +1426,7 @@
         "hat": "softCap",
         "facial": "none",
         "outfit": "courier.vest",
-        "palette": "mustard",
+        "palette": "stone",
         "asymmetries": [
           "scarfTail",
           "satchelStrap"
@@ -1445,8 +1445,8 @@
         "hairColour": "auburn",
         "hat": "softCap",
         "facial": "none",
-        "outfit": "courier.jacket",
-        "palette": "slate",
+        "outfit": "courier.coat",
+        "palette": "umber",
         "asymmetries": [
           "satchelStrap"
         ]
@@ -1454,18 +1454,18 @@
       {
         "seed": 14,
         "cast": "courier",
-        "family": "slim",
+        "family": "standard",
         "frame": "narrow",
         "stature": 1.017,
         "skin": 0,
         "headShape": "heart",
         "faceType": 5,
-        "hairStyle": "ponytail",
+        "hairStyle": "tousled",
         "hairColour": "straw",
-        "hat": "softCap",
+        "hat": "flatCap",
         "facial": "none",
-        "outfit": "courier.jacket",
-        "palette": "oxblood",
+        "outfit": "courier.coat",
+        "palette": "navy",
         "asymmetries": [
           "satchelStrap"
         ]
@@ -1473,7 +1473,7 @@
       {
         "seed": 15,
         "cast": "courier",
-        "family": "slim",
+        "family": "standard",
         "frame": "narrow",
         "stature": 1.025,
         "skin": 2,
@@ -1483,8 +1483,8 @@
         "hairColour": "straw",
         "hat": "softCap",
         "facial": "none",
-        "outfit": "courier.vest",
-        "palette": "stone",
+        "outfit": "courier.coat",
+        "palette": "rust",
         "asymmetries": [
           "satchelStrap"
         ]
@@ -1492,7 +1492,7 @@
       {
         "seed": 16,
         "cast": "courier",
-        "family": "slim",
+        "family": "standard",
         "frame": "broad",
         "stature": 1.039,
         "skin": 2,
@@ -1500,10 +1500,10 @@
         "faceType": 7,
         "hairStyle": "tousled",
         "hairColour": "auburn",
-        "hat": "softCap",
+        "hat": "flatCap",
         "facial": "none",
-        "outfit": "courier.jacket",
-        "palette": "oxblood",
+        "outfit": "courier.coat",
+        "palette": "moss",
         "asymmetries": [
           "scarfTail"
         ]
@@ -1511,7 +1511,7 @@
       {
         "seed": 17,
         "cast": "courier",
-        "family": "slim",
+        "family": "standard",
         "frame": "narrow",
         "stature": 0.968,
         "skin": 1,
@@ -1519,10 +1519,10 @@
         "faceType": 5,
         "hairStyle": "shortCrop",
         "hairColour": "umber",
-        "hat": "softCap",
+        "hat": "flatCap",
         "facial": "none",
-        "outfit": "courier.coat",
-        "palette": "umber",
+        "outfit": "courier.vest",
+        "palette": "mustard",
         "asymmetries": [
           "scarfTail"
         ]
@@ -1530,7 +1530,7 @@
       {
         "seed": 18,
         "cast": "courier",
-        "family": "slim",
+        "family": "standard",
         "frame": "broad",
         "stature": 1.025,
         "skin": 1,
@@ -1556,12 +1556,12 @@
         "skin": 0,
         "headShape": "long",
         "faceType": 1,
-        "hairStyle": "ponytail",
+        "hairStyle": "bob",
         "hairColour": "soot",
-        "hat": "softCap",
+        "hat": "none",
         "facial": "none",
-        "outfit": "courier.jacket",
-        "palette": "slate",
+        "outfit": "courier.vest",
+        "palette": "moss",
         "asymmetries": [
           "satchelStrap",
           "scarfTail"
@@ -1580,10 +1580,10 @@
         "faceType": 2,
         "hairStyle": "sidePart",
         "hairColour": "iron",
-        "hat": "none",
+        "hat": "flatCap",
         "facial": "beard",
-        "outfit": "olderMechanic.shopCoat",
-        "palette": "canvas",
+        "outfit": "olderMechanic.apron",
+        "palette": "stone",
         "asymmetries": [
           "ragBelt"
         ]
@@ -1599,10 +1599,10 @@
         "faceType": 6,
         "hairStyle": "sidePart",
         "hairColour": "iron",
-        "hat": "none",
+        "hat": "bowler",
         "facial": "moustache",
-        "outfit": "olderMechanic.shopCoat",
-        "palette": "stone",
+        "outfit": "olderMechanic.apron",
+        "palette": "bone",
         "asymmetries": [
           "pencilEar",
           "ragBelt"
@@ -1619,7 +1619,7 @@
         "faceType": 4,
         "hairStyle": "shortCrop",
         "hairColour": "umber",
-        "hat": "none",
+        "hat": "flatCap",
         "facial": "none",
         "outfit": "youngMechanic.jacket",
         "palette": "umber",
@@ -1637,12 +1637,12 @@
         "skin": 1,
         "headShape": "oval",
         "faceType": 3,
-        "hairStyle": "sweptBack",
+        "hairStyle": "shortCrop",
         "hairColour": "chestnut",
-        "hat": "none",
+        "hat": "softCap",
         "facial": "none",
         "outfit": "youngMechanic.jacket",
-        "palette": "moss",
+        "palette": "navy",
         "asymmetries": [
           "toolRoll",
           "gogglesUp"
@@ -1659,10 +1659,10 @@
         "faceType": 1,
         "hairStyle": "shortCrop",
         "hairColour": "soot",
-        "hat": "none",
+        "hat": "flatCap",
         "facial": "none",
         "outfit": "youngMechanic.jacket",
-        "palette": "slate",
+        "palette": "canvas",
         "asymmetries": [
           "toolRoll",
           "gogglesUp"
@@ -1682,7 +1682,7 @@
         "hat": "softCap",
         "facial": "none",
         "outfit": "youngMechanic.jacket",
-        "palette": "moss",
+        "palette": "charcoal",
         "asymmetries": [
           "gogglesUp"
         ]
@@ -1698,10 +1698,10 @@
         "faceType": 2,
         "hairStyle": "sidePart",
         "hairColour": "iron",
-        "hat": "flatCap",
+        "hat": "none",
         "facial": "moustache",
         "outfit": "olderMechanic.shopCoat",
-        "palette": "bone",
+        "palette": "canvas",
         "asymmetries": [
           "spectacles",
           "pencilEar"
@@ -1718,10 +1718,10 @@
         "faceType": 6,
         "hairStyle": "balding",
         "hairColour": "iron",
-        "hat": "none",
+        "hat": "flatCap",
         "facial": "moustache",
         "outfit": "olderMechanic.apron",
-        "palette": "stone",
+        "palette": "cream",
         "asymmetries": [
           "ragBelt"
         ]
@@ -1737,10 +1737,10 @@
         "faceType": 3,
         "hairStyle": "tousled",
         "hairColour": "auburn",
-        "hat": "softCap",
+        "hat": "flatCap",
         "facial": "none",
         "outfit": "youngMechanic.jacket",
-        "palette": "slate",
+        "palette": "stone",
         "asymmetries": [
           "gogglesUp",
           "toolRoll"
@@ -1760,7 +1760,7 @@
         "hat": "flatCap",
         "facial": "moustache",
         "outfit": "olderMechanic.shopCoat",
-        "palette": "stone",
+        "palette": "cream",
         "asymmetries": [
           "pencilEar"
         ]
@@ -1776,7 +1776,7 @@
         "faceType": 2,
         "hairStyle": "shortCrop",
         "hairColour": "soot",
-        "hat": "none",
+        "hat": "flatCap",
         "facial": "none",
         "outfit": "youngMechanic.jacket",
         "palette": "slate",
@@ -1795,7 +1795,7 @@
         "faceType": 2,
         "hairStyle": "tousled",
         "hairColour": "chestnut",
-        "hat": "softCap",
+        "hat": "none",
         "facial": "none",
         "outfit": "youngMechanic.jacket",
         "palette": "moss",
@@ -1818,7 +1818,7 @@
         "hat": "none",
         "facial": "none",
         "outfit": "youngMechanic.jacket",
-        "palette": "umber",
+        "palette": "canvas",
         "asymmetries": [
           "gogglesUp",
           "ragBelt"
@@ -1833,12 +1833,12 @@
         "skin": 2,
         "headShape": "long",
         "faceType": 2,
-        "hairStyle": "ponytail",
+        "hairStyle": "shortCrop",
         "hairColour": "auburn",
-        "hat": "none",
+        "hat": "flatCap",
         "facial": "none",
         "outfit": "youngMechanic.jacket",
-        "palette": "moss",
+        "palette": "navy",
         "asymmetries": [
           "toolRoll"
         ]
@@ -1856,7 +1856,7 @@
         "hairColour": "iron",
         "hat": "flatCap",
         "facial": "moustache",
-        "outfit": "olderMechanic.shopCoat",
+        "outfit": "olderMechanic.apron",
         "palette": "canvas",
         "asymmetries": [
           "spectacles"
@@ -1871,9 +1871,9 @@
         "skin": 2,
         "headShape": "square",
         "faceType": 0,
-        "hairStyle": "sweptBack",
+        "hairStyle": "tousled",
         "hairColour": "straw",
-        "hat": "none",
+        "hat": "flatCap",
         "facial": "none",
         "outfit": "youngMechanic.jacket",
         "palette": "moss",
@@ -1895,7 +1895,7 @@
         "hat": "flatCap",
         "facial": "beard",
         "outfit": "olderMechanic.shopCoat",
-        "palette": "canvas",
+        "palette": "bone",
         "asymmetries": [
           "pencilEar"
         ]
@@ -1911,10 +1911,10 @@
         "faceType": 4,
         "hairStyle": "balding",
         "hairColour": "iron",
-        "hat": "none",
+        "hat": "bowler",
         "facial": "moustache",
-        "outfit": "olderMechanic.apron",
-        "palette": "canvas",
+        "outfit": "olderMechanic.shopCoat",
+        "palette": "stone",
         "asymmetries": [
           "pencilEar"
         ]
@@ -1930,10 +1930,10 @@
         "faceType": 2,
         "hairStyle": "balding",
         "hairColour": "iron",
-        "hat": "flatCap",
+        "hat": "bowler",
         "facial": "moustache",
         "outfit": "olderMechanic.shopCoat",
-        "palette": "canvas",
+        "palette": "bone",
         "asymmetries": [
           "pencilEar",
           "spectacles"
@@ -1948,12 +1948,12 @@
         "skin": 2,
         "headShape": "oval",
         "faceType": 3,
-        "hairStyle": "ponytail",
+        "hairStyle": "shortCrop",
         "hairColour": "soot",
-        "hat": "none",
+        "hat": "flatCap",
         "facial": "none",
         "outfit": "youngMechanic.jacket",
-        "palette": "moss",
+        "palette": "charcoal",
         "asymmetries": [
           "toolRoll",
           "gogglesUp"

@@ -2,13 +2,13 @@
   "sheet": {
     "method": "sheet stride simulated at 60 Hz for 4 s after a 2 s warm-up; animateLife(n, \"walk\") with the figure moved along +z at `speed` m/s (the sheet uses 1 m/s); the pavement is .13 under the origin in the world; flat = the sole's heel edge and toe tip both within 1 cm of the pavement; flatAnkleDriftCm = the ankle pivot's max horizontal travel while flat (the slide; flatAnkleNetCm its z travel, positive = forward with the body, i.e. skating); the heel-off roll that follows (heel up, toe tip within 1 cm) is reported apart: rollAnkleTravelCm (the foot turning over its toe, expected) and rollToeTipDriftCm (the toe tip it turns on, while it is on the pavement (within 3 mm): the slip there); lowestSoleCm the lowest heel or toe edge in the stance (negative = into the pavement). People XXI: the window was the lowest vertex within 1 cm of its lowest, which took in the heel-off roll",
     "summary": {
-      "stances": 185,
+      "stances": 187,
       "flatAnkleDriftCm": {
         "median": 0.18,
-        "max": 0.45
+        "max": 0.4
       },
       "rollAnkleTravelCm": {
-        "median": 4.4,
+        "median": 4.3,
         "max": 5.3
       },
       "rollToeTipDriftCm": {
@@ -260,28 +260,37 @@
         "feet": [
           [
             {
-              "flatFrames": 20,
-              "flatAnkleDriftCm": 0.28,
-              "flatAnkleNetCm": 0.27,
-              "rollFrames": 20,
+              "flatFrames": 18,
+              "flatAnkleDriftCm": 0.39,
+              "flatAnkleNetCm": 0.38,
+              "rollFrames": 17,
               "rollAnkleTravelCm": 4.1,
               "rollToeTipDriftCm": 0.11,
               "lowestSoleCm": -0.09
             },
             {
-              "flatFrames": 21,
-              "flatAnkleDriftCm": 0.44,
-              "flatAnkleNetCm": 0.43,
-              "rollFrames": 20,
-              "rollAnkleTravelCm": 4,
+              "flatFrames": 18,
+              "flatAnkleDriftCm": 0.39,
+              "flatAnkleNetCm": 0.38,
+              "rollFrames": 17,
+              "rollAnkleTravelCm": 4.1,
               "rollToeTipDriftCm": 0.11,
               "lowestSoleCm": -0.09
             },
             {
-              "flatFrames": 20,
-              "flatAnkleDriftCm": 0.3,
-              "flatAnkleNetCm": 0.29,
-              "rollFrames": 21,
+              "flatFrames": 18,
+              "flatAnkleDriftCm": 0.39,
+              "flatAnkleNetCm": 0.38,
+              "rollFrames": 17,
+              "rollAnkleTravelCm": 4.1,
+              "rollToeTipDriftCm": 0.11,
+              "lowestSoleCm": -0.09
+            },
+            {
+              "flatFrames": 18,
+              "flatAnkleDriftCm": 0.39,
+              "flatAnkleNetCm": 0.38,
+              "rollFrames": 17,
               "rollAnkleTravelCm": 4.1,
               "rollToeTipDriftCm": 0.11,
               "lowestSoleCm": -0.09
@@ -289,28 +298,28 @@
           ],
           [
             {
-              "flatFrames": 21,
-              "flatAnkleDriftCm": 0.45,
-              "flatAnkleNetCm": 0.44,
-              "rollFrames": 20,
-              "rollAnkleTravelCm": 4,
-              "rollToeTipDriftCm": 0.32,
-              "lowestSoleCm": -0.09
-            },
-            {
-              "flatFrames": 21,
-              "flatAnkleDriftCm": 0.41,
-              "flatAnkleNetCm": 0.4,
-              "rollFrames": 20,
-              "rollAnkleTravelCm": 4,
+              "flatFrames": 17,
+              "flatAnkleDriftCm": 0.23,
+              "flatAnkleNetCm": 0.22,
+              "rollFrames": 18,
+              "rollAnkleTravelCm": 4.1,
               "rollToeTipDriftCm": 0.11,
               "lowestSoleCm": -0.09
             },
             {
-              "flatFrames": 20,
-              "flatAnkleDriftCm": 0.27,
-              "flatAnkleNetCm": 0.26,
-              "rollFrames": 20,
+              "flatFrames": 17,
+              "flatAnkleDriftCm": 0.23,
+              "flatAnkleNetCm": 0.22,
+              "rollFrames": 18,
+              "rollAnkleTravelCm": 4.1,
+              "rollToeTipDriftCm": 0.11,
+              "lowestSoleCm": -0.09
+            },
+            {
+              "flatFrames": 17,
+              "flatAnkleDriftCm": 0.23,
+              "flatAnkleNetCm": 0.22,
+              "rollFrames": 18,
               "rollAnkleTravelCm": 4.1,
               "rollToeTipDriftCm": 0.11,
               "lowestSoleCm": -0.09
@@ -1166,86 +1175,95 @@
         "feet": [
           [
             {
-              "flatFrames": 15,
+              "flatFrames": 13,
               "flatAnkleDriftCm": 0.24,
               "flatAnkleNetCm": 0.23,
-              "rollFrames": 15,
+              "rollFrames": 13,
               "rollAnkleTravelCm": 4,
-              "rollToeTipDriftCm": 0.19,
+              "rollToeTipDriftCm": 0.11,
               "lowestSoleCm": -0.08
             },
             {
-              "flatFrames": 15,
-              "flatAnkleDriftCm": 0.25,
+              "flatFrames": 13,
+              "flatAnkleDriftCm": 0.23,
+              "flatAnkleNetCm": 0.22,
+              "rollFrames": 13,
+              "rollAnkleTravelCm": 4,
+              "rollToeTipDriftCm": 0.22,
+              "lowestSoleCm": -0.08
+            },
+            {
+              "flatFrames": 13,
+              "flatAnkleDriftCm": 0.24,
+              "flatAnkleNetCm": 0.23,
+              "rollFrames": 13,
+              "rollAnkleTravelCm": 4.1,
+              "rollToeTipDriftCm": 0.11,
+              "lowestSoleCm": -0.08
+            },
+            {
+              "flatFrames": 13,
+              "flatAnkleDriftCm": 0.26,
               "flatAnkleNetCm": 0.24,
-              "rollFrames": 15,
+              "rollFrames": 13,
               "rollAnkleTravelCm": 4.1,
               "rollToeTipDriftCm": 0.11,
               "lowestSoleCm": -0.09
             },
             {
-              "flatFrames": 16,
-              "flatAnkleDriftCm": 0.43,
-              "flatAnkleNetCm": 0.42,
-              "rollFrames": 15,
-              "rollAnkleTravelCm": 4,
-              "rollToeTipDriftCm": 0.11,
-              "lowestSoleCm": -0.09
-            },
-            {
-              "flatFrames": 15,
-              "flatAnkleDriftCm": 0.24,
-              "flatAnkleNetCm": 0.23,
-              "rollFrames": 15,
-              "rollAnkleTravelCm": 4,
-              "rollToeTipDriftCm": 0.17,
-              "lowestSoleCm": -0.08
-            },
-            {
-              "flatFrames": 15,
-              "flatAnkleDriftCm": 0.25,
-              "flatAnkleNetCm": 0.24,
-              "rollFrames": 15,
-              "rollAnkleTravelCm": 4.1,
+              "flatFrames": 13,
+              "flatAnkleDriftCm": 0.28,
+              "flatAnkleNetCm": 0.27,
+              "rollFrames": 13,
+              "rollAnkleTravelCm": 4.2,
               "rollToeTipDriftCm": 0.11,
               "lowestSoleCm": -0.09
             }
           ],
           [
             {
-              "flatFrames": 16,
-              "flatAnkleDriftCm": 0.42,
-              "flatAnkleNetCm": 0.42,
-              "rollFrames": 15,
+              "flatFrames": 13,
+              "flatAnkleDriftCm": 0.25,
+              "flatAnkleNetCm": 0.24,
+              "rollFrames": 13,
               "rollAnkleTravelCm": 4,
               "rollToeTipDriftCm": 0.11,
               "lowestSoleCm": -0.09
             },
             {
-              "flatFrames": 15,
-              "flatAnkleDriftCm": 0.24,
+              "flatFrames": 13,
+              "flatAnkleDriftCm": 0.23,
               "flatAnkleNetCm": 0.23,
-              "rollFrames": 15,
+              "rollFrames": 13,
               "rollAnkleTravelCm": 4,
-              "rollToeTipDriftCm": 0.18,
+              "rollToeTipDriftCm": 0.37,
               "lowestSoleCm": -0.08
             },
             {
-              "flatFrames": 15,
-              "flatAnkleDriftCm": 0.25,
-              "flatAnkleNetCm": 0.24,
-              "rollFrames": 15,
+              "flatFrames": 13,
+              "flatAnkleDriftCm": 0.23,
+              "flatAnkleNetCm": 0.22,
+              "rollFrames": 13,
               "rollAnkleTravelCm": 4.1,
               "rollToeTipDriftCm": 0.11,
-              "lowestSoleCm": -0.09
+              "lowestSoleCm": -0.08
             },
             {
-              "flatFrames": 16,
-              "flatAnkleDriftCm": 0.43,
-              "flatAnkleNetCm": 0.42,
-              "rollFrames": 15,
-              "rollAnkleTravelCm": 4,
+              "flatFrames": 13,
+              "flatAnkleDriftCm": 0.24,
+              "flatAnkleNetCm": 0.23,
+              "rollFrames": 13,
+              "rollAnkleTravelCm": 4.1,
               "rollToeTipDriftCm": 0.11,
+              "lowestSoleCm": -0.08
+            },
+            {
+              "flatFrames": 13,
+              "flatAnkleDriftCm": 0.27,
+              "flatAnkleNetCm": 0.26,
+              "rollFrames": 13,
+              "rollAnkleTravelCm": 4.1,
+              "rollToeTipDriftCm": 0.12,
               "lowestSoleCm": -0.09
             }
           ]

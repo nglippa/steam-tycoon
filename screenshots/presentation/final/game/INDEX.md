@@ -1,6 +1,6 @@
-# Final in-game QA set (QA V-b)
+# Final in-game QA set
 
-Captured at 3cc0c49 (branch `presentation`) from a Vite dev server, headless Chromium, 1280x720 at device scale 1 and quality high unless a line says otherwise. The game clock is held still for each shot. `?people=new` (the shipping figures) unless a line says otherwise. Per-shot cameras, draw calls, triangles and people counts are in each folder's captures.json. Console results for every load: console.json. Performance: perf.json.
+Captured at f0eb279 (branch `main`) from a Vite dev server, headless Chromium, 1280x720 at device scale 1 and quality high unless a line says otherwise. The game clock is held still for each shot. `?people=new` (the shipping figures) unless a line says otherwise. Per-shot cameras, draw calls, triangles and people counts are in each folder's captures.json. Console results for every load: console.json. Performance: perf.json.
 
 Commands: `node tools/qa-captures.mjs <base> screenshots/presentation/final/game/scene --part=game --people=new`; `... /intro --part=intro --people=new`; `... /perf-run --part=perf --people=new|old` (and `/perf-run2`, old then new); `node tools/game-captures.mjs <base> .../bands --people=new --sets=shader` (also `bands-head-people-old` with `--people=old`, and `bands-baseline-70f73c4` against a dev server on `git archive 70f73c4`); `node tools/game-captures.mjs <base> .../hud --people=new --sets=hud,hudsizes`; `node tools/hud-mock.mjs .../hud-mock --bg=.../scene/product-test-clear-world.png --only=<view>-normal,<view>-curfew-worst`.
 

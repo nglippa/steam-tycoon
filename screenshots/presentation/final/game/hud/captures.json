@@ -7,7 +7,12 @@
     720
   ],
   "deviceScaleFactor": 1,
-  "problems": [],
+  "problems": [
+    "warning: [.WebGL-0x10c00440e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+    "warning: [.WebGL-0x10c00440e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+    "warning: [.WebGL-0x10c00440e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+    "warning: [.WebGL-0x10c00440e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)"
+  ],
   "shots": [
     {
       "name": "hud-normal.png",
@@ -23,8 +28,8 @@
         720
       ],
       "quality": "high",
-      "drawCalls": 626,
-      "triangles": 871176,
+      "drawCalls": 622,
+      "triangles": 931640,
       "clockHour": 12,
       "weather": "clear",
       "stage": 0,
@@ -41,9 +46,9 @@
       "note": "persistent HUD, standing in the Great Main, pointer locked",
       "lock": {
         "locked": true,
-        "fallback": false
+        "fallback": true
       },
-      "loadMs": 2816
+      "loadMs": 11382
     },
     {
       "name": "hud-toast.png",
@@ -59,8 +64,8 @@
         720
       ],
       "quality": "high",
-      "drawCalls": 630,
-      "triangles": 871596,
+      "drawCalls": 626,
+      "triangles": 931688,
       "clockHour": 12,
       "weather": "clear",
       "stage": 0,
@@ -77,7 +82,7 @@
       "note": "a toast showing",
       "lock": {
         "locked": true,
-        "fallback": false
+        "fallback": true
       }
     },
     {
@@ -95,7 +100,7 @@
       ],
       "quality": "high",
       "drawCalls": 339,
-      "triangles": 676177,
+      "triangles": 699865,
       "clockHour": 12,
       "weather": "clear",
       "stage": 0,
@@ -116,7 +121,7 @@
       },
       "lock": {
         "locked": true,
-        "fallback": false
+        "fallback": true
       }
     },
     {
@@ -133,8 +138,8 @@
         720
       ],
       "quality": "high",
-      "drawCalls": 626,
-      "triangles": 864356,
+      "drawCalls": 624,
+      "triangles": 931880,
       "clockHour": 12,
       "weather": "clear",
       "stage": 0,
@@ -152,7 +157,7 @@
       "said": true,
       "lock": {
         "locked": true,
-        "fallback": false
+        "fallback": true
       }
     },
     {
@@ -169,8 +174,8 @@
         1080
       ],
       "quality": "high",
-      "drawCalls": 627,
-      "triangles": 871188,
+      "drawCalls": 623,
+      "triangles": 931652,
       "clockHour": 12,
       "weather": "clear",
       "stage": 0,
@@ -200,9 +205,9 @@
       ],
       "lock": {
         "locked": true,
-        "fallback": false
+        "fallback": true
       },
-      "loadMs": 2386,
+      "loadMs": 12500,
       "bodyClass": "started playing"
     },
     {
@@ -219,8 +224,8 @@
         1080
       ],
       "quality": "high",
-      "drawCalls": 642,
-      "triangles": 851360,
+      "drawCalls": 638,
+      "triangles": 915922,
       "clockHour": 23.67,
       "weather": "fog",
       "stage": 0,
@@ -250,9 +255,9 @@
       ],
       "lock": {
         "locked": true,
-        "fallback": false
+        "fallback": true
       },
-      "loadMs": 2386,
+      "loadMs": 12500,
       "bodyClass": "started playing"
     },
     {
@@ -269,8 +274,8 @@
         720
       ],
       "quality": "high",
-      "drawCalls": 627,
-      "triangles": 871188,
+      "drawCalls": 625,
+      "triangles": 931676,
       "clockHour": 12,
       "weather": "clear",
       "stage": 0,
@@ -300,9 +305,9 @@
       ],
       "lock": {
         "locked": true,
-        "fallback": false
+        "fallback": true
       },
-      "loadMs": 2352,
+      "loadMs": 11783,
       "bodyClass": "started playing"
     },
     {
@@ -319,8 +324,8 @@
         720
       ],
       "quality": "high",
-      "drawCalls": 642,
-      "triangles": 851360,
+      "drawCalls": 1235,
+      "triangles": 1493922,
       "clockHour": 23.67,
       "weather": "fog",
       "stage": 0,
@@ -350,9 +355,9 @@
       ],
       "lock": {
         "locked": true,
-        "fallback": false
+        "fallback": true
       },
-      "loadMs": 2352,
+      "loadMs": 11783,
       "bodyClass": "started playing"
     },
     {
@@ -370,7 +375,7 @@
       ],
       "quality": "high",
       "drawCalls": 566,
-      "triangles": 844392,
+      "triangles": 904682,
       "clockHour": 12,
       "weather": "clear",
       "stage": 0,
@@ -400,9 +405,9 @@
       ],
       "lock": {
         "locked": true,
-        "fallback": false
+        "fallback": true
       },
-      "loadMs": 2327,
+      "loadMs": 11424,
       "bodyClass": "started playing"
     },
     {
@@ -420,7 +425,7 @@
       ],
       "quality": "high",
       "drawCalls": 579,
-      "triangles": 817744,
+      "triangles": 888916,
       "clockHour": 23.67,
       "weather": "fog",
       "stage": 0,
@@ -450,9 +455,9 @@
       ],
       "lock": {
         "locked": true,
-        "fallback": false
+        "fallback": true
       },
-      "loadMs": 2327,
+      "loadMs": 11424,
       "bodyClass": "started playing"
     },
     {
@@ -470,7 +475,7 @@
       ],
       "quality": "high",
       "drawCalls": 487,
-      "triangles": 803344,
+      "triangles": 847436,
       "clockHour": 12,
       "weather": "clear",
       "stage": 0,
@@ -499,7 +504,7 @@
         -0.02
       ],
       "lock": null,
-      "loadMs": 3176,
+      "loadMs": 6795,
       "bodyClass": "touch started"
     },
     {
@@ -517,7 +522,7 @@
       ],
       "quality": "high",
       "drawCalls": 501,
-      "triangles": 787728,
+      "triangles": 836208,
       "clockHour": 23.67,
       "weather": "fog",
       "stage": 0,
@@ -546,7 +551,7 @@
         -0.02
       ],
       "lock": null,
-      "loadMs": 3176,
+      "loadMs": 6795,
       "bodyClass": "touch started"
     }
   ]

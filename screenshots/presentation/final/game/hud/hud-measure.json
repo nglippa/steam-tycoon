@@ -7,7 +7,7 @@
   "people": "new",
   "lock": {
     "locked": true,
-    "fallback": false
+    "fallback": true
   },
   "persistent": {
     "identityPlate": {
@@ -252,9 +252,9 @@
     },
     "treasury": {
       "selector": "#hud .treasury",
-      "x": 1106.14,
+      "x": 1106.58,
       "y": 12,
-      "w": 145.86,
+      "w": 145.42,
       "h": 44,
       "fontSize": 16,
       "lineHeight": "normal",
@@ -278,7 +278,7 @@
       "opacity": "1",
       "children": {
         "small": {
-          "x": 1119.14,
+          "x": 1119.58,
           "y": 21.5,
           "w": 73.11,
           "h": 15,
@@ -304,7 +304,7 @@
           "opacity": "1"
         },
         ".coin": {
-          "x": 1200.25,
+          "x": 1200.69,
           "y": 19.5,
           "w": 7.83,
           "h": 18,
@@ -330,9 +330,9 @@
           "opacity": "1"
         },
         "#crowns": {
-          "x": 1212.08,
+          "x": 1212.52,
           "y": 14.5,
-          "w": 26.92,
+          "w": 26.48,
           "h": 22,
           "fontSize": 22,
           "lineHeight": "22px",
@@ -902,7 +902,7 @@
       }
     }
   },
-  "persistentAreaPx": 63146,
+  "persistentAreaPx": 63127,
   "persistentAreaPercent": 6.85,
   "hud": {
     "selector": "#hud",

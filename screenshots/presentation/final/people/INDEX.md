@@ -1,6 +1,6 @@
 # People: final QA image set
 
-Captured at 967d31d from the cast sheet (`sheet.html`) with `node tools/qa-captures.mjs <base> screenshots/presentation/final/people --part=sheet` and `--part=seated --prefix=people`, headless Chromium, device scale 1. The face and enlargement images are crops of those captures (PIL; enlargements are nearest-neighbour, so each source pixel is a square block). "Review light" is the sheet's neutral light. "Game light" is the game's lighting at the game's 68° FOV.
+Captured at f0eb279 from the cast sheet (`sheet.html`) with `node tools/qa-captures.mjs <base> screenshots/presentation/final/people --part=sheet` and `--part=seated --prefix=people`, headless Chromium, device scale 1. The face and enlargement images are crops of those captures (PIL; enlargements are nearest-neighbour, so each source pixel is a square block). "Review light" is the sheet's neutral light. "Game light" is the game's lighting at the game's 68° FOV.
 
 The eleven representatives, left to right: slim civilian, standard civilian, sturdy civilian, young mechanic, older mechanic, labourer, foundry worker, stallholder, shop merchant, garrison soldier, inspector.
 
@@ -21,7 +21,7 @@ The eleven representatives, left to right: slim civilian, standard civilian, stu
 
 ## 2. Seated (7)
 
-Cast: the eleven, then the child and the elder. Review light; the red line is the pavement, and the bench sits under the hips.
+Cast: the eleven, then the child (seed 3) and the elder (seed 13, in a hat). Review light; the red line is the pavement, and the bench sits under the hips.
 
 - `people-seated-sit-side.png`: the thirteen seated, side.
 - `people-seated-sit-front.png`: the thirteen seated, front.

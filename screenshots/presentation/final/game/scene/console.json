@@ -3,20 +3,41 @@
     {
       "page": "game people=new (captures)",
       "url": "http://127.0.0.1:5199/?dev=1&intro=0&view=street&people=new&weather=clear&level=2",
-      "messages": [],
-      "loadMs": 2576
+      "messages": [
+        {
+          "type": "warning",
+          "text": "[.WebGL-0x11400441400]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+          "at": "http://127.0.0.1:5199/?dev=1&intro=0&view=street&people=new&weather=clear&level=2"
+        },
+        {
+          "type": "warning",
+          "text": "[.WebGL-0x11400441400]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+          "at": "http://127.0.0.1:5199/?dev=1&intro=0&view=street&people=new&weather=clear&level=2"
+        },
+        {
+          "type": "warning",
+          "text": "[.WebGL-0x11400441400]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+          "at": "http://127.0.0.1:5199/?dev=1&intro=0&view=street&people=new&weather=clear&level=2"
+        },
+        {
+          "type": "warning",
+          "text": "[.WebGL-0x11400441400]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)",
+          "at": "http://127.0.0.1:5199/?dev=1&intro=0&view=street&people=new&weather=clear&level=2"
+        }
+      ],
+      "loadMs": 12077
     },
     {
       "page": "game people=new site=3 (captures)",
       "url": "http://127.0.0.1:5199/?dev=1&intro=0&view=street&people=new&weather=clear&level=2&site=3",
       "messages": [],
-      "loadMs": 2504
+      "loadMs": 12133
     },
     {
       "page": "game people=new site=5 (captures)",
       "url": "http://127.0.0.1:5199/?dev=1&intro=0&view=street&people=new&weather=clear&level=2&site=5",
       "messages": [],
-      "loadMs": 2524
+      "loadMs": 12597
     }
   ]
 }

@@ -1,13 +1,22 @@
 {
-  "head": "3cc0c49",
-  "note": "Every page load of this capture set. qa-captures loads record console errors and warnings, page errors, failed requests and HTTP >= 400 per load; game-captures runs (bands, bands-head-people-old, bands-baseline-70f73c4, hud) record the same kinds per run (requestfailed and HTTP >= 400 were added to its watcher for this pass). tools/hud-mock.mjs pages are a static file:// mock with no game code and are not watched.",
+  "head": "f0eb279",
+  "note": "Every page load of this capture set. qa-captures loads record console errors and warnings, page errors, failed requests and HTTP >= 400 per load; game-captures runs (bands, hud) record the same kinds per run (requestfailed and HTTP >= 400 were added to its watcher for this pass). tools/hud-mock.mjs pages are a static file:// mock with no game code and are not watched. Chromium's \"GL Driver Message ... GPU stall due to ReadPixels\" lines (the capture tools' own readPixels) are left out of the messages and the totals.",
+  "totals": {
+    "entries": 10,
+    "pageLoads": 14,
+    "errors": 0,
+    "warnings": 0,
+    "pageErrors": 0,
+    "failedRequests": 0,
+    "http4xx5xx": 0
+  },
   "loads": [
     {
       "source": "scene/console.json",
       "key": "game-new",
       "page": "game people=new (captures)",
       "url": "http://127.0.0.1:5199/?dev=1&intro=0&view=street&people=new&weather=clear&level=2",
-      "loadMs": 2576,
+      "loadMs": 12077,
       "messages": []
     },
     {
@@ -15,7 +24,7 @@
       "key": "game-new",
       "page": "game people=new site=3 (captures)",
       "url": "http://127.0.0.1:5199/?dev=1&intro=0&view=street&people=new&weather=clear&level=2&site=3",
-      "loadMs": 2504,
+      "loadMs": 12133,
       "messages": []
     },
     {
@@ -23,7 +32,7 @@
       "key": "game-new",
       "page": "game people=new site=5 (captures)",
       "url": "http://127.0.0.1:5199/?dev=1&intro=0&view=street&people=new&weather=clear&level=2&site=5",
-      "loadMs": 2524,
+      "loadMs": 12597,
       "messages": []
     },
     {
@@ -31,7 +40,7 @@
       "key": "intro-new",
       "page": "intro people=new",
       "url": "http://127.0.0.1:5199/?dev=1&people=new&weather=clear",
-      "loadMs": 2507,
+      "loadMs": 11551,
       "messages": []
     },
     {
@@ -39,7 +48,7 @@
       "key": "perf-new",
       "page": "game people=new (perf)",
       "url": "http://127.0.0.1:5199/?dev=1&intro=0&view=street&people=new&weather=clear&level=2",
-      "loadMs": 2681,
+      "loadMs": 11932,
       "messages": []
     },
     {
@@ -47,7 +56,7 @@
       "key": "perf-old",
       "page": "game people=old (perf)",
       "url": "http://127.0.0.1:5199/?dev=1&intro=0&view=street&people=old&weather=clear&level=2",
-      "loadMs": 2535,
+      "loadMs": 11108,
       "messages": []
     },
     {
@@ -55,7 +64,7 @@
       "key": "perf-old",
       "page": "game people=old (perf)",
       "url": "http://127.0.0.1:5199/?dev=1&intro=0&view=street&people=old&weather=clear&level=2",
-      "loadMs": 2492,
+      "loadMs": 11244,
       "messages": []
     },
     {
@@ -63,41 +72,20 @@
       "key": "perf-new",
       "page": "game people=new (perf)",
       "url": "http://127.0.0.1:5199/?dev=1&intro=0&view=street&people=new&weather=clear&level=2",
-      "loadMs": 2686,
+      "loadMs": 11865,
       "messages": []
     },
     {
       "source": "bands/captures.json",
       "page": "game-captures --sets=shader --people=new (one load)",
-      "url": "http://127.0.0.1:5199/?dev=1&intro=0&view=street&people=new&weather=clear&level=2",
-      "messages": []
-    },
-    {
-      "source": "bands-head-people-old/captures.json",
-      "page": "game-captures --sets=shader --people=old (one load)",
-      "url": "http://127.0.0.1:5199/?dev=1&intro=0&view=street&people=old&weather=clear&level=2",
-      "messages": []
-    },
-    {
-      "source": "bands-baseline-70f73c4/captures.json",
-      "page": "game-captures --sets=shader against the 70f73c4 tree (one load)",
-      "url": "http://127.0.0.1:5198/?dev=1&intro=0&view=street&people=old&weather=clear&level=2",
+      "url": "http://127.0.0.1:5199",
       "messages": []
     },
     {
       "source": "hud/captures.json",
       "page": "game-captures --sets=hud,hudsizes --people=new (five loads: the hud set, then 1920x1080, 1280x720, 800x600, phone)",
-      "url": "http://127.0.0.1:5199/?dev=1&intro=0&view=street&people=new&weather=clear",
+      "url": "http://127.0.0.1:5199",
       "messages": []
     }
-  ],
-  "totals": {
-    "entries": 12,
-    "pageLoads": 16,
-    "errors": 0,
-    "warnings": 0,
-    "pageErrors": 0,
-    "failedRequests": 0,
-    "http4xx5xx": 0
-  }
+  ]
 }

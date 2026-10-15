@@ -5,9 +5,24 @@
       "url": "http://127.0.0.1:5199/sheet.html?…",
       "messages": [
         {
-          "type": "error",
-          "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
-          "at": "http://127.0.0.1:5199/favicon.ico"
+          "type": "warning",
+          "text": "[.WebGL-0x10c00437200]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+          "at": "http://127.0.0.1:5199/sheet.html?build=new&combos=rowSkirt.slim.narrow,rowCoat.standard.broad,stallholder.sturdy.broad,youngMechanic.slim.narrow,olderMechanic.sturdy.broad,labourer.standard.broad,foundry.sturdy.broad,stallholder.standard.narrow,shopMerchant.standard.broad,garrison.sturdy.broad,inspector.standard.broad&seeds=1,2,3,4,5,6,7,8,9,10,11&view=front&pose=stand&fov=12"
+        },
+        {
+          "type": "warning",
+          "text": "[.WebGL-0x10c00437200]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+          "at": "http://127.0.0.1:5199/sheet.html?build=new&combos=rowSkirt.slim.narrow,rowCoat.standard.broad,stallholder.sturdy.broad,youngMechanic.slim.narrow,olderMechanic.sturdy.broad,labourer.standard.broad,foundry.sturdy.broad,stallholder.standard.narrow,shopMerchant.standard.broad,garrison.sturdy.broad,inspector.standard.broad&seeds=1,2,3,4,5,6,7,8,9,10,11&view=front&pose=stand&fov=12"
+        },
+        {
+          "type": "warning",
+          "text": "[.WebGL-0x10c00437200]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+          "at": "http://127.0.0.1:5199/sheet.html?build=new&combos=rowSkirt.slim.narrow,rowCoat.standard.broad,stallholder.sturdy.broad,youngMechanic.slim.narrow,olderMechanic.sturdy.broad,labourer.standard.broad,foundry.sturdy.broad,stallholder.standard.narrow,shopMerchant.standard.broad,garrison.sturdy.broad,inspector.standard.broad&seeds=1,2,3,4,5,6,7,8,9,10,11&view=front&pose=stand&fov=12"
+        },
+        {
+          "type": "warning",
+          "text": "[.WebGL-0x10c00445000]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)",
+          "at": "http://127.0.0.1:5199/sheet.html?build=new&combos=rowSkirt.slim.narrow,rowCoat.standard.broad,stallholder.sturdy.broad,youngMechanic.slim.narrow,olderMechanic.sturdy.broad,labourer.standard.broad,foundry.sturdy.broad,stallholder.standard.narrow,shopMerchant.standard.broad,garrison.sturdy.broad,inspector.standard.broad&seeds=1,2,3,4,5,6,7,8,9,10,11&view=quarter&pose=stand&fov=12"
         }
       ]
     }
@@ -18,9 +33,24 @@
       "url": "http://127.0.0.1:5199/sheet.html?…&pose=sit|bite&ground=1",
       "messages": [
         {
-          "type": "error",
-          "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
-          "at": "http://127.0.0.1:5199/favicon.ico"
+          "type": "warning",
+          "text": "[.WebGL-0x13c0043ea00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+          "at": "http://127.0.0.1:5199/sheet.html?build=new&combos=rowSkirt.slim.narrow,rowCoat.standard.broad,stallholder.sturdy.broad,youngMechanic.slim.narrow,olderMechanic.sturdy.broad,labourer.standard.broad,foundry.sturdy.broad,stallholder.standard.narrow,shopMerchant.standard.broad,garrison.sturdy.broad,inspector.standard.broad,child.child.narrow,elder.slim.narrow&seeds=1,2,3,4,5,6,7,8,9,10,11,3,13&ground=1&view=side&pose=sit&fov=12"
+        },
+        {
+          "type": "warning",
+          "text": "[.WebGL-0x13c0043ea00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+          "at": "http://127.0.0.1:5199/sheet.html?build=new&combos=rowSkirt.slim.narrow,rowCoat.standard.broad,stallholder.sturdy.broad,youngMechanic.slim.narrow,olderMechanic.sturdy.broad,labourer.standard.broad,foundry.sturdy.broad,stallholder.standard.narrow,shopMerchant.standard.broad,garrison.sturdy.broad,inspector.standard.broad,child.child.narrow,elder.slim.narrow&seeds=1,2,3,4,5,6,7,8,9,10,11,3,13&ground=1&view=side&pose=sit&fov=12"
+        },
+        {
+          "type": "warning",
+          "text": "[.WebGL-0x13c0043ea00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+          "at": "http://127.0.0.1:5199/sheet.html?build=new&combos=rowSkirt.slim.narrow,rowCoat.standard.broad,stallholder.sturdy.broad,youngMechanic.slim.narrow,olderMechanic.sturdy.broad,labourer.standard.broad,foundry.sturdy.broad,stallholder.standard.narrow,shopMerchant.standard.broad,garrison.sturdy.broad,inspector.standard.broad,child.child.narrow,elder.slim.narrow&seeds=1,2,3,4,5,6,7,8,9,10,11,3,13&ground=1&view=side&pose=sit&fov=12"
+        },
+        {
+          "type": "warning",
+          "text": "[.WebGL-0x13c0043ea00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)",
+          "at": "http://127.0.0.1:5199/sheet.html?build=new&combos=rowSkirt.slim.narrow,rowCoat.standard.broad,stallholder.sturdy.broad,youngMechanic.slim.narrow,olderMechanic.sturdy.broad,labourer.standard.broad,foundry.sturdy.broad,stallholder.standard.narrow,shopMerchant.standard.broad,garrison.sturdy.broad,inspector.standard.broad,child.child.narrow,elder.slim.narrow&seeds=1,2,3,4,5,6,7,8,9,10,11,3,13&ground=1&view=front&pose=sit&fov=12"
         }
       ]
     }

@@ -12,7 +12,7 @@
       },
       {
         "at": "door answered",
-        "beat": "guards"
+        "beat": "open"
       },
       {
         "at": "guards gone",
@@ -32,8 +32,8 @@
         "name": "intro-1-door-guards.png",
         "note": "the intro: the door answered, the two Ordinance men at it (their first line on the card)",
         "people": "new",
-        "drawCalls": 557,
-        "triangles": 789889,
+        "drawCalls": 562,
+        "triangles": 828955,
         "pixelRatio": 1,
         "weather": "clear",
         "clockHour": 6.33,
@@ -41,7 +41,7 @@
           -2.8,
           10.2,
           5.55,
-          1.463,
+          1.473,
           -0.03
         ]
       },
@@ -49,8 +49,8 @@
         "name": "intro-2-stranger-porch.png",
         "note": "the intro: the masked stranger seated on the stoop, the porch line on the card",
         "people": "new",
-        "drawCalls": 592,
-        "triangles": 903675,
+        "drawCalls": 588,
+        "triangles": 961313,
         "pixelRatio": 1,
         "weather": "clear",
         "clockHour": 6.33,
@@ -58,16 +58,16 @@
           -18.8,
           1.93,
           -3.1,
-          -1.501,
-          -0.286
+          -1.506,
+          -0.27
         ]
       },
       {
         "name": "intro-2b-stranger-porch-nocard.png",
         "note": "the same moment with the dialogue card hidden for the figure",
         "people": "new",
-        "drawCalls": 593,
-        "triangles": 904011,
+        "drawCalls": 585,
+        "triangles": 961177,
         "pixelRatio": 1,
         "weather": "clear",
         "clockHour": 6.33,
@@ -76,18 +76,18 @@
           1.93,
           -3.1,
           -1.501,
-          -0.286
+          -0.284
         ]
       },
       {
         "name": "intro-3-stranger-leaves.png",
         "note": "the intro: the stranger up from the stoop, going to chalk the doorpost",
         "people": "new",
-        "drawCalls": 595,
-        "triangles": 904229,
+        "drawCalls": 1165,
+        "triangles": 1542271,
         "pixelRatio": 1,
         "weather": "clear",
-        "clockHour": 6.34,
+        "clockHour": 6.33,
         "camera": [
           -18.8,
           1.93,
