@@ -560,7 +560,7 @@ const angleOf = (rg: Ring[], p: T.Vector3) => { const r = ringAt(rg, p.y), k = 2
  *  by `facetSurface` (a flat strap swept as one plane stood 1-2 cm off the coat wherever its edge ran onto the next facet), `off` the strap's middle off the shell and `th` its thickness.
  *  Over the buttoned front's overlap (the plate, angles -.6..+.17, which is cut on the smooth curve and 6 mm thick) it rides the plate. */
 const strapOn = (rg: Ring[], ctrl: number[][], hw: number, off: number, th: number, seg: number) => {
-  const pts = spline(ctrl, 16), C = 9, N = pts.length, pos: number[] = [], nrm: number[] = [], idx: number[] = [], id = (i: number, l: number, c: number) => (i * 2 + l) * C + c;
+  const pts = spline(ctrl, 7), C = 5, N = pts.length, pos: number[] = [], nrm: number[] = [], idx: number[] = [], id = (i: number, l: number, c: number) => (i * 2 + l) * C + c;
   // (its normals are the shell's own, so it is lit as the coat is and not as a sheet bent over a ridge)
   const ride = (a: number, y: number) => { const t = ((a % TAU) + TAU) % TAU, u = t >= TAU - .6 ? t - (TAU - .6) : t + .6; return u >= .02 && u <= .75 && y >= 1.06 && y <= 1.47 ? 1 : 0; }; // (whether it is over the plate: a point is on the plate or on the coat, and the strap steps up onto the plate's edge)
   for (let i = 0; i < N; i++) { const [y, a] = pts[i], pr = pts[Math.max(0, i - 1)], nx = pts[Math.min(N - 1, i + 1)], r0 = ringAt(rg, y), rad = (r0.w + (r0.f + r0.b) / 2) / 2,
