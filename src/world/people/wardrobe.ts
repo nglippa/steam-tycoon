@@ -41,7 +41,7 @@ export function dress(x: X) {
   const { look, d, k, kit, asym, pal, rib, pel, neckR, dk, lifted, pelLift, tails, hem, skirt, group } = x, id = look.cast;
   // the Ordinance never dresses up for prosperity: its colours have no restored twin
   const ord = id === 'garrison' || id === 'inspector', c = (hex: string) => kit.cloth(hex, ord ? undefined : rest(hex)), lea = (hex: string) => { const d = shade(hex, .86); return kit.plain(d, ord ? undefined : rest(d, 1.2, 1.05), 'leather'); }, met = (hex: string) => kit.plain(hex, undefined, 'metal');
-  const brass = x.brass, steel = met('#8e98a2'), skin = x.skin;
+  const brass = x.brass, steel = met('#8e98a2'), skin = x.skin, vary = Math.min(1, Math.max(0, (look.stature - .96) / .08)); // (a 0..1 draw per figure from its stature, for the trims that must not repeat)
   const LEATHER = P.cloth.leather, LEATHERD = P.cloth.leatherDark, leatherM = lea(LEATHER), leatherDM = lea(LEATHERD), edgeM = lea(mix(LEATHER, '#c9a27a', .35));
   const wool = (hex: string) => c(hex), white = c(P.cloth.cream);
   const key = (s: string) => `${id}/${s}/${dk}`;
@@ -116,7 +116,7 @@ export function dress(x: X) {
   const shirt = (m: T.Material, o: { off?: number; collar?: boolean; placket?: boolean; yoke?: boolean; front?: number } = {}) => {
     const sh = offset(rib, o.off ?? .007, (_, i) => ({ w: i >= 3 && i <= 5 ? .003 : 0, f: i >= 3 && i <= 5 ? .004 : 0 }));
     put0(lifted, loft(sh, { seg: o.front ? Math.max(3, Math.round(10 * o.front / Math.PI) + 1) : 10, lipEnd: .003, ...(o.front ? { start: -o.front, arc: 2 * o.front } : {}), key: key(`shirt/${o.off}/${o.front}`) }), m); // under a coat only the front the coat leaves open needs the shirt
-    if (o.placket !== false) { put0(lifted, strip(sh, steps(1.4, 1.1, 5), () => .006, false, .0075, .016, .0035), m); for (const y of [1.34, 1.24, 1.14]) button(lifted, surface(sh, y, .05, .0095), brass, .006); }
+    if (o.placket !== false) { put0(lifted, strip(sh, steps(1.4, 1.1, 5), () => .006, false, .0075, .016, .0035), m); for (const y of vary < .5 ? [1.34, 1.24, 1.14] : [1.32, 1.2]) button(lifted, surface(sh, y, .05, .0095), vary < .3 ? brass : m, .006); } // (People XXIX-b: two or three, brass or self-cloth, by the figure: the same three brooches on every cream shirt read as a pattern)
     if (o.yoke !== false) { put0(lifted, around(sh, 1.405, Math.PI - .9, Math.PI + .9, .002, .008, .0035, 5), m); put0(lifted, seam(sh, steps(1.4, 1.1, 5), () => Math.PI, .002, .007, .0035), m); }
     if (o.collar !== false) { const cr = ringAt(neckR, 1.52), cl = [1.51, 1.535, 1.565].map((y, i) => ({ y, w: cr.w + [.01, .016, .018][i], f: cr.f + [.01, .016, .018][i], b: cr.b + [.009, .015, .017][i], z: (cr.z ?? 0) + .003, n: 2.1 })); put0(lifted, loft(cl, { seg: 12, lipEnd: .003, key: key('collar0') }), m); }
     layer(sh, 0, o.front ? -o.front : 0, o.front ? 2 * o.front : Math.PI * 2); return sh;
@@ -200,7 +200,7 @@ export function dress(x: X) {
     const side = asym.has('apronTie') ? 1 : -1;
     for (const [dx, len] of [[.0, .2], [.035, .15]]) { const a = Math.PI + side * (.5 + dx * 4), seat = offset(pel, .03), pts: SweepPt[] = [0, .33, .66, 1].map(t => { const y = 1.12 - t * len, q = y > 1.1 ? surface(offset(rib, .028), y, a, .004) : surface(seat, y, a, .004), r = surface(offset(rib, .028), Math.max(1.04, y), a, .004); const p = q.p.length() > r.p.length() ? q : r; return { p: [p.p.x + side * t * .02, p.p.y, p.p.z] as Pt, a: .018 * (1 - t * .3), b: .004, n: p.n.toArray() as Pt }; }); put0(lifted, sweep(pts, { seg: 4, capStart: true, capEnd: true }), m); } // the tails lie on the seat, not off it (no sliver in profile)
     if (o.bib) {
-      const bibR = offset(rib, .017), rows = [[1.42, -.3, .3], [1.36, -.42, .42], [1.26, -.56, .56], [1.16, -.62, .62], [1.1, -.64, .64]];
+      const bw = .86 + .24 * vary, bibR = offset(rib, .017), rows = [[1.42 - .04 * vary, -.3 * bw, .3 * bw], [1.36 - .03 * vary, -.42 * bw, .42 * bw], [1.26, -.56 * bw, .56 * bw], [1.16, -.62 * bw, .62 * bw], [1.1, -.64 * bw, .64 * bw]]; // (the bib's width and top by the figure)
       put0(lifted, plate(bibR, rows, .0, .005, 6), m);
       bibStraps(s => surface(bibR, 1.42, s * .26, .008).p, .011, o.strapM ?? m);
     }
@@ -472,7 +472,7 @@ export function dress(x: X) {
     const apM = c(I('shopCoat')), sh = c(I('shirt')), trou = wool(I('trousers'));
     shirt(sh, { placket: true, collar: true }); belt(leatherDM, 1.07, .018);
     apron(apM, { hemY: .34, hemW: .5, hemD: .52, aw: .9, bib: true, strapM: leatherDM });
-    { const q = surface(offset(rib, .024), 1.36, .3, .004); put0(lifted, new T.Mesh(new T.BoxGeometry(.012, .09, .006)).geometry, steel, q.p.toArray() as Pt); }
+    if (vary > .25) { const q = surface(offset(rib, .024), 1.36 - .04 * vary, .26 + .1 * vary, .004); put0(lifted, new T.Mesh(new T.BoxGeometry(.012, .06 + .05 * vary, .006)).geometry, steel, q.p.toArray() as Pt); } // (a rule in some bibs, of any length)
     if (asym.has('ragBelt')) put0(lifted, sweep([0, .3, .6, 1].map(t => { const q = surface(offset(rib, .04), 1.06, -1.0, .004); return { p: [q.p.x - t * .012, q.p.y - t * .2, q.p.z + .004 + t * .02] as Pt, a: .024, b: .004, n: [0, 0, 1] as Pt }; }), { seg: 4, capStart: true, capEnd: true }), c(P.cloth.bone));
     arms({ upM: sh, off: .012, rolled: () => true });
     legs({ thighM: trou, boot: leatherDM, sole: lea(shade(LEATHERD, .7)), top: -.34, turnup: true });

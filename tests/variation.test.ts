@@ -70,3 +70,13 @@ test('the courier row shows at least nine different silhouettes (2 cm cells, IoU
   const qa = silhouetteGroups('courier', 20, 0); assert.ok(qa.groups >= 9, `seeds 0..19: ${qa.groups} silhouette groups (${qa.sizes.join(',')})`);
   for (const from of RUNS.slice(1)) { const g = silhouetteGroups('courier', 20, from); assert.ok(g.groups >= 6, `seeds ${from}..${from + 19}: ${g.groups} silhouette groups (${g.sizes.join(',')})`); }
 });
+
+/** People XXIX-b (the blind review: "rectangular patches and identical brooches recur on almost every shirt"): the bib, the steel rule and the shirt's placket buttons are drawn per figure. */
+test('the trims are not the same on every figure: the bib, the rule and the placket buttons vary with the figure', () => {
+  const tris = (l: Look) => { let n = 0; const f = buildFigure(l, { solo: true }, kit()); f.group.updateMatrixWorld(true); const v = new T.Vector3(); f.group.traverse(o => { if (o instanceof T.Mesh) { const p = (o.geometry as T.BufferGeometry).attributes.position; for (let i = 0; i < p.count; i += 3) { v.fromBufferAttribute(p, i).applyMatrix4(o.matrixWorld); n += (Math.abs(v.x) + Math.abs(v.z) + v.y) / l.stature; } } }); return Math.round(n * 100) / 100 + '/' + (f.group.children.length); };
+  for (const [cast, outfit] of [['olderMechanic', 'olderMechanic.apron'], ['stallholder', 'stallholder.apron'], ['courier', 'courier.vest']] as const) {
+    const base = resolveLook(7, CASTS[cast].archetype, { cast, family: CASTS[cast].families[0], frame: CASTS[cast].frames[0] }), palette = Object.keys(CASTS[cast].outfits.find(o => o.id === outfit)!.palettes)[0];
+    const counts = new Set([.96, .99, 1.04].map(stature => tris({ ...base, outfit, palette, stature })));
+    assert.ok(counts.size >= 2, `${cast}: three statures measure ${[...counts].join(', ')}`);
+  }
+});
