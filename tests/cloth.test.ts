@@ -103,8 +103,8 @@ test('an apron in stride bends over the leading thigh and its hem is a curve: th
       const rows = s.ys.map((y, i) => [y, s.dz[i]]).filter(([y]) => y < -.05 && y > -.5).map(([, d]) => d); fold = Math.max(fold, Math.max(...rows) - Math.min(...rows)); }
     assert.ok(fold > .04, `${combo} s${seed}: in stride the cloth is pushed ahead by the same amount (${(fold * 100).toFixed(1)} cm) at every height, a board`);
     // the foot: the lowest row of the hinge's part, its middle and its corners
-    let lo = 9, mid = 9, edge = 9, wx = 0; const v = new T.Vector3(); n.drape!.panel!.hem!.traverse(o => { if (o instanceof T.Mesh) { const pa = o.geometry.attributes.position; for (let j = 0; j < pa.count; j++) { lo = Math.min(lo, pa.getY(j)); wx = Math.max(wx, Math.abs(pa.getX(j))); } } });
-    n.drape!.panel!.hem!.traverse(o => { if (o instanceof T.Mesh) { const pa = o.geometry.attributes.position; for (let j = 0; j < pa.count; j++) { v.fromBufferAttribute(pa, j); if (v.y > lo + .12) continue; const u = Math.abs(v.x) / wx; if (u < .15) mid = Math.min(mid, v.y); if (u > .8) edge = Math.min(edge, v.y); } } });
+    let lo = 9, mid = 9, edge = 9, wx = 0; const v = new T.Vector3(), foot = n.drape!.panel!.hem ?? n.drape!.panel!.tails; foot.traverse(o => { if (o instanceof T.Mesh) { const pa = o.geometry.attributes.position; for (let j = 0; j < pa.count; j++) { lo = Math.min(lo, pa.getY(j)); wx = Math.max(wx, Math.abs(pa.getX(j))); } } });
+    foot.traverse(o => { if (o instanceof T.Mesh) { const pa = o.geometry.attributes.position; for (let j = 0; j < pa.count; j++) { v.fromBufferAttribute(pa, j); if (v.y > lo + .12) continue; const u = Math.abs(v.x) / wx; if (u < .15) mid = Math.min(mid, v.y); if (u > .8) edge = Math.min(edge, v.y); } } });
     assert.ok(edge - mid > .02, `${combo} s${seed}: the hem is a level edge (corners ${((edge - mid) * 100).toFixed(1)} cm above the middle)`);
   }
 });

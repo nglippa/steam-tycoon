@@ -193,7 +193,7 @@ export function dress(x: X) {
     asPanel(() => { longShell(rings, arc, m, `apron/${o.hemY}/${o.leather}`, .008);
       for (const a of [-aw, aw]) stripe(rings, y0, y1, a * .98, .001, .007, .004, bind);
       bandAt(rings, y1 - .004, -aw, aw, .002, .008, .004, bind); });
-    if (!o.over && x.panel.hem.children.length) curveHem(x.panel.hem, .035);
+    if (!o.over) curveHem(x.panel.hem.children.length ? x.panel.hem : x.panel.tails, .035); // (an apron to the knee is one part: its own foot)
     skirt.drop = Math.max(skirt.drop, Math.min(.5, 1.07 - o.hemY)); /* an apron is a front panel the legs push, not a bell: it opens less than its length says */ skirt.depth = Math.max(skirt.depth, (rings[rings.length - 1].f + rings[rings.length - 1].b) * .5 + .02);
     // the waist band, round to the back, tied in a bow with two tails (the asymmetry: the tails hang from one side)
     const band = wrap(1.1, 1.14); put0(lifted, loft(band, { seg: 10, lipStart: .003, lipEnd: .003, key: key(`apronband/${look.outfit}`) }), o.leather ? leatherDM : m).userData.belt = .003;
@@ -423,7 +423,7 @@ export function dress(x: X) {
     const vest = c(I('waistcoat')), sh = c(I('shirt')), trou = wool(I('trousers')), ap = c(I('apron')), garter = lea(mix(P.cloth.burgundy, '#202020', .3));
     shirt(sh, { off: .008, placket: false, collar: true }); const vb = waistcoat(vest, { buttons: 4 });
     for (const sy of [1.36, 1.25]) put0(lifted, plate(offset(rib, .02), [[sy, -.9, -.45], [sy - .05, -.9, -.45]], .0, .005, 3), vest);
-    apron(ap, { hemY: .38, hemW: .46, hemD: .5, aw: .9, bib: false });
+    apron(ap, { hemY: .62, hemW: .46, hemD: .5, aw: .9, bib: false }); // (People XXIX: a half-apron to the knee, one cloth on the thigh: below the knee the hem part read as a hinged pale paddle)
     arms({ upM: sh, off: .014, shirtCuff: undefined, garter: asym.has('sleeveGarters') ? garter : undefined, rolled: s => s < 0 });
     legs({ thighM: trou, boot: leatherDM, sole: lea(shade(LEATHERD, .7)), top: -.34, turnup: true });
     if (asym.has('watchChain')) { const pts = [[.0, 1.255], [.02, 1.215], [-.02, 1.19], [-.065, 1.185], [-.085, 1.2]].map(([xx, y]) => { const q = onFace(vb, y, xx, false, .006); return { p: q.p.toArray() as Pt, a: .0035, b: .0035, n: q.n.toArray() as Pt }; }); put0(x.finery, sweep(pts, { seg: 4, capStart: true, capEnd: true }), brass); }
@@ -431,10 +431,10 @@ export function dress(x: X) {
   if (id === 'foundry') {
     const sh = c(I('shirt')), trou = wool(I('trousers')), apM = lea(I('apron')), strap = leatherDM, gaunt = lea(shade(LEATHER, .85));
     shirt(sh, { off: .008, placket: true, collar: true });
-    const rings = offset(hugRings(.3, .5), .014), arc = { start: -.85, arc: 1.7 };
+    const rings = offset(hugRings(.62, .5), .014), arc = { start: -.85, arc: 1.7 }; // (People XXIX: the slab ends at the knee, one cloth on the thigh: below it the hem part hung a dark paddle)
     asPanel(() => { longShell(rings, arc, apM, 'slab', .008);
       for (const a of [-.85, .85]) stripe(rings, rings[0].y, rings[rings.length - 1].y, a * .98, .001, .008, .004, edgeM);
-      bandAt(rings, rings[rings.length - 1].y, -.85, .85, .002, .008, .004, edgeM); }); if (x.panel.hem.children.length) curveHem(x.panel.hem, .035); skirt.drop = .38; skirt.depth = .31;
+      bandAt(rings, rings[rings.length - 1].y, -.85, .85, .002, .008, .004, edgeM); }); curveHem(x.panel.hem.children.length ? x.panel.hem : x.panel.tails, .035); skirt.drop = .38; skirt.depth = .31;
     const bibR = offset(rib, .02); put0(lifted, plate(bibR, [[1.42, -.32, .32], [1.34, -.5, .5], [1.2, -.62, .62], [1.1, -.66, .66]], .0, .006, 6), apM);
     bibStraps(s => surface(bibR, 1.42, s * .28, .008).p, .012, edgeM); void strap; // in the binding's lighter leather, so they read across a dark shirt
     const sb = wrap(1.08, 1.13); put0(lifted, loft(sb, { seg: 10, lipStart: .003, lipEnd: .003, key: key(`slabbelt/${look.outfit}`) }), strap).userData.belt = .003; for (const s of [-1, 1]) button(lifted, surface(sb, 1.11, s * .14, .004), steel, .008);

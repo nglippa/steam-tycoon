@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import * as T from 'three';
 import { animateLife } from '../src/world/citizen-life.ts';
-import { make, through, panelSide, hemAhead, seatedPanel, useLife, REPS } from './people-rig.ts';
+import { make, through, panelSide, hemAhead, hingeKink, seatedPanel, useLife, REPS } from './people-rig.ts';
 
 useLife((n, a, dt, t, p) => animateLife(n, a, dt, t, false, p));
 
@@ -37,11 +37,11 @@ test('the Ordinance\'s coats hold the intro\'s 2.9 m/s exit', () => {
 });
 
 test('long cloth moves like cloth: the hem bends at the knee and trails the upper part, rather than turning with it as one board', () => {
-  for (const combo of ['olderMechanic.sturdy.broad:olderMechanic.apron', 'shopMerchant.standard.broad', 'foundry.sturdy.broad', 'rowSkirt.slim.narrow']) {
+  for (const combo of ['olderMechanic.sturdy.broad:olderMechanic.apron', 'rowSkirt.slim.narrow']) { // (the shop merchant's apron and the foundry slab end at the knee, People XXIX: no hem to bend)
     const n = make(combo, 5), player = new T.Vector3(0, 1.7, 3), dt = 1 / 60, up: number[] = [], hem: number[] = [];
     for (let i = 0; i < 360; i++) { const t = i * dt; n.group.position.set(0, 0, t * 1.2); animateLife(n, 'walk', dt, t, false, player); if (i >= 120) { up.push(n.drape!.panel?.skin && !n.drape!.garments.some(g => !g.panel) ? n.drape!.panel.skin.hinge : n.tails.rotation.x); hem.push(n.hem!.rotation.x); } } // (an apron or slab alone does not turn as a board: the cloth over the knee is pushed forward, its hinge with it, and that is what the hem trails)
     // the hem's own turn about the knee is not a fixed share of the upper part's: it bends (its range is real) and it lags (its best match to the upper part comes some frames later)
-    const range = Math.max(...hem) - Math.min(...hem), panel = !!n.drape!.panel?.skin && !n.drape!.garments.some(g => !g.panel); assert.ok(range > (panel ? .04 : .08), `${combo}: the hem turns only ${range.toFixed(3)} rad about the knee`);
+    const range = Math.max(...hem) - Math.min(...hem), panel = !!n.drape!.panel?.skin && !n.drape!.garments.some(g => !g.panel); if (panel) assert.ok(range <= .1, `${combo}: an apron's hem turns ${range.toFixed(3)} rad about the knee: a hinged paddle (People XXIX: it is plumb and takes the legs' push, a continuous cloth)`); else assert.ok(range > .08, `${combo}: the hem turns only ${range.toFixed(3)} rad about the knee`);
     const corr = (lag: number) => { let s = 0; for (let i = 0; i + lag < up.length; i++) s += -up[i] * hem[i + lag]; return s; }, lags = Array.from({ length: 30 }, (_, l) => l), best = lags.reduce((b, l) => corr(l) > corr(b) ? l : b, 0);
     // (an apron's or slab's hem hangs plumb from its hinge and is turned only as far as the shins ask, People XXV-b: it has no lag of its own to find)
     if (!panel) assert.ok(best >= 1, `${combo}: the hem keeps step with the upper part (best lag ${best} frames); cloth with weight trails`);
@@ -107,6 +107,16 @@ test('an apron\'s hem hangs on the shins in a stride: below the knee it is never
   }
 });
 
+test('an apron\'s front line does not break at the knee into a flap: a hem below it bends no more than 40 degrees from the cloth above, and the shop merchant\'s half-apron and the foundry slab end at the knee with none', () => {
+  // People XXIX: the shop merchant's apron and the foundry slab hung a hem part below the knee, a hinged piece that stood off the leading shin as a pale or dark paddle (the front line of the cloth
+  // broke 49-51 degrees there, seen from the side). They are half-aprons to the knee now, one cloth on the thigh; an apron that keeps a hem (the older mechanic's, to the shin) hangs it plumb on the legs'
+  // push, with the leg's own bend at the knee (28-34 degrees) and not a corner.
+  for (const [combo, seed] of [['shopMerchant.standard.broad', 9], ['foundry.sturdy.broad', 7]] as const) { const n = make(combo, seed); assert.ok(n.drape!.panel && !n.drape!.panel.hem, `${combo}: an apron that ends at the knee has no hem part`); }
+  for (const [combo, seed] of [['olderMechanic.sturdy.broad:olderMechanic.apron', 5], ['olderMechanic.standard.narrow:olderMechanic.apron', 2]] as const) for (const speed of [1, 1.3]) {
+    const r = hingeKink(combo, seed, speed); assert.ok(r.kink <= 40 * Math.PI / 180, `${combo} at ${speed} m/s: the apron's front line breaks ${(r.kink * 180 / Math.PI).toFixed(0)} degrees at the knee (${r.at})`);
+  }
+});
+
 test('a seated knee never pierces the lap: no knee or leg shows through long cloth in front, on top or at the sides, sitting or eating, and the hem closes round the calf', async () => {
   // People XXIII: the seated legs are solved per figure (knees up to level or a little over, shins leaning forward to put the soles on the pavement), and the lap and the cloth below the knee
   // follow the solved knees and shins (they were a fixed -1.25 rad and plumb). `through` casts toward the pelvis's upright axis, which a seated lap lies across, so this casts toward each leg's
@@ -137,10 +147,10 @@ test('a seated apron lies on the lap and falls from the knee: within 3 cm of the
   // standing and walking, and seated over a skirt (cut on the skirt's rings, wardrobe.ts `apron`'s `over`), it is carried exactly as the long cloth: its part on `tails`, its hinge on `hem` (an apron or slab alone: its hinge as far ahead as the cloth over the knee is pushed)
   const W = new T.Matrix4(), player = new T.Vector3(0, 1.7, 25);
   for (const [combo, seed, a] of [...bare.slice(0, 3).map(([c, s]) => [c, s, 'walk'] as const), ['stallholder.standard.narrow', 8, 'sit'], ['stallholder.sturdy.broad:stallholder.apron', 3, 'eat'], ['rowSkirt.slim.narrow', 1, 'sit']] as const) {
-    const n = make(combo, seed), pn = n.drape!.panel!; assert.ok(pn && pn.hem && n.hem, `${combo}: no apron part or hinge`);
+    const n = make(combo, seed), pn = n.drape!.panel!; assert.ok(pn && (pn.hem ? n.hem : true), `${combo}: no apron part or hinge`);
     for (let f = 0; f < 150; f++) { animateLife(n, a, 1 / 60, f / 60, false, player); if (a === 'walk') n.group.position.z += 1 / 60; }
     n.group.updateMatrixWorld(true);
-    for (const [part, like] of [[pn.tails, n.tails], [pn.hem!, n.hem!]] as const) {
+    for (const [part, like] of [[pn.tails, n.tails], ...(pn.hem ? [[pn.hem, n.hem!] as const] : [])] as const) {
       W.copy(like.matrixWorld); if (part === pn.hem && pn.skin) W.copy(pn.tails.matrixWorld).multiply(new T.Matrix4().makeTranslation(0, 0, pn.skin.hinge)).multiply(like.matrix); /* (People XXV: a panel alone is shaped on the legs, and its hinge goes forward with the cloth over the knee) */ const e = part.matrixWorld.elements.reduce((m, v, i) => Math.max(m, Math.abs(v - W.elements[i])), 0);
       assert.ok(e < 1e-6, `${combo} s${seed} ${a}: the apron's ${part === pn.tails ? 'part' : 'hinge'} is not carried with the long cloth (off by ${e.toExponential(1)})`);
     }

@@ -72,7 +72,7 @@ export function intoProps(combo: string, seed: number, activity: import('../src/
 export function panelSide(combo: string, seed: number, speed: number) {
   const n = make(combo, seed), player = new T.Vector3(0, 1.7, 25), ray = new T.Raycaster(), P: T.Mesh[] = [], H: T.Mesh[] = [], Lg: T.Mesh[] = [], feet = new Set<T.Object3D>(), dt = 1 / 30;
   const o = new T.Vector3(), d = new T.Vector3(), v = new T.Vector3(), inv = new T.Matrix4();
-  n.tails.traverse(m => { if (m instanceof T.Mesh) P.push(m); }); n.hem!.traverse(m => { if (m instanceof T.Mesh) H.push(m); }); n.ankles.forEach(a => a.traverse(m => feet.add(m)));
+  n.tails.traverse(m => { if (m instanceof T.Mesh) P.push(m); }); (n.hem ?? n.tails).traverse(m => { if (m instanceof T.Mesh) H.push(m); }); // (an apron that ends at the knee has no hem: its own lowest 3 cm) n.ankles.forEach(a => a.traverse(m => feet.add(m)));
   n.group.traverse(m => { if (m instanceof T.Mesh) (m.material as T.Material).side = T.DoubleSide; }); n.legs.forEach(l => l.traverse(m => { if (m instanceof T.Mesh && !feet.has(m)) Lg.push(m); }));
   const each = (ms: T.Mesh[], f: (p: T.Vector3) => void) => { for (const m of ms) { const pa = m.geometry.attributes.position; for (let j = 0; j < pa.count; j++) f(v.fromBufferAttribute(pa, j).applyMatrix4(m.matrixWorld).applyMatrix4(inv)); } };
   let over = 0, behind = -1, where = '', at = '';
@@ -114,7 +114,7 @@ export function seatedThrough(combo: string, seed: number, activity: 'sit' | 'ea
  *  its hinge (`turn`, rad, the worst frame). */
 export function hemAhead(combo: string, seed: number, speed: number) {
   const n = make(combo, seed), player = new T.Vector3(0, 1.7, 25), dt = 1 / 30, inv = new T.Matrix4(), H: T.Mesh[] = [], Lg: T.Mesh[] = [], feet = new Set<T.Object3D>();
-  const panelHem = n.drape!.panel!.hem!; panelHem.traverse(m => { if (m instanceof T.Mesh) H.push(m); }); n.ankles.forEach(a => a.traverse(m => feet.add(m))); n.legs.forEach(l => l.traverse(m => { if (m instanceof T.Mesh && !feet.has(m)) Lg.push(m); }));
+  const panelHem = n.drape!.panel!.hem ?? n.drape!.panel!.tails; panelHem.traverse(m => { if (m instanceof T.Mesh) H.push(m); }); n.ankles.forEach(a => a.traverse(m => feet.add(m))); n.legs.forEach(l => l.traverse(m => { if (m instanceof T.Mesh && !feet.has(m)) Lg.push(m); }));
   const a = new T.Vector3(), b = new T.Vector3(); // (the greatest z over the surface where it is cut by the level y: each triangle edge that crosses it)
   const front = (ms: T.Mesh[], y: number) => { let z = -9; for (const m of ms) { const pa = m.geometry.attributes.position, ix = m.geometry.index, nt = ix ? ix.count : pa.count;
     for (let t = 0; t < nt; t += 3) for (let e = 0; e < 3; e++) { const i0 = ix ? ix.getX(t + e) : t + e, i1 = ix ? ix.getX(t + (e + 1) % 3) : t + (e + 1) % 3;
@@ -158,4 +158,20 @@ export function seatedPanel(combo: string, seed: number, activity: 'sit' | 'eat'
       const dist = best / 100;
       if (dist > worst) { worst = dist; what = best > 12 ? 'over 12 cm off the legs' : -by > -bz ? 'above the legs' : 'ahead of the legs'; where = `(${V.x.toFixed(2)}, ${V.y.toFixed(2)}, ${V.z.toFixed(2)}), frame ${f}`; } } } }
   return { worst, what, where, panel: !!panel };
+}
+
+/** The kink of a front panel's front line at its hinge (People XXIX). Walking `combo` at `speed` for the cast sheet's stride window (30 Hz, after its 3 s warm-up), every 2nd frame, in the
+ *  figure's own frame: the panel's front (the greatest z where the cut by a level y crosses its triangles) 12 cm above the hinge, at it and 12 cm below it; the angle between the line
+ *  from the first to the second and the line from the second to the third (rad, the worst frame). A cloth hanging on a knee has a bend there; a hinged flap has a corner. */
+export function hingeKink(combo: string, seed: number, speed: number) {
+  const n = make(combo, seed), player = new T.Vector3(0, 1.7, 25), dt = 1 / 30, inv = new T.Matrix4(), M: T.Mesh[] = [], a = new T.Vector3(), b = new T.Vector3(), hp = new T.Vector3();
+  const panel = n.drape!.panel!; panel.tails.traverse(m => { if (m instanceof T.Mesh) M.push(m); }); panel.hem?.traverse(m => { if (m instanceof T.Mesh) M.push(m); });
+  const front = (y: number) => { let z = -9; for (const m of M) { const pa = m.geometry.attributes.position, ix = m.geometry.index, nt = ix ? ix.count : pa.count;
+    for (let t = 0; t < nt; t += 3) for (let e = 0; e < 3; e++) { const i0 = ix ? ix.getX(t + e) : t + e, i1 = ix ? ix.getX(t + (e + 1) % 3) : t + (e + 1) % 3;
+      a.fromBufferAttribute(pa, i0).applyMatrix4(m.matrixWorld).applyMatrix4(inv); b.fromBufferAttribute(pa, i1).applyMatrix4(m.matrixWorld).applyMatrix4(inv); if ((a.y - y) * (b.y - y) > 0 || a.y === b.y) continue; z = Math.max(z, a.z + (b.z - a.z) * (y - a.y) / (b.y - a.y)); } } return z; };
+  let kink = 0, at = '';
+  for (let i = 0; i < 90 + 48; i++) { n.group.position.set(0, 0, i * dt * speed); animate(n, 'walk', dt, i * dt, player); if (i < 90 || (i - 90) % 2) continue; n.group.updateMatrixWorld(true); inv.copy(n.group.matrixWorld).invert();
+    hp.setFromMatrixPosition((panel.hem ?? panel.tails).matrixWorld).applyMatrix4(inv); const yh = panel.hem ? hp.y : n.knees[0].getWorldPosition(new T.Vector3()).applyMatrix4(inv).y, z0 = front(yh + .12), z1 = front(yh), z2 = front(yh - .12);
+    if (z0 < -8 || z1 < -8 || z2 < -8) continue; const k = Math.abs(Math.atan2(z1 - z0, .12) - Math.atan2(z2 - z1, .12)); if (k > kink) { kink = k; at = `stride frame ${i - 90}`; } }
+  return { kink, at };
 }
