@@ -2,7 +2,7 @@ import * as T from 'three';
 import type { Citizen, Expression } from './citizens';
 import type { Archetype } from './palette';
 import { walk, advance, MIN, pose, legZ, STANCE, REST, SOLE, HEEL_X, TOE_X, type Params } from '../simulation/gait';
-import { drape, readLegs, rest, restPanel, drapeSplit, restSplit, holdSplit, seatPanel, carryPanel, seatLong, unseatLong, LAP_SEATED } from './drape';
+import { drape, readLegs, seatFall, rest, restPanel, drapeSplit, restSplit, holdSplit, seatPanel, carryPanel, seatLong, unseatLong, LAP_SEATED } from './drape';
 import { FOOD } from './people/parts';
 import { isOccupier, conduct, bodyFor, faceAllowed, moodOfTone, stepMood, nearBand, type Trait, type MoodIn } from '../simulation/occupation';
 export type Activity='talk'|'browse'|'guard'|'carry'|'walk'|'read'|'hammer'|'sweep'|'warm'|'gauge'|'valve'|'argue'|'sit'|'eat'|'lean'|'watch'|'clipboard'|'repair';
@@ -252,6 +252,8 @@ export function animateLife(n:Citizen,activity:Activity,dt:number,time:number,ca
   if(follows){if(w>.02){if(lively||(m.cloth.tick=(m.cloth.tick+1)%3)===0){readLegs(n.pelvis,n.tails,n.legs,n.knees,n.ankles);drape(n.drape!,m.cloth,n.tails,n.hem,dt,g,n.tails.rotation.z,lively?m.tail*.6:-g*.06,lively);drapeSplit(n.drape!,n.tails,dt,g,lively);}}else{rest(m.cloth,n.tails,n.hem,dt,n.tails.rotation.z);restSplit(n.drape!,dt);restPanel(n.drape!,n.pelvis,n.tails,n.legs,n.knees,n.ankles,dt);}}
   // A front panel (an apron, the foundry slab: People XXIV) is its own part: seated it rests on the thighs and falls from the knees; otherwise it is carried as the long cloth is.
   if(n.drape?.panel){if(seated)seatPanel(n.drape,n.pelvis,n.tails,n.hem,n.legs,n.knees,n.ankles);else carryPanel(n.drape.panel,n.hem);}
+  // And the hems below the knee fall on the shins seated, not standing off them as the bell they are built as (People XXIX)
+  if(n.drape)seatFall(n.drape,n.group,[[n.hem,0],[n.drape.split?.front.hem,0],[n.drape.split?.back.hem,0],[n.drape.panel?.hem,.025],[n.tails,0,[n.hem,n.drape.split?.front.hem,n.drape.split?.back.hem,n.drape.panel?.tails,n.drape.panel?.hem].filter((o):o is T.Object3D=>!!o)],[n.drape.garments.some(g=>!g.panel)?n.drape.panel?.tails:undefined,.025,[n.drape.panel?.hem].filter((o):o is T.Object3D=>!!o)]],n.legs,n.knees,n.ankles,seated);
   // Head stabilization: the head cancels torso lean and twist.
   if(activity==='eat'&&n.group.userData.next){headYaw*=1-sip;pitch*=1-sip;}/* the head comes round to the food as it reaches the lips (People XXVI) */
   const blend=1-Math.exp(-dt*(occupier?8:4));n.head.rotation.y=T.MathUtils.lerp(n.head.rotation.y,T.MathUtils.clamp(headYaw-n.body.rotation.y,occupier?-.85:-.6,occupier?.85:.6),blend);

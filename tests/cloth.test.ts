@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import * as T from 'three';
 import { animateLife } from '../src/world/citizen-life.ts';
-import { make, useLife, REPS } from './people-rig.ts';
+import { make, useLife, REPS, seatedAhead } from './people-rig.ts';
 import { SEAT } from '../src/world/drape.ts';
 
 useLife((n, a, dt, t, p) => animateLife(n, a, dt, t, false, p));
@@ -108,3 +108,13 @@ test('an apron in stride bends over the leading thigh and its hem is a curve: th
     assert.ok(edge - mid > .02, `${combo} s${seed}: the hem is a level edge (corners ${((edge - mid) * 100).toFixed(1)} cm above the middle)`);
   }
 });
+
+test('seated long cloth falls in front of the knees: no smock, skirt, coat or apron stands more than 8 cm ahead of the knees between 12 and 50 cm over the sole, sitting or eating', () => {
+  // People XXIX: a hem built as a bell (40-50 cm deep, its back kept round the calves and its front where it was built) stood 15-38 cm ahead of the shins, and the lap's end 15-20 cm past
+  // the knees, flat planks (the older mechanic's smock, the stallholder's and slim civilian's aprons). Seated, the lap ends on the knee's front and the hem is taken in about the shin's axis
+  // to a shin's front and 3 cm (drape.ts `seatFall`); the farthest left, 3-6 cm, is the hem's lining round the knee.
+  const casts: [string, number][] = [...REPS.map(([, c, s]) => [c, s] as [string, number]), ['olderMechanic.sturdy.broad:olderMechanic.apron', 5], ['stallholder.sturdy.broad:stallholder.apron', 3], ['stallholder.sturdy.broad:stallholder.shawl', 3],
+    ['olderMechanic.standard.narrow:olderMechanic.shopCoat', 2], ['elder.slim.narrow', 5], ['garrison.standard.broad', 2], ['inspector.slim.broad', 1], ['affluent.standard.broad', 2]];
+  for (const [combo, seed] of casts) for (const a of ['sit', 'eat'] as const) { const r = seatedAhead(combo, seed, a); assert.ok(r.worst <= .08, `${combo} s${seed} ${a}: cloth stands ${(r.worst * 100).toFixed(1)} cm ahead of the knees (${r.where})`); }
+});
+

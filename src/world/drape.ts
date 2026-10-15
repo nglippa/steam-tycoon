@@ -415,6 +415,38 @@ export function seatLong(d: Drape, group: T.Object3D, pelvis: T.Object3D, tails:
   if (hem && d.garments.some(g => !g.panel && g.lo.length)) hang(hem, MP, d.garments.filter(g => !g.panel && g.lo.length));
   const sp = d.split; if (sp) for (const p of [sp.front, sp.back]) if (p.hem) { p.tails.updateMatrix(); hang(p.hem, new T.Matrix4().multiplyMatrices(MP, p.tails.matrix), sp.garments); }
 }
+/** How far ahead of a shin's front a seated hem may stand (an apron over a skirt, on the skirt's own: `extra`). */
+const FALL = .03;
+/** A hem's meshes with their vertices as built, kept so the seated fall can be written from them each frame (`seatFall`), and whether it is applied now. */
+interface Fall { rest: Float32Array; on: boolean }
+const FW1 = new T.Matrix4(), FW2 = new T.Matrix4(), FV = new T.Vector3(), FK = [new T.Vector3(), new T.Vector3()], FA = [new T.Vector3(), new T.Vector3()], fallRows = new Map<number, number>();
+const fallOf = (m: T.Mesh) => (m.userData.fall ??= (() => { m.geometry = m.geometry.clone(); return { rest: Float32Array.from(m.geometry.attributes.position.array as Float32Array), on: false } as Fall; })()) as Fall;
+/** Seated, the hem below the knee falls on the shins (People XXIX). A hem is built as a bell, 40-50 cm deep, and the calves ask it to keep its back round them, so with its front kept where it was built
+ *  it stood 14-25 cm ahead of the shins, a flat plank down from the knees. Each frame, in the figure's frame, the part of every hem vertex ahead of the shin's axis is taken in by one ratio for its
+ *  height (the front row of the hem at that height comes to a shin's front plus `FALL`, the rest in proportion, so a lining keeps its thickness), and what is behind the axis is left where the
+ *  calves and the seat want it. Standing, the hems are put back as built. `parts` are the hems' roots, each with how much further ahead of the shin it stands (an apron's over a skirt's). */
+export function seatFall(d: Drape, group: T.Object3D, parts: [T.Object3D | undefined, number, T.Object3D[]?][], legs: T.Object3D[], knees: T.Object3D[], ankles: T.Object3D[], seated: boolean) {
+  const meshes: [T.Mesh, number, boolean][] = []; for (const [root, extra, skip] of parts) { const out = new Set<T.Object3D>(); for (const k of skip ?? []) k.traverse(o => out.add(o)); root?.traverse(o => { if (o instanceof T.Mesh && o.geometry.attributes.position && !out.has(o)) meshes.push([o, extra, !!skip]); }); }
+  if (!meshes.length) return;
+  if (!seated) { for (const [m] of meshes) { const f = m.userData.fall as Fall | undefined; if (f?.on) { (m.geometry.attributes.position.array as Float32Array).set(f.rest); m.geometry.attributes.position.needsUpdate = true; f.on = false; } } return; }
+  group.updateMatrixWorld(true); FW1.copy(group.matrixWorld).invert();
+  for (let i = 0; i < 2; i++) { legs[i].updateMatrix(); knees[i].updateMatrix(); ankles[i].updateMatrix(); MQ.multiplyMatrices(legs[i].matrix, knees[i].matrix); FK[i].setFromMatrixPosition(MQ); FA[i].setFromMatrixPosition(MQ.multiply(ankles[i].matrix)); }
+  // the shin nearest a point sideways: its axis' depth and radius (the leg itself, as in `seatLong`) at the point's height, clamped to the knee and the ankle
+  const axis = (x: number, y: number, extra: number) => { const i = Math.abs(FK[0].x - x) < Math.abs(FK[1].x - x) ? 0 : 1, K = FK[i], A = FA[i], t = Math.min(1, Math.max(0, (K.y - y) / Math.max(.05, K.y - A.y)));
+    AXZ = K.z + (A.z - K.z) * t; AXR = d.knee - .02 + (d.calf - d.knee + .008) * t + FALL + extra; };
+  for (const [m, extra, lap] of meshes) { const f = fallOf(m), pa = m.geometry.attributes.position as T.BufferAttribute, a = pa.array as Float32Array, n = pa.count;
+    FW2.multiplyMatrices(FW1, m.matrixWorld); const inv = new T.Matrix4().copy(FW2).invert(), P = new Float32Array(n * 3);
+    fallRows.clear();
+    for (let j = 0; j < n; j++) { FV.set(f.rest[j * 3], f.rest[j * 3 + 1], f.rest[j * 3 + 2]).applyMatrix4(FW2); P[j * 3] = FV.x; P[j * 3 + 1] = FV.y; P[j * 3 + 2] = FV.z;
+      if (lap || FV.y > Math.max(FK[0].y, FK[1].y) + .12) continue; axis(FV.x, FV.y, extra); const dz = FV.z - AXZ, r = Math.round(FV.y * 200); if (dz > (fallRows.get(r) ?? 0)) fallRows.set(r, dz); }
+    for (let j = 0; j < n; j++) { FV.set(P[j * 3], P[j * 3 + 1], P[j * 3 + 2]);
+      if (lap) { const lim = Math.max(FK[0].z, FK[1].z) + d.knee - .02 + FALL + extra; if (FV.y <= Math.max(FK[0].y, FK[1].y) + .2 && FV.z > lim) FV.z = lim; } // (the lap ends on the knee's front, where the hem takes the cloth down)
+      else if (FV.y <= Math.max(FK[0].y, FK[1].y) + .12) { axis(FV.x, FV.y, extra); const dz = FV.z - AXZ, top = fallRows.get(Math.round(FV.y * 200)) ?? 0; if (dz > 0 && top > AXR) FV.z = AXZ + dz * AXR / top; }
+      FV.applyMatrix4(inv); a[j * 3] = FV.x; a[j * 3 + 1] = FV.y; a[j * 3 + 2] = FV.z; }
+    pa.needsUpdate = true; f.on = true; }
+}
+let AXZ = 0, AXR = 0;
+
 /** Every part seated cloth moved, back where it was built (each frame before the seated cloth is placed, and standing again). */
 export function unseatLong(d: Drape, tails: T.Object3D, hem: T.Object3D | undefined) {
   for (const o of [tails, hem, d.split?.front.hem, d.split?.back.hem]) if (o?.userData.home) { o.position.copy(o.userData.home as T.Vector3); o.scale.y = 1; o.matrixAutoUpdate = true; }

@@ -175,3 +175,19 @@ export function hingeKink(combo: string, seed: number, speed: number) {
     if (z0 < -8 || z1 < -8 || z2 < -8) continue; const k = Math.abs(Math.atan2(z1 - z0, .12) - Math.atan2(z2 - z1, .12)); if (k > kink) { kink = k; at = `stride frame ${i - 90}`; } }
   return { kink, at };
 }
+
+/** How far seated long cloth stands ahead of the knees (People XXIX). `activity` 'sit' or 'eat' for 4 s after a 1.5 s warm-up, every 20th frame, in the figure's own upright frame (z its
+ *  forward): the front of the legs (thighs, knees and shins, the feet left out) at or over 20 cm above the sole, and every vertex of the long cloth (the lap, the hem, an apron's part and hem)
+ *  between 12 and 50 cm over the sole, ahead of that front. Returns the farthest (m) and where; 0 or less is no cloth ahead of the knees. A smock, a skirt or an apron lying on the lap and falling
+ *  from the knee is within a few cm; a flat plank out past the knees and down the shins (the hem built as a bell, 40-50 cm deep, its front kept where it was built) was 15-38 cm. */
+export function seatedAhead(combo: string, seed: number, activity: 'sit' | 'eat') {
+  const n = make(combo, seed), player = new T.Vector3(0, 1.7, 25), v = new T.Vector3(), cloth: T.Mesh[] = [], legs: T.Mesh[] = [], feet = new Set<T.Object3D>(); let worst = 0, where = '';
+  n.ankles.forEach(a => a.traverse(m => feet.add(m))); n.tails.traverse(m => { if (m instanceof T.Mesh) cloth.push(m); }); n.hem?.traverse(m => { if (m instanceof T.Mesh && !cloth.includes(m)) cloth.push(m); });
+  const pan = n.drape?.panel; pan?.tails.traverse(m => { if (m instanceof T.Mesh && !cloth.includes(m)) cloth.push(m); }); pan?.hem?.traverse(m => { if (m instanceof T.Mesh && !cloth.includes(m)) cloth.push(m); });
+  n.legs.forEach(l => l.traverse(m => { if (m instanceof T.Mesh && !feet.has(m)) legs.push(m); }));
+  for (let f = 0; f < 60 * 4; f++) { animate(n, activity, 1 / 60, f / 60, player); if (f < 90 || f % 20) continue; n.group.updateMatrixWorld(true); const inv = new T.Matrix4().copy(n.group.matrixWorld).invert();
+    let kz = -9; for (const m of legs) { const pa = m.geometry.attributes.position; for (let j = 0; j < pa.count; j++) { v.fromBufferAttribute(pa, j).applyMatrix4(m.matrixWorld).applyMatrix4(inv); if (v.y > .2 && v.z > kz) kz = v.z; } }
+    for (const m of cloth) { const pa = m.geometry.attributes.position; for (let j = 0; j < pa.count; j++) { v.fromBufferAttribute(pa, j).applyMatrix4(m.matrixWorld).applyMatrix4(inv); if (v.y < .12 || v.y > .5) continue; if (v.z - kz > worst) { worst = v.z - kz; where = `frame ${f}, y ${v.y.toFixed(2)} z ${v.z.toFixed(2)} legs ${kz.toFixed(2)}`; } } } }
+  return { worst, where };
+}
+
