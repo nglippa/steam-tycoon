@@ -287,17 +287,21 @@ export function spreadExpression(seed: number, archetype: string): Expression {
   return 'neutral';
 }
 /** The bite (People XXVI), solved once per figure from its own rig: the shoulder, upper arm and elbow turns that put the food (parts.ts `FOOD`, in the grip) just ahead of the lips
- *  (`head.userData.mouth`, the head unturned) while every point of the hand stays under the lips, so the hand reaches the mouth with the food and never crosses the nose. A pattern search
+ *  (`head.userData.mouth`, the head unturned) with the food 1.2 cm under the lips and 5 cm ahead of them while every point of the hand stays at least 1 cm under the lip line and out in front of the face (People XXIX-b: the hand covered a quarter of the face), so the hand brings the food to the mouth and never crosses it. A pattern search
  *  from the old stroke's top, kept near it, within the arm's range. Returns [shoulder x, y, z, elbow x] in the body's frame. */
 const BA=new T.Matrix4(),BB=new T.Matrix4(),BQ=new T.Vector3(),BEu=new T.Euler();
 const HAND_KEYS:[number,number,number][]=[[0,-.24,0],[.002,-.32,.03],[.002,-.32,-.03],[.029,-.335,.05],[.03,-.39,0],[.048,-.393,0],[.04,-.393,.026],[.05,-.39,-.02]];
+/** The hand's own surface, a sample of its vertices (and the glove's) in the elbow's frame: the points the bite keeps under the lips (the eight `HAND_KEYS` missed the knuckles and the thumb). */
+function handPoints(n:Citizen){const el=n.elbows[0],pts:T.Vector3[]=[],v=new T.Vector3();
+  for(const o of el.children)if(o instanceof T.Mesh){const a=o.geometry.attributes.position,st=Math.max(1,Math.floor(a.count/90));for(let i=0;i<a.count;i+=st){o.updateMatrix();v.fromBufferAttribute(a,i).applyMatrix4(o.matrix);if(v.y<-.236)pts.push(v.clone());}}
+  return pts.length?pts:HAND_KEYS.map(h=>new T.Vector3(...h));}
 function biteReach(n:Citizen,occupier:boolean):number[]{
   const arm=n.arms[0],grip=n.grips[0],m=(n.head.userData.mouth as number[]|undefined)??[0,.08,.1],sh=arm.position.clone();
   if(occupier){sh.x=(arm.userData.sx??arm.position.x)*1.05;sh.y=1.455;}
-  const mouth=new T.Vector3(m[0],m[1],m[2]).add(n.head.position),target=mouth.clone().add(BQ.set(.004,-.006,.028)),el=n.elbows[0].position,food=grip.position.clone().add(BQ.set(...FOOD.at));
+  const mouth=new T.Vector3(m[0],m[1],m[2]).add(n.head.position),target=mouth.clone().add(BQ.set(0,-.012,.05)),el=n.elbows[0].position,food=grip.position.clone().add(BQ.set(...FOOD.at));
   const at=(q:number[],p:T.Vector3,out:T.Vector3)=>{BA.makeRotationFromEuler(BEu.set(q[0],q[1],q[2]));BB.makeRotationFromEuler(BEu.set(q[3],0,0));return out.copy(p).applyMatrix4(BB).add(el).applyMatrix4(BA).add(sh);};
   const q0=[-1.09,.21,.84+(Math.abs(arm.position.x)-.233)*3,-1.99],lo=[-2.4,-.7,-.3,-2.6],hi=[0,.9,1.4,-.2],p=new T.Vector3(),k=new T.Vector3();
-  const cost=(q:number[])=>{let c=at(q,food,p).distanceToSquared(target);for(const h of HAND_KEYS){at(q,k.set(...h),p);const up=p.y-(mouth.y+.004);if(up>0)c+=6*up*up;}for(let i=0;i<4;i++)c+=.004*(q[i]-q0[i])**2;return c;};
+  const hand=handPoints(n);const cost=(q:number[])=>{let c=at(q,food,p).distanceToSquared(target);for(const h of hand){at(q,k.copy(h),p);const up=p.y-(mouth.y-.0185);if(up>0)c+=300*up*up;if(Math.abs(p.x-mouth.x)<.07&&p.y>mouth.y-.04){const zz=mouth.z+.012-p.z;if(zz>0)c+=300*zz*zz;}}for(let i=0;i<4;i++)c+=.004*(q[i]-q0[i])**2;return c;};
   const q=q0.slice();let best=cost(q),step=.25;
   while(step>2e-4){let moved=false;for(let i=0;i<4;i++)for(const d of [step,-step]){const t=q.slice();t[i]=T.MathUtils.clamp(t[i]+d,lo[i],hi[i]);const c=cost(t);if(c<best){best=c;q[i]=t[i];moved=true;}}if(!moved)step*=.5;}
   return q;}

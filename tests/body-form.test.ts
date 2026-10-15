@@ -49,7 +49,7 @@ test('the bite reaches the mouth (People XXVI): at the top of the stroke the foo
       const m = n.head.userData.mouth as number[], mouth = n.head.localToWorld(new T.Vector3(m[0], m[1], m[2])), f = n.grips[0].localToWorld(new T.Vector3(...FOOD.at)), noseY = m[1] + (m[1] - CHIN_TO_PIVOT);
       food = f.distanceTo(mouth); over = -Infinity; const inv = n.head.matrixWorld.clone().invert(), v = new T.Vector3();
       for (const o of n.elbows[0].children) if (o instanceof T.Mesh) { const p = o.geometry.attributes.position; for (let k = 0; k < p.count; k++) { v.fromBufferAttribute(p, k).applyMatrix4(o.matrixWorld).applyMatrix4(inv); over = Math.max(over, v.y - noseY); } } }
-    assert.ok(food < .04, `${label}: the food's centre is ${(food * 100).toFixed(1)} cm from the lips at the top of the bite`);
+    assert.ok(food < .075, `${label}: the food's centre is ${(food * 100).toFixed(1)} cm from the lips at the top of the bite`);
     assert.ok(over < 0, `${label}: the forearm or hand rises ${(over * 100).toFixed(1)} cm past the nose at the top of the bite`);
   }
 });
@@ -68,5 +68,35 @@ test('seated knees part (People XXVI): two knees with daylight between them, abo
       assert.ok(gap > .02, `${label} (${a}): ${(gap * 100).toFixed(1)} cm between the seated knees`);
       if (!n.drape?.panel && !n.skirt.depth) assert.ok(Math.abs(k0.x - k1.x) >= 2 * d.hipX, `${label} (${a}): the knees are ${(Math.abs(k0.x - k1.x) * 100).toFixed(1)} cm apart against the hip joints' ${(2 * d.hipX * 100).toFixed(1)}`);
     }
+  }
+});
+
+test('the bite brings the food in front of the face, the hand under the lips and off the face (People XXIX-b): food about 1.2 cm under and 5 cm ahead of the lips, every hand point 1 cm under the lip line, the hand over at most 12% of the face-front quad; every representative, the child and the elder', async () => {
+  // The blind review: the hands "tangle at the mouth", the young mechanic's glove covers half the face. The stroke (citizen-life.ts `biteReach`) now takes the food to 5 cm ahead of the lips and 1.2 under them
+  // while every vertex of the hand (the mesh beyond the wrist, its glove included) keeps 1 cm under the lip line and in front of the face plane.
+  const { make, REPS } = await import('./people-rig.ts'), { animateLife } = await import('../src/world/citizen-life.ts'), { FOOD } = await import('../src/world/people/parts.ts'), { CHIN_TO_PIVOT } = await import('../src/world/people/head.ts'), { landmarks } = await import('../src/world/people/headform.ts'), T = await import('three');
+  const player = new T.Vector3(0, 1.7, 25), cast: [string, string, number][] = [...REPS, ['child', 'child.child.narrow', 3], ['elder', 'elder.slim.narrow', 5]], W = .2, GX = 200, GY = 125, cell = W / GX;
+  for (const [label, combo, seed] of cast) {
+    const n = make(combo, seed); let best = -Infinity, rep = '';
+    for (let i = 0; i < 345; i++) { animateLife(n, 'eat', 1 / 30, i / 30, false, player); if (i < 45 || -n.elbows[0].rotation.x <= best) continue; best = -n.elbows[0].rotation.x; n.group.updateMatrixWorld(true);
+      const m = n.head.userData.mouth as number[], inv = n.head.matrixWorld.clone().invert(), f = n.grips[0].localToWorld(new T.Vector3(...FOOD.at)).applyMatrix4(inv), v = new T.Vector3(), grid = new Uint8Array(GX * GY);
+      const dy = f.y - m[1], dz = f.z - m[2]; let maxY = -Infinity, minZ = Infinity;
+      for (const o of n.elbows[0].children) if (o instanceof T.Mesh) { const p = o.geometry.attributes.position, ix = o.geometry.index, pts: any[] = [];
+        for (let k = 0; k < p.count; k++) { v.fromBufferAttribute(p, k).applyMatrix4(o.matrixWorld); const hand = n.elbows[0].worldToLocal(v.clone()).y < -.236; pts.push({ q: v.clone().applyMatrix4(inv), hand }); }
+        for (const { q, hand } of pts) if (hand) { maxY = Math.max(maxY, q.y - m[1]); if (q.y > m[1] - .04 && Math.abs(q.x) < .07) minZ = Math.min(minZ, q.z - m[2]); }
+        const nT = ix ? ix.count : p.count;
+        for (let t = 0; t < nT; t += 3) { const a = [0, 1, 2].map(j => pts[ix ? ix.getX(t + j) : t + j]); if (!a.every(x => x.hand) || Math.max(...a.map(x => x.q.z)) < m[2] - .004) continue;
+          const A = a.map(x => [(x.q.x + W / 2) / cell, x.q.y / cell]), x0 = Math.max(0, Math.floor(Math.min(...A.map(c => c[0])))), x1 = Math.min(GX - 1, Math.ceil(Math.max(...A.map(c => c[0])))), y0 = Math.max(0, Math.floor(Math.min(...A.map(c => c[1])))), y1 = Math.min(GY - 1, Math.ceil(Math.max(...A.map(c => c[1]))));
+          for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) { const px = x + .5, py = y + .5, e = (u: number[], w: number[]) => (w[0] - u[0]) * (py - u[1]) - (w[1] - u[1]) * (px - u[0]), e0 = e(A[0], A[1]), e1 = e(A[1], A[2]), e2 = e(A[2], A[0]); if ((e0 >= 0 && e1 >= 0 && e2 >= 0) || (e0 <= 0 && e1 <= 0 && e2 <= 0)) grid[y * GX + x] = 1; } } }
+      // the face-front quad: brow to chin, a cheekbone's width either side
+      const brow = landmarks(.285, n.head.userData.shape ?? 'oval' as never).brow; let inq = 0, tot = 0;
+      for (let y = 0; y < GY; y++) for (let x = 0; x < GX; x++) { const X = (x + .5) * cell - W / 2, Y = (y + .5) * cell; if (Math.abs(X) < .07 && Y >= CHIN_TO_PIVOT && Y <= CHIN_TO_PIVOT + brow) { tot++; if (grid[y * GX + x]) inq++; } }
+      rep = JSON.stringify({ dy, dz, maxY, cover: inq / tot, minZ }); }
+    { const r = JSON.parse(rep), { dy, dz } = r;
+      assert.ok(Math.hypot(dy + .012, dz - .05) < .04, `${label}: the food is ${(-dy * 100).toFixed(1)} cm under and ${(dz * 100).toFixed(1)} cm ahead of the lips (about 1.2 and 5)`);
+      assert.ok(dz > .04 && dz < .07, `${label}: the food is ${(dz * 100).toFixed(1)} cm ahead of the lips`);
+      assert.ok(r.maxY <= -.01, `${label}: the hand's highest point is ${(-r.maxY * 100).toFixed(1)} cm under the lip line (at least 1)`);
+      assert.ok(r.cover <= .12, `${label}: the hand covers ${(100 * r.cover).toFixed(1)}% of the face-front quad (at most 12)`);
+      assert.ok(r.minZ > .006, `${label}: the hand comes to ${(r.minZ * 100).toFixed(1)} cm of the lips' plane`); }
   }
 });
