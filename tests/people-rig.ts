@@ -16,12 +16,12 @@ export const REPS: [string, string, number][] = [
   ['garrison soldier', 'garrison.sturdy.broad', 10], ['inspector', 'inspector.standard.broad', 11],
 ];
 /** `combo` is cast.family.frame, optionally with an outfit after a colon (`stallholder.sturdy.broad:stallholder.shawl`, in the outfit's first palette): the seed draws the rest. */
-export function make(combo: string, seed: number): Citizen {
+export function make(combo: string, seed: number, forced?: import('../src/world/people/look.ts').Look): Citizen {
   const story = combo.startsWith('look:') ? resolveLook(seed, 'guard', { look: combo.slice(5) }) : undefined; // `look:introGuard`: a named story character (People XXV)
   const [cut, outfit] = story ? [`${story.cast}.${story.family}.${story.frame}`] : combo.split(':'), [cast, family, frame] = cut.split('.') as [CastId, never, never], archetype = CASTS[cast].archetype;
   const drawn = story ?? resolveLook(seed, archetype, { cast, family, frame, casts: BUILT }), o = outfit ? CASTS[cast].outfits.find(x => x.id === outfit) : undefined;
   if (outfit && !o) throw new Error(`people-rig: ${cast} has no outfit ${outfit}`);
-  const look = o ? { ...drawn, outfit: o.id, palette: Object.keys(o.palettes)[0] } : drawn;
+  const look = forced ?? (o ? { ...drawn, outfit: o.id, palette: Object.keys(o.palettes)[0] } : drawn);
   const f = buildFigure(look, { solo: true }, kit()); f.group.userData.next = true;
   const { faceMat, ...n } = f; void faceMat;
   const motion = { stride: seed * 1.3, latch: footing(), gait: 0, speed: 0, prevX: NaN, prevZ: 0, prevYaw: 0, turn: 0, tail: 0, tailV: 0, hair: 0, hairV: 0, tempo: .88 + ((seed * 37) % 25) / 100, idle: 0, drape: 1, cloth: drapeState(), pose: null as Float32Array | null, mood: newMood(), pick: Math.abs(Math.sin(seed * 12.9898 + 1.7) * 43758.5453) % 1 };

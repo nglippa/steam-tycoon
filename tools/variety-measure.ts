@@ -27,7 +27,8 @@ export function variety(a: Archetype, n = 20, from = 0) {
 }
 
 const CELL = .005, W = 200, H = 400; // a 1 x 2 m grid
-function raster(g: T.Object3D, view: 'front' | 'side') {
+export function raster(g: T.Object3D, view: 'front' | 'side', cell = CELL) {
+  const W = Math.round(1 / cell), H = Math.round(2 / cell), CELL = cell;
   const grid = new Uint8Array(W * H), v = [new T.Vector3(), new T.Vector3(), new T.Vector3()]; g.updateMatrixWorld(true);
   let floor = Infinity; g.traverse(o => { if (o instanceof T.Mesh && o.visible && !o.userData.contact) { const p = o.geometry.attributes.position; for (let i = 0; i < p.count; i++) floor = Math.min(floor, v[0].fromBufferAttribute(p, i).applyMatrix4(o.matrixWorld).y); } });
   g.traverse(o => {
@@ -51,7 +52,23 @@ export function standing(label: string) {
   const n = make(r[1], r[2]), player = new T.Vector3(0, 1.7, 25); for (let i = 0; i <= 60; i++) animateLife(n, 'walk', 1 / 30, i / 30, false, player);
   n.group.traverse(o => { if (o instanceof T.Mesh && o.geometry instanceof T.CircleGeometry) o.userData.contact = true; }); return n.group; // (the contact shadow on the pavement)
 }
-const iou = (a: Uint8Array, b: Uint8Array) => { let i = 0, u = 0; for (let k = 0; k < a.length; k++) { if (a[k] & b[k]) i++; if (a[k] | b[k]) u++; } return i / u; };
+export const iou = (a: Uint8Array, b: Uint8Array) => { let i = 0, u = 0; for (let k = 0; k < a.length; k++) { if (a[k] & b[k]) i++; if (a[k] | b[k]) u++; } return i / u; };
+/** A look standing as the sheet stands it (`pose=stand`), whatever its cast: the figure built from the look itself, animateLife's walk at rest for 60 frames at 30 fps. */
+export function posed(look: Look, seed: number) {
+  const n = make(`${look.cast}.${look.family}.${look.frame}`, seed, look), player = new T.Vector3(0, 1.7, 25); for (let i = 0; i <= 60; i++) animateLife(n, 'walk', 1 / 30, i / 30, false, player);
+  n.group.traverse(o => { if (o instanceof T.Mesh && o.geometry instanceof T.CircleGeometry) o.userData.contact = true; }); return n.group;
+}
+/** A look as it is built, unposed (the rest pose: arms and legs as the builder leaves them). */
+export function restFigure(look: Look, seed: number) { const n = make(`${look.cast}.${look.family}.${look.frame}`, seed, look); n.group.traverse(o => { if (o instanceof T.Mesh && o.geometry instanceof T.CircleGeometry) o.userData.contact = true; }); n.group.updateMatrixWorld(true); return n.group; }
+/** How many silhouettes a row of an archetype really shows (People XXIX-b: the courier row was "four silhouettes"): the row's figures standing, each rasterised solid front and side
+ *  on a `cell` grid (2 cm: the detail that reads at the game's distance), then grouped single-link: two figures are one silhouette when the lower of their front and side IoU is at least
+ *  `min`. More groups, more different shapes. Returns the group count and each group's size. */
+export function silhouetteGroups(a: Archetype, n = 20, from = 0, cell = .02, min = .85, pose = false) {
+  const ls = row(a, n, from), gs = ls.map((l, i) => { const g = pose ? posed(l, from + i) : restFigure(l, from + i); return [raster(g, 'front', cell), raster(g, 'side', cell)] as const; }), parent = ls.map((_, i) => i), find = (i: number): number => parent[i] === i ? i : (parent[i] = find(parent[i]));
+  for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) if (Math.min(iou(gs[i][0], gs[j][0]), iou(gs[i][1], gs[j][1])) >= min) parent[find(j)] = find(i);
+  const sizes = new Map<number, number>(); for (let i = 0; i < n; i++) sizes.set(find(i), (sizes.get(find(i)) ?? 0) + 1);
+  return { groups: sizes.size, sizes: [...sizes.values()].sort((x, y) => y - x), members: ls.map((l, i) => [find(i), i, `${l.family}/${l.frame[0]} ${l.outfit.split('.')[1]} ${l.hat} ${l.hairStyle}`] as const).sort((x, y) => x[0] - y[0]) };
+}
 /** The same two shapes each stretched to one box (the larger height and width), so height and breadth do not count, only the shape: the stricter read, and the one that reproduces the
  *  review's numbers within about .02 from its own images (matrix-09/10: garrison and inspector front .818, side .816; sturdy civilian and stallholder side .859; young mechanic and labourer .819, .833). */
 function boxed(a: Uint8Array, b: Uint8Array) {
@@ -89,6 +106,7 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
       (r.repeats.length ? `\n          repeats: ${r.repeats.map(([k, n]) => `${k} x${n}`).join('; ')}` : ''));
     console.log(`total repeat groups: ${v.reduce((t, r) => t + r.repeats.length, 0)} (review key ${v.reduce((t, r) => t + r.reviewRepeats.length, 0)})`);
     console.log(`budget: ${b.figures} figures, ${b.trianglesPerFigure} triangles per figure, ${b.materials} crowd materials`);
+    for (const a of ['courier', 'resident', 'worker', 'merchant', 'engineer'] as Archetype[]) { const g = silhouetteGroups(a), h = silhouetteGroups(a, 20, 0, .02, .85, true); console.log(`silhouette groups (2 cm cells, min IoU .85, rest pose) ${a}: ${g.groups} of 20 (${g.sizes.join(',')}); posed standing ${h.groups}`); }
     for (const p of s) console.log(`IoU ${p.a} / ${p.b}: same scale front ${p.front.toFixed(3)} side ${p.side.toFixed(3)} | one box front ${p.boxFront.toFixed(3)} side ${p.boxSide.toFixed(3)}`);
   }
 }

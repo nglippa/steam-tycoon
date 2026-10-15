@@ -479,9 +479,9 @@ export function dress(x: X) {
   }
   if (id === 'courier') {
     const jk = wool(I('jacket')), sh = c(I('shirt')), trou = wool(I('trousers')), bag = lea(I('satchel')), strapSide = asym.has('satchelStrap') ? -1 : 1;
-    const cut = look.outfit === 'courier.coat' ? 'coat' : look.outfit === 'courier.vest' ? 'vest' : 'jacket'; // People XX: a short jacket, a buttoned coat to mid-thigh, or shirt sleeves and a waistcoat
+    const cut = look.outfit === 'courier.coat' ? 'coat' : look.outfit === 'courier.longcoat' ? 'longcoat' : look.outfit === 'courier.vest' ? 'vest' : 'jacket'; // People XX: a short jacket, a buttoned coat to mid-thigh, or shirt sleeves and a waistcoat; People XXIX-b: a long coat to the calf
     shirt(sh, { placket: true, collar: true, yoke: false, front: cut === 'vest' ? undefined : .8 });
-    const r = cut === 'vest' ? { cR: waistcoat(jk, { buttons: 4 }), rings: undefined } : jacket(jk, cut === 'coat' ? { off: .02, closed: true, hem: .64, hemW: .46, hemD: .36, buttons: 4, stand: true } : { off: .02, aL: .2, aR: .2, hem: .88, hemW: .4, hemD: .32, buttons: 3, lapel: false });
+    const r = cut === 'vest' ? { cR: waistcoat(jk, { buttons: 4 }), rings: undefined } : jacket(jk, cut === 'longcoat' ? { off: .02, closed: true, hem: .3, hemW: .6, hemD: .48, buttons: 5, stand: true } : cut === 'coat' ? { off: .02, closed: true, hem: .6, hemW: .48, hemD: .38, buttons: 4, stand: true } : { off: .02, aL: .2, aR: .2, hem: .88, hemW: .4, hemD: .32, buttons: 3, lapel: false });
     belt(leatherDM, 1.06, .02, .003, cut === 'jacket' ? .75 : undefined); // (under an open jacket, on the shirt's front)
     // the satchel strap wraps the jacket's own surface: over the shoulder, across the chest, round the side to the bag on the opposite hip
     const sd = strapSide, pts: SweepPt[] = [[1.52, sd * 1.35], [1.46, sd * .85], [1.38, sd * .42], [1.28, -sd * .05], [1.18, -sd * .6], [1.1, -sd * 1.05], [1.06, -sd * 1.55], [1.05, -sd * 2.1]].map(([y, a]) => { const q = surface(r.cR, y, a, .008); return { p: q.p.toArray() as Pt, a: .02, b: .005, n: q.n.toArray() as Pt }; });
@@ -489,7 +489,7 @@ export function dress(x: X) {
     if (!asym.has('noSatchel')) {
     put0(lifted, sweep(pts, { seg: 4, capStart: true, capEnd: true }), bag); put0(lifted, sweep(back, { seg: 4, capStart: true, capEnd: true }), bag);
     if (asym.has('threadStrap')) put0(lifted, sweep(pts.map(p => ({ ...p, p: [p.p[0] + p.n![0] * .0035, p.p[1] + p.n![1] * .0035, p.p[2] + p.n![2] * .0035] as Pt, a: .004, b: .002 })), { seg: 4, capStart: true, capEnd: true }), kit.plain(P.cloth.turquoise));
-    const q = surface(r.cR, 1.0, -sd * 2.8, cut === 'coat' ? .03 : .02), bg = new T.Group(); bg.position.copy(q.p); bg.rotation.set(0, -sd * 1.5 + Math.PI / 2 * 0, 0); lifted.add(bg); bg.rotation.y = Math.atan2(q.n.x, q.n.z); // People XX: the satchel rides behind the hip, out of the arm's corridor (at the side the hanging hand went 5 cm into it)
+    const q = surface(r.cR, 1.0, -sd * 2.8, cut === 'coat' || cut === 'longcoat' ? .03 : .02), bg = new T.Group(); bg.position.copy(q.p); bg.rotation.set(0, -sd * 1.5 + Math.PI / 2 * 0, 0); lifted.add(bg); bg.rotation.y = Math.atan2(q.n.x, q.n.z); // People XX: the satchel rides behind the hip, out of the arm's corridor (at the side the hanging hand went 5 cm into it)
     put0(bg, loft([{ y: -.1, w: .115, f: .045, b: .045, n: 2.6 }, { y: 0, w: .125, f: .052, b: .052, n: 2.6 }, { y: .1, w: .12, f: .048, b: .048, n: 2.6 }], { seg: 10, capStart: 'flat', capEnd: 'flat', key: key('bag') }), bag, [0, -.04, .05]);
     put0(bg, plate([{ y: .1, w: .125, f: .05, b: .05, z: .05, n: 2.6 }, { y: -.0, w: .13, f: .056, b: .056, z: .05, n: 2.6 }], [[.1, -1.1, 1.1], [.0, -1.15, 1.15], [-.04, -.7, .7]], .0, .008, 6), edgeM, [0, -.04, 0]);
     put0(bg, new T.Mesh(new T.BoxGeometry(.03, .026, .008), brass).geometry, brass, [0, -.07, .112]); for (const o of bg.children) o.userData.prop = true; }

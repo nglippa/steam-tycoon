@@ -4,7 +4,7 @@ import * as T from 'three';
 import { ARCHETYPE_CASTS, CASTS, resolveLook, type Look } from '../src/world/people/look.ts';
 import { buildFigure, BUILT } from '../src/world/people/figure.ts';
 import { kit } from './people-rig.ts';
-import { variety } from '../tools/variety-measure.ts';
+import { variety, silhouetteGroups } from '../tools/variety-measure.ts';
 import type { Archetype } from '../src/world/palette.ts';
 
 /** Book 11, "Variation minimums" (People XX): curated options, measured the way QA II measured them (looks.json: seeds 0..19 of each street archetype under the street's cast weights). */
@@ -62,4 +62,11 @@ test('no outfit in one palette dresses more than 15 % of an archetype in a run o
 });
 test('every street archetype shows two builds and three headwear, bare heads among them, in the QA row', () => {
   for (const a of STREET) { const v = variety(a); assert.ok(v.builds.length >= 2, `${a}: builds ${v.builds.join(', ')}`); assert.ok(v.hats.length >= 3 && v.hats.includes('none'), `${a}: headwear ${v.hats.join(', ')}`); }
+});
+
+/** People XXIX-b (the blind review's Q11: the courier row was "four silhouettes"; measured, 6 in the unposed rest pose, and 5 by the 2 cm grid at .85): each figure of the row rasterised solid front and
+ *  side on a 2 cm grid, single-link grouped at a lowest-of-front-and-side IoU of .85. A long coat to the calf, a sturdy build and bowlers, kerchiefs and more hair for the cast. */
+test('the courier row shows at least nine different silhouettes (2 cm cells, IoU .85), and at least six in every other run of twenty', () => {
+  const qa = silhouetteGroups('courier', 20, 0); assert.ok(qa.groups >= 9, `seeds 0..19: ${qa.groups} silhouette groups (${qa.sizes.join(',')})`);
+  for (const from of RUNS.slice(1)) { const g = silhouetteGroups('courier', 20, from); assert.ok(g.groups >= 6, `seeds ${from}..${from + 19}: ${g.groups} silhouette groups (${g.sizes.join(',')})`); }
 });
