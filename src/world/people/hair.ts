@@ -225,10 +225,10 @@ const S: Record<HairStyle, Mk> = {
 
 /** A bun or knot: a squashed ball with a wrap round it (standard units: radius, centre, rotation). */
 function bun(r: number, p: [number, number, number], rot: [number, number, number], key = 'bun'): T.BufferGeometry {
-  const g = loft([{ y: -r, w: r * .35, f: r * .3, b: r * .3 }, { y: -r * .55, w: r * .95, f: r * .8, b: r * .8 }, { y: r * .3, w: r, f: r * .82, b: r * .82 }, { y: r * .85, w: r * .55, f: r * .45, b: r * .45 }], { seg: 8, capStart: { round: r * .25 }, capEnd: { round: r * .3 }, key: `${key}/${r}` });
+  const g = loft([{ y: -r, w: r * .35, f: r * .3, b: r * .3 }, { y: -r * .55, w: r * .95, f: r * .8, b: r * .8 }, { y: r * .3, w: r, f: r * .82, b: r * .82 }, { y: r * .85, w: r * .55, f: r * .45, b: r * .45 }], { seg: 7, capStart: { round: r * .25 }, capEnd: { round: r * .3 }, key: `${key}/${r}` });
   return place(g, p, rot);
 }
-const tieBand = (p: [number, number, number], r = .02) => place(loft([{ y: -.008, w: r, f: r * .9, b: r * .9 }, { y: .008, w: r, f: r * .9, b: r * .9 }], { seg: 8, lipStart: .002, lipEnd: .002, key: `tieband/${r}` }), p, [1.2, 0, 0]);
+const tieBand = (p: [number, number, number], r = .02) => place(loft([{ y: -.008, w: r, f: r * .9, b: r * .9 }, { y: .008, w: r, f: r * .9, b: r * .9 }], { seg: 6, lipStart: .002, lipEnd: .002, key: `tieband/${r}` }), p, [1.2, 0, 0]);
 /** A tail: a broad, flat sweep through [x, y, z, half width, half thickness] points. */
 const tail = (pts: number[][]) => sweep(pts.map(([x, y, z, a, b]) => ({ p: [x, y, z] as [number, number, number], a, b, n: [0, 0, -1] as [number, number, number] })), { seg: 7, capStart: true, capEnd: true });
 

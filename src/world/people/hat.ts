@@ -59,8 +59,8 @@ export function hatOf(look: Look, h: number): HatOut {
   const key = `${hat}/${look.headShape}/${h}`, hit = built.get(key); if (hit) return hit;
   const k = h / .285, rings = skullRings(look.headShape, h), out: HatOut = { cloth: [], trim: [], metal: [] }, seat = seatOf(hat);
   const F = (room: number) => frameOf(rings, k, seat, room);
-  const crownOf = (Fr: Frame, rows: [number, number, object?][], cap: 'flat' | number, seg = 20) => loft(rows.map(([y, g, o]) => ringOf(Fr, y, g, o as never)), { seg, capEnd: cap === 'flat' ? 'flat' : { round: cap * k }, lipStart: .003 * k });
-  const ball = (r: number, p: T.Vector3) => place(loft([{ y: -r, w: r * .2, f: r * .2, b: r * .2 }, { y: -r * .4, w: r, f: r, b: r }, { y: r * .4, w: r, f: r, b: r }, { y: r, w: r * .2, f: r * .2, b: r * .2 }], { seg: 6, capStart: 'flat', capEnd: 'flat' }), [p.x, p.y, p.z]);
+  const crownOf = (Fr: Frame, rows: [number, number, object?][], cap: 'flat' | number, seg = 16) => loft(rows.map(([y, g, o]) => ringOf(Fr, y, g, o as never)), { seg, capEnd: cap === 'flat' ? 'flat' : { round: cap * k }, lipStart: .003 * k });
+  const ball = (r: number, p: T.Vector3) => place(loft([{ y: -r, w: r * .2, f: r * .2, b: r * .2 }, { y: -r * .4, w: r, f: r, b: r }, { y: r * .4, w: r, f: r, b: r }, { y: r, w: r * .2, f: r * .2, b: r * .2 }], { seg: 5, capStart: 'flat', capEnd: 'flat' }), [p.x, p.y, p.z]);
 
   if (hat === 'flatCap' || hat === 'softCap') {
     // a band round the head, a crown that swells out over it and is pulled forward over a short stiff peak; the flat cap low and flat with its top sloping down to the front,
@@ -72,8 +72,8 @@ export function hatOf(look: Look, h: number): HatOut {
       ? [[0, .002, {}], [.012, .004, { f: .02, z: .004 }], [.03, .01, { f: .03, z: .008 }], [.056, .021, { f: .034, z: .012 }], [.075, .015, { f: .034, z: .015 }], [.089, -.002, { f: .026, z: .016 }], [topY, -.026, { f: .012, z: .016 }]]
       : [[0, .002, {}], [.014, .004, {}], [.04, .017, { f: .008, z: .004 }], [.07, .03, { f: .016, z: .01 }], [.094, .02, { f: .014, z: .01 }], [.106, -.004, { f: .008, z: .009 }], [topY, -.028, { f: .002, z: .008 }]];
     const crownRings = rows.map(([y, g, o]) => ringOf(Fr, y, g, o as never)), slope = (v: T.Vector3) => { const z = v.z - (Fr.base.z ?? 0), e = .02 * k; v.y -= sh * .5 * (z + Math.sqrt(z * z + e * e)) * T.MathUtils.smoothstep(v.y, .03 * k, topY * k); v.y -= .016 * k * T.MathUtils.smoothstep(v.x / Fr.base.w, -.3, 1) * T.MathUtils.smoothstep(v.y, .03 * k, topY * k); }; // and the whole crown sags a little to one side // a smooth ramp (a hard max folds the top along a line)
-    out.cloth.push(onHead(Fr, bend(loft(crownRings, { seg: 18, capEnd: { round: (flat ? .006 : .01) * k }, lipStart: .003 * k }), slope)));
-    out.cloth.push(onHead(Fr, loft([ringOf(Fr, .001, .006), ringOf(Fr, .016, .008)], { seg: 18, lipStart: .002 * k, lipEnd: .002 * k })));
+    out.cloth.push(onHead(Fr, bend(loft(crownRings, { seg: 16, capEnd: { round: (flat ? .006 : .01) * k }, lipStart: .003 * k }), slope)));
+    out.cloth.push(onHead(Fr, loft([ringOf(Fr, .001, .006), ringOf(Fr, .016, .008)], { seg: 16, lipStart: .002 * k, lipEnd: .002 * k })));
     out.cloth.push(onHead(Fr, brim(Fr, .006, .004, { f: flat ? .05 : .046, s: .006, b: 0 }, (u, w, t) => (-.016 * Math.max(0, w) ** 1.5 - .004 * u * u) * t, -1.05, 2.1, 14)));
     if (!flat) for (let i = 0; i < 6; i++) { const a = i / 6 * 2 * A + A / 6; out.cloth.push(onHead(Fr, bend(seam(crownRings, Array.from({ length: 4 }, (_, j) => (.016 + (topY - .02) * j / 3) * k), () => a, .0015 * k, .0025 * k, .0018 * k), slope))); }
     const top = new T.Vector3(0, (topY + (flat ? .006 : .014)) * k, (Fr.base.z ?? 0) + (flat ? .02 : .01) * k); slope(top);
@@ -83,28 +83,28 @@ export function hatOf(look: Look, h: number): HatOut {
     const Fr = F(.011);
     out.cloth.push(onHead(Fr, crownOf(Fr, [[0, .004], [.03, .009], [.062, .006], [.086, -.008], [.1, -.03]], .03)));
     out.cloth.push(onHead(Fr, brim(Fr, .002, .004, { f: .036, s: .03, b: .034 }, (u, w, t) => (.024 * u ** 4 - .004 * w * w) * t * t)));
-    out.trim.push(onHead(Fr, loft([ringOf(Fr, .004, .0075), ringOf(Fr, .022, .0085)], { seg: 20, lipEnd: .0015 * k })));
+    out.trim.push(onHead(Fr, loft([ringOf(Fr, .004, .0075), ringOf(Fr, .022, .0085)], { seg: 16, lipEnd: .0015 * k })));
   }
   if (hat === 'topHat') { // a tall crown, a little waisted and flaring to a flat top with a lip, a brim curled at the sides, a deep ribbon band
     const Fr = F(.011);
     out.cloth.push(onHead(Fr, crownOf(Fr, [[0, .004], [.06, .0025], [.13, .005], [.19, .01], [.2, .009]], 'flat')));
     out.cloth.push(onHead(Fr, brim(Fr, .002, .004, { f: .04, s: .034, b: .036 }, (u, w, t) => (.028 * u ** 4 - .005 * w * w) * t * t)));
-    out.trim.push(onHead(Fr, loft([ringOf(Fr, .004, .0065), ringOf(Fr, .036, .0055)], { seg: 20, lipEnd: .0015 * k })));
+    out.trim.push(onHead(Fr, loft([ringOf(Fr, .004, .0065), ringOf(Fr, .036, .0055)], { seg: 16, lipEnd: .0015 * k })));
   }
   if (hat === 'kepi') { // level and stiff: a band, a crown narrowing a little to a flat top that slopes down to the front, a flat visor
     const Fr = F(.009), slope = (v: T.Vector3) => { v.y -= .12 * (v.z - (Fr.base.z ?? 0)) * T.MathUtils.smoothstep(v.y, .02 * k, .1 * k); };
     out.cloth.push(onHead(Fr, bend(crownOf(Fr, [[0, .004], [.03, .006], [.07, .002, { w: -.002 }], [.1, -.002, { w: -.006 }], [.104, -.012, { w: -.012 }]], 'flat'), slope)));
     out.cloth.push(onHead(Fr, brim(Fr, .003, .005, { f: .058, s: .008, b: 0 }, (u, w, t) => -.012 * Math.max(0, w) ** 2 * t, -1.0, 2.0, 14)));
-    out.trim.push(onHead(Fr, loft([ringOf(Fr, .002, .008), ringOf(Fr, .03, .0085)], { seg: 20, lipEnd: .0015 * k })));
+    out.trim.push(onHead(Fr, loft([ringOf(Fr, .002, .008), ringOf(Fr, .03, .0085)], { seg: 16, lipEnd: .0015 * k })));
     out.metal.push(onHead(Fr, ball(.009 * k, new T.Vector3(0, .042 * k, (Fr.base.z ?? 0) + Fr.base.f + .009 * k))));
   }
   if (hat === 'helm') { // the Ordinance helm: a tall rounded shell sitting level, a comb from brow to nape, a short peak pitched down over the brow, a deep guard sweeping down over
     // the nape, a leather band and a brass badge
     const Fr = F(.011), shell = [[0, .007], [.04, .013], [.085, .009], [.12, -.006], [.142, -.03]] as [number, number][];
-    out.cloth.push(onHead(Fr, crownOf(Fr, shell, .03)));
-    out.cloth.push(onHead(Fr, brim(Fr, .002, .007, { f: .034, s: .008, b: 0 }, (u, w, t) => -.016 * Math.max(0, w) ** 1.5 * t, -1.05, 2.1, 12)));
-    out.cloth.push(onHead(Fr, brim(Fr, .0, .007, { f: 0, s: .02, b: .042 }, (u, w, t) => -.05 * Math.max(0, -w) ** 1.4 * t - .012 * t, A - 1.75, 3.5, 16)));
-    out.trim.push(onHead(Fr, loft([ringOf(Fr, .006, .009), ringOf(Fr, .024, .0105)], { seg: 20, lipEnd: .0015 * k })));
+    out.cloth.push(onHead(Fr, crownOf(Fr, shell, .03, 14)));
+    out.cloth.push(onHead(Fr, brim(Fr, .002, .007, { f: .034, s: .008, b: 0 }, (u, w, t) => -.016 * Math.max(0, w) ** 1.5 * t, -1.05, 2.1, 10)));
+    out.cloth.push(onHead(Fr, brim(Fr, .0, .007, { f: 0, s: .02, b: .042 }, (u, w, t) => -.05 * Math.max(0, -w) ** 1.4 * t - .012 * t, A - 1.75, 3.5, 12)));
+    out.trim.push(onHead(Fr, loft([ringOf(Fr, .006, .009), ringOf(Fr, .024, .0105)], { seg: 14, lipEnd: .0015 * k })));
     const R2 = shell.map(([y, g]) => ringOf(Fr, y, g)), zc = Fr.base.z ?? 0, topAt = (z: number) => { let y = 0; for (const r of R2) { const zz = z - (r.z ?? 0), d = zz >= 0 ? r.f : r.b; if (Math.abs(zz) <= d) y = r.y + (r === R2[R2.length - 1] ? .03 * k * Math.sqrt(Math.max(0, 1 - (zz / d) ** 2)) : 0); } return y; };
     const comb: SweepPt[] = [-.8, -.5, -.2, .15, .45, .7].map(t => { const z = zc + t * (Fr.base.f + .012 * k); return { p: [0, topAt(z) + .002 * k, z] as [number, number, number], a: .0045 * k, b: .012 * k * (1 - Math.abs(t) * .45), n: [1, 0, 0] as [number, number, number] }; });
     out.trim.push(onHead(Fr, sweep(comb, { seg: 4, capStart: true, capEnd: true })));
@@ -115,11 +115,11 @@ export function hatOf(look: Look, h: number): HatOut {
     const crown = crownOf(Fr, [[0, .004], [.04, .012], [.074, .008], [.09, -.004], [.098, -.02]], .02);
     out.cloth.push(onHead(Fr, bend(crown, v => { const u = v.x / (Fr.base.w + .01 * k); v.y -= .016 * k * Math.exp(-u * u / .08) * T.MathUtils.smoothstep(v.y, .06 * k, .1 * k); })));
     out.cloth.push(onHead(Fr, brim(Fr, .002, .004, { f: .06, s: .052, b: .056 }, (u, w, t) => (-.02 * w * w + .008 * u * u) * t)));
-    out.trim.push(onHead(Fr, loft([ringOf(Fr, .004, .007), ringOf(Fr, .022, .008)], { seg: 20, lipEnd: .0015 * k })));
+    out.trim.push(onHead(Fr, loft([ringOf(Fr, .004, .007), ringOf(Fr, .022, .008)], { seg: 16, lipEnd: .0015 * k })));
   }
   if (hat === 'headscarf' || hat === 'kerchief' || hat === 'bonnet') {
     // cloth over the scalp down to the seat, standing off it over the hair (fuller over a bun at the back), its front edge turned back in a roll, tied at the nape
-    const scarf = hat === 'headscarf', bon = hat === 'bonnet', low = (a: number) => seat(a) * k, C = 32, Rw = 5, crown = rings[rings.length - 1].y;
+    const scarf = hat === 'headscarf', bon = hat === 'bonnet', low = (a: number) => seat(a) * k, C = 24, Rw = 4, crown = rings[rings.length - 1].y;
     const off = (s: number, a: number) => { const y = low(a) / k + (crown / k - low(a) / k) * s, bunAt = Math.exp(-((y - .1) ** 2) / (2 * .035 * .035)) * Math.max(0, -Math.cos(a)) ** 3; // the swell over a gathered bun
       return ((bon ? .02 : scarf ? .016 : .011) + (bon ? .02 : scarf ? .014 : .004) * Math.max(0, -Math.cos(a)) * Math.sin(Math.min(1, s * 1.6) * A * .5) * (1 - s * .5) + (bon || scarf ? .026 : 0) * bunAt + .006 * Math.sin(s * A)) * k; };
     const pos: number[] = [], idx: number[] = [];
@@ -131,7 +131,7 @@ export function hatOf(look: Look, h: number): HatOut {
     { const nr = g.attributes.normal as T.BufferAttribute; for (let j = 0; j <= Rw; j++) { const i0 = j * (C + 1), i1 = i0 + C, x = nr.getX(i0) + nr.getX(i1), y = nr.getY(i0) + nr.getY(i1), z = nr.getZ(i0) + nr.getZ(i1), l = Math.hypot(x, y, z) || 1; nr.setXYZ(i0, x / l, y / l, z / l); nr.setXYZ(i1, x / l, y / l, z / l); } }
     out.cloth.push(g);
     // the turned edge: a roll along the seat line, all round
-    const roll: SweepPt[] = Array.from({ length: 24 }, (_, i) => { const a = -A + 2 * A * i / 24, q = at(low(a) + .004 * k, a, off(0, a) + .002 * k); return { p: [q.p.x, q.p.y, q.p.z] as [number, number, number], a: .0075 * k, b: .0045 * k, n: [q.n.x, q.n.y, q.n.z] as [number, number, number] }; });
+    const roll: SweepPt[] = Array.from({ length: 18 }, (_, i) => { const a = -A + 2 * A * i / 18, q = at(low(a) + .004 * k, a, off(0, a) + .002 * k); return { p: [q.p.x, q.p.y, q.p.z] as [number, number, number], a: .0075 * k, b: .0045 * k, n: [q.n.x, q.n.y, q.n.z] as [number, number, number] }; });
     out.cloth.push(sweep(roll, { seg: 4, closed: true }));
     if (bon) { // the bonnet's brim stands round the face from ear to ear over the top, a ribbon tie under each ear
       const P = (a: number) => at(low(a) + .004 * k, a, off(0, a)), pts: SweepPt[] = Array.from({ length: 12 }, (_, i) => { const a = -1.75 + 3.5 * i / 11, q = P(a), t = P(a + .01).p.sub(P(a - .01).p).normalize(), o = q.n.clone().multiplyScalar(.7).add(new T.Vector3(0, 0, .55)).normalize(), n = new T.Vector3().crossVectors(t, o).normalize(), wd = .03 * k * (1 - .35 * (Math.abs(a) / 1.75) ** 2), c = q.p.clone().addScaledVector(o, wd); return { p: [c.x, c.y, c.z] as [number, number, number], a: wd, b: .005 * k, n: [n.x, n.y, n.z] as [number, number, number] }; });

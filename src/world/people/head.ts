@@ -108,7 +108,7 @@ export function ear(side: number, h: number, shape: HeadShape = 'oval'): T.Buffe
     // the skull's side where the ear's front edge meets it
     const rc = ringAt(rg, bot + Hh * .45); let lo = Math.PI / 2, hi = Math.PI; for (let i = 0; i < 30; i++) { const m = (lo + hi) / 2, q = ringPoint(rc, m); if (q[2] > zFront) lo = m; else hi = m; } const x0 = ringPoint(rc, lo)[0];
     const s = new T.Shape(); EAR.forEach(([u, v], i) => { i ? s.lineTo(u * W, v * Hh) : s.moveTo(u * W, v * Hh); }); s.closePath();
-    const t = .0045 * k, g = new T.ExtrudeGeometry(s, { depth: t, bevelEnabled: true, bevelThickness: .0018 * k, bevelSize: .0018 * k, bevelSegments: 1, curveSegments: 2 });
+    const t = .0075 * k, g = new T.ExtrudeGeometry(s, { depth: t, bevelEnabled: false, curveSegments: 2 }); // (a flat slab: the bevel's three bands an edge were 100 triangles an ear, 48 now; it is 7.5 mm through, about what the bevelled ear was)
     g.translate(0, 0, -t / 2);
     // local x runs back from the front edge, y up, z through the ear's thickness; turned to run back along the head and flared out at the back
     const X = new T.Vector3(Math.sin(flare), 0, -Math.cos(flare)), Y = new T.Vector3(0, 1, 0), Z = new T.Vector3().crossVectors(X, Y);

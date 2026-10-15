@@ -49,7 +49,7 @@ export function dress(x: X) {
   // ---------------------------------------------------------------- shared shells
   const shellBoth = (g: T.Group, rings: Ring[], o: Parameters<typeof loft>[1], m: T.Material, k2: string, lip = .008, hemmed = true, dome = 0) => {
     put0(g, loft(rings, { seg: 10, ...o, lipEnd: hemmed ? lip : 0, lipDepth: .0001, ...(dome ? { capEnd: { round: dome } } : {}), key: key(k2) }), m);
-    put0(g, shared(key(k2 + '/in'), () => inward(loft(offset(rings, -lip), { seg: 10, ...o }))), m); // the lining faces in, so the inside of a skirt, a coat or an apron is drawn (seen from behind or below)
+    put0(g, shared(key(k2 + '/in'), () => inward(loft(offset(rings, -lip), { ...o, seg: 7 }))), m); // the lining faces in, so the inside of a skirt, a coat or an apron is drawn (seen from behind or below)
   };
   /** where the long-cloth helpers below put what they build: the figure's own `tails` and `hem`, or a coat skirt's half (`jacket`'s `split`) */
   let into: { tails: T.Group; hem: T.Group; cloth: Garment[] } = { tails, hem, cloth: x.cloth };
@@ -126,7 +126,7 @@ export function dress(x: X) {
     const off = o.off ?? .022, aL = o.aL ?? .3, aR = o.aR ?? .3, cR = offset(rib, off, (_, i) => ({ w: i < 2 ? .004 : 0, f: i < 3 ? .006 : 0 })), arc = o.closed ? { start: 0, arc: Math.PI * 2 } : open(aL, aR);
     put0(lifted, loft(cR, { seg: 10, ...arc, lipEnd: .003, key: key(`coat/${off}/${arc.start}/${arc.arc}`) }), m); if (o.closed) layer(cR); // (a belt goes over a closed coat, and under an open one: on what its opening shows)
     if (!o.closed) for (const a of [aL, -aR]) put0(lifted, seam(cR, steps(1.5, 1.045, 5), () => a, .002, .018, .005), o.trimM ?? m);
-    else { put0(lifted, plate(cR, steps(1.47, 1.05, 8).map(y => [y, -.6, .17]), .0, .006, 8), m); layer(offset(cR, .006), 0, -.6, .77); for (const y of steps(1.42, 1.12, o.buttons ?? 3)) button(lifted, surface(cR, y, .1, .0075), brass, .0085); }
+    else { put0(lifted, plate(cR, steps(1.47, 1.05, 8).map(y => [y, -.6, .17]), .0, .006, 5), m); layer(offset(cR, .006), 0, -.6, .77); for (const y of steps(1.42, 1.12, o.buttons ?? 3)) button(lifted, surface(cR, y, .1, .0075), brass, .0085); }
     const nc = ringAt(neckR, 1.52), cc = [1.508, 1.536, 1.572].map((y, i) => ({ y, w: nc.w + [.021, .03, .038][i], f: nc.f + [.021, .03, .036][i], b: nc.b + [.02, .03, .038][i], z: (nc.z ?? 0) + .004, n: 2.1 }));
     if (o.collar !== false) put0(lifted, loft(cc, { seg: 14, ...(o.closed || o.stand ? { start: 0, arc: Math.PI * 2 } : { start: .7, arc: Math.PI * 2 - 1.4 }), lipEnd: .007, lipStart: .004, key: key(`collar/${o.closed || o.stand}`) }), m);
     if (!o.closed && o.lapel !== false) for (const [s, e] of [[1, aL], [-1, -aR]] as const) put0(lifted, plate(cR, [[1.488, .25], [1.43, .5], [1.36, .55], [1.28, .45], [1.2, .18]].map(([y, w]) => [y, e, e + s * w]), .0, .007, 3), o.trimM ?? m);
@@ -224,7 +224,7 @@ export function dress(x: X) {
       const up = upperArm(d), off = o.off ?? .019, fore = forearm(d), rolled = o.rolled?.(side) ?? false, at = (y: number, e: number) => { const r = ringAt(fore, y); return { ...r, w: r.w + e, f: r.f + e, b: r.b + e }; };
       const eg = off - ELBOW_GATHER; // the sleeve draws in over the elbow, and the forearm's sleeve leaves it at the same radius (one shared cap) and swells again below it
       const puff = o.cap === 'puff';
-      put0(sh, loft(sleeveCap(offset(up, off, (_, i) => i === 3 ? { w: -ELBOW_GATHER * .5, f: -ELBOW_GATHER * .5, b: -ELBOW_GATHER * .5 } : i === 4 ? { w: -ELBOW_GATHER, f: -ELBOW_GATHER, b: -ELBOW_GATHER } : {}), puff), { seg: 7, capStart: { round: (d.rSh + off) * (puff ? 1 : SET_CAP) }, capEnd: { round: d.elbowR + eg }, key: key(`sleeve/${off}/${puff}`) }), o.upM);
+      put0(sh, loft(sleeveCap(offset(up, off, (_, i) => i === 3 ? { w: -ELBOW_GATHER * .5, f: -ELBOW_GATHER * .5, b: -ELBOW_GATHER * .5 } : i === 4 ? { w: -ELBOW_GATHER, f: -ELBOW_GATHER, b: -ELBOW_GATHER } : {}), puff), { seg: 6, capStart: { round: (d.rSh + off) * (puff ? 1 : SET_CAP) }, capEnd: { round: d.elbowR + eg }, key: key(`sleeve/${off}/${puff}`) }), o.upM);
       if (o.garter) put0(sh, loft([-.12, -.15].map(y => { const r = ringAt(offset(up, off + .004), y); return r; }), { seg: 7, lipStart: .003, lipEnd: .003, key: key('garter') }), o.garter);
       if (o.armband && o.armband.side === side) { const bandR = [-.075, -.145].map(y => ringAt(offset(up, off + .004), y)); put0(sh, loft(bandR, { seg: 8, lipStart: .004, lipEnd: .004, key: key('armband') }), o.armband.m); }
       o.board?.(sh, side);
@@ -234,8 +234,8 @@ export function dress(x: X) {
       const fm = o.foreM ?? o.upM;
       if (rolled) put0(el, loft([at(0, off + .003), at(-.012, off + .011), at(-.05, off + .014)], { seg: 6, capStart: { round: d.elbowR + off + .003 }, lipEnd: .011, key: key('roll') }), fm);
       else {
-        put0(el, loft([at(0, eg), at(-.07, off + .002), at(-.13, off - .001), at(-.205, off - .004)], { seg: 8, capStart: { round: d.elbowR + eg }, lipEnd: .007, key: key('forearm') }), fm);
-        put0(el, loft([at(-.15, off + .006), at(-.205, off + .004)], { seg: 8, lipEnd: .008, lipStart: .004, key: key('cuff') }), o.cuffM ?? fm);
+        put0(el, loft([at(0, eg), at(-.07, off + .002), at(-.13, off - .001), at(-.205, off - .004)], { seg: 7, capStart: { round: d.elbowR + eg }, lipEnd: .007, key: key('forearm') }), fm);
+        put0(el, loft([at(-.15, off + .006), at(-.205, off + .004)], { seg: 7, lipEnd: .008, lipStart: .004, key: key('cuff') }), o.cuffM ?? fm);
         if (o.shirtCuff) put0(el, loft([at(-.2, off + .002), at(-.243, off + .002)], { seg: 8, lipEnd: .004, key: key('shirtcuff') }), o.shirtCuff);
       }
       if (o.guard) put0(el, loft([at(-.035, off + .012), at(-.1, off + .013), at(-.17, off + .012)], { seg: 8, lipStart: .004, lipEnd: .004, key: key('guard') }), o.guard);
@@ -286,8 +286,8 @@ export function dress(x: X) {
   const board = (m: T.Material, edge: T.Material, len: number, inner: number, wide: number, bar: boolean) => (sh: T.Group, side: number) => {
     const slab = loft([{ y: -inner, w: .005, f: wide, b: wide, n: 5 }, { y: len, w: .005, f: wide, b: wide, n: 5 }], { seg: 8, capStart: 'flat', capEnd: 'flat', key: key(`board/${len}/${inner}/${wide}`) }), top = d.rSh + .008;
     const at = (geo: T.BufferGeometry, mat: T.Material, dy = 0, dx = 0) => put0(sh, place(geo, [side * dx, top - .004 + dy, 0], [0, 0, -side * (Math.PI / 2 + .28)]), mat);
-    at(slab, m); at(loft([{ y: len - .012, w: .0075, f: wide + .003, b: wide + .003, n: 5 }, { y: len + .002, w: .0075, f: wide + .003, b: wide + .003, n: 5 }], { seg: 8, capStart: 'flat', capEnd: 'flat', key: key(`boardedge/${len}/${wide}`) }), edge, .001);
-    if (bar) { at(loft([{ y: .0, w: .0065, f: wide * .92, b: wide * .92, n: 5 }, { y: .012, w: .0065, f: wide * .92, b: wide * .92, n: 5 }], { seg: 8, capStart: 'flat', capEnd: 'flat', key: key(`boardbar/${wide}`) }), brass, .002, side * .045); }
+    at(slab, m); at(loft([{ y: len - .012, w: .0075, f: wide + .003, b: wide + .003, n: 5 }, { y: len + .002, w: .0075, f: wide + .003, b: wide + .003, n: 5 }], { seg: 6, capStart: 'flat', capEnd: 'flat', key: key(`boardedge/${len}/${wide}`) }), edge, .001);
+    if (bar) { at(loft([{ y: .0, w: .0065, f: wide * .92, b: wide * .92, n: 5 }, { y: .012, w: .0065, f: wide * .92, b: wide * .92, n: 5 }], { seg: 6, capStart: 'flat', capEnd: 'flat', key: key(`boardbar/${wide}`) }), brass, .002, side * .045); }
     button(sh, { p: new T.Vector3(side * -(inner - .008) * .995, top + .003 + inner * .1, 0), n: new T.Vector3(0, 1, 0) }, brass, .0085);
   };
   /** a book hung from the belt at the hip */
@@ -332,17 +332,17 @@ export function dress(x: X) {
     skirt.drop = Math.min(skirt.drop, .55); skirt.depth = Math.max(skirt.depth, .27); // a greatcoat opens a little in a stride and stays a column
     // a high oxblood collar, stiff and closed at the throat, standing to just under the jaw
     { const nc = ringAt(neckR, 1.52), top = d.chin - .018, cc = [1.49, (1.49 + top) / 2, top].map((y, i) => { const q = ringAt(neckR, Math.min(y, 1.538)); return { y, w: q.w + [.036, .033, .031][i], f: q.f + [.036, .034, .032][i], b: q.b + [.034, .032, .03][i], z: (q.z ?? 0) + .004, n: 2.1 }; }); void nc;
-      put0(lifted, loft(cc, { seg: 16, lipEnd: .005, lipStart: .004, key: key('inspcollar') }), oxb);
-      put0(lifted, loft([cc[2], { ...cc[2], y: cc[2].y - .012, w: cc[2].w + .005, f: cc[2].f + .005, b: cc[2].b + .005 }], { seg: 16, lipStart: .002, lipEnd: .002, key: key('inspcollaredge') }), c(P.cloth.bone)); // People XX: bone piping on the collar, a light line under the jaw
+      put0(lifted, loft(cc, { seg: 14, lipEnd: .005, lipStart: .004, key: key('inspcollar') }), oxb);
+      put0(lifted, loft([cc[2], { ...cc[2], y: cc[2].y - .012, w: cc[2].w + .005, f: cc[2].f + .005, b: cc[2].b + .005 }], { seg: 14, lipStart: .002, lipEnd: .002, key: key('inspcollaredge') }), c(P.cloth.bone)); // People XX: bone piping on the collar, a light line under the jaw
       button(lifted, { p: new T.Vector3(0, top - .014, cc[2].f + (cc[2].z ?? 0) + .003), n: new T.Vector3(0, 0, 1) }, brass, .0065); }
     // fitted at the waist, a narrow black belt
     belt(black, 1.085, .016);
     // the back is hard-lined: a centre seam and a plain vent
-    r.on(.17, () => stripe(r.rings!, r.rings![0].y, HEM_Y + .02, .17, .003, .012, .005, coat, 6));
+    r.on(.17, () => stripe(r.rings!, r.rings![0].y, HEM_Y + .02, .17, .003, .012, .005, coat, 4));
     for (const y of steps(-.04, -.46, 4)) button(r.at(.12), surface(r.rings!, y, .12, .008), brass, .0085);
     // the back: a belt strap with its two buttons, and a pleat either side of the seam
     put0(lifted, around(r.cR, 1.15, Math.PI - .8, Math.PI + .8, .004, .02, .006, 6), coat); for (const a of [Math.PI - .8, Math.PI + .8]) button(lifted, surface(r.cR, 1.15, a, .011), brass, .008);
-    for (const a of [Math.PI - .3, Math.PI + .3]) r.on(a, () => stripe(r.rings!, r.rings![0].y - .08, HEM_Y + .02, a, .002, .01, .005, coat, 6));
+    for (const a of [Math.PI - .3, Math.PI + .3]) r.on(a, () => stripe(r.rings!, r.rings![0].y - .08, HEM_Y + .02, a, .002, .01, .005, coat, 4));
     if (asym.has('ledger')) ledger(r.at(-side * .6), r.rings!, -.1, -side * .6, black); // (People XXI: a little further forward, since it now rides the coat's front as that goes out over the knee)
     if (asym.has('truncheon')) truncheon(r.at(side * .9), r.rings!, -.1, side * .9, black);
     if (asym.has('keyRing')) keyRing(r.at(side * .82), r.rings!, -.08, side * .82);
@@ -367,7 +367,7 @@ export function dress(x: X) {
     const rings = skirtRings(.2, .56, .66, 1.25, 7);
     longShell(rings, { start: 0, arc: Math.PI * 2 }, skirtM, 'longskirt', .014);
     hemLoft(rings, .006, .008, 'hemband', c(shade(I('skirt'), .8)));
-    for (let i = 0; i < 7; i++) stripe(rings, rings[0].y, rings[rings.length - 1].y, (i / 7) * Math.PI * 2 + .4, .002, .012, .006, skirtM, 6);
+    for (let i = 0; i < 7; i++) stripe(rings, rings[0].y, rings[rings.length - 1].y, (i / 7) * Math.PI * 2 + .4, .002, .012, .006, skirtM, 4);
     skirt.drop = .34; skirt.depth = .34;
     if (asym.has('pouchHip')) pouch(tails, rings, -.2, .62, 1.02, leatherM);
     if (asym.has('apronTie')) { const ap = c(P.cloth.bone); apron(ap, { hemY: .44, hemW: .5, hemD: .6, aw: .8, over: rings }); }
@@ -560,7 +560,7 @@ const angleOf = (rg: Ring[], p: T.Vector3) => { const r = ringAt(rg, p.y), k = 2
  *  by `facetSurface` (a flat strap swept as one plane stood 1-2 cm off the coat wherever its edge ran onto the next facet), `off` the strap's middle off the shell and `th` its thickness.
  *  Over the buttoned front's overlap (the plate, angles -.6..+.17, which is cut on the smooth curve and 6 mm thick) it rides the plate. */
 const strapOn = (rg: Ring[], ctrl: number[][], hw: number, off: number, th: number, seg: number) => {
-  const pts = spline(ctrl, 7), C = 5, N = pts.length, pos: number[] = [], nrm: number[] = [], idx: number[] = [], id = (i: number, l: number, c: number) => (i * 2 + l) * C + c;
+  const pts = spline(ctrl, 7), C = 3, N = pts.length, pos: number[] = [], nrm: number[] = [], idx: number[] = [], id = (i: number, l: number, c: number) => (i * 2 + l) * C + c;
   // (its normals are the shell's own, so it is lit as the coat is and not as a sheet bent over a ridge)
   const ride = (a: number, y: number) => { const t = ((a % TAU) + TAU) % TAU, u = t >= TAU - .6 ? t - (TAU - .6) : t + .6; return u >= .02 && u <= .75 && y >= 1.06 && y <= 1.47 ? 1 : 0; }; // (whether it is over the plate: a point is on the plate or on the coat, and the strap steps up onto the plate's edge)
   for (let i = 0; i < N; i++) { const [y, a] = pts[i], pr = pts[Math.max(0, i - 1)], nx = pts[Math.min(N - 1, i + 1)], r0 = ringAt(rg, y), rad = (r0.w + (r0.f + r0.b) / 2) / 2,
@@ -568,7 +568,7 @@ const strapOn = (rg: Ring[], ctrl: number[][], hw: number, off: number, th: numb
     for (const l of [0, 1]) for (let c = 0; c < C; c++) { const sd = (c / (C - 1) * 2 - 1) * hw, yy = y - dm / len * sd, aa = a + dy / len * sd / rad, o = off + (l ? -th / 2 : th / 2), q = facetSurface(rg, yy, aa, seg, o), ang = angleOf(rg, q.p), k = ride(ang, yy), m = k ? surface(rg, yy, ang, o + .006).p : q.p; pos.push(q.p.x + (m.x - q.p.x) * k, q.p.y + (m.y - q.p.y) * k, q.p.z + (m.z - q.p.z) * k); nrm.push(q.n.x * (l ? -1 : 1), q.n.y * (l ? -1 : 1), q.n.z * (l ? -1 : 1)); } }
   const dups = new Map<number, number>(), dup = (k: number) => { let d = dups.get(k); if (d === undefined) { d = pos.length / 3; dups.set(k, d); pos.push(pos[k * 3], pos[k * 3 + 1], pos[k * 3 + 2]); nrm.push(nrm[k * 3], nrm[k * 3 + 1], nrm[k * 3 + 2]); } return d; }; // (a wall's own vertices, so its edge does not tilt the face's normals)
   const quad = (a: number, b: number, c: number, d: number) => idx.push(a, b, c, b, d, c);
-  for (let i = 0; i < N - 1; i++) { for (let c = 0; c < C - 1; c++) { quad(id(i, 0, c), id(i, 0, c + 1), id(i + 1, 0, c), id(i + 1, 0, c + 1)); quad(id(i, 1, c + 1), id(i, 1, c), id(i + 1, 1, c + 1), id(i + 1, 1, c)); }
+  for (let i = 0; i < N - 1; i++) { for (let c = 0; c < C - 1; c++) { quad(id(i, 0, c), id(i, 0, c + 1), id(i + 1, 0, c), id(i + 1, 0, c + 1)); }
     quad(dup(id(i, 1, 0)), dup(id(i, 0, 0)), dup(id(i + 1, 1, 0)), dup(id(i + 1, 0, 0))); quad(dup(id(i, 0, C - 1)), dup(id(i, 1, C - 1)), dup(id(i + 1, 0, C - 1)), dup(id(i + 1, 1, C - 1))); }
   for (const i of [0, N - 1]) for (let c = 0; c < C - 1; c++) { const f = i ? 1 : -1; if (f > 0) quad(id(i, 0, c + 1), id(i, 0, c), id(i, 1, c + 1), id(i, 1, c)); else quad(id(i, 0, c), id(i, 0, c + 1), id(i, 1, c), id(i, 1, c + 1)); }
   const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); g.setIndex(idx); g.computeVertexNormals();

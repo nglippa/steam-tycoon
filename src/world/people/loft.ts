@@ -162,8 +162,10 @@ export function plate(rings: Ring[], rows: number[][], off: number, thick: numbe
     if (fn.dot(sn) < 0) for (let t = 0; t < idx.length; t += 3) { const x = idx[t + 1]; idx[t + 1] = idx[t + 2]; idx[t + 2] = x; }
   }
   // edge walls
+  const c = new T.Vector3(); { const m = Math.floor(R / 2); c.copy(at(m, cols / 2, off + thick)); }
   const wall = (pts: [number, number][]) => { const base = pos.length / 3; pts.forEach(([j, i], k) => { pos.push(...at(j, i, off + thick).toArray()); uv.push(k / pts.length, 0); pos.push(...at(j, i, off - .001).toArray()); uv.push(k / pts.length, 1); });
-    for (let k = 0; k < pts.length - 1; k++) { const a = base + k * 2; idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); idx.push(a, a + 2, a + 1, a + 1, a + 2, a + 3); } };
+    for (let k = 0; k < pts.length - 1; k++) { const a = base + k * 2, v = (n: number) => new T.Vector3(pos[n * 3], pos[n * 3 + 1], pos[n * 3 + 2]), A = v(a), fn = v(a + 1).sub(A).cross(v(a + 2).sub(A)), out = A.clone().add(v(a + 3)).multiplyScalar(.5).sub(c);
+      if (fn.dot(out) > 0) idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); else idx.push(a, a + 2, a + 1, a + 1, a + 2, a + 3); } }; // one face, turned away from the plate's middle (the wall was drawn both ways, 2 triangles a segment more)
   wall(Array.from({ length: cols + 1 }, (_, i) => [0, i] as [number, number])); wall(Array.from({ length: cols + 1 }, (_, i) => [R - 1, i] as [number, number]));
   wall(Array.from({ length: R }, (_, j) => [j, 0] as [number, number])); wall(Array.from({ length: R }, (_, j) => [j, cols] as [number, number]));
   const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new T.Float32BufferAttribute(uv, 2)); g.setIndex(idx); g.computeVertexNormals(); return g;

@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import * as T from 'three';
 import { CASTS, paletteOf, resolveLook, type CastId, type Look } from '../src/world/people/look.ts';
 import { buildFigure } from '../src/world/people/figure.ts';
-import { kit } from './people-rig.ts';
+import { kit, REPS } from './people-rig.ts';
+import { BUILT } from '../src/world/people/figure.ts';
 
 /** People XX: the casts QA found alike at ~50 px each carry their own value or silhouette cue (Book 4, "Telling the dark coats apart"). */
 const lum = (hex: string) => { const c = new T.Color(hex); return .2126 * c.r + .7152 * c.g + .0722 * c.b; }; // linear
@@ -85,4 +86,24 @@ test('at 50 px every representative has its own main-garment value or hue: 10 L*
     const dh = Math.min(Math.abs(a.H - b.H), 360 - Math.abs(a.H - b.H));
     assert.ok(Math.abs(a.L - b.L) >= 10 || dh >= 25, `${a.label} (${a.hex} L${a.L.toFixed(0)} h${a.H.toFixed(0)}) and ${b.label} (${b.hex} L${b.L.toFixed(0)} h${b.H.toFixed(0)}) read as one at 50 px`); }
   const ins = reps.find(r => r.cast === 'inspector')!; assert.ok(lum(ins.p.collar) > 4 * lum(ins.p.coat), `the inspector's collar ${ins.p.collar} is a pale accent on its coat ${ins.p.coat}`);
+});
+
+/** People XXX: Book 14 holds a figure to about 6,800 triangles. Counted on the built figure (every mesh, solo, unbaked), the way the cast sheet's budget is. */
+const tris = (l: Look) => { let n = 0; buildFigure(l, { solo: true }, kit()).group.traverse(o => { if (o instanceof T.Mesh) { const g = o.geometry as T.BufferGeometry; n += (g.index ? g.index.count : g.attributes.position.count) / 3; } }); return n; };
+const CAP = 6800;
+
+test('every QA representative stays under the 6,800 triangle cap (Book 14)', () => {
+  for (const [label, combo, seed] of REPS) { const [cast, family, frame] = combo.split('.') as [CastId, Look['family'], Look['frame']], n = tris(look(cast, family, frame, seed)); assert.ok(n <= CAP, `${label} builds ${n} triangles`); }
+});
+
+test('every courier (the long coat and the sturdy build included), child and elder look stays under the cap', () => {
+  for (const cast of ['courier', 'child', 'elder'] as const) for (const family of CASTS[cast].families) for (const frame of CASTS[cast].frames) for (const o of CASTS[cast].outfits) for (const hat of CASTS[cast].hats) {
+    const base = look(cast, family, frame), n = tris({ ...base, outfit: o.id, palette: Object.keys(o.palettes)[0], hat, asymmetries: [...CASTS[cast].asymmetries].slice(0, 2) });
+    assert.ok(n <= CAP, `${cast} ${family}/${frame} ${o.id} in a ${hat}: ${n} triangles`); }
+});
+
+test('the dealt crowd stays under the cap: every built cast over 40 seeds, every family', () => {
+  let worst = 0, where = '';
+  for (const cast of BUILT) for (let s = 0; s < 40; s++) for (const family of CASTS[cast].families) { const l = resolveLook(s, CASTS[cast].archetype, { cast, family, casts: BUILT } as never), n = tris(l); if (n > worst) { worst = n; where = `${cast} seed ${s} ${family} ${l.outfit} ${l.hat} ${l.hairStyle} ${l.asymmetries.join('+')}`; } }
+  assert.ok(worst <= CAP, `${where}: ${worst} triangles`);
 });

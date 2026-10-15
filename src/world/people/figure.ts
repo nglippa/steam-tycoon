@@ -129,7 +129,7 @@ export function buildFigure(look: Look, opts: FigureOpts, kit: Kit) {
     const sh = new T.Group(); sh.position.set(side * d.shX, RIG.shoulder + LIFT, 0); body.add(sh); arms.push(sh);
     const up = upperArm(d), off = lab ? .006 : coatOff - .003, fore = forearm(d);
     const eg = off - ELBOW_GATHER; // the sleeve draws in over the elbow (People XXVI); the forearm's sleeve leaves it at the same radius and swells again below it
-    put0(sh, loft(sleeveCap(offset(up, off, (_, i) => i === 3 ? { w: -ELBOW_GATHER * .5, f: -ELBOW_GATHER * .5, b: -ELBOW_GATHER * .5 } : i === 4 ? { w: -ELBOW_GATHER, f: -ELBOW_GATHER, b: -ELBOW_GATHER } : {}), false), { seg: 7, capStart: { round: (d.rSh + off) * SET_CAP }, capEnd: { round: d.elbowR + eg }, key: `sleeve/${off}/${dk}/set` }), coatM);
+    put0(sh, loft(sleeveCap(offset(up, off, (_, i) => i === 3 ? { w: -ELBOW_GATHER * .5, f: -ELBOW_GATHER * .5, b: -ELBOW_GATHER * .5 } : i === 4 ? { w: -ELBOW_GATHER, f: -ELBOW_GATHER, b: -ELBOW_GATHER } : {}), false), { seg: 6, capStart: { round: (d.rSh + off) * SET_CAP }, capEnd: { round: d.elbowR + eg }, key: `sleeve/${off}/${dk}/set` }), coatM);
     kit.bake(sh);
     const el = new T.Group(); el.position.set(0, -RIG.upperArm, 0); sh.add(el); elbows.push(el);
     const rolled = lab || (asym.has('sleeveRolled') && side < 0), at = (y: number, e: number) => { const r = ringAt(fore, y); return { ...r, w: r.w + e, f: r.f + e, b: r.b + e }; };
@@ -140,8 +140,8 @@ export function buildFigure(look: Look, opts: FigureOpts, kit: Kit) {
     } else {
       // the coat's forearm to a turned cuff, the shirt's cuff showing a centimetre below it
       put0(el, loft([at(-.2, .009), at(-.243, .009)], { seg: 8, lipEnd: .004, key: `shirtcuff/${dk}` }), shirtM);
-      put0(el, loft([at(0, eg), at(-.07, off + .002), at(-.13, off - .001), at(-.205, off - .004)], { seg: 8, capStart: { round: d.elbowR + eg }, lipEnd: .007, key: `coatfore/${dk}` }), coatM);
-      put0(el, loft([at(-.15, off + .006), at(-.205, off + .004)], { seg: 8, lipEnd: .008, lipStart: .004, key: `cuff/${dk}` }), coatM);
+      put0(el, loft([at(0, eg), at(-.07, off + .002), at(-.13, off - .001), at(-.205, off - .004)], { seg: 7, capStart: { round: d.elbowR + eg }, lipEnd: .007, key: `coatfore/${dk}` }), coatM);
+      put0(el, loft([at(-.15, off + .006), at(-.205, off + .004)], { seg: 7, lipEnd: .008, lipStart: .004, key: `cuff/${dk}` }), coatM);
     }
     put0(el, hand(d, side), skin, [0, -RIG.forearm, 0]);
     if (asym.has('chalk') && side > 0) { const ch = kit.plain('#ece8dc'); put0(el, loft([at(-.16, off + .0085), at(-.2, off + .0075)], { seg: 8, lipStart: .002, lipEnd: .002, key: `chalkcuff/${dk}` }), ch); for (const [dx, dz] of [[.034, -.006], [.024, -.02]]) put0(el, new T.Mesh(new T.BoxGeometry(.016, .014, .012)).geometry, ch, [-dx, -RIG.forearm - .105, dz]); }
