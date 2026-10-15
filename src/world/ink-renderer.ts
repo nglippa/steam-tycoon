@@ -132,7 +132,7 @@ export class InkRenderer {
           // the line's nearer side does the rest, so lines thin out in the haze with the geometry under them.
           float fade = 1. - smoothstep(40., 140., nearest) * .6;
           float skyEdge = step(far * .9, farthest);
-          float fogF = (1. - exp(-fogDensity * fogDensity * nearest * nearest)) * (1. - skyEdge * smoothstep(160., 260., nearest));
+          float fogF = (1. - exp(-fogDensity * fogDensity * nearest * nearest)) * (1. - skyEdge * smoothstep(40., 120., nearest));
           fade *= 1. - .75 * fogF;
           // Far shapes against the sky (the skyline planes and isles are tinted, not fogged) keep a faint outline.
           fade = max(fade, .3 * skyEdge * tFar);
@@ -144,7 +144,7 @@ export class InkRenderer {
           vec3 dark = mix(vec3(.06, .05, .05), color * .25, .2);
           // In haze the pen takes a darker tone of the fog, not black (fog colour is linear, like the target). Far away
           // (80-120 m on) the line itself is 40% the haze, so far shapes part by value as well as by line.
-          inkColor = mix(mix(mix(dark, fogColor * .45, fogF), fogColor, .4 * smoothstep(80., 120., nearest)), dark, max(max(low, held), wireEdge));
+          inkColor = mix(mix(mix(dark, fogColor * .45, fogF), fogColor, .4 * smoothstep(80., 120., nearest) * (1. - skyEdge)), dark, max(max(low, held), wireEdge));
         }
         // Ink only ever darkens: a fog-toned line must not show up light across smoke or a dark wall.
         color = min(color, mix(color, inkColor, clamp(ink, 0., 1.) * .95));
