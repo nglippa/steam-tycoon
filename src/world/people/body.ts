@@ -56,7 +56,7 @@ export function ribcage(d: Dims): Ring[] { const B = d.blade, L = d.lumbar, C = 
   r(1.36, d.chestW, d.chestD, .012, 2.5, C * .8, B),
   r(1.42, d.chestW - .004, d.chestD - .02, .006, 2.4, C * .2, B * .75),
   // the shoulder girdle: the trapezius runs from the neck out to the point of the shoulder, thin in depth, rounding over the top of the shoulder blades behind
-  r(1.535 - d.slope, (d.shX - .008) * 2, d.chestD * .5, -.002, 2.1, 0, B * .55),
+  r(Math.min(1.535 - d.slope, RIG.shoulder + (d.rSh + .016) * SET_CAP), (d.shX - .008) * 2, d.chestD * .5, -.002, 2.1, 0, B * .55), // (People XXIX: the point of the shoulder is no higher than a set-in sleeve's cap, so no shell's corner stands up out of it)
   r(1.535 - d.slope * .5, d.shX * 1.2, d.chestD * .47, -.004, 2.1, 0, B * .3),
   ring(1.535 - d.slope * .18, d.neckW * 1.9, d.neckD * 1.05, -.004, 2.1),
   ring(1.538, d.neckW * 1.15, d.neckD * .92, -.002, 2.1),
