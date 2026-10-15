@@ -41,7 +41,7 @@ export const FACE_VALUE: readonly (readonly [number, number, number])[] = [[.86,
  *  lines (absolute colours) lose about half their contrast against the darkest skin at seed-row scale (a dark feature delta of 11-13 L* against 28-32 on the lightest): averaged
  *  into a pixel with the skin around them they come out near its value. As a pixel comes to cover 3 to 14 tile units, the features of the mid and dark skins are laid on more
  *  opaquely (up to x3) and their averaged colour darkened (raised to up to the 2.6th power), so the eye row, brows and mouth keep a comparable step from the skin whatever its tone; close up nothing changes. */
-export const FACE_INK: readonly number[] = [0, .7, 1.8];
+export const FACE_INK: readonly number[] = [.2, .8, 1.8];
 /** The lip colour's multiplier per skin tone (People XXIX-b): the painted mouth is skin times a fixed red-brown, which on the darkest skin came out only 40-60 luma under it; the darker the skin the
  *  deeper its lips are taken, so the mouth keeps a step from the skin on every tone. */
 export const FACE_LIFT: readonly (readonly [number, number, number])[] = [[1, 1, 1], [1.06, 1.05, 1.02], [1.62, 1.46, 1.26]];

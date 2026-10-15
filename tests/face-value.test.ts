@@ -34,7 +34,7 @@ test('features keep their contrast on every skin at small sizes (People XXVI): t
   // a 6-11 unit lash and a white over a 512-unit tile), laid on each skin by FACE_PAINT's rule with its FACE_INK. On every darker skin its L* step below the skin is at least the lightest skin's and at least
   // half again what it is without the ink (measured on the cast sheet with PIL: courier seeds 0, 8, 16 went from a dark-feature luma delta of 28-33 to 46-53; screenshots/presentation/qa/people-xxvi).
   const { FACE_INK } = await import('../src/world/people/head.ts'), T = await import('three');
-  assert.equal(FACE_INK.length, palette.skin.length); assert.equal(FACE_INK[0], 0);
+  assert.equal(FACE_INK.length, palette.skin.length); assert.ok(FACE_INK[0] <= .25, 'the lightest skin is inked little: its features already read');
   for (let t = 1; t < FACE_INK.length; t++) assert.ok(FACE_INK[t] > FACE_INK[t - 1], `tone ${t}: inked no more than the lighter skin`);
   assert.match(FACE_PAINT_HEAD, /uniform float uInk/); assert.match(FACE_PAINT, /uInk/);
   const Lstar = (c: number[]) => { const Y = c.map(v => v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4).reduce((a, v, i) => a + v * [.2126, .7152, .0722][i], 0); return Y > 216 / 24389 ? 116 * Math.cbrt(Y) - 16 : Y * 24389 / 27; };
@@ -71,4 +71,20 @@ test('calm faces are spread over the crowd by seed, and the Ordinance stays cold
   assert.ok(looks.size >= 4, `${looks.size} distinct faces over 28 dark-skin seeds`);
   const kinds = new Set(Array.from({ length: 200 }, (_, s) => spreadExpression(s, 'resident'))); for (const k of CALM_FACES) assert.ok(kinds.has(k), `${k} is drawn`);
   let neutral = 0; for (let s = 0; s < 400; s++) if (spreadExpression(s, 'resident') === 'neutral') neutral++; assert.ok(neutral / 400 < .3, 'no single face takes more than 30%');
+});
+
+test('every face type has a brow that reads, and no hat hides the brow band (People XXIX-b)', async () => {
+  const { readFileSync } = await import('node:fs'), src = readFileSync(new URL('../src/world/citizens.ts', import.meta.url), 'utf8'), block = src.slice(src.indexOf('export const faceTypesNext'), src.indexOf('];', src.indexOf('export const faceTypesNext')));
+  const thick = [...block.matchAll(/brow: \[([\d.]+),/g)].map(m => Number(m[1])); assert.equal(thick.length, 8);
+  for (const [r, t] of thick.entries()) assert.ok(t >= ([2, 4, 6].includes(r) ? 4 : 6), `face type ${r}: brow ${t} thick (the light rows' thin brows, 3, left the young mechanic and the inspector blank)`);
+  // the hat's peak or brim over the eyes: its lowest vertex in front of the eyes (x 3-6 cm either side of the midline) stands at least 1.5 cm over the brow line
+  const T = await import('three'), { resolveLook, CASTS } = await import('../src/world/people/look.ts'), { BUILT } = await import('../src/world/people/figure.ts'), { hatOf } = await import('../src/world/people/hat.ts'), { landmarks } = await import('../src/world/people/headform.ts');
+  const H = .285, v = new T.Vector3(); let n = 0;
+  for (const id of BUILT) for (const hat of CASTS[id].hats) {
+    if (hat === 'none' || !['helm', 'flatCap', 'softCap', 'kepi', 'bowler', 'elderHat'].includes(hat)) continue;
+    const base = resolveLook(3, CASTS[id].archetype, { cast: id, casts: BUILT }), look = { ...base, hat }, L = landmarks(H, look.headShape as never); let low = 9;
+    for (const g of hatOf(look, H).cloth) { const p = g.attributes.position; for (let i = 0; i < p.count; i++) { v.fromBufferAttribute(p, i); if (Math.abs(v.x) > .03 && Math.abs(v.x) < .06 && v.z > L.z0 + L.R * .5) low = Math.min(low, v.y); } }
+    assert.ok(low - L.brow >= .015, `${id} in a ${hat}: the peak's lowest point in front of the eyes is ${(100 * (low - L.brow)).toFixed(1)} cm over the brow line`); n++;
+  }
+  assert.ok(n >= 6, 'a handful of hats were checked');
 });

@@ -224,14 +224,14 @@ const faceAtlas = () => atlasOld ??= paintAtlas(faceTypes);
  * single highlight, thin brows close to the eye, a short mouth line, no blush, and a mark on at most three of the eight. */
 const IR = P.iris;
 export const faceTypesNext: FaceType[] = [
-  { rise: 58, w: 33, tilt: 2, lash: 11, iris: IR.slateBlue, brow: [3, 8, 0], nose: 'dash', mouth: 1.25, marks: 'none', sx: 68, by: 232, calm: true },
-  { rise: 60, w: 33, tilt: 4, lash: 11, iris: IR.brown, brow: [3, 10, -2], nose: 'dot', mouth: 1.25, marks: 'none', sx: 68, by: 232, calm: true },
+  { rise: 58, w: 33, tilt: 2, lash: 11, iris: IR.slateBlue, brow: [8, 8, 0], nose: 'dash', mouth: 1.25, marks: 'none', sx: 68, by: 232, calm: true },
+  { rise: 60, w: 33, tilt: 4, lash: 11, iris: IR.brown, brow: [8, 10, -2], nose: 'dot', mouth: 1.25, marks: 'none', sx: 68, by: 232, calm: true },
   { rise: 54, w: 34, tilt: -2, lash: 10, iris: IR.darkBrown, brow: [4, 4, 3], nose: 'hook', mouth: 1.25, marks: 'none', sx: 69, by: 234, calm: true },
-  { rise: 58, w: 32, tilt: 3, lash: 11, iris: IR.greyGreen, brow: [3, 9, -2], nose: 'button', mouth: 1.25, marks: 'none', sx: 67, by: 232, calm: true },
+  { rise: 58, w: 32, tilt: 3, lash: 11, iris: IR.greyGreen, brow: [8, 9, -2], nose: 'button', mouth: 1.25, marks: 'none', sx: 67, by: 232, calm: true },
   { rise: 55, w: 34, tilt: -4, lash: 10, iris: IR.grey, brow: [4, 5, 3], nose: 'dash', mouth: 1.25, marks: 'none', sx: 69, by: 234, calm: true },
-  { rise: 60, w: 32, tilt: 2, lash: 11, iris: IR.hazel, brow: [3, 10, 0], nose: 'dot', mouth: 1.25, marks: 'none', sx: 67, by: 232, calm: true },
+  { rise: 60, w: 32, tilt: 2, lash: 11, iris: IR.hazel, brow: [8, 10, 0], nose: 'dot', mouth: 1.25, marks: 'none', sx: 67, by: 232, calm: true },
   { rise: 54, w: 34, tilt: 4, lash: 10, iris: IR.greyGreen, brow: [4, 3, -3], nose: 'hook', mouth: 1.25, marks: 'scar', sx: 69, by: 234, calm: true },
-  { rise: 58, w: 33, tilt: 0, lash: 11, iris: IR.darkBrown, brow: [3, 8, 2], nose: 'button', mouth: 1.25, marks: 'none', sx: 68, by: 232, calm: true },
+  { rise: 58, w: 33, tilt: 0, lash: 11, iris: IR.darkBrown, brow: [8, 8, 2], nose: 'button', mouth: 1.25, marks: 'none', sx: 68, by: 232, calm: true },
 ];
 export const faceAtlasNext = () => atlasNext ??= paintAtlas(faceTypesNext);
 /** Each band picks its own column: the shader reads the tile's height (the head's baked v) and takes the eye, brow or mouth column from the figure's `vFace`. Texture gradients come from the

@@ -16,7 +16,7 @@ export interface Seat { front: number; side: number; back: number }
 export const SEAT: Record<Exclude<Hat, 'none'>, Seat> = {
   flatCap: { front: .188, side: .186, back: .184 }, softCap: { front: .196, side: .192, back: .187 },
   bowler: { front: .232, side: .226, back: .222 }, topHat: { front: .224, side: .218, back: .214 },
-  kepi: { front: .208, side: .206, back: .206 }, helm: { front: .196, side: .192, back: .192 },
+  kepi: { front: .208, side: .206, back: .206 }, helm: { front: .206, side: .192, back: .192 },
   elderHat: { front: .206, side: .2, back: .194 },
   bonnet: { front: .246, side: .155, back: .07 }, headscarf: { front: .236, side: .165, back: .058 }, kerchief: { front: .224, side: .182, back: .138 },
 };
