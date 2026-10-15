@@ -293,7 +293,7 @@ const BA=new T.Matrix4(),BB=new T.Matrix4(),BQ=new T.Vector3(),BEu=new T.Euler()
 const HAND_KEYS:[number,number,number][]=[[0,-.24,0],[.002,-.32,.03],[.002,-.32,-.03],[.029,-.335,.05],[.03,-.39,0],[.048,-.393,0],[.04,-.393,.026],[.05,-.39,-.02]];
 /** The hand's own surface, a sample of its vertices (and the glove's) in the elbow's frame: the points the bite keeps under the lips (the eight `HAND_KEYS` missed the knuckles and the thumb). */
 function handPoints(n:Citizen){const el=n.elbows[0],pts:T.Vector3[]=[],v=new T.Vector3();
-  for(const o of el.children)if(o instanceof T.Mesh){const a=o.geometry.attributes.position,st=Math.max(1,Math.floor(a.count/90));for(let i=0;i<a.count;i+=st){o.updateMatrix();v.fromBufferAttribute(a,i).applyMatrix4(o.matrix);if(v.y<-.236)pts.push(v.clone());}}
+  for(const o of el.children)if(o instanceof T.Mesh){const a=o.geometry.attributes.position;if(!a||!a.count)continue;const st=Math.max(1,Math.floor(a.count/90));for(let i=0;i<a.count;i+=st){o.updateMatrix();v.fromBufferAttribute(a,i).applyMatrix4(o.matrix);if(v.y<-.236)pts.push(v.clone());}}
   return pts.length?pts:HAND_KEYS.map(h=>new T.Vector3(...h));}
 function biteReach(n:Citizen,occupier:boolean):number[]{
   const arm=n.arms[0],grip=n.grips[0],m=(n.head.userData.mouth as number[]|undefined)??[0,.08,.1],sh=arm.position.clone();
