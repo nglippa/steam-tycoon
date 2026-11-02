@@ -6,7 +6,7 @@ import { chromium } from '@playwright/test';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-const [base = 'http://127.0.0.1:5173', out = 'cast-sheet', extra = '', only = ''] = process.argv.slice(2);
+const [base = 'http://127.0.0.1:5175', out = 'cast-sheet', extra = '', only = ''] = process.argv.slice(2);
 const views = ['front', 'quarter', 'side', 'back'], poses = ['stride', 'sit', 'raise', 'carry', 'bite'];
 const roles = (only || ['worker', 'engineer', 'merchant', 'guard', 'resident', 'courier', 'ordinal'].join(','));
 const all = `roles=${roles}&seeds=3`;
