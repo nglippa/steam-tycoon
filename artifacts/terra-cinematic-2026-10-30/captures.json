@@ -1,0 +1,125 @@
+{
+  "game": "City Tycoon \u2014 Terra, Locke",
+  "captureDate": "2026-10-30",
+  "method": "Actual in-game Playwright headless screenshots, native 2560x1440 canvas; no image generation, retouching, grading or upscaling",
+  "url": "http://127.0.0.1:5731/?dev=1&intro=0&view=street&people=new&weather=clear&level=2&site=5",
+  "stage": 2,
+  "marketSite": 5,
+  "quality": "high",
+  "consoleErrors": 0,
+  "consoleWarnings": 0,
+  "saveIsolation": "Fresh headless browser context; dev .qa save key; existing user saves untouched",
+  "cameraNote": "camera array is [world X, eye Y, world Z, yaw, pitch]. QA camera/atmosphere controls compose shots; elevated camera held against gravity. Four beauty shots hide UI. Fifth shows the actual city ledger opened with Tab; transient toast and browser drag-look status hidden.",
+  "shots": [
+    {
+      "file": "01-terra-above-the-rooftops.png",
+      "title": "Above the Rooftops",
+      "width": 2560,
+      "height": 1440,
+      "cameraXYZYawPitch": [
+        40,
+        45,
+        75,
+        0.5,
+        -0.4
+      ],
+      "day": 0.65,
+      "weather": "clear",
+      "pixelRatio": 1,
+      "canvasBuffer": [
+        2560,
+        1440
+      ],
+      "hud": false,
+      "bytes": 2205940
+    },
+    {
+      "file": "02-clocktower-at-golden-hour.png",
+      "title": "Clocktower at Golden Hour",
+      "width": 2560,
+      "height": 1440,
+      "cameraXYZYawPitch": [
+        0,
+        1.93,
+        4,
+        0,
+        0.24
+      ],
+      "day": 0.72,
+      "weather": "clear",
+      "pixelRatio": 1,
+      "canvasBuffer": [
+        2560,
+        1440
+      ],
+      "hud": false,
+      "bytes": 2403753
+    },
+    {
+      "file": "03-the-weather-keeper.png",
+      "title": "The Weather Keeper",
+      "width": 2560,
+      "height": 1440,
+      "cameraXYZYawPitch": [
+        -69,
+        2.5,
+        -3.5,
+        2.65,
+        -0.01
+      ],
+      "day": 0.62,
+      "weather": "clear",
+      "pixelRatio": 1,
+      "canvasBuffer": [
+        2560,
+        1440
+      ],
+      "hud": false,
+      "bytes": 1736720
+    },
+    {
+      "file": "04-the-great-main-after-dark.png",
+      "title": "The Great Main After Dark",
+      "width": 2560,
+      "height": 1440,
+      "cameraXYZYawPitch": [
+        0,
+        1.93,
+        26,
+        0,
+        0.05
+      ],
+      "day": 0.86,
+      "weather": "clear",
+      "pixelRatio": 1,
+      "canvasBuffer": [
+        2560,
+        1440
+      ],
+      "hud": false,
+      "bytes": 2039173
+    },
+    {
+      "file": "05-the-city-ledger.png",
+      "title": "The City Ledger",
+      "width": 2560,
+      "height": 1440,
+      "cameraXYZYawPitch": [
+        -2.5,
+        1.65,
+        -22.5,
+        0.94,
+        0.015
+      ],
+      "day": 0.58,
+      "weather": "clear",
+      "pixelRatio": 1,
+      "canvasBuffer": [
+        2560,
+        1440
+      ],
+      "hud": true,
+      "bytes": 1759214
+    }
+  ]
+}
